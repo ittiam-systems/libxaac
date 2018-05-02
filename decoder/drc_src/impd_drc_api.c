@@ -1,0 +1,699 @@
+/******************************************************************************
+ *                                                                             
+ * Copyright (C) 2018 The Android Open Source Project                          
+ *                                                                             
+ * Licensed under the Apache License, Version 2.0 (the "License");           
+ * you may not use this file except in compliance with the License.            
+ * You may obtain a copy of the License at:                                    
+ *                                                                             
+ * http://www.apache.org/licenses/LICENSE-2.0                                  
+ *                                                                            
+ * Unless required by applicable law or agreed to in writing, software        
+ * distributed under the License is distributed on an "AS IS" BASIS,        
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
+ * See the License for the specific language governing permissions and        
+ * limitations under the License.                                             
+ *                                                                            
+ *****************************************************************************
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
+*/																			 
+#include <string.h>
+#include <stdlib.h>
+
+#include "impd_type_def.h"
+#include "impd_error_standards.h"
+#include "impd_apicmd_standards.h"
+#include "impd_memory_standards.h"
+
+
+#include "impd_drc_bitbuffer.h"
+#include "impd_drc_extr_delta_coded_info.h"
+#include "impd_drc_common.h"
+#include "impd_drc_struct.h"
+#include "impd_drc_interface.h"
+#include "impd_parametric_drc_dec.h"
+#include "impd_drc_gain_dec.h"
+#include "impd_drc_filter_bank.h"
+#include "impd_drc_multi_band.h"
+#include "impd_drc_process_audio.h"
+#include "impd_drc_eq.h"
+#include "impd_drc_gain_decoder.h"
+#include "impd_drc_config_params.h"
+#include "impd_drc_api_defs.h"
+#include "impd_drc_definitions.h"
+#include "impd_drc_hashdefines.h"
+#include "impd_drc_peak_limiter.h"
+
+#include "impd_drc_selection_process.h"
+#include "impd_drc_api_struct_def.h"
+#include "impd_drc_error_codes.h"
+
+WORD32 impd_init_process_audio_main_qmf(ia_drc_api_struct *p_obj_drc);
+WORD32 impd_init_process_audio_main_stft(ia_drc_api_struct *p_obj_drc);
+WORD32 impd_init_process_audio_main_td_qmf(ia_drc_api_struct *p_obj_drc);
+
+IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc,
+							   WORD32 i_cmd, WORD32 i_idx, pVOID pv_value);
+
+IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc);
+
+
+
+VOID impd_drc_set_default_config_params(ia_drc_config_struct* ptr_config);
+
+
+IA_ERRORCODE impd_drc_process_frame(ia_drc_api_struct *p_obj_drc);
+IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc);
+IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc);
+IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc);
+IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc);
+
+#define NUM_DRC_TABLES         4
+#define SCRATCH_MEM_SIZE       1024*256*64
+
+
+
+IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj,
+						    WORD32 i_cmd, 
+							WORD32 i_idx, 
+							pVOID pv_value)
+{
+	ia_drc_api_struct *p_obj_drc = p_ia_drc_dec_obj;
+	IA_ERRORCODE error_code=IA_NO_ERROR;
+	LOOPIDX i;
+
+	pUWORD32	pui_value	= pv_value;
+	pUWORD32	pus_value	= pv_value;
+	pWORD8		pb_value	= pv_value;
+	SIZE_T     *ps_value	= pv_value;
+
+	switch(i_cmd)
+	{
+	case IA_API_CMD_GET_MEM_INFO_SIZE:
+	case IA_API_CMD_GET_MEM_INFO_ALIGNMENT:
+	case IA_API_CMD_GET_MEM_INFO_TYPE:
+	case IA_API_CMD_GET_MEM_INFO_PLACEMENT:
+	case IA_API_CMD_GET_MEM_INFO_PRIORITY:
+	case IA_API_CMD_SET_MEM_PTR:
+	case IA_API_CMD_SET_MEM_PLACEMENT:
+		{
+			return impd_drc_mem_api(p_ia_drc_dec_obj, i_cmd, i_idx, pv_value);
+		}
+	};
+
+	switch(i_cmd)
+	{
+	case IA_API_CMD_GET_LIB_ID_STRINGS:
+		{
+			switch(i_idx)
+			{
+			case IA_CMD_TYPE_LIB_NAME:
+				{
+					WORD8 lib_name[] = LIBNAME;
+					for(i = 0; i < IA_API_STR_LEN && lib_name[i -1] != 0; i++)
+					{
+						pb_value[i] = lib_name[i];
+					}
+					break;
+				}
+            case IA_CMD_TYPE_LIB_VERSION:
+                {
+					break;
+                }
+
+			case IA_CMD_TYPE_API_VERSION:
+				{
+
+				}
+			default:
+				{
+					return -1;
+				}
+			};
+			break;
+		}
+	case IA_API_CMD_GET_API_SIZE:
+		{
+			*pui_value = sizeof(ia_drc_api_struct)+(sizeof(ia_drc_state_struct)+8)+8080*1024;
+					
+			break;
+		}
+	case IA_API_CMD_INIT:
+		{
+			switch(i_idx)
+			{
+            case IA_CMD_TYPE_INIT_SET_BUFF_PTR:
+				{
+                    p_obj_drc->p_state->persistant_ptr=p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX];
+					impd_drc_set_struct_pointer(p_obj_drc);
+
+					break;
+				}
+			case IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS:
+				{
+					impd_drc_set_default_config(p_obj_drc);
+					break;
+				}
+			case IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS:
+				{
+                    p_obj_drc->p_state=(ia_drc_state_struct *)((SIZE_T)p_obj_drc+8000*1024);
+					p_obj_drc->p_mem_info=(ia_mem_info_struct *)((SIZE_T)p_obj_drc+8002*1024);
+					p_obj_drc->pp_mem=(pVOID)((SIZE_T)p_obj_drc+8006*1024);
+					impd_drc_fill_mem_tables(p_obj_drc);
+					break;
+				}
+			case IA_CMD_TYPE_INIT_PROCESS:
+				{
+					IA_ERRORCODE Error=0;
+
+					if(p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX] == 0)
+					{
+						return(-1);
+					}
+                    
+                   
+					Error = impd_drc_init(p_obj_drc);
+					if(Error)
+						return Error;
+					p_obj_drc->p_state->ui_init_done = 1;
+					return Error;
+					break;
+				}
+            case IA_CMD_TYPE_INIT_DONE_QUERY:
+                {
+
+                    if(p_obj_drc->p_state->ui_init_done == 1)
+					{
+						*pui_value = 1;
+					}
+					else
+					{
+						*pui_value = 0;
+					}
+                    break;
+                }
+
+            case IA_CMD_TYPE_INIT_CPY_BSF_BUFF_OVER_QUERY:
+                {
+					*pui_value = p_obj_drc->str_bit_handler.cpy_over;
+                    break;
+                }
+            case IA_CMD_TYPE_INIT_CPY_IC_BSF_BUFF_OVER_QUERY:
+                {
+					*pui_value = p_obj_drc->str_bit_handler.cpy_over_ic;
+                    break;
+                }
+                
+            case IA_CMD_TYPE_INIT_CPY_IL_BSF_BUFF_OVER_QUERY:
+                {
+					*pui_value = p_obj_drc->str_bit_handler.cpy_over_il;
+                    break;
+                }
+            case IA_CMD_TYPE_INIT_CPY_IN_BSF_BUFF_OVER_QUERY:
+                {
+					*pui_value = p_obj_drc->str_bit_handler.cpy_over_in;
+                    break;
+                }
+			case IA_CMD_TYPE_INIT_CPY_BSF_BUFF:
+				{
+					memcpy(p_obj_drc->str_bit_handler.it_bit_buf+p_obj_drc->str_bit_handler.num_bytes_bs, p_obj_drc->pp_mem[2],p_obj_drc->str_bit_handler.num_byts_cur);
+					p_obj_drc->str_bit_handler.num_bytes_bs=p_obj_drc->str_bit_handler.num_bytes_bs+p_obj_drc->str_bit_handler.num_byts_cur;
+                    break;
+
+				}
+           case IA_CMD_TYPE_INIT_CPY_IC_BSF_BUFF:
+				{
+					memcpy(p_obj_drc->str_bit_handler.bitstream_drc_config+p_obj_drc->str_bit_handler.num_bytes_bs_drc_config, p_obj_drc->pp_mem[2],p_obj_drc->str_bit_handler.num_byts_cur_ic);
+					p_obj_drc->str_bit_handler.num_bytes_bs_drc_config=p_obj_drc->str_bit_handler.num_bytes_bs_drc_config+p_obj_drc->str_bit_handler.num_byts_cur_ic;
+                    break;
+
+				}
+            case IA_CMD_TYPE_INIT_CPY_IL_BSF_BUFF:
+				{
+					memcpy(p_obj_drc->str_bit_handler.bitstream_loudness_info+p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info, p_obj_drc->pp_mem[2],p_obj_drc->str_bit_handler.num_byts_cur_il);
+					p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info=p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info+p_obj_drc->str_bit_handler.num_byts_cur_il;
+                    break;
+
+				}
+           case IA_CMD_TYPE_INIT_CPY_IN_BSF_BUFF:
+				{
+					memcpy(p_obj_drc->str_bit_handler.bitstream_unidrc_interface+p_obj_drc->str_bit_handler.num_bytes_bs_unidrc_interface, p_obj_drc->pp_mem[2],p_obj_drc->str_bit_handler.num_byts_cur_in);
+					p_obj_drc->str_bit_handler.num_bytes_bs_unidrc_interface=p_obj_drc->str_bit_handler.num_bytes_bs_unidrc_interface+p_obj_drc->str_bit_handler.num_byts_cur_in;
+                    break;
+
+				}
+			default:
+				{
+					return -1;
+				}
+			};
+			break;
+		}
+	case IA_API_CMD_GET_CONFIG_PARAM:
+		{
+			switch(i_idx)
+			{
+		
+			case IA_DRC_DEC_CONFIG_PARAM_SAMP_FREQ:
+				{
+
+					*pus_value=p_obj_drc->str_config.sampling_rate;
+					break;
+				}
+
+		   case IA_DRC_DEC_CONFIG_PARAM_NUM_CHANNELS:
+				{
+
+                    *pus_value=p_obj_drc->str_config.num_ch_out;
+					break;
+				}
+		   case IA_DRC_DEC_CONFIG_PROC_OUT_PTR:
+				{
+
+                    *ps_value=(SIZE_T)p_obj_drc->str_payload.pstr_drc_sel_proc_output;
+					break;
+				}
+				
+			}
+			break;
+		}
+	case IA_API_CMD_SET_CONFIG_PARAM:
+		{
+			switch(i_idx)
+			{
+			case IA_DRC_DEC_CONFIG_PARAM_DEC_TYPE:
+				{
+					if(*pus_value==1){
+                        p_obj_drc->str_config.dec_type = DEC_TYPE_TD_QMF64;
+                        p_obj_drc->str_config.sub_band_domain_mode = SUBBAND_DOMAIN_MODE_QMF64;
+                        p_obj_drc->str_config.sub_band_down_sampling_factor = AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
+                        p_obj_drc->str_config.sub_band_count = AUDIO_CODEC_SUBBAND_COUNT_QMF64;
+					}
+					else if(*pus_value==2){
+                        p_obj_drc->str_config.dec_type = DEC_TYPE_QMF64;
+                        p_obj_drc->str_config.sub_band_domain_mode = SUBBAND_DOMAIN_MODE_QMF64;
+                        p_obj_drc->str_config.sub_band_down_sampling_factor = AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
+                        p_obj_drc->str_config.sub_band_count = AUDIO_CODEC_SUBBAND_COUNT_QMF64;
+					}
+					else if(*pus_value==3){
+                        p_obj_drc->str_config.dec_type = DEC_TYPE_STFT256;
+                        p_obj_drc->str_config.sub_band_domain_mode = SUBBAND_DOMAIN_MODE_STFT256;
+                        p_obj_drc->str_config.sub_band_down_sampling_factor = AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_STFT256;
+                        p_obj_drc->str_config.sub_band_count = AUDIO_CODEC_SUBBAND_COUNT_STFT256;
+					}
+					else{
+						p_obj_drc->str_config.dec_type = DEC_TYPE_TD;
+						p_obj_drc->str_config.sub_band_domain_mode = SUBBAND_DOMAIN_MODE_OFF;
+					}
+
+					if(*pus_value<0 || *pus_value >3)
+					{
+						return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_DECODE_TYPE;
+					}
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_CTRL_PARAM:
+				{
+					if(*pus_value<1 || *pus_value>39)
+					{
+						return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_CTRL_PARAM_IDX;
+					}
+                    p_obj_drc->str_config.control_parameter_index = *pus_value;
+					break;
+				}
+            case IA_DRC_DEC_CONFIG_PARAM_PEAK_LIMITER:
+				{
+					if(*pus_value<0 || *pus_value>1)
+					{
+						return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PEAK_LIM_FLAG;
+					}
+                    p_obj_drc->str_config.peak_limiter = *pus_value;
+					break;
+				}  
+				
+			case IA_DRC_DEC_CONFIG_PARAM_VER_MODE:
+				{
+					break;
+				}  
+			case IA_DRC_DEC_CONFIG_PARAM_SAMP_FREQ:
+				{
+					if(*pus_value<8000 || *pus_value>96000)
+					{
+						return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_SAMP_FREQ;
+					}
+					p_obj_drc->str_config.sampling_rate = *pus_value;
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_NUM_CHANNELS:
+				{
+					p_obj_drc->str_config.num_ch_in = *pus_value;
+                    if(*pus_value < 1 || *pus_value > MAX_CHANNEL_COUNT)
+                    {
+                        return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_NUM_OF_CHANNELS;
+                    }
+					break;
+				}			
+
+			case IA_DRC_DEC_CONFIG_PARAM_PCM_WDSZ:
+				{
+                    if((*pus_value!=16) && (*pus_value!=32))
+                    {
+                        return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PCM_SIZE;
+                    }
+
+					p_obj_drc->str_config.pcm_size = *pus_value;
+
+                                        
+					break;
+				}
+
+			case IA_DRC_DEC_CONFIG_PARAM_BITS_FORMAT:
+				{
+                    if((*pus_value!=1)&&(*pus_value!=0))
+                    {
+                        return -1;
+                    }
+					p_obj_drc->str_config.bitstream_file_format = *pus_value;
+                                        
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_INT_PRESENT:
+				{
+                    if((*pus_value!=1)&&(*pus_value!=0))
+                    {
+                        return -1;
+                    }
+					p_obj_drc->str_config.interface_bitstream_present = *pus_value;
+                                        
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_DELAY_MODE:
+				{
+                    if((*pus_value!=1)&&(*pus_value!=0))
+                    {
+                        return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_DELAY_MODE;
+                    }
+					p_obj_drc->str_config.delay_mode = *pus_value;
+                                        
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_GAIN_DELAY:
+				{
+					if ((*pus_value > MAX_SIGNAL_DELAY) || (*pus_value < 0))
+					{
+						return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_GAIN_DELAY;
+					}
+
+					p_obj_drc->str_config.gain_delay_samples = *pus_value;
+
+                                        
+					break;
+				}
+
+			/*Sujith: introduce error*/
+			case IA_DRC_DEC_CONFIG_PARAM_AUDIO_DELAY:
+				{
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_CON_DELAY_MODE:
+				{
+                    if(*pus_value<0 || *pus_value>1)
+                    {
+                        return IA_DRC_DEC_CONFIG_PARAM_CON_DELAY_MODE;
+                    }
+					p_obj_drc->str_config.constant_delay_on = *pus_value;
+               
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_ABSO_DELAY_OFF:
+				{
+					p_obj_drc->str_config.absorb_delay_on = *pus_value;
+                                        
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE:
+				{
+                    if(*pus_value<1 || *pus_value>4096)
+                    {
+                        return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_FRAME_SIZE;
+                    }
+
+					p_obj_drc->str_config.frame_size = *pus_value;
+
+                                        
+					break;
+				}
+			case IA_DRC_DEC_CONFIG_GAIN_STREAM_FLAG:
+				{
+					p_obj_drc->str_bit_handler.gain_stream_flag = *pus_value;                     
+					break;
+				}
+                                                   
+			default:
+				{
+					return -1;
+				}
+			}
+			break;
+		}
+	case IA_API_CMD_GET_MEMTABS_SIZE:
+		{
+
+			break;
+		}
+	case IA_API_CMD_SET_MEMTABS_PTR:
+		{
+
+			break;
+		}
+	case IA_API_CMD_GET_N_MEMTABS:
+		{
+           
+			*pui_value = NUM_DRC_TABLES;
+			break;
+		}
+    case IA_API_CMD_GET_N_TABLES:
+        {
+
+            break;
+        }
+
+	case IA_API_CMD_EXECUTE:
+		{
+			switch(i_idx)
+			{
+			case IA_CMD_TYPE_DO_EXECUTE:
+				{
+					if(p_obj_drc->str_config.dec_type==DEC_TYPE_TD){ 
+						error_code=impd_process_time_domain(p_obj_drc);}
+					else if(p_obj_drc->str_config.dec_type==DEC_TYPE_QMF64){
+						error_code=impd_init_process_audio_main_qmf(p_obj_drc);
+					}
+					else if(p_obj_drc->str_config.dec_type==DEC_TYPE_STFT256){
+						error_code=impd_init_process_audio_main_stft(p_obj_drc);
+					}
+					else if(p_obj_drc->str_config.dec_type==DEC_TYPE_TD_QMF64){
+						error_code=impd_init_process_audio_main_td_qmf(p_obj_drc);
+					}
+					break;
+				}
+			case IA_CMD_TYPE_DONE_QUERY:
+				{
+
+					*pui_value = p_obj_drc->p_state->ui_exe_done;
+					 break;
+				}
+			default:
+				{
+					return -1;
+				}
+			};
+			break;
+		}
+	case IA_API_CMD_PUT_INPUT_QUERY:
+		{
+			*pui_value = 1;
+			break;
+		}
+	case IA_API_CMD_GET_CURIDX_INPUT_BUF:
+		{
+			UWORD32 ui_in_buf_size =
+				p_obj_drc->p_mem_info[IA_DRC_INPUT_IDX].ui_size;
+			UWORD32 ui_in_bytes = p_obj_drc->p_state->ui_in_bytes;
+			*pui_value = ui_in_buf_size > ui_in_bytes ? ui_in_bytes : ui_in_buf_size;
+			break;
+		}
+	case IA_API_CMD_SET_INPUT_BYTES:
+		{
+			p_obj_drc->p_state->ui_in_bytes = *pui_value;
+			break;
+		}
+
+	case IA_API_CMD_GET_OUTPUT_BYTES:
+		{
+			*pui_value = p_obj_drc->p_state->ui_out_bytes;
+			break;
+		}
+	case IA_API_CMD_INPUT_OVER:
+		{
+			p_obj_drc->p_state->ui_exe_done=1;
+			break;
+		}
+	case IA_API_CMD_INPUT_OVER_BS:
+		{
+	       	p_obj_drc->str_bit_handler.cpy_over = 1;
+			break;
+		}
+    case IA_API_CMD_INPUT_OVER_IC_BS:
+		{
+	       	p_obj_drc->str_bit_handler.cpy_over_ic = 1;
+			break;
+		}
+    case IA_API_CMD_INPUT_OVER_IL_BS:
+		{
+	       	p_obj_drc->str_bit_handler.cpy_over_il = 1;
+			break;
+		}
+    case IA_API_CMD_INPUT_OVER_IN_BS:
+		{
+	       	p_obj_drc->str_bit_handler.cpy_over_in = 1;
+			break;
+		}
+	case IA_API_CMD_SET_INPUT_BYTES_BS:
+		{
+			p_obj_drc->str_bit_handler.num_byts_cur=*pus_value;
+			break;
+		}
+    case IA_API_CMD_SET_INPUT_BYTES_IC_BS:
+		{
+			p_obj_drc->str_bit_handler.num_byts_cur_ic=*pus_value;
+			break;
+		}
+    case IA_API_CMD_SET_INPUT_BYTES_IL_BS:
+		{
+			p_obj_drc->str_bit_handler.num_byts_cur_il=*pus_value;
+			break;
+		}
+    case IA_API_CMD_SET_INPUT_BYTES_IN_BS:
+		{
+			p_obj_drc->str_bit_handler.num_byts_cur_in=*pus_value;
+			break;
+		}
+	default:
+		{
+			return -1;
+		}
+	};
+	return error_code;
+}
+
+
+IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc,
+							   WORD32 i_cmd, WORD32 i_idx, pVOID pv_value)
+{
+	pUWORD32	pui_value	= pv_value;
+
+	switch(i_cmd)
+	{
+	case IA_API_CMD_GET_MEM_INFO_SIZE:
+		{
+			*pui_value = p_obj_drc->p_mem_info[i_idx].ui_size;
+			break;
+		}
+	case IA_API_CMD_GET_MEM_INFO_ALIGNMENT:
+		{
+			*pui_value = p_obj_drc->p_mem_info[i_idx].ui_alignment;
+			break;
+		}
+	case IA_API_CMD_GET_MEM_INFO_TYPE:
+		{
+			*pui_value = p_obj_drc->p_mem_info[i_idx].ui_type;
+			break;
+		}
+	case IA_API_CMD_GET_MEM_INFO_PLACEMENT:
+		{
+			*pui_value = p_obj_drc->p_mem_info[i_idx].ui_placement[0];
+			*(pui_value + 1) = p_obj_drc->p_mem_info[i_idx].ui_placement[1];
+			break;
+		}
+	case IA_API_CMD_GET_MEM_INFO_PRIORITY:
+		{
+			*pui_value = p_obj_drc->p_mem_info[i_idx].ui_priority;
+			break;
+		}
+	case IA_API_CMD_SET_MEM_PTR:
+		{
+
+            pWORD8 pbtemp;
+            UWORD32  sz;
+            if(pv_value == 0)
+            {
+                return(-1);
+            }
+            if(((SIZE_T)pv_value % p_obj_drc->p_mem_info[i_idx].ui_alignment) != 0)
+            {
+                return(-1);
+            }
+            p_obj_drc->pp_mem[i_idx] = pv_value;
+			pbtemp = p_obj_drc->pp_mem[i_idx];
+			sz = p_obj_drc->p_mem_info[i_idx].ui_size;
+
+            memset(pbtemp,0,sz);
+		}
+	case IA_API_CMD_SET_MEM_PLACEMENT:
+		{
+
+		}
+	};
+	return IA_NO_ERROR;
+}
+
+IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc)
+{
+	ia_mem_info_struct *p_mem_info;
+	{
+		p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_PERSIST_IDX];
+		p_mem_info->ui_size = 64*1024*1024;
+		p_mem_info->ui_alignment = 8;
+		p_mem_info->ui_type = IA_MEMTYPE_PERSIST;
+		p_mem_info->ui_placement[0] = 0;
+		p_mem_info->ui_placement[1] = 0;
+		p_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+		p_mem_info->ui_placed[0] = 0;
+		p_mem_info->ui_placed[1] = 0;
+	}
+	{
+		p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_INPUT_IDX];
+		p_mem_info->ui_size = p_obj_drc->str_config.frame_size*(p_obj_drc->str_config.pcm_size>>3)*p_obj_drc->str_config.num_ch_in;
+		p_mem_info->ui_alignment = 4;
+		p_mem_info->ui_type = IA_MEMTYPE_INPUT;
+		p_mem_info->ui_placement[0] = 0;
+		p_mem_info->ui_placement[1] = 0;
+		p_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+		p_mem_info->ui_placed[0] = 0;
+		p_mem_info->ui_placed[1] = 0;
+	}
+	{
+		p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_OUTPUT_IDX];
+		p_mem_info->ui_size = p_obj_drc->str_config.frame_size*(p_obj_drc->str_config.pcm_size>>3)*p_obj_drc->str_config.num_ch_in;
+		p_mem_info->ui_alignment = 4;
+		p_mem_info->ui_type = IA_MEMTYPE_OUTPUT;
+		p_mem_info->ui_placement[0] = 0;
+		p_mem_info->ui_placement[1] = 0;
+		p_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+		p_mem_info->ui_placed[0] = 0;
+		p_mem_info->ui_placed[1] = 0;
+	}
+	{
+		p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_SCRATCH_IDX];
+		p_mem_info->ui_size = SCRATCH_MEM_SIZE;
+		p_mem_info->ui_alignment = 8;
+		p_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
+		p_mem_info->ui_placement[0] = 0;
+		p_mem_info->ui_placement[1] = 0;
+		p_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+		p_mem_info->ui_placed[0] = 0;
+		p_mem_info->ui_placed[1] = 0;
+	}
+	return IA_NO_ERROR;
+}
