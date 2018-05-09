@@ -325,7 +325,6 @@ VOID ixheaacd_posttwdct2(WORD32 *inp, WORD16 *out_fwd,
   WORD16 twid_re, twid_im;
   const WORD16 *twidle_fwd;
   WORD16 re1, im1, im2;
-  WORD32 dummy1 = 0, dummy2 = 0x80000000;
 
   out_rev = out_fwd + DCT2_LEN - 1;
   out_rev2 = out_fwd - 1;
@@ -464,17 +463,6 @@ static PLATFORM_INLINE VOID ixheaacd_fftposttw_32(
   return;
 }
 
-static PLATFORM_INLINE WORD32 mult32x16in32t(WORD32 a, WORD16 b) {
-  WORD32 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)a * (WORD64)b;
-  temp_result += 32768;
-
-  result = (WORD32)(temp_result >> 16);
-
-  return (result);
-}
 
 static PLATFORM_INLINE VOID
 ixheaacd_posttwdct2_32(WORD32 *inp, WORD16 *out_fwd,
@@ -1398,7 +1386,7 @@ VOID ixheaacd_esbr_radix4bfly(const WORD32 *w, WORD32 *x, WORD32 index1,
 VOID ixheaacd_esbr_postradixcompute2(WORD32 *ptr_y, WORD32 *ptr_x,
                                      const WORD32 *pdig_rev_tbl,
                                      WORD32 npoints) {
-  WORD32 i, j = 0, k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 x_0, x_1, x_2, x_3;
   WORD32 x_4, x_5, x_6, x_7;
@@ -1485,7 +1473,7 @@ VOID ixheaacd_esbr_postradixcompute2(WORD32 *ptr_y, WORD32 *ptr_x,
 VOID ixheaacd_esbr_postradixcompute4(WORD32 *ptr_y, WORD32 *ptr_x,
                                      const WORD32 *p_dig_rev_tbl,
                                      WORD32 npoints) {
-  WORD32 i, j = 0, k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 xh0_0, xh1_0, xl0_0, xl1_0;
   WORD32 xh0_1, xh1_1, xl0_1, xl1_1;
@@ -2397,7 +2385,7 @@ VOID ixheaacd_cplx_synt_qmffilt(
       t_qmf_imag = qmf_imag[i];
 
       if (active) {
-        if ((i == ptr_ps_dec->border_position[env])) {
+        if (i == ptr_ps_dec->border_position[env]) {
           ixheaacd_init_rot_env(ptr_ps_dec, (WORD16)env, qmf_bank->usb,
                                 sbr_tables_ptr, pstr_common_tables->trig_data);
           env++;
@@ -2611,7 +2599,7 @@ VOID ixheaacd_radix4bfly(const WORD16 *w, WORD32 *x, WORD32 index1,
 
 VOID ixheaacd_postradixcompute4(WORD32 *ptr_y, WORD32 *ptr_x,
                                 const WORD32 *p_dig_rev_tbl, WORD32 npoints) {
-  WORD32 i, j = 0, k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 xh0_0, xh1_0, xl0_0, xl1_0;
   WORD32 xh0_1, xh1_1, xl0_1, xl1_1;
@@ -2718,7 +2706,7 @@ VOID ixheaacd_postradixcompute4(WORD32 *ptr_y, WORD32 *ptr_x,
 
 VOID ixheaacd_postradixcompute2(WORD32 *ptr_y, WORD32 *ptr_x,
                                 const WORD32 *pdig_rev_tbl, WORD32 npoints) {
-  WORD32 i, j = 0, k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 x_0, x_1, x_2, x_3;
   WORD32 x_4, x_5, x_6, x_7;
