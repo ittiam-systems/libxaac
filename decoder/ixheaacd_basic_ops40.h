@@ -324,6 +324,18 @@ static PLATFORM_INLINE WORD64 ixheaacd_mult64(WORD32 a, WORD32 b) {
   return (result);
 }
 
+static PLATFORM_INLINE WORD64 ixheaacd_mult64_sat(WORD64 a, WORD64 b) {
+  WORD64 result;
+
+    if (a > 0 && b > 0 && a > MAX_64 / b) return MAX_64;
+    if (a < 0 && b > 0 && a < MIN_64 / b) return MIN_64;
+    if (a > 0 && b < 0 && b < MIN_64 / a) return MIN_64;
+    if (a < 0 && b < 0 && a < MAX_64 / b) return MAX_64;
+
+  result = a * b;
+  return (result);
+}
+
 static PLATFORM_INLINE WORD64 ixheaacd_add64_sat(WORD64 a, WORD64 b) {
   WORD64 result , comp;
   result =  (a < 0) ? MIN_64 : MAX_64;

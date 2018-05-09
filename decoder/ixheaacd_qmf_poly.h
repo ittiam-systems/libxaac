@@ -23,9 +23,9 @@
 double *ixheaacd_interpo_esbr_fcoff(const double *orig_prot, WORD32 no,
                                     WORD32 lo, WORD32 li);
 
-VOID ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer);
+WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer);
 
-VOID ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                               WORD32 num_columns, FLOAT32 qmf_buf_real[][64],
                               FLOAT32 qmf_buf_imag[][64]);
 

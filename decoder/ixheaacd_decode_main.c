@@ -268,6 +268,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
       delay = ixheaacd_decode_create(
           handle, pstr_dec_data,
           pstr_dec_data->str_frame_data.scal_out_select + 1);
+      pstr_dec_data->dec_bit_buf.max_size = handle->p_mem_info_aac[IA_MEMTYPE_INPUT].ui_size;
       if (delay == -1) return -1;
       *num_channel_out = pstr_dec_data->str_frame_data.scal_out_num_channels;
       return 0;
@@ -276,13 +277,14 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     pstr_dec_data->dec_bit_buf.ptr_bit_buf_base = (UWORD8 *)inbuffer;
     pstr_dec_data->dec_bit_buf.size = aac_dec_handle->ui_in_bytes << 3;
     pstr_dec_data->dec_bit_buf.ptr_bit_buf_end =
-        (UWORD8 *)inbuffer + aac_dec_handle->ui_in_bytes;
+        (UWORD8 *)inbuffer + aac_dec_handle->ui_in_bytes - 1;
     pstr_dec_data->dec_bit_buf.ptr_read_next = (UWORD8 *)inbuffer;
     pstr_dec_data->dec_bit_buf.bit_pos = 7;
     pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
 
     pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
-
+    if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
+        pstr_dec_data->dec_bit_buf.max_size = pstr_dec_data->dec_bit_buf.size;
     /* audio pre roll frame parsing*/
 
     do{
@@ -319,7 +321,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
             return -1;
 
         /* call codec re-configure*/
-        err = ixheaacd_config(config_bit_buf, &(pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config)/*&pstr_audio_specific_config->str_usac_config*/);
+        err = ixheaacd_config(config_bit_buf, &(pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config),&(pstr_audio_specific_config->channel_configuration)/*&pstr_audio_specific_config->str_usac_config*/);
         free(config_bit_buf);
         if (err != 0) return -1;
 
@@ -335,7 +337,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     pstr_dec_data->dec_bit_buf.ptr_bit_buf_base = (UWORD8 *)inbuffer;
     pstr_dec_data->dec_bit_buf.size = aac_dec_handle->ui_in_bytes << 3;
     pstr_dec_data->dec_bit_buf.ptr_bit_buf_end =
-        (UWORD8 *)inbuffer + aac_dec_handle->ui_in_bytes;
+        (UWORD8 *)inbuffer + aac_dec_handle->ui_in_bytes - 1;
     pstr_dec_data->dec_bit_buf.ptr_read_next = (UWORD8 *)inbuffer;
     pstr_dec_data->dec_bit_buf.bit_pos = 7;
     pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;

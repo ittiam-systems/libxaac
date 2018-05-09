@@ -174,7 +174,7 @@ WORD16 ixheaacd_create_sbrdec(
 WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
                                VOID *p_sbr_frame, VOID *p_sbr_header);
 
-VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
+WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
                             FLOAT32 qmf_buf_real[][64],
                             FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
                             FLOAT32 pv_qmf_buf_real[][64],
@@ -204,7 +204,7 @@ VOID ixheaacd_rescale_x_overlap(
     ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
     WORD32 **pp_overlap_buffer_real, FLAG low_pow_flag);
 
-VOID ixheaacd_qmf_hbe_data_reinit(
+WORD32 ixheaacd_qmf_hbe_data_reinit(
     ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
     WORD16 *ptr_freq_band_tbl[MAX_FREQ_COEFFS + 1], WORD16 *ptr_num_sf_bands,
     WORD32 upsamp_4_flag);
@@ -216,14 +216,14 @@ WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
                                  ia_sbr_tables_struct *sbr_tables_ptr,
                                  ia_sbr_header_data_struct *ptr_header_data);
 
-VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
+WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
                             FLOAT32 qmf_buf_real[][64],
                             FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
                             FLOAT32 pv_qmf_buf_real[][64],
                             FLOAT32 pv_qmf_buf_imag[][64],
                             WORD32 pitch_in_bins);
 
-VOID ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
+WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
                        ia_sbr_header_data_struct *ptr_header_data,
                        ia_sbr_frame_info_data_struct *ptr_frame_data,
                        FLAG apply_processing, FLAG low_pow_flag,

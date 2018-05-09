@@ -178,4 +178,43 @@ VOID ixheaacd_cos_sin_mod_loop1(WORD32 *subband, WORD32 M,
 
 VOID ixheaacd_cos_sin_mod_loop2(WORD32 *subband, const WORD16 *p_sin, WORD32 M);
 
+VOID ixheaacd_sbr_qmfsyn64_winadd(WORD16 *tmp1, WORD16 *tmp2, WORD16 *inp1,
+                                  WORD16 *sample_buffer, FLAG shift,
+                                  WORD32 ch_fac);
+
+VOID ixheaacd_esbr_cos_sin_mod(WORD32 *subband,
+                               ia_sbr_qmf_filter_bank_struct *qmf_bank,
+                               WORD32 *p_twiddle, WORD32 *p_dig_rev_tbl);
+
+VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
+                           ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                           ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+
+VOID ixheaacd_sbr_pre_twiddle(WORD32 *p_xre, WORD32 *p_xim,
+                              WORD16 *p_twiddles);
+
+VOID ixheaacd_inv_emodulation(
+    WORD32 *qmf_real, ia_sbr_qmf_filter_bank_struct *syn_qmf,
+    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+
+VOID ixheaacd_pretwdct2(WORD32 *inp, WORD32 *out_fwd);
+
+VOID ixheaacd_sbr_qmfanal32_winadd_eld(WORD16 *inp1, WORD16 *inp2,
+                                       WORD16 *p_qmf1, WORD16 *p_qmf2,
+                                       WORD32 *p_out);
+
+VOID ixheaacd_dct2_32(WORD32 *inp, WORD32 *out,
+                      ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                      WORD16 *filter_states);
+
+VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
+                           ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                           ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+
+VOID ixheaacd_fftposttw(WORD32 *out,
+                        ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+
+VOID ixheaacd_posttwdct2(WORD32 *inp, WORD16 *out_fwd,
+                         ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+
 #endif
