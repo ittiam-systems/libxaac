@@ -356,7 +356,7 @@ VOID ixheaacd_mps_time_env_shaping(ia_mps_dec_state_struct *self);
 VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
     ia_mps_dec_state_struct *self);
 VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self);
-VOID ixheaacd_mps_temp_process(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct *self);
 
 VOID ixheaacd_mps_par2umx_ps(ia_mps_dec_state_struct *self,
                              ia_mps_bs_frame *curr_bit_stream, WORD32 *h_real,

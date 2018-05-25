@@ -11,7 +11,8 @@ cc_library_static {
     ],
 
     export_include_dirs: [
-        "decoder"
+        "decoder",
+        "decoder/drc_src"
     ],
 
     srcs: [
@@ -215,7 +216,8 @@ cc_library_static {
                     "decoder/armv7/ixheaacd_fft_15_ld.s",
                     "decoder/armv7/ixheaacd_aac_ld_dec_rearrange.s",
                     "decoder/armv7/ixheaacd_fft32x32_ld2_armv7.s",
-                    "decoder/armv7/ixheaacd_apply_scale_fac.s"
+                    "decoder/armv7/ixheaacd_apply_scale_fac.s",
+                    "decoder/armv7/ixheaacd_tns_ar_filter_fixed.s"
                 ],
             }
         },
@@ -248,6 +250,7 @@ cc_library_static {
                 "decoder/armv8/ixheaacd_apply_scale_factors.s",
                 "decoder/armv8/ixheaacd_cos_sin_mod_loop1.s",
                 "decoder/armv8/ixheaacd_cos_sin_mod_loop2.s",
+                "decoder/armv8/ixheaacd_post_twiddle_overlap.s",
             ],
         },
 

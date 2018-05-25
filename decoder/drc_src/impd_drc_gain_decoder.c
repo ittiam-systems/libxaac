@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -47,25 +47,25 @@ IA_ERRORCODE impd_init_drc_decode( WORD32 frame_size,
 {
     IA_ERRORCODE err_code = IA_NO_ERROR;
 
-    
+
     err_code = impd_init_drc_params(frame_size,
                                     sample_rate,
                                     gain_delay_samples,
                                     delay_mode,
                                     sub_band_domain_mode,
                                     &p_drc_gain_dec_structs->ia_drc_params_struct);
-                                    
-    if (err_code!=IA_NO_ERROR) 
+
+    if (err_code!=IA_NO_ERROR)
         return (err_code);
-    
+
     impd_init_parametric_drc(p_drc_gain_dec_structs->ia_drc_params_struct.drc_frame_size,
                              sample_rate,
                              sub_band_domain_mode,
                              &p_drc_gain_dec_structs->parametricdrc_params);
-                        
-    if (err_code!=IA_NO_ERROR) 
+
+    if (err_code!=IA_NO_ERROR)
         return (err_code);
-    
+
     return err_code;
 }
 
@@ -75,19 +75,19 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                                                 WORD32*                  downmix_id_processed,
                                                 WORD32                   num_sets_processed,
                                                 WORD32                   eq_set_id_processed,
-                                        
+
                                                 ia_drc_gain_dec_struct*    p_drc_gain_dec_structs,
                                                 ia_drc_config*             pstr_drc_config,
                                                ia_drc_loudness_info_set_struct*  pstr_loudness_info,
-							                    pVOID                       *mem_ptr
+                                                pVOID                       *mem_ptr
                         )
 {
 
     IA_ERRORCODE err_code = 0;
-	WORD32 i,j,k, maxMultibandAudioSignalCount=0;
+    WORD32 i,j,k, maxMultibandAudioSignalCount=0;
     ia_drc_params_struct* p_drc_params_struct   = &p_drc_gain_dec_structs->ia_drc_params_struct;
     ia_audio_in_out_buf*  p_audio_in_out_buf    = &p_drc_gain_dec_structs->audio_in_out_buf;
-    
+
     for (i = 0; i < num_sets_processed; i++)
     {
         err_code = impd_init_selected_drc_set(pstr_drc_config,
@@ -100,10 +100,10 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                                  &p_drc_gain_dec_structs->str_overlap_params
                                  ,p_drc_gain_dec_structs->shape_filter_block
                                  );
-        if (err_code) 
+        if (err_code)
             return (err_code);
     }
-    
+
     p_drc_gain_dec_structs->audio_num_chan = audio_num_chan;
     p_drc_gain_dec_structs->ia_drc_params_struct.audio_delay_samples = p_drc_gain_dec_structs->ia_drc_params_struct.parametric_drc_delay;
     if (pstr_drc_config->str_drc_config_ext.parametric_drc_present) {
@@ -111,15 +111,15 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                                                          pstr_loudness_info,
                                                          &p_drc_gain_dec_structs->parametricdrc_params,
                                                          mem_ptr);
-        if (err_code) 
+        if (err_code)
             return (err_code);
     }
 
     p_audio_in_out_buf->audio_num_chan         = audio_num_chan;
     p_audio_in_out_buf->audio_delay_samples    = p_drc_params_struct->audio_delay_samples;
     p_audio_in_out_buf->frame_size             = p_drc_params_struct->drc_frame_size;
-    
- 
+
+
     if(p_drc_params_struct->sub_band_domain_mode == SUBBAND_DOMAIN_MODE_QMF64){
             p_audio_in_out_buf->audio_delay_sub_band_samples = p_drc_params_struct->audio_delay_samples / AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
             p_audio_in_out_buf->audio_sub_band_frame_size    = p_drc_params_struct->drc_frame_size / AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
@@ -147,12 +147,12 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
     for (k=0; k<SEL_DRC_COUNT; k++)
     {
         if (p_drc_params_struct->sel_drc_array[k].drc_instructions_index >= 0)
-        {	
+        {
             ia_drc_instructions_struct* drc_instruction_str = &(pstr_drc_config->str_drc_instruction_str[p_drc_params_struct->sel_drc_array[k].drc_instructions_index]);
             if (drc_instruction_str->gain_element_count > 0)
             {
                 p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k].buf_interpolation = (ia_interp_buf_struct*)*mem_ptr;
-	         	*mem_ptr=(pVOID)((SIZE_T)*mem_ptr+drc_instruction_str->gain_element_count*sizeof(ia_interp_buf_struct)+32);
+                *mem_ptr=(pVOID)((SIZE_T)*mem_ptr+drc_instruction_str->gain_element_count*sizeof(ia_interp_buf_struct)+32);
                 p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k].buf_interpolation_count = drc_instruction_str->gain_element_count;
                 for (i=0; i<p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i].buf_interpolation_count; i++)
                 {
@@ -160,7 +160,7 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                     p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i].buf_interpolation[i].prev_node.time = -1;
                     p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i].buf_interpolation[i].str_node.loc_db_gain = 0.0f;
                     p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i].buf_interpolation[i].str_node.slope = 0.0f;
-                    
+
                     for (j=0; j<2 * AUDIO_CODEC_FRAME_SIZE_MAX + MAX_SIGNAL_DELAY; j++)
                     {
                         p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i].buf_interpolation[i].lpcm_gains[j] = 1.f;
@@ -170,9 +170,9 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
         }
     }
 
-  
 
- 
+
+
     if (eq_set_id_processed > 0)
     {
         for(i=0; i<pstr_drc_config->str_drc_config_ext.eq_instructions_count; i++)
@@ -180,16 +180,16 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
             if (pstr_drc_config->str_drc_config_ext.str_eq_instructions[i].eq_set_id == eq_set_id_processed)
                 break;
         }
-        if (i==pstr_drc_config->str_drc_config_ext.eq_instructions_count) 
+        if (i==pstr_drc_config->str_drc_config_ext.eq_instructions_count)
         {
             return -1;
         }
 
-        
+
         p_drc_gain_dec_structs->eq_set=(ia_eq_set_struct*)*mem_ptr ;
         *mem_ptr=(pVOID)((SIZE_T)*mem_ptr+sizeof(ia_eq_set_struct)+32);
-        
-        if (err_code) 
+
+        if (err_code)
             return (err_code);
 
         err_code = impd_derive_eq_set (&pstr_drc_config->str_drc_config_ext.str_eq_coeff,
@@ -198,14 +198,14 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                                        p_drc_gain_dec_structs->ia_drc_params_struct.drc_frame_size,
                                        p_drc_gain_dec_structs->ia_drc_params_struct.sub_band_domain_mode,
                                        p_drc_gain_dec_structs->eq_set);
-        if (err_code) 
+        if (err_code)
             return (err_code);
-        
+
         impd_get_eq_set_delay (p_drc_gain_dec_structs->eq_set,
                                &p_drc_gain_dec_structs->ia_drc_params_struct.eq_delay);
 
     }
- 
+
 
 
     for (i=0; i<p_drc_params_struct->drc_set_counter; i++)
@@ -214,7 +214,7 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
         drc_instruction_str = &(pstr_drc_config->str_drc_instruction_str[p_drc_params_struct->sel_drc_array[i].drc_instructions_index]);
         maxMultibandAudioSignalCount = max(maxMultibandAudioSignalCount, drc_instruction_str->multiband_audio_sig_count);
     }
-    
+
 
 
 
@@ -222,7 +222,7 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
                                                             *mem_ptr  = (pVOID) ((SIZE_T)*mem_ptr+(maxMultibandAudioSignalCount*sizeof(FLOAT32*))+32);
 
 
-    
+
     for (i=0;i<maxMultibandAudioSignalCount; i++)
     {
         p_drc_gain_dec_structs->audio_band_buffer.non_interleaved_audio[i] = *mem_ptr;
@@ -236,9 +236,9 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
     if (p_drc_params_struct->sub_band_domain_mode == SUBBAND_DOMAIN_MODE_OFF && p_audio_in_out_buf->audio_delay_samples) {
           p_audio_in_out_buf->audio_io_buffer_delayed = *mem_ptr;
                                    *mem_ptr  = (pVOID) ( (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
-          p_audio_in_out_buf->audio_in_out_buf        = *mem_ptr;     
+          p_audio_in_out_buf->audio_in_out_buf        = *mem_ptr;
                                     *mem_ptr  =(pVOID) (  (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
-                                    
+
        for (i=0; i<p_audio_in_out_buf->audio_num_chan; i++) {
             p_audio_in_out_buf->audio_io_buffer_delayed[i]=*mem_ptr;
             *mem_ptr  =  (pVOID) ((SIZE_T)*mem_ptr+((p_audio_in_out_buf->frame_size + p_audio_in_out_buf->audio_delay_samples)*sizeof(FLOAT32*))+32);
@@ -249,20 +249,20 @@ IA_ERRORCODE impd_init_drc_decode_post_config(WORD32                   audio_num
     if (p_drc_params_struct->sub_band_domain_mode != SUBBAND_DOMAIN_MODE_OFF && p_audio_in_out_buf->audio_delay_sub_band_samples) {
 
         p_audio_in_out_buf->audio_buffer_delayed_real = *mem_ptr;
-                                    *mem_ptr  =  (pVOID) ((SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);       
+                                    *mem_ptr  =  (pVOID) ((SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
         p_audio_in_out_buf->audio_buffer_delayed_imag = *mem_ptr;
-                                    *mem_ptr  = (pVOID) ( (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);   
+                                    *mem_ptr  = (pVOID) ( (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
         p_audio_in_out_buf->audio_real_buff           = *mem_ptr;
-                                    *mem_ptr  =  (pVOID) ((SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);          
+                                    *mem_ptr  =  (pVOID) ((SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
         p_audio_in_out_buf->audio_imag_buff           = *mem_ptr;
-                                    *mem_ptr  = (pVOID) ( (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);          
-      
+                                    *mem_ptr  = (pVOID) ( (SIZE_T)*mem_ptr+(p_audio_in_out_buf->audio_num_chan*sizeof(FLOAT32*))+32);
+
 
       for (i=0; i<p_audio_in_out_buf->audio_num_chan; i++) {
          p_audio_in_out_buf->audio_buffer_delayed_real[i] = *mem_ptr;
-         *mem_ptr =(pVOID) ((SIZE_T)*mem_ptr+(( p_audio_in_out_buf->audio_sub_band_frame_size + p_audio_in_out_buf->audio_delay_sub_band_samples)*sizeof(FLOAT32*))+32); 
+         *mem_ptr =(pVOID) ((SIZE_T)*mem_ptr+(( p_audio_in_out_buf->audio_sub_band_frame_size + p_audio_in_out_buf->audio_delay_sub_band_samples)*sizeof(FLOAT32*))+32);
          p_audio_in_out_buf->audio_buffer_delayed_imag[i] = *mem_ptr;
-         *mem_ptr =(pVOID) ((SIZE_T)*mem_ptr+(( p_audio_in_out_buf->audio_sub_band_frame_size + p_audio_in_out_buf->audio_delay_sub_band_samples)*sizeof(FLOAT32*))+32);      
+         *mem_ptr =(pVOID) ((SIZE_T)*mem_ptr+(( p_audio_in_out_buf->audio_sub_band_frame_size + p_audio_in_out_buf->audio_delay_sub_band_samples)*sizeof(FLOAT32*))+32);
 
            p_audio_in_out_buf->audio_real_buff[i] = &p_audio_in_out_buf->audio_buffer_delayed_real[i][ p_audio_in_out_buf->audio_delay_sub_band_samples *  p_audio_in_out_buf->audio_sub_band_count];
             p_audio_in_out_buf->audio_imag_buff[i] = &p_audio_in_out_buf->audio_buffer_delayed_imag[i][ p_audio_in_out_buf->audio_delay_sub_band_samples *  p_audio_in_out_buf->audio_sub_band_count];
@@ -285,11 +285,11 @@ IA_ERRORCODE impd_drc_process_time_domain( ia_drc_gain_dec_struct*  p_drc_gain_d
                                   FLOAT32               compress,
                                   WORD32                drc_characteristic_target)
 {
-    WORD32 sel_drc_index; 
+    WORD32 sel_drc_index;
     IA_ERRORCODE err_code = 0;
     WORD32 passThru;
     ia_drc_instructions_struct* str_drc_instruction_str = pstr_drc_config->str_drc_instruction_str;
-    
+
     if (p_drc_gain_dec_structs->eq_set)
     {
         WORD32  ch;
@@ -305,13 +305,13 @@ IA_ERRORCODE impd_drc_process_time_domain( ia_drc_gain_dec_struct*  p_drc_gain_d
 
     err_code = impd_store_audio_io_buffer_time(audio_in_out_buf,
                                                &p_drc_gain_dec_structs->audio_in_out_buf);
-    if(err_code!=IA_NO_ERROR) 
+    if(err_code!=IA_NO_ERROR)
         return (err_code);
-    
+
     if (pstr_drc_config->apply_drc)
-    {        
+    {
         for (sel_drc_index=0; sel_drc_index<p_drc_gain_dec_structs->ia_drc_params_struct.drc_set_counter; sel_drc_index++)
-        {          
+        {
             err_code = impd_get_drc_gain (p_drc_gain_dec_structs,
                                           pstr_drc_config,
                                           pstr_drc_gain,
@@ -321,10 +321,10 @@ IA_ERRORCODE impd_drc_process_time_domain( ia_drc_gain_dec_struct*  p_drc_gain_d
                                           loudness_normalization_gain_db,
                                           sel_drc_index,
                                           &p_drc_gain_dec_structs->drc_gain_buffers);
-            if(err_code!=IA_NO_ERROR) 
+            if(err_code!=IA_NO_ERROR)
                 return (err_code);
         }
-        
+
         if (p_drc_gain_dec_structs->ia_drc_params_struct.drc_set_counter == 0)
         {
             err_code = impd_retrieve_audio_io_buffer_time(audio_in_out_buf,
@@ -350,9 +350,9 @@ IA_ERRORCODE impd_drc_process_time_domain( ia_drc_gain_dec_struct*  p_drc_gain_d
                                                    &p_drc_gain_dec_structs->audio_band_buffer,
                                                    &p_drc_gain_dec_structs->ia_filter_banks_struct,
                                                    passThru);
-                if(err_code!=IA_NO_ERROR) 
+                if(err_code!=IA_NO_ERROR)
                     return (err_code);
-                
+
                 err_code = impd_apply_gains_and_add(str_drc_instruction_str,
                                  p_drc_gain_dec_structs->ia_drc_params_struct.sel_drc_array[sel_drc_index].drc_instructions_index,
                                  &p_drc_gain_dec_structs->ia_drc_params_struct,
@@ -363,11 +363,11 @@ IA_ERRORCODE impd_drc_process_time_domain( ia_drc_gain_dec_struct*  p_drc_gain_d
                                  1);
                 if(err_code!=IA_NO_ERROR)
                     return (err_code);
-                
+
             }
         }
     }
-    
+
     err_code = impd_advance_audio_io_buffer_time(&p_drc_gain_dec_structs->audio_in_out_buf);
     if(err_code!=IA_NO_ERROR)
         return (err_code);
@@ -386,14 +386,14 @@ IA_ERRORCODE impd_drc_process_freq_domain( ia_drc_gain_dec_struct*   p_drc_gain_
                                             FLOAT32    compress,
                                             WORD32     drc_characteristic_target)
 {
-    WORD32 sel_drc_index; 
+    WORD32 sel_drc_index;
     IA_ERRORCODE err_code = 0;
     ia_drc_instructions_struct* str_drc_instruction_str = pstr_drc_config->str_drc_instruction_str;
 
     if (p_drc_gain_dec_structs->eq_set)
     {
         WORD32 ch;
- 
+
         for (ch=0; ch<p_drc_gain_dec_structs->eq_set->audio_num_chan; ch++)
         {
             err_code = impd_process_eq_set_subband_domain(p_drc_gain_dec_structs->eq_set,
@@ -409,7 +409,7 @@ IA_ERRORCODE impd_drc_process_freq_domain( ia_drc_gain_dec_struct*   p_drc_gain_
                                                &p_drc_gain_dec_structs->audio_in_out_buf);
     if(err_code!=IA_NO_ERROR)
         return (err_code);
-    
+
     if (pstr_drc_config->apply_drc)
     {
         for (sel_drc_index=0; sel_drc_index<p_drc_gain_dec_structs->ia_drc_params_struct.drc_set_counter; sel_drc_index++)
@@ -453,7 +453,7 @@ IA_ERRORCODE impd_drc_process_freq_domain( ia_drc_gain_dec_struct*   p_drc_gain_
             }
         }
     }
-    
+
     err_code = impd_advance_audio_buff_freq(&p_drc_gain_dec_structs->audio_in_out_buf);
 
     return err_code;
@@ -465,7 +465,7 @@ VOID impd_get_parametric_drc_delay(ia_drc_gain_dec_struct*  p_drc_gain_dec_struc
                                             WORD32* parametric_drc_delay_max)
 {
     *parametric_drc_delay = p_drc_gain_dec_structs->ia_drc_params_struct.parametric_drc_delay;
-    
+
     if (pstr_drc_config->str_drc_config_ext.parametric_drc_present && pstr_drc_config->str_drc_config_ext.str_drc_coeff_param_drc.parametric_drc_delay_max_present) {
         *parametric_drc_delay_max = pstr_drc_config->str_drc_config_ext.str_drc_coeff_param_drc.parametric_drc_delay_max;
     } else if (pstr_drc_config->str_drc_config_ext.parametric_drc_present == 0) {
@@ -483,7 +483,7 @@ VOID  impd_get_eq_delay(ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
                 WORD32* eq_delay_max)
 {
     *eq_delay = p_drc_gain_dec_structs->ia_drc_params_struct.eq_delay;
-    
+
     if (pstr_drc_config->str_drc_config_ext.eq_flag && pstr_drc_config->str_drc_config_ext.str_eq_coeff.eq_delay_max_present) {
         *eq_delay_max = pstr_drc_config->str_drc_config_ext.str_eq_coeff.eq_delay_max;
     } else if (pstr_drc_config->str_drc_config_ext.eq_flag == 0) {
@@ -491,7 +491,7 @@ VOID  impd_get_eq_delay(ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
     } else {
         *eq_delay_max = -1;
     }
-    
+
     return;
 }
 

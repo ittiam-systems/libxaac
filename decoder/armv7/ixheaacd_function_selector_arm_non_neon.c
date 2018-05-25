@@ -134,7 +134,7 @@ VOID(*ixheaacd_harm_idx_zerotwolp)
 
 VOID(*ixheaacd_tns_ar_filter_fixed)
 (WORD32 *spectrum, WORD32 size, WORD32 inc, WORD32 *lpc, WORD32 order,
- WORD32 shift_value, WORD scale_spec) = &ixheaacd_tns_ar_filter_fixed_armv7;
+ WORD32 shift_value, WORD scale_spec) = &ixheaacd_tns_ar_filter_fixed_non_neon_armv7;
 
 VOID(*ixheaacd_tns_ar_filter)
 (WORD32 *spectrum, WORD32 size, WORD32 inc, WORD16 *lpc, WORD32 order,

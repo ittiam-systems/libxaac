@@ -19,6 +19,10 @@
 */
 #include <stdlib.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_constants.h"
+#include <ixheaacd_basic_ops32.h>
+#include <ixheaacd_basic_ops16.h>
+#include <ixheaacd_basic_ops40.h>
 #include "ixheaacd_sbr_common.h"
 
 #include "ixheaacd_bitbuffer.h"
@@ -610,17 +614,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
           pstr_audio_specific_config->sampling_frequency;
       pstr_audio_specific_config->ext_samp_frequency_index =
           pstr_audio_specific_config->samp_frequency_index;
-      if (pstr_audio_specific_config->str_usac_config
-              .core_sbr_framelength_index == 4) {
-        pstr_audio_specific_config->sampling_frequency =
-            pstr_audio_specific_config->ext_sampling_frequency / 4;
-      } else if ((pstr_audio_specific_config->str_usac_config
-                      .core_sbr_framelength_index == 2) ||
-                 (pstr_audio_specific_config->str_usac_config
-                      .core_sbr_framelength_index == 3)) {
-        pstr_audio_specific_config->sampling_frequency =
-            pstr_audio_specific_config->ext_sampling_frequency / 2;
-      }
+
       for (i = 0; i < sizeof(ixheaacd_sampl_freq_idx_table) /
                           sizeof(ixheaacd_sampl_freq_idx_table[0]);
            i++) {
@@ -804,10 +798,10 @@ WORD32 ixheaacd_check_if_adts(ia_adts_header_struct *adts,
 
   result = ixheaacd_adtsframe(adts, it_bit_buff);
 
-  max_frm_len_per_ch = 768 * (adts->no_raw_data_blocks + 1);
+  max_frm_len_per_ch = ixheaacd_mult32(768 , (adts->no_raw_data_blocks + 1));
 
   if (adts->channel_configuration != 0)
-    max_frm_len_per_ch = max_frm_len_per_ch * adts->channel_configuration;
+    max_frm_len_per_ch = ixheaacd_mult32(max_frm_len_per_ch, adts->channel_configuration);
   else
     max_frm_len_per_ch = max_frm_len_per_ch * usr_max_ch;
 

@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2015 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -36,25 +36,25 @@
 
 
 WORD32 impd_parametric_drc_instance_reset(WORD32  instance_idx,
-										  ia_parametric_drc_instance_params_struct* pstr_parametric_drc_instance_params)
+                                          ia_parametric_drc_instance_params_struct* pstr_parametric_drc_instance_params)
 {
     WORD32 err = 0;
-    
-    if (pstr_parametric_drc_instance_params->parametric_drc_type == PARAM_DRC_TYPE_FF) 
-	{
-        
+
+    if (pstr_parametric_drc_instance_params->parametric_drc_type == PARAM_DRC_TYPE_FF)
+    {
+
         ia_parametric_drc_type_ff_params_struct* pstr_parametric_ffwd_type_drc_params = &(pstr_parametric_drc_instance_params->str_parametric_drc_type_ff_params);
         err = impd_parametric_ffwd_type_drc_reset(pstr_parametric_ffwd_type_drc_params);
-        if (err) 
-			return (err);
-        
-        
-    } 
-	else 
-	{ 
-        return (UNEXPECTED_ERROR);     
+        if (err)
+            return (err);
+
+
     }
-	
+    else
+    {
+        return (UNEXPECTED_ERROR);
+    }
+
     return 0;
 }
 
@@ -70,10 +70,10 @@ WORD32 impd_add_drc_band_audio(ia_drc_instructions_struct* pstr_drc_instruction_
     FLOAT32** drcBandAudio;
     FLOAT32** channel_audio;
     ia_drc_instructions_struct* str_drc_instruction_str;
-    
+
     drcBandAudio = audio_band_buffer->non_interleaved_audio;
     channel_audio = audio_io_buf;
-    
+
     if (drc_instructions_index >= 0) {
         str_drc_instruction_str = &(pstr_drc_instruction_arr[drc_instructions_index]);
     } else {

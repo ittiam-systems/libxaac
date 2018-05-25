@@ -212,7 +212,7 @@ NEON_PROLOGUE:
 
 
 
-CORE_LOOP:
+CORE_LOOP_PT:
     VMULL.U16       Q15, D2, D13
     VST2.32         {Q12, Q13}, [R7], R8
     VMULL.U16       Q14, D0, D13
@@ -315,7 +315,7 @@ CORE_LOOP:
     VADD.I32        Q8, Q11, Q8
 
     SUBS            R3, R3, #1
-    BNE             CORE_LOOP
+    BNE             CORE_LOOP_PT
 
 
 

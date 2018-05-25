@@ -85,6 +85,9 @@ typedef struct {
   WORD32 i_channel_mask;
   UWORD32 ui_channel_mode;
   UWORD32 ui_sbr_mode;
+  WORD32 ui_effect_type;
+  WORD32 ui_target_loudness;
+  WORD32 ui_loud_norm_flag;
 
   UWORD32 flag_downmix;
   UWORD32 flag_08khz_out;
@@ -130,9 +133,7 @@ typedef struct {
 
   WORD32 ui_flush_cmd;
 
-#ifdef ENABLE_DRC
   ia_drc_config drc_config_struct;
-#endif
 
 } ia_aac_dec_config_struct;
 
@@ -216,7 +217,7 @@ typedef struct ia_aac_dec_state_struct {
 
   WORD32 num_of_output_ch;
   VOID *ia_audio_specific_config;
-  ia_mps_dec_state_struct *mps_dec_handle[MAX_NUM_ELEMENTS];
+  ia_mps_dec_state_struct mps_dec_handle;
 
   UWORD16 *huffman_code_book_scl;
   UWORD32 *huffman_code_book_scl_index;

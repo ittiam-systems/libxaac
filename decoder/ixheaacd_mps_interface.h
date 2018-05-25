@@ -20,7 +20,7 @@
 #ifndef IXHEAACD_MPS_INTERFACE_H
 #define IXHEAACD_MPS_INTERFACE_H
 
-ia_mps_dec_state_struct* ixheaacd_mps_create(
+VOID ixheaacd_mps_create(ia_mps_dec_state_struct* self,
     WORD32 bs_frame_len, WORD32 residual_coding,
     ia_usac_dec_mps_config_struct* usac_mps_config);
 
@@ -28,7 +28,7 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct* self,
                                 WORD32 independency_flag,
                                 ia_handle_bit_buf_struct it_bit_buff);
 
-VOID ixheaacd_mps_apply(ia_mps_dec_state_struct* self, FLOAT32** pointers[4],
+WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self, FLOAT32** pointers[4],
                         FLOAT32 (*out_samples)[4096]);
 
 #endif

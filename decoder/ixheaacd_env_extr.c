@@ -923,7 +923,7 @@ WORD8 ixheaacd_sbr_read_cpe(ia_sbr_header_data_struct *ptr_header_data,
     ixheaacd_sbr_env_dtdf_data(ptr_frame_data[1], it_bit_buff,
                                ptr_header_data->usac_flag);
 
-    for (i = 0; i < ptr_header_data->noise_bands; i++) {
+    for (i = 0; i < ptr_header_data->pstr_freq_band_data->num_if_bands; i++) {
       ptr_frame_data[0]->sbr_invf_mode_prev[i] =
           ptr_frame_data[0]->sbr_invf_mode[i];
       ptr_frame_data[1]->sbr_invf_mode_prev[i] =

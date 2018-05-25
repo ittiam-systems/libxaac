@@ -576,7 +576,7 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
 
         for (h = 2; h <= p; h++) {
           b = k - p + h;
-          c_64 *= b;
+          c_64 = c_64 * (b / h);
           ixheaacd_longmult1(c, b, c, 5);
           b = h;
           ixheaacd_longdiv(c, b, c, r, 5);
