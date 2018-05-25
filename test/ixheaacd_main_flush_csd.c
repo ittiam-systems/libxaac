@@ -345,15 +345,15 @@ WORD32 write_wav_header(FILE *fp, WORD32 pcmbytes, WORD32 freq, WORD32 channels,
       ixheaacd_write16_bits_lh(fp, 0x3800);
       ixheaacd_write16_bits_lh(fp, 0x719b);
                         /*
-			ixheaacd_write16_bits_lh(fp, 0x6166);
-			ixheaacd_write16_bits_lh(fp, 0x7463);
+            ixheaacd_write16_bits_lh(fp, 0x6166);
+            ixheaacd_write16_bits_lh(fp, 0x7463);
 
-			  ixheaacd_write16_bits_lh(fp, 0x0004);
-			  ixheaacd_write16_bits_lh(fp, 0x0000);
+              ixheaacd_write16_bits_lh(fp, 0x0004);
+              ixheaacd_write16_bits_lh(fp, 0x0000);
 
-				ixheaacd_write16_bits_lh(fp, 0x5800);
-				ixheaacd_write16_bits_lh(fp, 0x0028);
-			*/		}
+                ixheaacd_write16_bits_lh(fp, 0x5800);
+                ixheaacd_write16_bits_lh(fp, 0x0028);
+            */      }
 
                         fwrite("data", 1, 4, fp);
                         ixheaacd_write32_bits_lh(fp, pcmbytes);
@@ -1092,7 +1092,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[])
   /* API object requires 4 bytes (WORD32) alignment */
   ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
 
-  /* Set pointer for process memory tables	*/
+  /* Set pointer for process memory tables  */
   err_code = (*p_ia_process_api)(
       pv_ia_process_api_obj, IA_API_CMD_SET_MEMTABS_PTR, 0,
       (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count] + 4 - ui_rem));
@@ -1101,7 +1101,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[])
 
   g_w_malloc_count++;
 
-  /* initialize the API, post config, fill memory tables	*/
+  /* initialize the API, post config, fill memory tables    */
   err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_INIT,
                                  IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS, NULL);
 
@@ -1158,7 +1158,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[])
     //  ui_size += 20*1024*sizeof(WORD8);
 
     if (ui_type == IA_MEMTYPE_OUTPUT) {
-      //		ui_size = 8192;
+      //        ui_size = 8192;
       if (i_pcm_wd_sz == 16)
         ui_size = 16384 * sizeof(WORD16);  // refer SAMPLE_BUF_SIZE value in
                                            // audio.c file //Ramesh
@@ -1387,7 +1387,7 @@ INIT_AGAIN:
       err_code = 0x00000000;
       i_count_init_errors++;
     }
-    //	_IA_HANDLE_ERROR(p_proc_err_info, (pWORD8)"", err_code);
+    //  _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8)"", err_code);
     if (err_code_reinit ==
         0x00001804 /*IA_ENHAACPLUS_DEC_EXE_FATAL_INSUFFICIENT_INPUT_BYTES*/) {
       _IA_PRINT_ERROR(p_proc_err_info, (pWORD8) "", err_code);
@@ -1431,9 +1431,9 @@ INIT_AGAIN:
         return 1;
       }
 
-//	  	  frame_counter++;
+//        frame_counter++;
 #ifndef ARM_PROFILE_BOARD
-//	  fprintf(stderr,"\r[%5d]",frame_counter);
+//    fprintf(stderr,"\r[%5d]",frame_counter);
 #endif
       goto HANDLE_ERROR_AT_INIT;
     }
@@ -1743,7 +1743,7 @@ INIT_AGAIN:
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-//	fprintf(stderr,"i_bytes_consumed :: [%5d]\n",i_bytes_consumed);
+//  fprintf(stderr,"i_bytes_consumed :: [%5d]\n",i_bytes_consumed);
 
 #ifdef TEST_INSUFFICIENT_INPUT
     // shift out consumed data
@@ -1773,7 +1773,7 @@ INIT_AGAIN:
               i_total_bytes - skip_samples * i_num_chan * (i_pcm_wd_sz >> 3);
           if (bytes_to_write < i_out_bytes) {
             ixheaacd_drc_offset = i_out_bytes - bytes_to_write;
-            //	i_total_bytes = i_total_bytes - i_out_bytes + bytes_to_write;
+            //  i_total_bytes = i_total_bytes - i_out_bytes + bytes_to_write;
             i_out_bytes = bytes_to_write;
             current_samples =
                 bytes_to_write / (i_num_chan * (i_pcm_wd_sz >> 3));
@@ -1795,7 +1795,7 @@ INIT_AGAIN:
       }
     }
 
-    //	printf("i_out_bytes = %d\n",i_out_bytes);
+    //  printf("i_out_bytes = %d\n",i_out_bytes);
 
     if (write_flag) {
 #ifndef WIN32
@@ -1906,7 +1906,7 @@ INIT_AGAIN:
         err_code = (*p_set_config_param)(argc, argv, pv_ia_process_api_obj);
         _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-        // removed				/* Open new file only if the
+        // removed              /* Open new file only if the
         // error
         // occured
         // during process */
@@ -1973,7 +1973,7 @@ INIT_AGAIN:
 
   fprintf(stderr, "TOTAL FRAMES : [%5d] \n", frame_counter);
 
-  //		i_num_chan = num_of_output_ch;
+  //        i_num_chan = num_of_output_ch;
   err_code = (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
                                    &i_num_chan, &i_pcm_wd_sz, &i_channel_mask);
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);

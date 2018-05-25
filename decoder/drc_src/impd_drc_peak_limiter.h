@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_PEAK_LIMITER_H
 #define IMPD_DRC_PEAK_LIMITER_H
 
@@ -44,13 +44,13 @@ typedef struct ia_drc_peak_limiter_struct {
   FLOAT32*        buffer;
 }ia_drc_peak_limiter_struct;
 
-WORD32 impd_peak_limiter_init(ia_drc_peak_limiter_struct *peak_limiter, 
-									FLOAT32         attack_time, 
-									FLOAT32         release_time, 
-									FLOAT32         limit_threshold, 
-									UWORD32         num_channels, 
-									UWORD32         sample_rate,
-									FLOAT32         *buffer);
+WORD32 impd_peak_limiter_init(ia_drc_peak_limiter_struct *peak_limiter,
+                                    FLOAT32         attack_time,
+                                    FLOAT32         release_time,
+                                    FLOAT32         limit_threshold,
+                                    UWORD32         num_channels,
+                                    UWORD32         sample_rate,
+                                    FLOAT32         *buffer);
 
 WORD32 impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter, FLOAT32 *samples, UWORD32 frame_len);
 

@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2015 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <math.h>
 
@@ -26,7 +26,7 @@
 #include "impd_drc_struct.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
-    
+
 WORD32 impd_init_tbls(const WORD32 num_gain_max_values,
            ia_tables_struct* str_tables)
 {
@@ -74,8 +74,8 @@ impd_gen_delta_time_code_tbl (const WORD32 num_gain_max_values,
 
     delta_time_code_tbl_item[0].size = -1;
     delta_time_code_tbl_item[0].code = -1;
-    delta_time_code_tbl_item[0].value = -1; 
-    
+    delta_time_code_tbl_item[0].value = -1;
+
     delta_time_code_tbl_item[1].size = 2;
     delta_time_code_tbl_item[1].code = 0x0;
     delta_time_code_tbl_item[1].value = 1;
@@ -114,7 +114,7 @@ impd_get_delta_tmin (const WORD32 sampling_rate)
     while (result <= lowerBound) result = result << 1;
     return result;
 }
-    
+
 
 
 

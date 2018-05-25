@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_PARSER_H
 #define IMPD_DRC_PARSER_H
 
@@ -34,7 +34,7 @@ impd_parse_loudness_info(ia_bit_buf_struct* it_bit_buff,
 WORD32
 impd_parse_loudness_info_set_ext(ia_bit_buf_struct* it_bit_buff,
                               ia_drc_loudness_info_set_struct* loudness_info_set);
-    
+
 WORD32
 impd_sel_drc_coeff(ia_drc_config* drc_config,
                       WORD32 location,
@@ -72,14 +72,14 @@ impd_parse_dwnmix_instructions(ia_bit_buf_struct* it_bit_buff,
 
 WORD32
 impd_parse_drc_ext_v1(
-					 ia_bit_buf_struct* it_bit_buff,
+                     ia_bit_buf_struct* it_bit_buff,
                     ia_drc_params_bs_dec_struct* ia_drc_params_struct,
                     ia_drc_config* drc_config,
                     ia_drc_config_ext* str_drc_config_ext);
-    
+
 WORD32
 impd_parse_drc_config(
-					  ia_bit_buf_struct* it_bit_buff,
+                      ia_bit_buf_struct* it_bit_buff,
                   ia_drc_params_bs_dec_struct* ia_drc_params_struct,
                   ia_drc_config* drc_config
                   );
@@ -90,7 +90,7 @@ impd_parse_loudness_info_set(ia_bit_buf_struct* it_bit_buff,
 
 WORD32
 impd_parse_drc_gain_sequence(
-					 ia_bit_buf_struct* it_bit_buff,
+                     ia_bit_buf_struct* it_bit_buff,
                      ia_drc_bits_dec_struct *pstr_drc_uni_bs_dec,
                      ia_gain_set_params_struct* gain_set_params,
                      ia_drc_gain_sequence_struct* drc_gain_sequence);
@@ -100,7 +100,7 @@ impd_parse_uni_drc_gain_ext(ia_bit_buf_struct* it_bit_buff,
                          ia_uni_drc_gain_ext_struct* uni_drc_gain_ext);
 
 WORD32 impd_drc_uni_gain_read(
-							  ia_bit_buf_struct* it_bit_buff,
+                              ia_bit_buf_struct* it_bit_buff,
                 ia_drc_bits_dec_struct *pstr_drc_uni_bs_dec,
                 ia_drc_config* drc_config,
                 ia_drc_gain_struct* pstr_uni_drc_gain);

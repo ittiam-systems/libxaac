@@ -1008,21 +1008,21 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
                                   (num_qmf_sub_sample - alpha_val) *
                                       (WORD64)prev_frame_drc_sbr_factors[i];
 
-				if (frame_size == 512)
-				{
-					drc_sbr_factors[num_qmf_sub_sample + j][i] =
-						(WORD32)(temp_drc >> 4);
-				}
-				else if (frame_size == 480)
-				{
-					drc_sbr_factors[num_qmf_sub_sample + j][i] =
-						ixheaacd_div_by_15(temp_drc);
-				}
-				else
-				{
-					drc_sbr_factors[num_qmf_sub_sample + j][i] =
-						(WORD32)(temp_drc >> 5);
-				}
+                if (frame_size == 512)
+                {
+                    drc_sbr_factors[num_qmf_sub_sample + j][i] =
+                        (WORD32)(temp_drc >> 4);
+                }
+                else if (frame_size == 480)
+                {
+                    drc_sbr_factors[num_qmf_sub_sample + j][i] =
+                        ixheaacd_div_by_15(temp_drc);
+                }
+                else
+                {
+                    drc_sbr_factors[num_qmf_sub_sample + j][i] =
+                        (WORD32)(temp_drc >> 5);
+                }
 
                 if (960 == frame_size) {
                   drc_sbr_factors[num_qmf_sub_sample + j][i] =

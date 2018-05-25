@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_STURCT_H
 #define IMPD_DRC_STURCT_H
 
@@ -59,7 +59,7 @@ extern "C"
 
 #define EFFECT_BIT_COUNT                            12
 
-#define EFFECT_BIT_NONE                             (-1)  
+#define EFFECT_BIT_NONE                             (-1)
 #define EFFECT_BIT_NIGHT                            0x0001
 #define EFFECT_BIT_NOISY                            0x0002
 #define EFFECT_BIT_LIMITED                          0x0004
@@ -100,9 +100,9 @@ extern "C"
 #define USER_LOUDNESS_PREPROCESSING_DEFAULT         0
 #define USER_LOUDNESS_PREPROCESSING_OFF             1
 #define USER_LOUDNESS_PREPROCESSING_HIGHPASS        2
-    
+
 #define LOUDNESS_DEVIATION_MAX_DEFAULT              63
-#define LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT     1000 
+#define LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT     1000
 
 #define SHORT_TERM_LOUDNESS_TO_AVG                  0
 #define MOMENTARY_LOUDNESS_TO_AVG                   1
@@ -110,7 +110,7 @@ extern "C"
 
 #define DRC_COMPLEXITY_LEVEL_MAX                    0xF
 #define EQ_COMPLEXITY_LEVEL_MAX                     0xF
-#define COMPLEXITY_LEVEL_SUPPORTED_TOTAL            20.0f    
+#define COMPLEXITY_LEVEL_SUPPORTED_TOTAL            20.0f
 
 #define COMPLEXITY_W_SUBBAND_EQ                     2.5f
 #define COMPLEXITY_W_FIR                            0.4f
@@ -125,14 +125,14 @@ extern "C"
 #define COMPLEXITY_W_PARAM_DRC_SUBBAND              5.0f
 #define COMPLEXITY_W_PARAM_LIM_FILT                 4.5f
 #define COMPLEXITY_W_PARAM_DRC_ATTACK               136.0f
-    
+
 #define LEFT_SIDE                                   0
 #define RIGHT_SIDE                                  1
-    
+
 #define CHARACTERISTIC_SIGMOID                      0
 #define CHARACTERISTIC_NODES                        1
 #define CHARACTERISTIC_PASS_THRU                    2
-    
+
 #define GAINFORMAT_QMF32                            0x1
 #define GAINFORMAT_QMFHYBRID39                      0x2
 #define GAINFORMAT_QMF64                            0x3
@@ -140,17 +140,17 @@ extern "C"
 #define GAINFORMAT_QMF128                           0x5
 #define GAINFORMAT_QMFHYBRID135                     0x6
 #define GAINFORMAT_UNIFORM                          0x7
-    
-#define DRC_INPUT_LOUDNESS_TARGET                   (-31.0f) 
-    
+
+#define DRC_INPUT_LOUDNESS_TARGET                   (-31.0f)
+
 #define SHAPE_FILTER_TYPE_OFF                       0
 #define SHAPE_FILTER_TYPE_LF_CUT                    1
 #define SHAPE_FILTER_TYPE_LF_BOOST                  2
 #define SHAPE_FILTER_TYPE_HF_CUT                    3
 #define SHAPE_FILTER_TYPE_HF_BOOST                  4
-    
-#define SHAPE_FILTER_DRC_GAIN_MAX_MINUS_ONE         1583.8931924611f  
-    
+
+#define SHAPE_FILTER_DRC_GAIN_MAX_MINUS_ONE         1583.8931924611f
+
 typedef struct {
     WORD32   type;
     FLOAT32 gain_offset;
@@ -196,10 +196,10 @@ typedef struct {
     WORD32 gain_smooth_rel_threshold;
     WORD32 gain_smooth_hold_off_count_present;
     WORD32 gain_smooth_hold_off;
-    
+
     WORD32 disable_paramteric_drc;
 } ia_parametric_drc_type_feed_forward_struct;
-    
+
 typedef struct {
     WORD32 parametric_lim_threshold_present;
     FLOAT32 parametric_lim_threshold;
@@ -207,7 +207,7 @@ typedef struct {
     WORD32 parametric_lim_release_present;
     WORD32 parametric_lim_release;
     WORD32 drc_characteristic;
-    
+
     WORD32 disable_paramteric_drc;
 } ia_parametric_drc_lim_struct;
 
@@ -221,7 +221,7 @@ typedef struct {
     WORD32 len_bit_size;
     ia_parametric_drc_type_feed_forward_struct str_parametric_drc_type_feed_forward;
     ia_parametric_drc_lim_struct parametric_drc_lim;
-    
+
     WORD32 drc_characteristic;
     WORD32 disable_paramteric_drc;
 } ia_parametric_drc_instructions_struct;
@@ -234,7 +234,7 @@ typedef struct {
     FLOAT32 level_estim_ch_weight[MAX_CHANNEL_COUNT];
     WORD32 drc_input_loudness_present;
     FLOAT32 drc_input_loudness;
-    
+
     WORD32 ch_count_from_dwnmix_id;
 } ia_parametric_drc_gain_set_params_struct;
 
@@ -248,7 +248,7 @@ typedef struct {
     WORD32 parametric_drc_gain_set_count;
     ia_parametric_drc_gain_set_params_struct str_parametric_drc_gain_set_params[SEQUENCE_COUNT_MAX];
 } ia_drc_coeff_parametric_drc_struct;
-    
+
 typedef struct {
     WORD32 base_channel_count;
     WORD32 layout_signaling_present;
@@ -305,12 +305,12 @@ typedef struct {
     WORD32 band_count;
     WORD32 drc_band_type;
     ia_gain_params_struct gain_params[BAND_COUNT_MAX];
-    
+
     WORD32 num_gain_max_values;
     ia_tables_struct str_tables;
 } ia_gain_set_params_struct;
 
-#define SPLIT_CHARACTERISTIC_NODE_COUNT_MAX 4  
+#define SPLIT_CHARACTERISTIC_NODE_COUNT_MAX 4
 typedef struct {
     WORD32 characteristic_format;
     FLOAT32 in_out_ratio;
@@ -337,7 +337,7 @@ typedef struct {
     WORD32 hf_boost_filter_present;
     ia_shape_filter_params_struct str_hf_boost_params;
 } ia_shape_filter_block_params_struct;
-    
+
 typedef struct {
     WORD32 drc_location;
     WORD32 drc_characteristic;
@@ -362,7 +362,7 @@ typedef struct {
     WORD32 gain_sequence_count;
     WORD32 gain_set_params_index_for_gain_sequence[SEQUENCE_COUNT_MAX];
     WORD32 gain_set_count_plus;
-    
+
 } ia_uni_drc_coeffs_struct;
 
 typedef struct {
@@ -400,8 +400,8 @@ typedef struct {
     WORD32 drc_set_target_loudness_value_upper;
     WORD32 drc_set_target_loudness_value_lower_present;
     WORD32 drc_set_target_loudness_value_lower;
-    
-    WORD32 audio_num_chan; 
+
+    WORD32 audio_num_chan;
     WORD32 num_drc_ch_groups;
     WORD32 gain_set_index_for_channel_group[CHANNEL_GROUP_COUNT_MAX];
     WORD32 band_count_of_ch_group[CHANNEL_GROUP_COUNT_MAX];
@@ -411,8 +411,8 @@ typedef struct {
     ia_ducking_modifiers_struct str_ducking_modifiers_for_channel_group[CHANNEL_GROUP_COUNT_MAX];
     WORD32 channel_group_of_ch[MAX_CHANNEL_COUNT];
     WORD32 num_chan_per_ch_group[CHANNEL_GROUP_COUNT_MAX];
-    WORD32 gain_element_count;              
-    WORD32 multiband_audio_sig_count;      
+    WORD32 gain_element_count;
+    WORD32 multiband_audio_sig_count;
     WORD32 ch_group_parametric_drc_flag[CHANNEL_GROUP_COUNT_MAX];
     WORD32 gain_set_idx_of_ch_group_parametric_drc[CHANNEL_GROUP_COUNT_MAX];
     WORD32 parametric_drc_look_ahead_samples[CHANNEL_GROUP_COUNT_MAX];
@@ -439,7 +439,7 @@ typedef struct {
     WORD32 measurement_count;
     ia_loudness_measure_struct loudness_measure[MEASUREMENT_COUNT_MAX];
 } ia_loudness_info_struct;
-    
+
 typedef struct {
     WORD32 loud_eq_set_id;
     WORD32 drc_location;
@@ -558,7 +558,7 @@ typedef struct {
 typedef struct {
     WORD32 drc_config_ext_type[EXT_COUNT_MAX];
     WORD32 ext_bit_size[EXT_COUNT_MAX-1];
-    
+
     WORD32 parametric_drc_present;
     ia_drc_coeff_parametric_drc_struct str_drc_coeff_param_drc;
     WORD32 parametric_drc_instructions_count;
@@ -579,7 +579,7 @@ typedef struct ia_drc_config{
     WORD32 dwnmix_instructions_count;
     WORD32 drc_coefficients_drc_count;
     WORD32 drc_instructions_uni_drc_count;
-    WORD32 drc_instructions_count_plus; 
+    WORD32 drc_instructions_count_plus;
     WORD32 drc_description_basic_present;
     WORD32 drc_coefficients_basic_count;
     WORD32 drc_instructions_basic_count;
@@ -641,16 +641,16 @@ typedef struct {
     WORD32 drc_frame_size;
     WORD32 num_gain_values_max_default;
     WORD32 delay_mode;
-    WORD32 lfe_channel_map_count;             
+    WORD32 lfe_channel_map_count;
     WORD32 lfe_channel_map[MAX_CHANNEL_COUNT];
 } ia_drc_params_bs_dec_struct;
 
 typedef struct ia_drc_bits_dec_struct
 {
-    
+
     ia_tables_struct tables_default;
     ia_drc_params_bs_dec_struct ia_drc_params_struct;
-    
+
 }ia_drc_bits_dec_struct;
 
 

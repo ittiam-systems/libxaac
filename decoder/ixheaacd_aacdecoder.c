@@ -647,10 +647,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
                         it_bit_buff, ptr_ics_info, object_type,
                         aac_dec_handle->samples_per_frame, LEFT);
 
-					if(temp!=0)
-					{
-						return temp;
-					}
+                    if(temp!=0)
+                    {
+                        return temp;
+                    }
                   }
                 }
               }
@@ -706,7 +706,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
           ixheaacd_extension_payload(it_bit_buff, cnt_bits);
         }
 
-        if ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)) {
+        if (((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD))
+                && (p_obj_exhaacplus_dec->aac_config.ld_decoder != 1)) {
           if (it_bit_buff->cnt_bits) {
             WORD32 alignment = it_bit_buff->bit_pos & 0x07;
             it_bit_buff->cnt_bits = (it_bit_buff->cnt_bits + alignment) & 7;

@@ -1815,6 +1815,10 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       pki = ixheaacd_arith_get_pk(s1 + ixheaacd_esc_nb_offset[esc_nb]);
       bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                         ixheaacd_ari_cf_m[pki], 17);
+      if(bit_count ==  -1)
+      {
+        return -1;
+      }
 
       if (m < ARITH_ESCAPE) {
         break;
@@ -1825,6 +1829,9 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
 
       if (esc_nb > 7) {
         esc_nb = 7;
+      }
+      if (esc_nb < 0) {
+        esc_nb = 0;
       }
     }
 
@@ -1842,10 +1849,17 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
         WORD32 lsbidx = (a == 0) ? 1 : ((b == 0) ? 0 : 2);
         bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                           ixheaacd_ari_cf_r[lsbidx], 4);
-
+        if(bit_count ==  -1)
+        {
+          return -1;
+        }
         a = (a << 1) | (m & 1);
         b = (b << 1) | ((m >> 1) & 1);
       }
+      if((a > (8183)) || (b > (8183)))
+          return -1;
+      if((a < (-8183)) || (b < (-8183)))
+          return -1;
       quant[2 * i + 0] = a;
       quant[2 * i + 1] = b;
       temp = a + b + 1;
@@ -1882,6 +1896,10 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       m = (m << 1) * temp1;
       temp1 = m - (temp1);
     }
+    if((temp0 > (8183)) || (temp1 > (8183)))
+      return -1;
+    if((temp0 < (-8183)) || (temp1 < (-8183)))
+      return -1;
     *quant++ = temp0;
     *quant++ = temp1;
   }

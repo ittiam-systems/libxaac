@@ -213,8 +213,8 @@ static WORD16 ixheaacd_read_block_data(
   if (error_code) {
     return error_code;
   }
-  if (aac_sf_data_resil_flag && ((object_type == AOT_ER_AAC_ELD) 
-		|| (object_type == AOT_ER_AAC_LD)))
+  if (aac_sf_data_resil_flag && ((object_type == AOT_ER_AAC_ELD)
+        || (object_type == AOT_ER_AAC_LD)))
     ixheaacd_rvlc_read(it_bit_buff, ptr_aac_dec_channel_info);
   else
     ixheaacd_read_scale_factor_data(it_bit_buff, ptr_aac_dec_channel_info,
@@ -297,7 +297,7 @@ static WORD16 ixheaacd_read_block_data(
 
 WORD16 ixheaacd_ltp_decode(ia_bit_buf_struct *it_bit_buff,
                            ia_ics_info_struct *ptr_ics_info,
-						   WORD32 object_type,
+                           WORD32 object_type,
                            WORD32 frame_size, WORD32 ch) {
   WORD32 retval = AAC_DEC_OK;
 
@@ -514,10 +514,10 @@ WORD16 ixheaacd_individual_ch_stream(
             it_bit_buff, ptr_ics_info, object_type,
             aac_dec_handle->samples_per_frame, 1);
 
-		if(temp!=0)
-		{
-	          return temp;
-		}
+        if(temp!=0)
+        {
+              return temp;
+        }
         aac_dec_handle->pstr_aac_dec_ch_info[ch + 1]->str_ics_info.ltp.lag =
             ptr_ics_info->ltp2.lag;
       }

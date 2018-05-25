@@ -202,7 +202,7 @@ static VOID ixheaacd_lsf_2_lsp_conversion_float(FLOAT32 lsf[], FLOAT32 lsp[],
   return;
 }
 
-static VOID ixheaacd_bass_post_filter(FLOAT32 *synth_sig, WORD32 *pitch,
+static WORD32 ixheaacd_bass_post_filter(FLOAT32 *synth_sig, WORD32 *pitch,
                                       FLOAT32 *pitch_gain, FLOAT32 *synth_out,
                                       WORD32 len_fr, WORD32 len2,
                                       FLOAT32 bpf_prev[]) {
@@ -223,7 +223,8 @@ static VOID ixheaacd_bass_post_filter(FLOAT32 *synth_sig, WORD32 *pitch,
   for (num_subfr = 0; num_subfr < len_fr; num_subfr += LEN_SUBFR, sf++) {
     pitch_lag = pitch[sf];
     gain = pitch_gain[sf];
-
+    if(((pitch_lag >> 1) + 96 - num_subfr) > MAX_PITCH)
+        return -1;
     if (gain > 1.0f) gain = 1.0f;
     if (gain < 0.0f) gain = 0.0f;
 
@@ -290,7 +291,7 @@ static VOID ixheaacd_bass_post_filter(FLOAT32 *synth_sig, WORD32 *pitch,
     }
   }
 
-  return;
+  return 0;
 }
 
 void ixheaacd_reorder_lsf(float *lsf, float min_dist, int n) {
@@ -600,10 +601,10 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
   }
 
   if (mod[3] == 0) {
-    ixheaacd_bass_post_filter(synth, pitch, pitch_gain, fsynth, len_fr,
+    err = ixheaacd_bass_post_filter(synth, pitch, pitch_gain, fsynth, len_fr,
                               synth_delay, st->bpf_prev);
   } else {
-    ixheaacd_bass_post_filter(synth, pitch, pitch_gain, fsynth, len_fr,
+    err = ixheaacd_bass_post_filter(synth, pitch, pitch_gain, fsynth, len_fr,
                               synth_delay - (len_subfrm / 2), st->bpf_prev);
   }
   return err;
@@ -653,7 +654,7 @@ WORD32 ixheaacd_lpd_dec_update(ia_usac_lpd_decoder_handle tddec,
   return err;
 }
 
-void ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short_flag,
+WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short_flag,
                           FLOAT32 out_buffer[], ia_usac_lpd_decoder_handle st) {
   WORD32 i, tp, k;
   float synth_buf[MAX_PITCH + SYNTH_DELAY_LMAX + LEN_SUPERFRAME];
@@ -662,6 +663,7 @@ void ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short_flag,
   WORD32 pitch[NUM_SUBFR_SUPERFRAME_BY2 + 3];
   float pitch_gain[NUM_SUBFR_SUPERFRAME_BY2 + 3];
   WORD32 len_fr, lpd_sbf_len, lpd_delay, num_subfr_by2, synth_delay, fac_length;
+  WORD32 err = 0;
 
   len_fr = usac_data->ccfl;
   lpd_sbf_len = (NUM_FRAMES * usac_data->num_subfrm) / 2;
@@ -709,12 +711,14 @@ void ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short_flag,
     }
   }
 
-  ixheaacd_bass_post_filter(synth, pitch, pitch_gain, signal_out,
+  err = ixheaacd_bass_post_filter(synth, pitch, pitch_gain, signal_out,
                             (lpd_sbf_len + 2) * LEN_SUBFR + LEN_SUBFR,
                             len_fr - (lpd_sbf_len + 2) * LEN_SUBFR,
                             st->bpf_prev);
+  if(err != 0)
+     return err;
 
   ixheaacd_mem_cpy(signal_out, out_buffer,
                    (lpd_sbf_len + 2) * LEN_SUBFR + LEN_SUBFR);
-  return;
+  return err;
 }

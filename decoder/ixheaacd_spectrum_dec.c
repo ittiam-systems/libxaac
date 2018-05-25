@@ -428,6 +428,9 @@ WORD32 ixheaacd_fd_channel_stream(
       usac_data, max_spec_coefficients, noise_level, noise_offset, arth_size,
       it_bit_buff, *max_sfb, arith_reset_flag, noise_filling, chn);
 
+  if(err_code != 0)
+      return err_code;
+
   usac_data->fac_data_present[chn] = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
   if (usac_data->fac_data_present[chn]) {

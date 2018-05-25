@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include "impd_type_def.h"
 #include "impd_drc_extr_delta_coded_info.h"
@@ -27,14 +27,14 @@
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
 
- 
+
 WORD32 impd_set_default_params_selection_process(ia_drc_sel_proc_params_struct *pstr_drc_sel_proc_params)
 {
     pstr_drc_sel_proc_params->base_channel_count = -1;
     pstr_drc_sel_proc_params->base_layout = -1;
     pstr_drc_sel_proc_params->target_config_request_type = 0;
     pstr_drc_sel_proc_params->num_downmix_id_requests = 0;
-    
+
     pstr_drc_sel_proc_params->album_mode = 0;
 
     pstr_drc_sel_proc_params->peak_limiter = 1;
@@ -48,7 +48,7 @@ WORD32 impd_set_default_params_selection_process(ia_drc_sel_proc_params_struct *
     pstr_drc_sel_proc_params->loudness_measurement_system = USER_MEASUREMENT_SYSTEM_DEFAULT;
     pstr_drc_sel_proc_params->loudness_measurement_pre_proc = USER_LOUDNESS_PREPROCESSING_DEFAULT;
     pstr_drc_sel_proc_params->device_cut_off_frequency = 500;
-    pstr_drc_sel_proc_params->loudness_norm_gain_db_max = LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT; 
+    pstr_drc_sel_proc_params->loudness_norm_gain_db_max = LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT;
     pstr_drc_sel_proc_params->loudness_norm_gain_modification_db = 0.0f;
     pstr_drc_sel_proc_params->output_peak_level_max = 0.0f;
     if (pstr_drc_sel_proc_params->peak_limiter == 1) {
@@ -56,28 +56,28 @@ WORD32 impd_set_default_params_selection_process(ia_drc_sel_proc_params_struct *
         pstr_drc_sel_proc_params->output_peak_level_max = 6.0f;
 
     }
-    
+
     pstr_drc_sel_proc_params->dynamic_range_control_on = 1;
-    pstr_drc_sel_proc_params->num_bands_supported = 4; 
+    pstr_drc_sel_proc_params->num_bands_supported = 4;
     pstr_drc_sel_proc_params->num_drc_feature_requests = 0;
-    
+
 
     pstr_drc_sel_proc_params->boost = 1.f;
     pstr_drc_sel_proc_params->compress = 1.f;
     pstr_drc_sel_proc_params->drc_characteristic_target = 0;
-    
+
     return 0;
 }
 WORD32 impd_set_custom_params(const WORD32 param_set_idx,
                                  ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params)
 {
     WORD32 i, k;
-    
+
     const ia_loc_sys_interface_struct* system_interface = &(loc_sys_interface[param_set_idx-1]);
-    
+
     const ia_loc_loudness_norm_ctrl_interface_struct* loudness_norm_ctrl_interface = &(loc_loudness_norm_ctrl_interface[param_set_idx-1]);
     const ia_loc_loudness_norm_param_interface_struct* loudness_norm_param_interface = &(loc_loudness_norm_param_interface[param_set_idx-1]);
-    
+
     const ia_loc_drc_interface_struct* drc_ctrl_interface = &(loc_dyn_range_ctrl_interface[param_set_idx-1]);
     const ia_loc_requested_drc_effect_struct* requested_drc_effect_type = &(loc_requested_drc_effect_type_str[param_set_idx-1]);
     const ia_loc_drc_parameter_interface_struct* drc_parameter_interface = &(loc_drc_parameter_interface[param_set_idx-1]);
@@ -98,10 +98,10 @@ WORD32 impd_set_custom_params(const WORD32 param_set_idx,
             }
             break;
     }
-    
+
     pstr_drc_sel_proc_params->loudness_normalization_on = loudness_norm_ctrl_interface->loudness_normalization_on;
     pstr_drc_sel_proc_params->target_loudness = loudness_norm_ctrl_interface->target_loudness;
-    
+
     pstr_drc_sel_proc_params->album_mode = loudness_norm_param_interface->album_mode;
     pstr_drc_sel_proc_params->peak_limiter = loudness_norm_param_interface->peak_limiter;
     pstr_drc_sel_proc_params->loudness_deviation_max = loudness_norm_param_interface->loudness_deviation_max;
@@ -142,19 +142,19 @@ WORD32 impd_set_custom_params(const WORD32 param_set_idx,
                 return (UNEXPECTED_ERROR);
         }
     }
-    
-    pstr_drc_sel_proc_params->boost    = drc_parameter_interface->boost; 
-    pstr_drc_sel_proc_params->compress = drc_parameter_interface->compress; 
+
+    pstr_drc_sel_proc_params->boost    = drc_parameter_interface->boost;
+    pstr_drc_sel_proc_params->compress = drc_parameter_interface->compress;
     pstr_drc_sel_proc_params->drc_characteristic_target = drc_parameter_interface->drc_characteristic_target;
-    
+
     return (0);
 }
 WORD32 impd_eval_custom_params_selection_process(ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params)
 {
     pstr_drc_sel_proc_params->loudness_norm_gain_db_max = max (0.0f, pstr_drc_sel_proc_params->loudness_norm_gain_db_max);
     pstr_drc_sel_proc_params->loudness_deviation_max = max (0, pstr_drc_sel_proc_params->loudness_deviation_max);
-    
+
     return (0);
 }
-    
+
 

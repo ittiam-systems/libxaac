@@ -323,8 +323,8 @@ VOID ixheaacd_ms_stereo(ia_usac_data_struct *usac_data, WORD32 *r_spec,
           for (k = 0; k < ptr_sfb_info->sfb_width[sfb]; k++) {
             temp_r = *r_spec;
             temp_l = *l_spec;
-            *l_spec = temp_r + temp_l;
-            *r_spec = temp_l - temp_r;
+            *l_spec = ixheaacd_add32_sat(temp_r , temp_l);
+            *r_spec = ixheaacd_sub32_sat(temp_l , temp_r);
             r_spec++;
             l_spec++;
           }
@@ -491,7 +491,7 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
 
         else {
           for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
-            dmx_re[i] = (l_spec[i] + (factor * r_spec[i])) >> 1;
+            dmx_re[i] = (WORD32)(((WORD64)l_spec[i] + ((WORD64)factor * (WORD64)r_spec[i])) >> 1);
           }
         }
       }
@@ -541,12 +541,12 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
               WORD32 mid_side =
-                  r_spec[i] - (WORD32)((WORD64)ixheaacd_mult32x32in64(
+                  ixheaacd_sub32_sat(r_spec[i] , (WORD32)((WORD64)ixheaacd_mult32x32in64(
                                            alpha_q_re_temp, l_spec[i]) >>
-                                       24);
+                                       24));
 
-              r_spec[i] = (factor) * (l_spec[i] - mid_side);
-              l_spec[i] = l_spec[i] + mid_side;
+              r_spec[i] = (factor) * (ixheaacd_sub32_sat(l_spec[i] , mid_side));
+              l_spec[i] = ixheaacd_add32_sat(l_spec[i] , mid_side);
             }
 
           } else {

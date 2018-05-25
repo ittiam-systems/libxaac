@@ -186,7 +186,7 @@ NEON_PROLOGUE:
 
     SUB             R4, R4, #2
 
-CORE_LOOP:
+CORE_LOOP_PTC:
     VMULL.U16       Q15, D2, D9
     VST2.32         {Q8, Q9}, [R2]!
     VMULL.U16       Q14, D4, D9
@@ -248,7 +248,7 @@ CORE_LOOP:
     VSHL.S32        Q8, Q14, Q7
 
     SUBS            R4, R4, #1
-    BNE             CORE_LOOP
+    BNE             CORE_LOOP_PTC
 
 NEON_EPILOGUE:
     VMULL.U16       Q15, D2, D9

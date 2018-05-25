@@ -1362,7 +1362,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
   sp1 = out1;
   sp2 = out2;
-  
+
 
   if (out1) {
     if (flush_cw & 0x80000000) {

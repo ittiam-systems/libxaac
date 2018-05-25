@@ -17,6 +17,10 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ixheaacd_sbr_common.h"
 #include <ixheaacd_type_def.h>
 
@@ -52,101 +56,301 @@ WORD32 ixheaacd_samp_rate_table[12] = {92017, 75132, 55426, 46009,
 WORD32 ixheaacd_v_offset_40[16] = {3 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1,
                                    2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1,
                                    2 + 1, 2 + 1, 1 + 1, 0};
-static WORD32 ixheaacd_get_sr_idx_2(WORD32 samplerate) {
-  WORD32 i;
-  for (i = 0; i < 12; i++) {
-    if (ixheaacd_samp_rate_table[i] <= samplerate) break;
+
+static WORD32 ixheaacd_int_div(WORD32 num, WORD32 den) {
+  if (den != 0) {
+    WORD32 result = 0;
+    WORD32 temp = 0;
+    while (den <= num) {
+      temp = 0;
+      while (num >= (den << (temp + 1))) {
+        temp++;
+      }
+      result = result + (1 << temp);
+      num = num - (den * (1 << temp));
+    }
+    return result;
+  } else {
+    return 0;
   }
-  return i;
 }
 
-static WORD32 ixheaacd_get_sr_idx_4(WORD32 fs) {
-  if (92017 <= fs) return 0;
-  if (75132 <= fs) return 1;
-  if (55426 <= fs) return 2;
-  if (46009 <= fs) return 3;
-  if (42000 <= fs) return 4;
-  if (35777 <= fs) return 5;
-  if (27713 <= fs) return 6;
-  if (23004 <= fs) return 7;
-  if (18783 <= fs) return 8;
-  if (00000 <= fs) return 9;
-  return 0;
+
+VOID ixheaacd_aac_shellsort(WORD16 *in, WORD32 n) {
+  WORD32 i, j;
+  WORD32 inc;
+  WORD32 v, w;
+
+  inc = 1;
+
+  do {
+    inc = (((inc << 1) + inc) + 1);
+  } while (inc <= n);
+
+  do {
+    inc = (ixheaacd_int_div(inc, 3));
+    for (i = inc; i < n; i++) {
+      v = in[i];
+      j = i;
+
+      while ((w = in[(j - inc)]) > v) {
+        in[j] = w;
+        j = (j - inc);
+
+        if (j < inc) break;
+      }
+      in[j] = v;
+    }
+
+  } while (inc > 1);
 }
 
-static PLATFORM_INLINE WORD16 ixheaacd_get_k0(
-    WORD32 sr_idx, WORD16 start_freq, ia_sbr_tables_struct *ptr_sbr_tables) {
-  WORD32 start_min = ptr_sbr_tables->env_extr_tables_ptr->start_min[sr_idx];
-  WORD32 ixheaacd_drc_offset =
-      ptr_sbr_tables->env_extr_tables_ptr->offset_idx[sr_idx];
-  return start_min +
-         ptr_sbr_tables->env_extr_tables_ptr
-             ->ixheaacd_drc_offset[ixheaacd_drc_offset][start_freq];
+
+
+
+WORD32
+ixheaacd_calc_start_band(WORD32 fs, const WORD32 start_freq, FLOAT32 upsamp_fac)
+{
+    WORD32 k0_min;
+    WORD32 fs_mapped = 0;
+
+    if (upsamp_fac == 4) {
+        fs = fs / 2;
+    }
+
+    if (fs >= 0 && fs < 18783) {
+        fs_mapped = 16000;
+    }
+    else if (fs >= 18783 && fs < 23004) {
+        fs_mapped = 22050;
+    }
+    else if (fs >= 23004 && fs < 27713) {
+        fs_mapped = 24000;
+    }
+    else if (fs >= 27713 && fs < 35777) {
+        fs_mapped = 32000;
+    }
+    else if (fs >= 35777 && fs < 42000) {
+        fs_mapped = 40000;
+    }
+    else if (fs >= 42000 && fs < 46009) {
+        fs_mapped = 44100;
+    }
+    else if (fs >= 46009 && fs < 55426) {
+        fs_mapped = 48000;
+    }
+    else if (fs >= 55426 && fs < 75132) {
+        fs_mapped = 64000;
+    }
+    else if (fs >= 75132 && fs < 92017) {
+        fs_mapped = 88200;
+    }
+    else if (fs >= 92017) {
+        fs_mapped = 96000;
+    }
+    else {
+        return -1;
+    }
+
+    if (upsamp_fac == 4) {
+        if (fs_mapped < 32000) {
+            k0_min = (WORD32)(((FLOAT32)(3000 * 2 * 32) / fs_mapped) + 0.5);
+        }
+        else {
+            if (fs_mapped < 64000) {
+                k0_min = (WORD32)(((FLOAT32)(4000 * 2 * 32) / fs_mapped) + 0.5);
+            }
+            else {
+                k0_min = (WORD32)(((FLOAT32)(5000 * 2 * 32) / fs_mapped) + 0.5);
+            }
+        }
+    }
+    else {
+        if (fs_mapped < 32000) {
+            k0_min = (WORD32)(((FLOAT32)(3000 * 2 * 64) / fs_mapped) + 0.5);
+        }
+        else {
+            if (fs_mapped < 64000) {
+                k0_min = (WORD32)(((FLOAT32)(4000 * 2 * 64) / fs_mapped) + 0.5);
+            }
+            else {
+                k0_min = (WORD32)(((FLOAT32)(5000 * 2 * 64) / fs_mapped) + 0.5);
+            }
+        }
+    }
+
+    switch (fs_mapped) {
+    case 16000:
+    {
+        WORD32 v_offset[] = { -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 22050:
+    {
+        WORD32 v_offset[] = { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 24000:
+    {
+        WORD32 v_offset[] = { -5, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 16 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 32000:
+    {
+        WORD32 v_offset[] = { -6, -4, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 16 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 40000:
+    {
+        WORD32 v_offset[] = { -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 11, 13, 15, 17, 19 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 44100:
+    case 48000:
+    case 64000:
+    {
+        WORD32 v_offset[] = { -4, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 16, 20 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+    case 88200:
+    case 96000:
+    {
+        WORD32 v_offset[] = { -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 16, 20, 24 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    break;
+
+    default:
+    {
+        WORD32 v_offset[] = { 0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 16, 20, 24, 28, 33 };
+        return (k0_min + v_offset[start_freq]);
+    }
+    }
+}
+
+WORD32
+ixheaacd_calc_stop_band(WORD32 fs, const WORD32 stop_freq, FLOAT32 upsamp_fac)
+{
+    WORD32 result, i;
+    WORD16 arr_stop_freq[14];
+    WORD32 k1_min;
+    WORD16 arr_diff_stop_freq[13];
+
+    if (upsamp_fac == 4) {
+        fs = fs / 2;
+        if (fs < 32000) {
+            k1_min = (WORD32)(((FLOAT32)(6000 * 2 * 32) / fs) + 0.5);
+        }
+        else {
+            if (fs < 64000) {
+                k1_min = (WORD32)(((FLOAT32)(8000 * 2 * 32) / fs) + 0.5);
+            }
+            else {
+                k1_min = (WORD32)(((FLOAT32)(10000 * 2 * 32) / fs) + 0.5);
+            }
+        }
+    }
+    else {
+        if (fs < 32000) {
+            k1_min = (WORD32)(((FLOAT32)(6000 * 2 * 64) / fs) + 0.5);
+        }
+        else {
+            if (fs < 64000) {
+                k1_min = (WORD32)(((FLOAT32)(8000 * 2 * 64) / fs) + 0.5);
+            }
+            else {
+                k1_min = (WORD32)(((FLOAT32)(10000 * 2 * 64) / fs) + 0.5);
+            }
+        }
+    }
+
+    /*Calculate stop frequency vector*/
+    for (i = 0; i <= 13; i++) {
+        arr_stop_freq[i] = (WORD32)(k1_min * pow(64.0 / k1_min, i / 13.0) + 0.5);
+    }
+
+
+    /*Ensure increasing bandwidth */
+    for (i = 0; i <= 12; i++) {
+        arr_diff_stop_freq[i] = arr_stop_freq[i + 1] - arr_stop_freq[i];
+    }
+
+    ixheaacd_aac_shellsort(&arr_diff_stop_freq[0], 13); /*Sort bandwidth changes */
+
+    result = k1_min;
+    for (i = 0; i<stop_freq; i++) {
+        result = result + arr_diff_stop_freq[i];
+    }
+
+    return(result);
+}
+void
+ixheaacd_calc_k0_k2_bands(const WORD32 samp_freq,
+    const WORD32 start_freq,
+    const WORD32 stop_freq,
+    FLOAT32 upsamp_fac,
+    WORD16 *ptr_k0,
+    WORD16 *ptr_k2)
+{
+    /* Update start_freq struct */
+    *ptr_k0 = ixheaacd_calc_start_band(samp_freq, start_freq, upsamp_fac);
+
+
+    /*Update stop_freq struct */
+    if (stop_freq < 14) {
+        *ptr_k2 = ixheaacd_calc_stop_band(samp_freq, stop_freq, upsamp_fac);
+    }
+    else if (stop_freq == 14) {
+        *ptr_k2 = 2 * (*ptr_k0);
+    }
+    else {
+        *ptr_k2 = 3 * (*ptr_k0);
+    }
+
+    /* limit to Nyqvist */
+    if (*ptr_k2 > 64) {
+        *ptr_k2 = 64;
+    }
 }
 
 WORD16 ixheaacd_calc_master_frq_bnd_tbl(
     ia_freq_band_data_struct *pstr_freq_band_data,
     ia_sbr_header_data_struct *ptr_header_data,
-    ia_sbr_tables_struct *ptr_sbr_tables,
     ixheaacd_misc_tables *pstr_common_tables) {
   WORD32 k;
   WORD32 fs = ptr_header_data->out_sampling_freq;
   WORD16 bands;
-  WORD16 k0, k2, k1;
+  WORD16 k0 = 0, k2 = 0, k1;
   WORD32 k2_achived;
   WORD32 k2_diff;
   WORD32 incr;
-  WORD32 dk, sr_idx;
+  WORD32 dk;
   WORD16 vec_dk[MAX_OCTAVE + MAX_SECOND_REGION];
   WORD16 *vec_dk0 = &vec_dk[0];
   WORD16 *vec_dk1 = &vec_dk[MAX_OCTAVE];
   WORD16 upsamp_fac = ptr_header_data->upsamp_fac;
   WORD16 *f_master_tbl = pstr_freq_band_data->f_master_tbl;
   WORD16 num_mf_bands;
-  WORD32 usac_flag = ptr_header_data->usac_flag;
+
 
   k1 = 0;
   incr = 0;
   dk = 0;
 
-  if (upsamp_fac == 4) {
-    fs = fs / 2;
-    sr_idx = ixheaacd_get_sr_idx_4(fs);
-    k0 = pstr_common_tables->start_band[sr_idx][ptr_header_data->start_freq];
-  } else {
-    sr_idx = ixheaacd_get_sr_idx_2(fs);
-    k0 = ixheaacd_get_k0(sr_idx, ptr_header_data->start_freq, ptr_sbr_tables);
-    if (usac_flag && fs == 40000) {
-      k0 = k0 + ixheaacd_v_offset_40[ptr_header_data->start_freq];
-    }
-  }
 
-  if (ptr_header_data->stop_freq < 14) {
-    if (upsamp_fac == 4) {
-      k2 = pstr_common_tables->stop_band[sr_idx][ptr_header_data->stop_freq];
-      k2 = (WORD16)ixheaacd_min32(64, k2);
-      if (fs == 20000) {
-        k2 = pstr_common_tables
-                 ->stop_freq_table_fs40k_4[ptr_header_data->stop_freq];
-      }
-    } else {
-      WORD32 stop_minv = ptr_sbr_tables->env_extr_tables_ptr->stop_min[sr_idx];
-      k2 = (WORD16)ixheaacd_min32(
-          64, stop_minv +
-                  ptr_sbr_tables->env_extr_tables_ptr
-                      ->stop_off[sr_idx][ptr_header_data->stop_freq]);
-      if (usac_flag && fs == 40000) {
-        k2 = pstr_common_tables
-                 ->stop_freq_table_fs40k_2[ptr_header_data->stop_freq];
-      }
-    }
+    ixheaacd_calc_k0_k2_bands(fs,
+        ptr_header_data->start_freq,
+        ptr_header_data->stop_freq,
+        upsamp_fac,
+        &k0, &k2);
 
-  } else {
-    if (ptr_header_data->stop_freq == 14)
-      k2 = ixheaacd_shl16(k0, 1);
-    else
-      k2 = add_d(ixheaacd_shl16(k0, 1), k0);
-  }
+
   if (k2 > NO_SYNTHESIS_CHANNELS) {
     k2 = NO_SYNTHESIS_CHANNELS;
   }
@@ -440,53 +644,6 @@ static VOID ixheaacd_derive_hi_lo_freq_bnd_tbls(
   pstr_freq_band_data->num_sf_bands[HIGH] = num_hf_bands;
 }
 
-static WORD32 ixheaacd_int_div(WORD32 num, WORD32 den) {
-  if (den != 0) {
-    WORD32 result = 0;
-    WORD32 temp = 0;
-    while (den <= num) {
-      temp = 0;
-      while (num >= (den << (temp + 1))) {
-        temp++;
-      }
-      result = result + (1 << temp);
-      num = num - (den * (1 << temp));
-    }
-    return result;
-  } else {
-    return 0;
-  }
-}
-
-VOID ixheaacd_aac_shellsort(WORD16 *in, WORD32 n) {
-  WORD32 i, j;
-  WORD32 inc;
-  WORD32 v, w;
-
-  inc = 1;
-
-  do {
-    inc = (((inc << 1) + inc) + 1);
-  } while (inc <= n);
-
-  do {
-    inc = (ixheaacd_int_div(inc, 3));
-    for (i = inc; i < n; i++) {
-      v = in[i];
-      j = i;
-
-      while ((w = in[(j - inc)]) > v) {
-        in[j] = w;
-        j = (j - inc);
-
-        if (j < inc) break;
-      }
-      in[j] = v;
-    }
-
-  } while (inc > 1);
-}
-
 WORD32 ixheaacd_derive_noise_freq_bnd_tbl(
     ia_sbr_header_data_struct *ptr_header_data,
     ixheaacd_misc_tables *pstr_common_tables,
@@ -544,15 +701,14 @@ WORD32 ixheaacd_derive_noise_freq_bnd_tbl(
 }
 
 WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
-                                  ia_sbr_tables_struct *ptr_sbr_tables,
-                                  ixheaacd_misc_tables *pstr_common_tables) {
+                                 ixheaacd_misc_tables *pstr_common_tables) {
   WORD32 err;
   WORD16 num_lf_bands, num_hf_bands, lsb, usb;
   ia_freq_band_data_struct *pstr_freq_band_data =
       ptr_header_data->pstr_freq_band_data;
 
   err = ixheaacd_calc_master_frq_bnd_tbl(pstr_freq_band_data, ptr_header_data,
-                                         ptr_sbr_tables, pstr_common_tables);
+                                          pstr_common_tables);
 
   if (err ||
       (ptr_header_data->xover_band > pstr_freq_band_data->num_mf_bands)) {

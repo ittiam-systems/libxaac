@@ -21,8 +21,6 @@
 #define IXHEAACD_CREATE_H
 
 typedef struct {
-  ia_frame_data_struct *pstr_frame_data;
-  ia_usac_data_struct *pstr_usac_data;
   struct ia_bit_buf_struct dec_bit_buf;
   ia_frame_data_struct str_frame_data;
   ia_usac_data_struct str_usac_data;

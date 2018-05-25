@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_EQ_H
 #define IMPD_DRC_EQ_H
 
@@ -49,10 +49,10 @@ typedef struct {
     WORD32 delay;
     FLOAT32 state[EQ_CHANNEL_COUNT_MAX][EQ_AUDIO_DELAY_MAX];
 } ia_audio_delay_struct;
-    
+
 typedef struct {
     FLOAT32 radius;
-    FLOAT32 coeff[2];      
+    FLOAT32 coeff[2];
 } ia_2nd_order_filt_params_struct;
 
 typedef struct {
@@ -101,7 +101,7 @@ typedef struct {
     WORD32 member_count;
     WORD32 member_idx[EQ_CHANNEL_GROUP_COUNT_MAX];
 } ia_cascade_align_group_struct;
-    
+
 typedef struct {
     WORD32 validity_flag;
     WORD32 num_matches_filter;
@@ -111,7 +111,7 @@ typedef struct {
     ia_filt_sect_struct filt_section[EQ_FILTER_SECTION_COUNT_MAX];
     ia_audio_delay_struct audio_delay;
 } ia_ph_alignment_filt_struct;
-    
+
 typedef ia_ph_alignment_filt_struct ia_matching_ph_filt_struct;
 
 typedef struct {
@@ -119,7 +119,7 @@ typedef struct {
     WORD32 all_pass_count;
     ia_matching_ph_filt_struct matching_ph_filt[MATCHING_PHASE_FILTER_COUNT_MAX];
 } ia_all_pass_chain_struct;
-    
+
 typedef struct {
     WORD32 section_count;
     ia_filt_sect_struct filt_section[EQ_FILTER_SECTION_COUNT_MAX];
@@ -164,17 +164,17 @@ typedef struct {
 
 WORD32
 impd_derive_eq_set (ia_eq_coeff_struct* str_eq_coeff,
-					ia_eq_instructions_struct* str_eq_instructions,
-					FLOAT32 sample_rate,
-					WORD32 drc_frame_size,
-					WORD32 sub_band_domain_mode,
-					ia_eq_set_struct* eq_set);
+                    ia_eq_instructions_struct* str_eq_instructions,
+                    FLOAT32 sample_rate,
+                    WORD32 drc_frame_size,
+                    WORD32 sub_band_domain_mode,
+                    ia_eq_set_struct* eq_set);
 
 VOID impd_get_eq_set_delay (ia_eq_set_struct* eq_set,
-					   WORD32* cascade_delay);
+                       WORD32* cascade_delay);
 WORD32
 impd_process_eq_set_td(ia_eq_set_struct* eq_set,
-					   WORD32 channel,
+                       WORD32 channel,
                        FLOAT32 audio_in,
                        FLOAT32* audio_out);
 
@@ -185,9 +185,9 @@ WORD32 impd_process_eq_set_time_domain(ia_eq_set_struct* eq_set,
                                        WORD32 frame_size);
 WORD32
 impd_process_eq_set_subband_domain(ia_eq_set_struct* eq_set,
-								   WORD32 channel,
-								   FLOAT32* subbandSampleIn,
-								   FLOAT32* subbandSampleOut);
+                                   WORD32 channel,
+                                   FLOAT32* subbandSampleIn,
+                                   FLOAT32* subbandSampleOut);
 
 
 #ifdef __cplusplus

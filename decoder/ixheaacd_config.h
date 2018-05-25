@@ -43,15 +43,11 @@
 #define ID_EXT_ELE_FILL 0
 #define ID_EXT_ELE_MPEGS 1
 #define ID_EXT_ELE_SAOC 2
-#ifdef ENABLE_DRC
 #define ID_EXT_ELE_AUDIOPREROLL 3
 #define ID_EXT_ELE_UNI_DRC 4
-#endif
 
 #define ID_CONFIG_EXT_FILL 0
-#ifdef ENABLE_DRC
 #define ID_CONFIG_EXT_LOUDNESS_INFO (2)
-#endif
 
 typedef UWORD8 UINT8;
 typedef UWORD32 UINT32;
@@ -125,7 +121,6 @@ typedef struct {
 
 #define BS_MAX_NUM_OUT_CHANNELS (255)
 
-#ifdef ENABLE_DRC
 #define EXT_COUNT_MAX (2)
 #define MAX_CHANNEL_COUNT (128)
 #define SEQUENCE_COUNT_MAX (24)
@@ -164,7 +159,6 @@ typedef struct {
 #define DRC_BAND_COUNT_MAX BAND_COUNT_MAX
 #define SPEAKER_POS_COUNT_MAX (128)
 #define DOWNMIX_COEFF_COUNT_MAX (32 * 32)
-#endif
 
 typedef struct {
   UINT32 tw_mdct;
@@ -181,13 +175,10 @@ typedef struct {
 
 typedef struct {
   UWORD32 num_elements;
-#ifdef ENABLE_DRC
   UWORD32 num_config_extensions;
-#endif
   UWORD32 usac_element_type[USAC_MAX_ELEMENTS];
   ia_usac_dec_element_config_struct str_usac_element_config[USAC_MAX_ELEMENTS];
 
-#ifdef ENABLE_DRC
   WORD32 usac_cfg_ext_info_present[USAC_MAX_CONFIG_EXTENSIONS];
   WORD32 usac_ext_ele_payload_present[USAC_MAX_ELEMENTS];
   WORD32 usac_cfg_ext_info_len[USAC_MAX_CONFIG_EXTENSIONS];
@@ -196,7 +187,8 @@ typedef struct {
   UWORD8 usac_cfg_ext_info_buf[USAC_MAX_CONFIG_EXTENSIONS][768];
   UWORD8 usac_ext_ele_payload_buf[USAC_MAX_ELEMENTS][768];
   UWORD8 usac_ext_gain_payload_buf[768];
-#endif
+
+  WORD32 preroll_flag;
 
 } ia_usac_decoder_config_struct;
 
@@ -212,8 +204,6 @@ typedef struct {
 
 } ia_usac_config_struct;
 
-#ifdef ENABLE_DRC
-#ifdef AMMENDMENT1
 typedef struct {
   WORD32 parametric_lim_threshold_present;
   FLOAT32 parametric_lim_threshold;
@@ -257,9 +247,7 @@ typedef struct {
   WORD32 len_bit_size;
   ia_parametric_drc_type_feed_forward_struct
       str_parametric_drc_type_feed_forward;
-#ifdef AMMENDMENT1
   ia_parametric_drc_lim_struct parametric_drc_lim;
-#endif
 
   WORD32 drc_characteristic;
   WORD32 disable_paramteric_drc;
@@ -311,7 +299,6 @@ typedef struct {
   FLOAT32 loud_eq_offset[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
 } ia_loud_eq_instructions_struct;
 
-#endif
 typedef struct {
   WORD32 filt_ele_idx;
   WORD32 filt_ele_gain_flag;
@@ -407,14 +394,11 @@ typedef struct {
   WORD32 drc_config_ext_type[EXT_COUNT_MAX];
   WORD32 ext_bit_size[EXT_COUNT_MAX - 1];
 
-#ifdef AMMENDMENT1
   WORD32 parametric_drc_present;
   ia_drc_coeff_parametric_drc_struct str_drc_coeff_param_drc;
   WORD32 parametric_drc_instructions_count;
   ia_parametric_drc_instructions_struct
       str_parametric_drc_instructions[PARAM_DRC_INSTRUCTIONS_COUNT_MAX];
-#endif
-#ifdef AMMENDMENT1
   WORD32 drc_extension_v1_present;
   WORD32 loud_eq_instructions_flag;
   WORD32 loud_eq_instructions_count;
@@ -424,7 +408,6 @@ typedef struct {
   ia_eq_coeff_struct str_eq_coeff;
   WORD32 eq_instructions_count;
   ia_eq_instructions_struct str_eq_instructions[EQ_INSTRUCTIONS_COUNT_MAX];
-#endif
 } ia_drc_config_ext;
 
 typedef struct {
@@ -449,12 +432,10 @@ typedef struct {
 typedef struct {
   WORD32 gain_seq_idx;
   WORD32 drc_characteristic;
-#ifdef AMMENDMENT1
   WORD32 drc_characteristic_present;
   WORD32 drc_characteristic_format_is_cicp;
   WORD32 drc_characteristic_left_index;
   WORD32 drc_characteristic_right_index;
-#endif
   WORD32 crossover_freq_idx;
   WORD32 start_subband_index;
 } ia_gain_params_struct;
@@ -517,7 +498,6 @@ typedef struct {
   WORD32 drc_frame_size;
   WORD32 gain_set_count;
   ia_gain_set_params_struct gain_set_params[GAIN_SET_COUNT_MAX];
-#ifdef AMMENDMENT1
   WORD32 drc_characteristic_left_present;
   WORD32 characteristic_left_count;
   ia_split_drc_characteristic_struct
@@ -532,22 +512,17 @@ typedef struct {
       str_shape_filter_block_params[SHAPE_FILTER_COUNT_MAX + 1];
   WORD32 gain_sequence_count;
   WORD32 gain_set_params_index_for_gain_sequence[SEQUENCE_COUNT_MAX];
-#endif
-#ifdef AMMENDMENT1
   WORD32 gain_set_count_plus;
 
-#endif
 } ia_uni_drc_coeffs_struct;
 
 typedef struct {
-#ifdef AMMENDMENT1
   WORD32 target_characteristic_left_present[DRC_BAND_COUNT_MAX];
   WORD32 target_characteristic_left_index[DRC_BAND_COUNT_MAX];
   WORD32 target_characteristic_right_present[DRC_BAND_COUNT_MAX];
   WORD32 target_characteristic_right_index[DRC_BAND_COUNT_MAX];
   WORD32 shape_filter_flag;
   WORD32 shape_filter_idx;
-#endif
   WORD32 gain_scaling_flag[BAND_COUNT_MAX];
   FLOAT32 attn_scaling[BAND_COUNT_MAX];
   FLOAT32 ampl_scaling[BAND_COUNT_MAX];
@@ -563,10 +538,8 @@ typedef struct {
 
 typedef struct {
   WORD32 drc_set_id;
-#ifdef AMMENDMENT1
   WORD32 drc_set_complexity_level;
   WORD32 requires_eq;
-#endif
   WORD32 drc_apply_to_dwnmix;
   WORD32 drc_location;
   WORD32 dwnmix_id_count;
@@ -600,12 +573,10 @@ typedef struct {
   WORD32 num_chan_per_ch_group[CHANNEL_GROUP_COUNT_MAX];
   WORD32 gain_element_count;
   WORD32 multiband_audio_sig_count;
-#ifdef AMMENDMENT1
   WORD32 ch_group_parametric_drc_flag[CHANNEL_GROUP_COUNT_MAX];
   WORD32 gain_set_idx_of_ch_group_parametric_drc[CHANNEL_GROUP_COUNT_MAX];
   WORD32 parametric_drc_look_ahead_samples[CHANNEL_GROUP_COUNT_MAX];
   WORD32 parametric_drc_look_ahead_samples_max;
-#endif
 } ia_drc_instructions_struct;
 
 typedef struct {
@@ -646,7 +617,6 @@ typedef struct ia_drc_config {
   ia_downmix_instructions_struct
       dwnmix_instructions[DOWNMIX_INSTRUCTION_COUNT_MAX];
 } ia_drc_config;
-#endif
 
 VOID ixheaacd_conf_default(ia_usac_config_struct *pstr_usac_conf);
 
@@ -654,7 +624,7 @@ UWORD32 ixheaacd_sbr_ratio(UWORD32 core_sbr_frame_len_idx);
 
 UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_frame_len_idx,
                             WORD32 *output_frame_length, WORD32 *block_size,
-                            WORD32 *output_samples);
+                            WORD32 *output_samples,WORD32 *sampling_freq, UWORD32* sample_freq_indx);
 
 WORD32 ixheaacd_config(ia_bit_buf_struct *bit_buff,
                        ia_usac_config_struct *pstr_usac_conf);
