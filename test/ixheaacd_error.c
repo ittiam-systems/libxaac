@@ -75,7 +75,8 @@ pWORD8 ixheaacd_ppb_config_non_fatal[] = {
     (pWORD8) "Invalid peak limiter flag",
     (pWORD8) "Invalid control param index",
     (pWORD8) "Inalid gain delay",
-    (pWORD8) "invalid constant delay mode"};
+    (pWORD8) "Invalid constant delay mode",
+    (pWORD8) "Invalid effect type"};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_config_fatal[] = {
     (pWORD8) "Invalid Sample rate specified for RAW decoding"};
@@ -85,9 +86,9 @@ pWORD8 ixheaacd_ppb_config_fatal[] = {
 /*****************************************************************************/
 /* Non Fatal Errors */
 pWORD8 ixheaacd_ppb_init_non_fatal[] = {
-	(pWORD8)"Both 16 kHz and 8 kHz output config set. Giving 16 kHz output",
-	(pWORD8)"Output sampling frequency is 8 kHz, 16 kHz output disabled ",
-	(pWORD8)"Header not found at the beginning of input data continuing syncing"
+    (pWORD8)"Both 16 kHz and 8 kHz output config set. Giving 16 kHz output",
+    (pWORD8)"Output sampling frequency is 8 kHz, 16 kHz output disabled ",
+    (pWORD8)"Header not found at the beginning of input data continuing syncing"
 };
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_init_fatal[] = {
@@ -101,22 +102,22 @@ pWORD8 ixheaacd_ppb_init_fatal[] = {
 /*****************************************************************************/
 /* Non Fatal Errors */
 pWORD8 ixheaacd_ppb_exe_non_fatal[] = {
-	(pWORD8)"ADTS syncronization is lost. Re-syncing",
-	(pWORD8)"Though SBR was present in previous frame, not present in current frame (SBR turned off)",
-	(pWORD8)"SBR was not present in previous frame, but it is present in current frame (SBR turned on)",
-	(pWORD8)"ADTS Header CRC failed.Re-syncing",
-	(pWORD8)"Input bytes insufficient for decoding",
-	(pWORD8)"Element instance tag mismatch, because of new channel mode",
-	(pWORD8)"max huffman decoded value exceeded",
-	(pWORD8)"Error in AAC decoding",
-	(pWORD8)"Scale factor exceeds the transmitted boundary",
-	(pWORD8)"Gain control not supported",
-	(pWORD8)"Filter Order of TNS data is greater than maximum order",
-	(pWORD8)"LTP data found, not supported",
-	(pWORD8)"The base sampling frequency has changed in ADTS header",
-	(pWORD8)"Pulse Data exceeds the permitted boundary",
-	(pWORD8)"Invalid code ixheaacd_book number in ia_huffman_data_type decoding",
-//	(pWORD8)"The base sampling frequency has changed in ADTS header"
+    (pWORD8)"ADTS syncronization is lost. Re-syncing",
+    (pWORD8)"Though SBR was present in previous frame, not present in current frame (SBR turned off)",
+    (pWORD8)"SBR was not present in previous frame, but it is present in current frame (SBR turned on)",
+    (pWORD8)"ADTS Header CRC failed.Re-syncing",
+    (pWORD8)"Input bytes insufficient for decoding",
+    (pWORD8)"Element instance tag mismatch, because of new channel mode",
+    (pWORD8)"max huffman decoded value exceeded",
+    (pWORD8)"Error in AAC decoding",
+    (pWORD8)"Scale factor exceeds the transmitted boundary",
+    (pWORD8)"Gain control not supported",
+    (pWORD8)"Filter Order of TNS data is greater than maximum order",
+    (pWORD8)"LTP data found, not supported",
+    (pWORD8)"The base sampling frequency has changed in ADTS header",
+    (pWORD8)"Pulse Data exceeds the permitted boundary",
+    (pWORD8)"Invalid code ixheaacd_book number in ia_huffman_data_type decoding",
+//  (pWORD8)"The base sampling frequency has changed in ADTS header"
 };
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_exe_fatal[] = {
@@ -129,14 +130,14 @@ pWORD8 ixheaacd_ppb_exe_fatal[] = {
 /*****************************************************************************/
 /* The Module's Error Info Structure */
 ia_error_info_struct ixheaacd_error_info = {
-    /* The Module Name	*/
+    /* The Module Name  */
     (pWORD8) "Ittiam xheaac_dec",
-    {/* The Class Names	*/
+    {/* The Class Names */
      (pWORD8) "API", (pWORD8) "Configuration", (pWORD8) "Initialization",
      (pWORD8) "Execution", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "",
      (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "",
      (pWORD8) "", (pWORD8) "", (pWORD8) "xHeaac"},
-    {/* The Message Pointers	*/
+    {/* The Message Pointers    */
      {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL},
      {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -176,7 +177,7 @@ ia_error_info_struct ixheaacd_error_info = {
 /*****************************************************************************/
 
 VOID ixheaacd_error_handler_init() {
-  /* The Message Pointers	*/
+  /* The Message Pointers   */
   ixheaacd_error_info.ppppb_error_msg_pointers[0][0] =
       ixheaacd_ppb_api_non_fatal;
   ixheaacd_error_info.ppppb_error_msg_pointers[1][0] = ixheaacd_ppb_api_fatal;
@@ -209,14 +210,14 @@ pWORD8 ixheaacd_ppb_ia_testbench_mem_file_man_fatal[] = {
 /*****************************************************************************/
 /* The Module's Error Info Structure */
 ia_error_info_struct ixheaacd_ia_testbench_error_info = {
-    /* The Module Name	*/
+    /* The Module Name  */
     (pWORD8) "ia_testbench",
-    {/* The Class Names	*/
+    {/* The Class Names */
      (pWORD8) "Memory & File Manager", (pWORD8) "", (pWORD8) "", (pWORD8) "",
      (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "",
      (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "",
      (pWORD8) "", (pWORD8) ""},
-    {/* The Message Pointers	*/
+    {/* The Message Pointers    */
      {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL},
      {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -249,7 +250,7 @@ ia_error_info_struct ixheaacd_ia_testbench_error_info = {
 /*****************************************************************************/
 
 VOID ia_testbench_error_handler_init() {
-  /* The Message Pointers	*/
+  /* The Message Pointers   */
   ixheaacd_ia_testbench_error_info.ppppb_error_msg_pointers[1][0] =
       ixheaacd_ppb_ia_testbench_mem_file_man_fatal;
 }

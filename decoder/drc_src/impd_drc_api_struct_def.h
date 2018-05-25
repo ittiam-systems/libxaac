@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_API_STRUCT_DEF_H
 #define IMPD_DRC_API_STRUCT_DEF_H
 
@@ -52,7 +52,11 @@ typedef struct ia_drc_config_struct
     WORD32    delay_line_samples;
     WORD32    constant_delay_on;
     WORD32    audio_delay_samples;
-    
+
+    WORD32 effect_type;
+    WORD32 target_loudness;
+    WORD32 loud_norm_flag;
+
 }ia_drc_config_struct;
 
 /* DRC bitsteam handler */
@@ -79,7 +83,7 @@ typedef struct bits_handler
     WORD32 cpy_over_ic;
     WORD32 cpy_over_il;
     WORD32 cpy_over_in;
-	WORD32 gain_stream_flag;
+    WORD32 gain_stream_flag;
 }ia_drc_bits_handler_struct;
 
 typedef struct
@@ -93,25 +97,25 @@ typedef struct
     ia_drc_interface_struct             *pstr_drc_interface;
 
     ia_drc_peak_limiter_struct          *pstr_peak_limiter;
-    ia_drc_qmf_filt_struct              *pstr_qmf_filter;    
+    ia_drc_qmf_filt_struct              *pstr_qmf_filter;
     ia_drc_sel_proc_params_struct       *pstr_drc_sel_proc_params;
     ia_drc_sel_proc_output_struct       *pstr_drc_sel_proc_output;
-      
+
 }ia_drc_payload_struct;
 
 typedef struct ia_drc_state_struct
 {
-	UWORD32  ui_out_bytes;
-	UWORD32  ui_in_bytes;
-	UWORD32  ui_ir_bytes;
+    UWORD32  ui_out_bytes;
+    UWORD32  ui_in_bytes;
+    UWORD32  ui_ir_bytes;
     UWORD32  total_num_out_samples;
     UWORD32  frame_no;
     UWORD32  out_size;
-	UWORD32  ui_init_done;
-	UWORD32  ui_exe_done;
-	UWORD32  ui_ir_used;
+    UWORD32  ui_init_done;
+    UWORD32  ui_exe_done;
+    UWORD32  ui_ir_used;
     WORD32   delay_in_output;
-	WORD32   delay_adjust_samples;
+    WORD32   delay_adjust_samples;
     pVOID   persistant_ptr;
 }ia_drc_state_struct;
 
@@ -120,10 +124,10 @@ typedef struct IA_PSM_API_Struct
     ia_drc_state_struct    *p_state;
     ia_drc_config_struct    str_config;
     ia_drc_payload_struct      str_payload;
-	ia_drc_bits_handler_struct     str_bit_handler;
+    ia_drc_bits_handler_struct     str_bit_handler;
     ia_mem_info_struct      *p_mem_info;
     pVOID *pp_mem;
-	struct ia_bit_buf_struct str_bit_buf, *pstr_bit_buf;
+    struct ia_bit_buf_struct str_bit_buf, *pstr_bit_buf;
 
 } ia_drc_api_struct;
 

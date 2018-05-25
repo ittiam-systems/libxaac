@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #ifndef IMPD_DRC_ROM_H
 #define IMPD_DRC_ROM_H
 #define MAX_NUM_QMF_BANDS              128
@@ -32,7 +32,7 @@ extern const ia_delta_gain_code_table_struct ia_drc_gain_tbls_prof_0_1[NUM_GAIN_
 extern const ia_delta_gain_code_table_struct ia_drc_gain_tbls_prof_2[NUM_GAIN_TBL_PROF_2_ENTRIES];
 
 extern const FLOAT32 channel_weight[];
-    
+
 extern const FLOAT32 dwnmix_coeff_v1[];
 extern const FLOAT32 eq_slope_tbl [];
 
@@ -77,7 +77,7 @@ extern WORD32 measurement_system_rms_c_tbl[];
 extern WORD32 measurement_system_rms_d_tbl[];
 extern WORD32 measurement_system_rms_e_tbl[];
 extern WORD32 measurement_method_prog_loudness_tbl[];
-extern WORD32 measurement_method_peak_loudness_tbl[]; 
+extern WORD32 measurement_method_peak_loudness_tbl[];
 
 #define MAX_NUM_DOWNMIX_ID_REQUESTS_LOCAL 3
 
@@ -97,8 +97,8 @@ typedef struct {
     FLOAT32 target_loudness;
 } ia_loc_loudness_norm_ctrl_interface_struct;
 
-extern const ia_loc_loudness_norm_ctrl_interface_struct loc_loudness_norm_ctrl_interface[];    
-   
+extern const ia_loc_loudness_norm_ctrl_interface_struct loc_loudness_norm_ctrl_interface[];
+
 typedef struct {
     WORD32   album_mode;
     WORD32   peak_limiter;
@@ -137,7 +137,7 @@ typedef struct {
 } ia_loc_requested_drc_effect_struct;
 
 extern const ia_loc_requested_drc_effect_struct loc_requested_drc_effect_type_str[];
-    
+
 typedef struct {
     FLOAT32 compress;
     FLOAT32 boost;
@@ -153,4 +153,4 @@ extern FLOAT32 f_bands_nrm_STFT256[257];
 FLOAT64 qmf_filter_coeff[640];
 
 extern const ia_filter_bank_params_struct normal_cross_freq[FILTER_BANK_PARAMETER_COUNT];
-#endif 
+#endif

@@ -85,9 +85,30 @@ UWORD32 ixheaacd_sbr_ratio(UWORD32 core_sbr_framelength_idx) {
   return sbr_ratio_index;
 }
 
+WORD32 ixheaacd_get_sample_freq_indx(WORD32 sampling_freq)
+{
+    WORD32 sampling_rate_tbl[] = {
+        96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025,
+        8000,  7350,  0,     0,     0};
+
+    WORD32 index;
+    WORD32 tbl_size = sizeof(sampling_rate_tbl)/sizeof(WORD32) - 1;
+
+    for (index = 0; index < tbl_size; index++) {
+        if (sampling_rate_tbl[index] == sampling_freq) break;
+    }
+
+    if (index > tbl_size) {
+        return tbl_size - 1;
+    }
+
+    return index;
+}
 UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_framelength_idx,
                             WORD32 *output_framelength, WORD32 *block_size,
-                            WORD32 *output_samples) {
+                            WORD32 *output_samples,
+                            WORD32 * sample_rate_layer,
+                            UWORD32 * sample_freq_indx) {
   UWORD32 sbr_ratio_index = 0x0FF;
 
   *output_framelength = -1;
@@ -110,20 +131,26 @@ UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_framelength_idx,
       *output_framelength = USAC_OUT_FRAMELENGTH_2048;
       *block_size = 768;
       *output_samples = (*block_size * 8) / 3;
+      *sample_rate_layer = (*sample_rate_layer * 3) >> 3;
       break;
     case 3:
       sbr_ratio_index = USAC_SBR_RATIO_INDEX_2_1;
       *output_framelength = USAC_OUT_FRAMELENGTH_2048;
       *block_size = 1024;
       *output_samples = *block_size * 2;
+      *sample_rate_layer = *sample_rate_layer >> 1;
       break;
     case 4:
       sbr_ratio_index = USAC_SBR_RATIO_INDEX_4_1;
       *output_framelength = USAC_OUT_FRAMELENGTH_4096;
       *block_size = 1024;
       *output_samples = *block_size * 4;
+      *sample_rate_layer = *sample_rate_layer >> 2;
       break;
   }
+
+  *sample_freq_indx = ixheaacd_get_sample_freq_indx(*sample_rate_layer);
+
 
   return sbr_ratio_index;
 }
@@ -210,16 +237,13 @@ VOID ixheaacd_sbr_config(ia_bit_buf_struct *it_bit_buff,
 WORD32 ixheaacd_ext_element_config(
     ia_bit_buf_struct *it_bit_buff,
     ia_usac_dec_element_config_struct *pstr_usac_element_config
-#ifdef ENABLE_DRC
     ,
     UWORD8 *ptr_usac_ext_ele_payload, WORD32 *ptr_usac_ext_ele_payload_len
-#endif
+    ,WORD32 *preroll_flag
     ) {
   UWORD32 usac_ext_element_type, usac_ext_element_config_length, flag;
 
-#ifdef ENABLE_DRC
   UWORD32 i;
-#endif
 
   ixheaacd_read_escape_value(it_bit_buff, &(usac_ext_element_type), 4, 8, 16);
 
@@ -228,9 +252,7 @@ WORD32 ixheaacd_ext_element_config(
 
   flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
-#ifdef ENABLE_DRC
   *ptr_usac_ext_ele_payload_len = 0;
-#endif
 
   if (flag) {
     ixheaacd_read_escape_value(
@@ -249,8 +271,8 @@ WORD32 ixheaacd_ext_element_config(
   switch (usac_ext_element_type) {
     case ID_EXT_ELE_FILL:
       break;
-#ifdef ENABLE_DRC
     case ID_EXT_ELE_AUDIOPREROLL:
+        *preroll_flag=1;
       break;
     case ID_EXT_ELE_UNI_DRC:
       for (i = 0; i < usac_ext_element_config_length; i++) {
@@ -258,7 +280,6 @@ WORD32 ixheaacd_ext_element_config(
       }
       *ptr_usac_ext_ele_payload_len = usac_ext_element_config_length;
       break;
-#endif
 
     default:
       if ((it_bit_buff->cnt_bits >> 3) < (WORD32)usac_ext_element_config_length)
@@ -352,6 +373,7 @@ WORD32 ixheaacd_decoder_config(
   ixheaacd_read_escape_value(
       it_bit_buff, &(pstr_usac_decoder_config->num_elements), 4, 8, 16);
   pstr_usac_decoder_config->num_elements += 1;
+  pstr_usac_decoder_config->preroll_flag=0;
 
   if (pstr_usac_decoder_config->num_elements > USAC_MAX_ELEMENTS) {
     return -1;
@@ -393,20 +415,17 @@ WORD32 ixheaacd_decoder_config(
       case ID_USAC_EXT:
         err = ixheaacd_ext_element_config(
             it_bit_buff, pstr_usac_element_config
-#ifdef ENABLE_DRC
             ,
             &pstr_usac_decoder_config->usac_ext_ele_payload_buf[elem_idx][0],
             &pstr_usac_decoder_config->usac_ext_ele_payload_len[elem_idx]
-#endif
+            ,&(pstr_usac_decoder_config->preroll_flag)
             );
 
-#ifdef ENABLE_DRC
         if (pstr_usac_decoder_config->usac_ext_ele_payload_len[elem_idx] > 0) {
           pstr_usac_decoder_config->usac_ext_ele_payload_present[elem_idx] = 1;
         } else {
           pstr_usac_decoder_config->usac_ext_ele_payload_present[elem_idx] = 0;
         }
-#endif
         if (err != 0) return -1;
         break;
       default:
@@ -418,11 +437,8 @@ WORD32 ixheaacd_decoder_config(
 }
 
 WORD32 ixheaacd_config_extension(
-    ia_bit_buf_struct *it_bit_buff
-#ifdef ENABLE_DRC
-    ,
+    ia_bit_buf_struct *it_bit_buff,
     ia_usac_decoder_config_struct *pstr_usac_decoder_config
-#endif
     ) {
   UWORD32 i, j;
   UWORD32 num_config_extensions;
@@ -434,13 +450,11 @@ WORD32 ixheaacd_config_extension(
     return -1;
   }
 
-#ifdef ENABLE_DRC
   pstr_usac_decoder_config->num_config_extensions = num_config_extensions;
   memset(pstr_usac_decoder_config->usac_cfg_ext_info_len, 0,
          USAC_MAX_CONFIG_EXTENSIONS * sizeof(WORD32));
   memset(pstr_usac_decoder_config->usac_cfg_ext_info_present, 0,
          USAC_MAX_CONFIG_EXTENSIONS * sizeof(WORD32));
-#endif
 
   for (j = 0; j < num_config_extensions; j++) {
     UWORD32 tmp;
@@ -460,7 +474,6 @@ WORD32 ixheaacd_config_extension(
         if ((WORD32)usac_config_ext_len > (it_bit_buff->cnt_bits >> 3)) {
           return -1;
         }
-#ifdef ENABLE_DRC
         if (ID_CONFIG_EXT_LOUDNESS_INFO == usac_config_ext_type) {
           for (i = 0; i < usac_config_ext_len; i++) {
             UWORD8 byte_val = ixheaacd_read_bits_buf(it_bit_buff, 8);
@@ -470,12 +483,9 @@ WORD32 ixheaacd_config_extension(
               usac_config_ext_len;
           pstr_usac_decoder_config->usac_cfg_ext_info_present[j] = 1;
         } else {
-#endif
           for (i = 0; i < usac_config_ext_len; i++)
             tmp = ixheaacd_read_bits_buf(it_bit_buff, 8);
-#ifdef ENABLE_DRC
         }
-#endif
         break;
     }
   }
@@ -530,11 +540,8 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
   tmp = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
   if (tmp) {
-    err = ixheaacd_config_extension(it_bit_buff
-#ifdef ENABLE_DRC
-                                    ,
+    err = ixheaacd_config_extension(it_bit_buff,
                                     &pstr_usac_conf->str_usac_dec_config
-#endif
                                     );
     if (err != 0) return -1;
   }

@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,14 +30,14 @@
 WORD32 impd_drc_sel_proc_init_dflt(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc)
 {
     if (pstr_drc_uni_sel_proc != NULL) {
-        
+
         pstr_drc_uni_sel_proc->first_frame = 0;
-        
+
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.base_channel_count = -1;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.base_layout = -1;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.target_config_request_type = 0;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.num_downmix_id_requests = 0;
-        
+
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.album_mode = 0;
 
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.peak_limiter = 0;
@@ -51,7 +51,7 @@ WORD32 impd_drc_sel_proc_init_dflt(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc)
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_measurement_system = USER_MEASUREMENT_SYSTEM_DEFAULT;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_measurement_pre_proc = USER_LOUDNESS_PREPROCESSING_DEFAULT;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.device_cut_off_frequency = 500;
-        pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_norm_gain_db_max = LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT; 
+        pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_norm_gain_db_max = LOUDNESS_NORMALIZATION_GAIN_MAX_DEFAULT;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_norm_gain_modification_db = 0.0f;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.output_peak_level_max = 0.0f;
         if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.peak_limiter == 1) {
@@ -59,26 +59,26 @@ WORD32 impd_drc_sel_proc_init_dflt(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc)
             pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.output_peak_level_max = 6.0f;
 
         }
-        
+
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.dynamic_range_control_on = 1;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.num_bands_supported = 4;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.num_drc_feature_requests = 0;
-        
+
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.boost = 1.f;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.compress = 1.f;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.drc_characteristic_target = 0;
-        
+
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_eq_request = LOUD_EQ_REQUEST_OFF;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.eq_set_purpose_request = EQ_PURPOSE_EQ_OFF;
         pstr_drc_uni_sel_proc->compl_level_supported_total = COMPLEXITY_LEVEL_SUPPORTED_TOTAL;
-        
+
         pstr_drc_uni_sel_proc->drc_inst_index_sel = -1;
         pstr_drc_uni_sel_proc->drc_coef_index_sel = -1;
         pstr_drc_uni_sel_proc->downmix_inst_index_sel = -1;
-        pstr_drc_uni_sel_proc->drc_instructions_index[0] = -1; 
-        pstr_drc_uni_sel_proc->drc_instructions_index[1] = -1; 
-        pstr_drc_uni_sel_proc->drc_instructions_index[2] = -1; 
-        pstr_drc_uni_sel_proc->drc_instructions_index[3] = -1; 
+        pstr_drc_uni_sel_proc->drc_instructions_index[0] = -1;
+        pstr_drc_uni_sel_proc->drc_instructions_index[1] = -1;
+        pstr_drc_uni_sel_proc->drc_instructions_index[2] = -1;
+        pstr_drc_uni_sel_proc->drc_instructions_index[3] = -1;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.output_peak_level_db = 0;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.loudness_normalization_gain_db = 0;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.output_loudness = UNDEFINED_LOUDNESS_VALUE;
@@ -87,30 +87,30 @@ WORD32 impd_drc_sel_proc_init_dflt(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc)
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.base_channel_count = 0;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.target_channel_count = 0;
         pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.downmix_matrix_present = 0;
-        
-        pstr_drc_uni_sel_proc->eq_inst_index[0] = -1; 
-        pstr_drc_uni_sel_proc->eq_inst_index[1] = -1; 
+
+        pstr_drc_uni_sel_proc->eq_inst_index[0] = -1;
+        pstr_drc_uni_sel_proc->eq_inst_index[1] = -1;
         pstr_drc_uni_sel_proc->sel_proc_request_flag = 1;
     } else {
         return 1;
     }
-    
+
     return 0;
 }
 WORD32
 impd_drc_sel_proc_init_sel_proc_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
                                                ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct)
 {
-   
+
     if (pstr_drc_uni_sel_proc != NULL && pstr_drc_sel_proc_params_struct != NULL) {
-        
+
         if ( memcmp ( &pstr_drc_uni_sel_proc->uni_drc_sel_proc_params, pstr_drc_sel_proc_params_struct, sizeof(ia_drc_sel_proc_params_struct) ))
         {
             pstr_drc_uni_sel_proc->uni_drc_sel_proc_params = *pstr_drc_sel_proc_params_struct;
             pstr_drc_uni_sel_proc->sel_proc_request_flag = 1;
         }
     }
-    
+
     return 0;
 }
 WORD32
@@ -118,9 +118,9 @@ impd_drc_sel_proc_init_interface_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_
                                                  ia_drc_interface_struct* pstr_drc_interface)
 {
     WORD32 i,j;
-    
+
     if (pstr_drc_uni_sel_proc != NULL && pstr_drc_interface != NULL) {
-        
+
         if (pstr_drc_interface->system_interface_flag) {
             if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.target_config_request_type != pstr_drc_interface->system_interface.target_config_request_type) {
                 pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.target_config_request_type = pstr_drc_interface->system_interface.target_config_request_type;
@@ -289,7 +289,7 @@ impd_drc_sel_proc_init_interface_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_
                                 pstr_drc_uni_sel_proc->sel_proc_request_flag = 1;
                             }
                             break;
-                    }      
+                    }
                 }
             }
         }
@@ -328,9 +328,9 @@ impd_drc_sel_proc_init_interface_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_
             }
         }
     }
-    
+
     return 0;
 }
-     
+
 
 

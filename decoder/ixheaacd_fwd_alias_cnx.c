@@ -76,10 +76,10 @@ static VOID ixheaacd_synthesis_tool(WORD32 a[], WORD32 x[], WORD32 l,
   for (i = 0; i < l; i++) {
     s = x[i];
     for (j = 1; j <= ORDER; j += 4) {
-      s -= ixheaacd_mul32_sh(a[j], x[i - j], (WORD8)(qshift));
-      s -= ixheaacd_mul32_sh(a[j + 1], x[i - (j + 1)], (WORD8)(qshift));
-      s -= ixheaacd_mul32_sh(a[j + 2], x[i - (j + 2)], (WORD8)(qshift));
-      s -= ixheaacd_mul32_sh(a[j + 3], x[i - (j + 3)], (WORD8)(qshift));
+      s = ixheaacd_sub32_sat(s,ixheaacd_mul32_sh(a[j], x[i - j], (WORD8)(qshift)));
+      s = ixheaacd_sub32_sat(s,ixheaacd_mul32_sh(a[j + 1], x[i - (j + 1)], (WORD8)(qshift)));
+      s = ixheaacd_sub32_sat(s,ixheaacd_mul32_sh(a[j + 2], x[i - (j + 2)], (WORD8)(qshift)));
+      s = ixheaacd_sub32_sat(s,ixheaacd_mul32_sh(a[j + 3], x[i - (j + 3)], (WORD8)(qshift)));
     }
     x[i] = s;
   }
@@ -125,8 +125,8 @@ WORD32 ixheaacd_fwd_alias_cancel_tool(
     fac_signal[i] = (WORD32)(ptr_fac_signal_flt[i] * (1 << (16 - qshift)));
 
   for (i = 0; i < fac_length; i++)
-    ptr_overlap_buf[i] +=
-        (WORD32)ixheaacd_mul32_sh(fac_signal[i], gain, (WORD8)(16 - qshift));
+    ptr_overlap_buf[i] =
+        ixheaacd_add32_sat(ptr_overlap_buf[i],(WORD32)ixheaacd_mul32_sh(fac_signal[i], gain, (WORD8)(16 - qshift)));
 
   return err;
 }
@@ -153,6 +153,19 @@ WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
   }
   if (FAC_LENGTH < fac_length) {
     return -1;
+  }
+
+  if( FAC_LENGTH < fac_length )
+  {
+     return -1;
+  }
+  if((1 + (len /2)) < (fac_length + 1))
+  {
+     return -1;
+  }
+  if( (len/2 + 1) > (2 * LEN_FRAME - fac_length - 1))
+  {
+     return -1;
   }
 
   if (lp_filt_coeff != NULL && fac_data_out != NULL) {

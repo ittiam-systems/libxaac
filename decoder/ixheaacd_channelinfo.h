@@ -335,7 +335,7 @@ WORD16 ixheaacd_ics_read(ia_bit_buf_struct *it_bit_buff,
 
 WORD16 ixheaacd_ltp_decode(ia_bit_buf_struct *it_bit_buff,
                            ia_ics_info_struct *ptr_ics_info,
-			      WORD32 object_type,
+                  WORD32 object_type,
                            WORD32 frame_size, WORD32 ch);
 
 #endif /* #ifndef IXHEAACD_CHANNELINFO_H */

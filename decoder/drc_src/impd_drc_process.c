@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -51,7 +51,7 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
     FLOAT32 drc_gain_last, gainThr;
     WORD32 iEnd, iStart;
     ia_drc_instructions_struct* str_drc_instruction_str = &(pstr_drc_instruction_arr[drc_instructions_index]);
-    
+
     if (drc_instructions_index >= 0)
     {
         str_drc_instruction_str = &(pstr_drc_instruction_arr[drc_instructions_index]);
@@ -65,7 +65,7 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
             gainIndexForGroup[0] = 0;
             for (g=0; g<str_drc_instruction_str->num_drc_ch_groups-1; g++)
             {
-                gainIndexForGroup[g+1] = gainIndexForGroup[g] + str_drc_instruction_str->band_count_of_ch_group[g]; 
+                gainIndexForGroup[g+1] = gainIndexForGroup[g] + str_drc_instruction_str->band_count_of_ch_group[g];
             }
             signalIndexForChannel[0] = 0;
             for (c=0; c<str_drc_instruction_str->audio_num_chan-1; c++)
@@ -79,7 +79,7 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
                     signalIndexForChannel[c+1] = signalIndexForChannel[c] + 1;
                 }
             }
-            
+
             for (g=0; g<str_drc_instruction_str->num_drc_ch_groups; g++)
             {
                 for (b=0; b<str_drc_instruction_str->band_count_of_ch_group[g]; b++)
@@ -109,7 +109,7 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
                         if (g == str_drc_instruction_str->channel_group_of_ch[c])
                         {
                             signalIndex = signalIndexForChannel[c] + b;
-                                
+
                                         if(impd_apply_gains == 1) {
 
                                 impd_shape_filt_block_time_process(&shape_filter_block[g],
@@ -118,10 +118,10 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
                                                 &deinterleaved_audio[signalIndex][0],
                                                 iStart,
                                                 iEnd);
-                               
+
                                         }
-							else {
-								for (i=iStart; i<iEnd; i++){       
+                            else {
+                                for (i=iStart; i<iEnd; i++){
                                             deinterleaved_audio[signalIndex][i] = lpcm_gains[i];
                                     }
                              }
@@ -130,9 +130,9 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
 
 
                         }
-                                
-                                
-                                
+
+
+
                     }
                     if ((iEnd < ia_drc_params_struct->drc_frame_size) && (shape_filter_block[g].shape_flter_block_flag))
                      {
@@ -145,9 +145,9 @@ WORD32 impd_apply_gains_and_add(ia_drc_instructions_struct* pstr_drc_instruction
             }
         }
     }
-    
-signalIndex=0;  
-    
+
+signalIndex=0;
+
 if (str_drc_instruction_str->drc_set_id > 0)
     {
 
@@ -190,22 +190,22 @@ if (str_drc_instruction_str->drc_set_id > 0)
                 channel_audio[c][i] = deinterleaved_audio[c][i];
             }
         }
-    }    
-    
-    
-    
- 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return (0);
 }
 
@@ -257,7 +257,7 @@ WORD32
             break;
     }
     drc_frame_sizeSb = ia_drc_params_struct->drc_frame_size/L;
-    
+
     if (drc_instructions_index >= 0)
     {
         str_drc_instruction_str = &(pstr_drc_instruction_arr[drc_instructions_index]);
@@ -273,7 +273,7 @@ WORD32
                 {
                     gainIndexForGroup[g+1] = gainIndexForGroup[g] + str_drc_instruction_str->band_count_of_ch_group[g]; /* index of first gain sequence in channel group */
                 }
-                
+
 
                 for (c=0; c<str_drc_instruction_str->audio_num_chan; c++)
 
@@ -282,7 +282,7 @@ WORD32
                     if (g>=0)
                     {
                         for (m=0; m<drc_frame_sizeSb; m++)
-                        {   
+                        {
                             if (str_drc_instruction_str->band_count_of_ch_group[g] > 1)
                             {   /* multiband DRC */
                                 for (s=0; s<nDecoderSubbands; s++)
@@ -345,7 +345,7 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
                  const WORD32 passThru)
 {
     WORD32 c, g, e, i, num_bands;
-	//WORD32 err = 0;
+    //WORD32 err = 0;
     FLOAT32* audio_in;
     FLOAT32** audio_out;
     ia_drc_filter_bank_struct* str_drc_filter_bank;
@@ -372,7 +372,7 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
         {
             if (str_drc_instruction_str->drc_set_id < 0)
             {
-                num_bands = 1;  
+                num_bands = 1;
             }
             else
             {
@@ -397,7 +397,7 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
                 //{
                     //if (&str_drc_filter_bank->str_all_pass_cascade != NULL)
                     //{
-                        impd_all_pass_cascade_process(&str_drc_filter_bank->str_all_pass_cascade, c, drc_frame_size, audio_in); 
+                        impd_all_pass_cascade_process(&str_drc_filter_bank->str_all_pass_cascade, c, drc_frame_size, audio_in);
                     //}
                 //}
             }
@@ -443,7 +443,7 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
                 break;
         }
     }
-    
+
     return (0);
 }
 
@@ -454,7 +454,7 @@ impd_store_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
                        ia_audio_in_out_buf* audio_io_buf_internal)
 {
     WORD32 i,j;
-    
+
     if (audio_io_buf_internal->audio_delay_samples) {
         for (i=0; i<audio_io_buf_internal->audio_num_chan; i++) {
             for (j=0; j<audio_io_buf_internal->frame_size; j++) {
@@ -465,7 +465,7 @@ impd_store_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
         audio_io_buf_internal->audio_io_buffer_delayed = audio_in_out_buf;
         audio_io_buf_internal->audio_in_out_buf        = audio_in_out_buf;
     }
-    
+
     return 0;
 }
 
@@ -475,7 +475,7 @@ impd_store_audio_io_buffer_freq(FLOAT32*         audio_real_buff[],
                        ia_audio_in_out_buf* audio_io_buf_internal)
 {
     WORD32 i,j;
-    
+
     if (audio_io_buf_internal->audio_delay_sub_band_samples) {
         for (i=0; i<audio_io_buf_internal->audio_num_chan; i++) {
             for (j=0; j<audio_io_buf_internal->audio_sub_band_frame_size*audio_io_buf_internal->audio_sub_band_count; j++) {
@@ -489,7 +489,7 @@ impd_store_audio_io_buffer_freq(FLOAT32*         audio_real_buff[],
         audio_io_buf_internal->audio_real_buff        = audio_real_buff;
         audio_io_buf_internal->audio_imag_buff        = audio_imag_buff;
     }
-    
+
     return 0;
 }
 
@@ -498,7 +498,7 @@ impd_retrieve_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
                           ia_audio_in_out_buf* audio_io_buf_internal)
 {
     WORD32 i,j;
-    
+
     if (audio_io_buf_internal->audio_delay_samples) {
         for (i=0; i<audio_io_buf_internal->audio_num_chan; i++) {
             for (j=0; j<audio_io_buf_internal->frame_size; j++) {
@@ -506,7 +506,7 @@ impd_retrieve_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
             }
         }
     }
-    
+
     return 0;
 }
 
@@ -516,7 +516,7 @@ impd_retrieve_audio_buffer_freq(FLOAT32*         audio_real_buff[],
                           ia_audio_in_out_buf* audio_io_buf_internal)
 {
     WORD32 i,j;
-    
+
     if (audio_io_buf_internal->audio_delay_sub_band_samples) {
         for (i=0; i<audio_io_buf_internal->audio_num_chan; i++) {
             for (j=0; j<audio_io_buf_internal->audio_sub_band_frame_size*audio_io_buf_internal->audio_sub_band_count; j++) {
@@ -525,7 +525,7 @@ impd_retrieve_audio_buffer_freq(FLOAT32*         audio_real_buff[],
             }
         }
     }
-    
+
     return 0;
 }
 

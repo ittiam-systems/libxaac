@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -46,16 +46,16 @@ WORD32 impd_gain_db_to_lin (ia_interp_params_struct* interp_params_str,
 
     FLOAT32 loc_db_gain = in_param_db_gain;
     FLOAT32 gain_ratio = 1.0;
-    
+
     ia_gain_modifiers_struct*  pstr_gain_modifiers = interp_params_str->pstr_gain_modifiers;
     if (interp_params_str->gain_modification_flag) {
 
         if ((interp_params_str->characteristic_index > 0) && (loc_db_gain != 0.0f)){
 
-            gain_ratio = 1.0f;         
+            gain_ratio = 1.0f;
         }
 
-        
+
         if (loc_db_gain < 0.0f) {
             gain_ratio *= interp_params_str->compress;
         }
@@ -74,11 +74,11 @@ WORD32 impd_gain_db_to_lin (ia_interp_params_struct* interp_params_str,
     if ((interp_params_str->pstr_ducking_modifiers->ducking_scaling_flag == 1) && (interp_params_str->ducking_flag == 1)) {
         gain_ratio *= interp_params_str->pstr_ducking_modifiers->ducking_scaling;
     }
-    
+
     {
         *out_param_lin_gain = (FLOAT32)pow(2.0, (FLOAT64)(gain_ratio * loc_db_gain / 6.0f));
         *out_param_lin_slope = SLOPE_FACTOR_DB_TO_LINEAR * gain_ratio * *out_param_lin_gain * in_param_db_slope;
-        
+
         if (pstr_gain_modifiers->gain_offset_flag[drc_band] == 1) {
             *out_param_lin_gain *= (FLOAT32)pow(2.0, (FLOAT64)(pstr_gain_modifiers->gain_offset[drc_band]/6.0f));
         }
@@ -108,12 +108,12 @@ impd_compressor_io_sigmoid(ia_split_drc_characteristic_struct* split_drc_charact
     FLOAT32 in_out_ratio = split_drc_characteristic->in_out_ratio;
     FLOAT32 gainDbLimit = split_drc_characteristic->gain;
     FLOAT32 exp = split_drc_characteristic->exp;
-    
+
     tmp = (DRC_INPUT_LOUDNESS_TARGET - in_db_level) * in_out_ratio;
     if (exp < 1000.0f) {
         FLOAT32 x = tmp/gainDbLimit;
-        if (x < 0.0f) 
-		{
+        if (x < 0.0f)
+        {
             return(UNEXPECTED_ERROR);
         }
         *out_db_gain = (FLOAT32)(tmp / pow(1.0f + pow(x, exp), 1.0f/exp));
@@ -135,20 +135,20 @@ impd_compressor_io_sigmoid_inv(ia_split_drc_characteristic_struct* split_drc_cha
     FLOAT32 gainDbLimit = split_drc_characteristic->gain;
     FLOAT32 exp = split_drc_characteristic->exp;
     FLOAT32 tmp = loc_db_gain;
-    
+
     if (split_drc_characteristic->flip_sign == 1) {
         tmp = - loc_db_gain;
     }
     if (exp < 1000.0f) {
         FLOAT32 x = tmp/gainDbLimit;
-        if (x < 0.0f) 
-		{
+        if (x < 0.0f)
+        {
             return(UNEXPECTED_ERROR);
         }
         tmp = (FLOAT32)(tmp / pow(1.0f - pow(x, exp), 1.0f / exp));
     }
     *in_level = DRC_INPUT_LOUDNESS_TARGET - tmp / in_out_ratio;
-    
+
     return(0);
 }
 
@@ -161,9 +161,9 @@ impd_compressor_io_nodes_lt(ia_split_drc_characteristic_struct* split_drc_charac
     FLOAT32 w;
     FLOAT32* node_level = split_drc_characteristic->node_level;
     FLOAT32* node_gain = split_drc_characteristic->node_gain;
-    
-    if (in_db_level > DRC_INPUT_LOUDNESS_TARGET) 
-	{
+
+    if (in_db_level > DRC_INPUT_LOUDNESS_TARGET)
+    {
         return (UNEXPECTED_ERROR);
     }
     for (n=1; n<=split_drc_characteristic->characteristic_node_count; n++) {
@@ -185,9 +185,9 @@ impd_compressor_io_nodes_rt(ia_split_drc_characteristic_struct* split_drc_charac
     FLOAT32 w;
     FLOAT32* node_level = split_drc_characteristic->node_level;
     FLOAT32* node_gain = split_drc_characteristic->node_gain;
-    
-    if (in_db_level < DRC_INPUT_LOUDNESS_TARGET) 
-	{
+
+    if (in_db_level < DRC_INPUT_LOUDNESS_TARGET)
+    {
         return (UNEXPECTED_ERROR);
     }
     for (n=1; n<=split_drc_characteristic->characteristic_node_count; n++) {
@@ -211,7 +211,7 @@ impd_compressor_io_nodes_inverse(ia_split_drc_characteristic_struct* split_drc_c
     FLOAT32* node_level = split_drc_characteristic->node_level;
     FLOAT32* node_gain = split_drc_characteristic->node_gain;
     WORD32 node_count = split_drc_characteristic->characteristic_node_count;
-    
+
     if (node_gain[1] < 0.0f) {
         if (loc_db_gain <= node_gain[node_count]) {
             *in_level = node_level[node_count];
@@ -261,7 +261,7 @@ impd_map_gain (
 {
     FLOAT32 inLevel;
     WORD32 err = 0;
-    
+
     switch (split_drc_characteristic_source->characteristic_format) {
         case CHARACTERISTIC_SIGMOID:
             err = impd_compressor_io_sigmoid_inv(split_drc_characteristic_source, gain_in_db, &inLevel);
@@ -319,7 +319,7 @@ impd_conv_to_linear_domain (ia_interp_params_struct* interp_params_str,
         ia_split_drc_characteristic_struct* split_drc_characteristic_source;
 
         WORD32 slopeIsNegative;
-        
+
         if (interp_params_str->drc_characteristic_present) {
             if (interp_params_str->drc_source_characteristic_cicp_format)
             {
@@ -345,7 +345,7 @@ impd_conv_to_linear_domain (ia_interp_params_struct* interp_params_str,
                          (interp_params_str->split_target_characteristic_right->characteristic_format == CHARACTERISTIC_PASS_THRU)))
                     {
                         mapped_db_gain = DRC_INPUT_LOUDNESS_TARGET;
-                        loc_db_gain = DRC_INPUT_LOUDNESS_TARGET;  
+                        loc_db_gain = DRC_INPUT_LOUDNESS_TARGET;
                     }
                 }
                 else
@@ -356,7 +356,7 @@ impd_conv_to_linear_domain (ia_interp_params_struct* interp_params_str,
                         {
                             err = impd_map_gain(split_drc_characteristic_source, interp_params_str->split_target_characteristic_left, loc_db_gain, &mapped_db_gain);
                             if (err) return (err);
-                            gain_ratio = mapped_db_gain / loc_db_gain;   
+                            gain_ratio = mapped_db_gain / loc_db_gain;
                         }
 
                     }
@@ -367,13 +367,13 @@ impd_conv_to_linear_domain (ia_interp_params_struct* interp_params_str,
                             split_drc_characteristic_source = interp_params_str->split_source_characteristic_right;
                             err = impd_map_gain(split_drc_characteristic_source, interp_params_str->split_target_characteristic_right, loc_db_gain, &mapped_db_gain);
                             if (err) return (err);
-                            gain_ratio = mapped_db_gain / loc_db_gain;  
+                            gain_ratio = mapped_db_gain / loc_db_gain;
                         }
                     }
                 }
             }
         }
-        
+
         if (loc_db_gain < 0.0f) {
             gain_ratio *= interp_params_str->compress;
         }
@@ -392,17 +392,17 @@ impd_conv_to_linear_domain (ia_interp_params_struct* interp_params_str,
     if ((interp_params_str->pstr_ducking_modifiers->ducking_scaling_flag == 1) && (interp_params_str->ducking_flag == 1)) {
         gain_ratio *= interp_params_str->pstr_ducking_modifiers->ducking_scaling;
     }
-    
+
     if (interp_params_str->interpolation_loud_eq == 1)
     {
-        *out_param_lin_gain = gain_ratio * loc_db_gain + pstr_gain_modifiers->gain_offset[drc_band];    
-        *out_param_lin_slope = 0.0f;                                                      
+        *out_param_lin_gain = gain_ratio * loc_db_gain + pstr_gain_modifiers->gain_offset[drc_band];
+        *out_param_lin_slope = 0.0f;
     }
     else
     {
         *out_param_lin_gain = (FLOAT32)pow(2.0, (FLOAT64)(gain_ratio * loc_db_gain / 6.0f));
         *out_param_lin_slope = SLOPE_FACTOR_DB_TO_LINEAR * gain_ratio * *out_param_lin_gain * in_param_db_slope;
-        
+
         if (pstr_gain_modifiers->gain_offset_flag[drc_band] == 1) {
             *out_param_lin_gain *= (FLOAT32)pow(2.0, (FLOAT64)(pstr_gain_modifiers->gain_offset[drc_band]/6.0f));
         }
@@ -425,7 +425,7 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
                                         FLOAT32  slope0,
                                         FLOAT32  slope1,
                                         FLOAT32* result)
-{                                      
+{
     WORD32 err = 0;
     WORD32 n;
     FLOAT32 k1, k2, a, b, c, d;
@@ -433,23 +433,23 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
     FLOAT32 slope_t2;
     FLOAT32 gain_t1;
     FLOAT32 gain_t2;
-    
+
     WORD32 cubic_interpolation = 1;
     WORD32 node_inser;
     FLOAT32 node_inser_float;
-    
+
     if (gain_step_tdomain <= 0)
     {
         return (UNEXPECTED_ERROR);
     }
-    
+
     err = impd_conv_to_linear_domain (interp_params_str, drc_band, gain0, slope0, &gain_t1, &slope_t1);
     if (err)
         return (err);
     err = impd_conv_to_linear_domain (interp_params_str, drc_band, gain1, slope1, &gain_t2, &slope_t2);
     if (err)
         return (err);
-    
+
     if (interp_params_str->gain_interpolation_type == GAIN_INTERPOLATION_TYPE_SPLINE) {
         slope_t1 = slope_t1/(FLOAT32) interp_params_str->delta_tmin;
         slope_t2 = slope_t2/(FLOAT32) interp_params_str->delta_tmin;
@@ -459,10 +459,10 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
             node_inser = (WORD32) (0.5f + node_inser_float);
             if ((node_inser >= 0) && (node_inser < gain_step_tdomain)) {
                 cubic_interpolation = 0;
-                
+
                 result[0] = gain_t1;
                 result[gain_step_tdomain] = gain_t2;
-                
+
                 a = 0.5f*(slope_t2 - slope_t1) / node_inser_float;
                 b = slope_t1;
                 c = gain_t1;
@@ -487,10 +487,10 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
             node_inser = (WORD32) (0.5f + node_inser_float);
             if ((node_inser >= 0) && (node_inser < gain_step_tdomain)) {
                 cubic_interpolation = 0;
-                
+
                 result[0] = gain_t1;
                 result[gain_step_tdomain] = gain_t2;
-                
+
                 a = slope_t1;
                 b = gain_t1;
                 for (n=1; n<node_inser; n++) {
@@ -507,20 +507,20 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
                 }
             }
         }
-        
+
         if (cubic_interpolation == 1)
         {
             FLOAT32 gain_step_inv = 1.0f / (FLOAT32)gain_step_tdomain;
             FLOAT32 gain_step_inv2 = gain_step_inv * gain_step_inv;
-            
+
             k1 = (gain_t2 - gain_t1) * gain_step_inv2;
             k2 = slope_t2 + slope_t1;
-            
+
             a = gain_step_inv * (gain_step_inv * k2 - 2.0f * k1);
             b = 3.0f * k1 - gain_step_inv * (k2 + slope_t1);
             c = slope_t1;
             d = gain_t1;
-            
+
             result[0] = gain_t1;
             result[gain_step_tdomain] = gain_t2;
             for (n=1; n<gain_step_tdomain; n++) {
@@ -530,10 +530,10 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
             }
         }
     }
-    else {  
+    else {
         a = (gain_t2 - gain_t1) / (FLOAT32)gain_step_tdomain;
         b = gain_t1;
-        
+
         result[0] = gain_t1;
         result[gain_step_tdomain] = gain_t2;
         for (n=1; n<gain_step_tdomain; n++) {
@@ -569,7 +569,7 @@ impd_concatenate_segments(WORD32 drc_frame_size,
 {
     WORD32 timePrev, duration, n, err = 0;
     FLOAT32 loc_db_gain = 0.0f, prev_db_gain, slope = 0.0f, slopePrev;
-    
+
     timePrev = buf_interpolation->prev_node.time;
     prev_db_gain = buf_interpolation->prev_node.loc_db_gain;
     slopePrev = buf_interpolation->prev_node.slope;
@@ -588,16 +588,16 @@ impd_concatenate_segments(WORD32 drc_frame_size,
                                  slope,
                                  buf_interpolation->lpcm_gains + MAX_SIGNAL_DELAY + drc_frame_size + timePrev);
         if (err) return (err);
-        
+
         timePrev = str_spline_nodes->str_node[n].time;
         prev_db_gain = loc_db_gain;
         slopePrev = slope;
     }
-    
+
     buf_interpolation->str_node.loc_db_gain = loc_db_gain;
     buf_interpolation->str_node.slope = slope;
     buf_interpolation->str_node.time = timePrev;
-    
+
 
     return(0);
 }
@@ -620,7 +620,7 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
         WORD32 b, g, gainElementIndex, err = 0;
         WORD32 parametricDrcInstanceIndex = 0;
         ia_interp_params_struct interp_params_str = {0};
-        
+
         ia_drc_instructions_struct* str_drc_instruction_str = &(pstr_drc_config->str_drc_instruction_str[drc_instructions_index]);
         WORD32 drc_set_effect = str_drc_instruction_str->drc_set_effect;
         WORD32 num_drc_ch_groups = str_drc_instruction_str->num_drc_ch_groups;
@@ -635,14 +635,14 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
         {
             return (UNEXPECTED_ERROR);
         }
-        
+
         interp_params_str.loudness_normalization_gain_db = loudness_normalization_gain_db;
-        interp_params_str.characteristic_index = characteristic_index; 
+        interp_params_str.characteristic_index = characteristic_index;
         interp_params_str.compress = compress;
         interp_params_str.boost = boost;
         interp_params_str.limiter_peak_target_present = str_drc_instruction_str->limiter_peak_target_present;
         interp_params_str.limiter_peak_target = str_drc_instruction_str->limiter_peak_target;
-        
+
         if ( ((drc_set_effect & (EFFECT_BIT_DUCK_OTHER | EFFECT_BIT_DUCK_SELF)) == 0) && (drc_set_effect != EFFECT_BIT_FADE) && (drc_set_effect != EFFECT_BIT_CLIPPING))
         {
             interp_params_str.gain_modification_flag = 1;
@@ -659,7 +659,7 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
         {
             interp_params_str.ducking_flag = 0;
         }
-        if (drc_set_effect == EFFECT_BIT_CLIPPING) 
+        if (drc_set_effect == EFFECT_BIT_CLIPPING)
         {
             interp_params_str.clipping_flag = 1;
         }
@@ -667,10 +667,10 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
         {
             interp_params_str.clipping_flag = 0;
         }
-        
+
         err = impd_advance_buf(ia_drc_params_struct->drc_frame_size, &(drc_gain_buffers->pstr_gain_buf[sel_drc_index]));
         if (err) return (err);
-        
+
         gainElementIndex = 0;
         for(g=0; g<num_drc_ch_groups; g++)
         {
@@ -710,7 +710,7 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
                                                         &p_drc_gain_dec_structs->parametricdrc_params,
                                                         &p_drc_gain_dec_structs->parametricdrc_params.str_parametric_drc_instance_params[parametricDrcInstanceIndex]);
                     if (err) return (err);
-        
+
                     err = impd_concatenate_segments(ia_drc_params_struct->drc_frame_size,
                                               0,
                                               &interp_params_str,
@@ -738,9 +738,9 @@ impd_get_drc_gain (ia_drc_gain_dec_struct*  p_drc_gain_dec_structs,
                                               &p_drc_gain_dec_structs->parametricdrc_params.str_parametric_drc_instance_params[parametricDrcInstanceIndex].str_spline_nodes,
                                               &(drc_gain_buffers->pstr_gain_buf[sel_drc_index].buf_interpolation[gainElementIndex]));
                     if (err) return (err);
-    
+
     } else {
-                    return (UNEXPECTED_ERROR); 
+                    return (UNEXPECTED_ERROR);
     }
                 gainElementIndex++;
                 parametricDrcInstanceIndex++;

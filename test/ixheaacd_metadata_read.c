@@ -41,13 +41,13 @@ int ixheaacd_read_metadata_info(FILE *g_pf_metadata, metadata_info *meta_info) {
   WORD32 i, j, k, l;
   i = j = k = l = 0;
   while (fgets((char *)cmd, IA_MAX_CMDLINE_LENGTH, g_pf_metadata)) {
-    if (file_count < 5) {
       if (!strncmp((pCHAR8)cmd, "-dec_info_init:", 15)) {
         pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
         UWORD32 dec_info_init = atoi(pb_arg_val);
         meta_info->dec_info_init = dec_info_init;
         file_count++;
-      } else if (!strncmp((pCHAR8)cmd, "-g_track_count:", 15)) {
+      }
+      else if (!strncmp((pCHAR8)cmd, "-g_track_count:", 15)) {
         pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
         UWORD32 g_track_count = atoi(pb_arg_val);
         meta_info->g_track_count = g_track_count;
@@ -76,12 +76,14 @@ int ixheaacd_read_metadata_info(FILE *g_pf_metadata, metadata_info *meta_info) {
         meta_info->ia_mp4_stsz_size =
             (UWORD32 *)malloc(sizeof(int) * ia_mp4_stsz_entries);
         file_count++;
-      } else {
-        printf("Wrong file order,Check file order");
-        return -1;
       }
-    } else {
-      if (!strncmp((pCHAR8)cmd, "-playTimeInSamples:", 19)) {
+      /*
+      else if {
+        //printf("Wrong file order,Check file order");
+        //return -1;
+      }
+      */
+      else if (!strncmp((pCHAR8)cmd, "-playTimeInSamples:", 19)) {
         pCHAR8 pb_arg_val = (pCHAR8)(cmd + 19);
         UWORD32 playTimeInSamples = atoi(pb_arg_val);
         meta_info->playTimeInSamples[i] = playTimeInSamples;
@@ -113,7 +115,6 @@ int ixheaacd_read_metadata_info(FILE *g_pf_metadata, metadata_info *meta_info) {
         printf("Command not found");
         return -1;
       }
-    }
   }
 
   for (; i < MAX_TRACKS_PER_LAYER; i++) {
@@ -128,16 +129,6 @@ int ixheaacd_read_metadata_info(FILE *g_pf_metadata, metadata_info *meta_info) {
     meta_info->useEditlist[k] = 0;
   }
 
-#if 0
-	fill_once=meta_info->fill_once=0;
-
-	for(i=0;i<MAX_TRACKS_PER_LAYER;i++)
-	{
-	useEditlist[i]=meta_info->useEditlist[i];
-	startOffsetInSamples[i]=meta_info->startOffsetInSamples[i];
-	playTimeInSamples[i]=meta_info->playTimeInSamples[i];
-	}
-#endif
   return 0;
 }
 

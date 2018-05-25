@@ -935,7 +935,7 @@ VOID ixheaacd_pre_processing(FLOAT32 ptr_src_buf_real[][64],
   }
 }
 
-VOID ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
+WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
                           FLOAT32 ptr_src_buf_imag[][64],
                           FLOAT32 ptr_ph_vocod_buf_real[][64],
                           FLOAT32 ptr_ph_vocod_buf_imag[][64],
@@ -1109,6 +1109,10 @@ VOID ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
       }
 
       if (num_bands_in_patch <= 0) {
+        if(num_bands_in_patch == 0)
+        {
+           return -1;
+        }
         continue;
       }
 
@@ -1245,4 +1249,5 @@ VOID ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   for (i = 0; i < num_if_bands; i++) {
     bw_array_prev[i] = bw_array[i];
   }
+  return 0;
 }

@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -48,14 +48,14 @@
 #endif
 
 WORD32 impd_derive_subband_center_freq(WORD32   eq_subband_gain_count,
-								       WORD32   eq_subband_gain_format,
-								       FLOAT32  sample_rate,
-								       FLOAT32* subband_center_freq)
+                                       WORD32   eq_subband_gain_format,
+                                       FLOAT32  sample_rate,
+                                       FLOAT32* subband_center_freq)
 {
     WORD32 i;
     FLOAT32 width, offset;
-    switch (eq_subband_gain_format) 
-	{
+    switch (eq_subband_gain_format)
+    {
         case GAINFORMAT_QMF32:
         case GAINFORMAT_QMF64:
         case GAINFORMAT_QMF128:
@@ -65,7 +65,7 @@ WORD32 impd_derive_subband_center_freq(WORD32   eq_subband_gain_count,
             for (i=0; i<eq_subband_gain_count; i++)
             {
                 subband_center_freq[i] = offset;
-				offset = offset + width;
+                offset = offset + width;
             }
             break;
         case GAINFORMAT_QMFHYBRID39:
@@ -80,22 +80,22 @@ WORD32 impd_derive_subband_center_freq(WORD32   eq_subband_gain_count,
 }
 
 VOID impd_calc_fir_filt_response(WORD32  fir_order,
-								 WORD32  fir_symmetry,
-								 FLOAT32 *coeff,
-								 FLOAT32 frequency_radian,
-								 FLOAT32 *response)
+                                 WORD32  fir_symmetry,
+                                 FLOAT32 *coeff,
+                                 FLOAT32 frequency_radian,
+                                 FLOAT32 *response)
 {
     WORD32 m;
     FLOAT32 sum = 0.0f;
     WORD32 o2;
-    
-    if ((fir_order & 0x1) == 0) 
+
+    if ((fir_order & 0x1) == 0)
     {
         o2 = fir_order/2;
-        if (fir_symmetry == 0) 
+        if (fir_symmetry == 0)
         {
-			/*ITTIAM: sum is been over written after the loop
-					  None of the conformance streams with us entering this function*/
+            /*ITTIAM: sum is been over written after the loop
+                      None of the conformance streams with us entering this function*/
             for (m=1; m<=o2; m++)
             {
                 sum += coeff[o2-m] *(FLOAT32)cos (m * frequency_radian);
@@ -103,7 +103,7 @@ VOID impd_calc_fir_filt_response(WORD32  fir_order,
             sum += sum;
             sum = coeff[o2];
         }
-        else 
+        else
         {
             for (m=1; m<=o2; m++)
             {
@@ -112,7 +112,7 @@ VOID impd_calc_fir_filt_response(WORD32  fir_order,
             sum += sum;
         }
     }
-    else 
+    else
     {
         o2 = (fir_order+1)/2;
         if (fir_symmetry == 0)
@@ -132,7 +132,7 @@ VOID impd_calc_fir_filt_response(WORD32  fir_order,
         sum += sum;
     }
     *response = sum;
-	return;
+    return;
 }
 
 VOID impd_calc_filt_ele_response(ia_unique_td_filt_element* element,
@@ -142,12 +142,12 @@ VOID impd_calc_filt_ele_response(ia_unique_td_filt_element* element,
     WORD32 i;
     FLOAT32 part_response, radius, angle_radian;
     FLOAT64 total_response = 1.0;
-    
+
     if (element->eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO)
     {
         for (i=0; i<element->bs_real_zero_radius_one_count; i++)
         {
-			part_response = 1.0f + 1.0f - 2.0f * 1.0f * (FLOAT32)cos(frequency_radian - (FLOAT32) element->zero_sign[i]);
+            part_response = 1.0f + 1.0f - 2.0f * 1.0f * (FLOAT32)cos(frequency_radian - (FLOAT32) element->zero_sign[i]);
             total_response *= part_response;
         }
         for (i=0; i<element->real_zero_count; i++)
@@ -162,20 +162,20 @@ VOID impd_calc_filt_ele_response(ia_unique_td_filt_element* element,
                 radius = element->real_zero_radius[i];
                 angle_radian = 0.0f;
             }
-			part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian);
+            part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian);
             total_response *= part_response;
-			part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian);
+            part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian);
             total_response *= part_response;
         }
-        
+
         total_response = sqrt(total_response);
-        
+
         for (i=0; i<element->generic_zero_count; i++)
         {
             radius = element->generic_zero_radius[i];
-			part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - element->generic_zero_angle[i]);
+            part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - element->generic_zero_angle[i]);
             total_response *= part_response;
-			part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - element->generic_zero_angle[i]);
+            part_response = 1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - element->generic_zero_angle[i]);
             total_response *= part_response;
         }
         for (i=0; i<element->real_pole_count; i++)
@@ -190,12 +190,12 @@ VOID impd_calc_filt_ele_response(ia_unique_td_filt_element* element,
                 radius = element->real_pole_radius[i];
                 angle_radian = 0.0f;
             }
-			part_response = 1/(1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian));
+            part_response = 1/(1.0f + radius * radius - 2.0f * radius * (FLOAT32)cos(frequency_radian - angle_radian));
             total_response *= part_response;
         }
         for (i=0; i<element->cmplx_pole_count; i++)
         {
-			part_response = 1/(1.0f + element->real_pole_radius[i] * element->real_pole_radius[i] - 2.0f * element->real_pole_radius[i] * (FLOAT32)cos(frequency_radian - element->complex_pole_angle[i]));
+            part_response = 1/(1.0f + element->real_pole_radius[i] * element->real_pole_radius[i] - 2.0f * element->real_pole_radius[i] * (FLOAT32)cos(frequency_radian - element->complex_pole_angle[i]));
             total_response *= part_response * part_response;
          }
     }
@@ -254,11 +254,11 @@ WORD32 impd_calc_subband_gains_td_cascade(ia_unique_td_filt_element* unique_td_f
     FLOAT64 total_response;
 
     WORD32 eq_subband_gain_count = subband_filt->coeff_count;
-   
+
     err = impd_derive_subband_center_freq(eq_subband_gain_count, eq_subband_gain_format, sample_rate, subband_center_freq);
-    if (err) 
-		return(err);
-    
+    if (err)
+        return(err);
+
     for (g=0; g<eq_ch_group_count; g++)
     {
         for (b=0; b<eq_subband_gain_count; b++)
@@ -281,12 +281,12 @@ WORD32 impd_calc_subband_gains_td_cascade(ia_unique_td_filt_element* unique_td_f
 }
 
 VOID impd_add_cascade(ia_cascade_align_group_struct* pstr_cascade_align_grp,
-				      WORD32 c1,
+                      WORD32 c1,
                       WORD32 c2,
                       WORD32* done)
 {
     WORD32 m, n;
-    
+
     *done = 0;
     for (m=0; m<pstr_cascade_align_grp->member_count; m++)
     {
@@ -296,11 +296,11 @@ VOID impd_add_cascade(ia_cascade_align_group_struct* pstr_cascade_align_grp,
             {
                 if (pstr_cascade_align_grp->member_idx[n] == c2)
                 {
-                    *done = 1; 
+                    *done = 1;
                 }
             }
             if (*done == 0)
-            {   
+            {
                 pstr_cascade_align_grp->member_idx[pstr_cascade_align_grp->member_count] = c2;
                 pstr_cascade_align_grp->member_count++;
                 *done = 1;
@@ -317,9 +317,9 @@ VOID impd_calc_cascade_align_groups(WORD32 eq_ch_group_count,
                                     ia_cascade_align_group_struct* pstr_cascade_align_grp)
 {
     WORD32 i, k, g, group_count, done;
-    
+
     group_count = 0;
-    
+
     if (eq_phase_alignment_present == 0)
     {
         if (eq_ch_group_count > 1)
@@ -344,14 +344,14 @@ VOID impd_calc_cascade_align_groups(WORD32 eq_ch_group_count,
                     for (g=0; g<group_count; g++)
                     {
                         impd_add_cascade(&pstr_cascade_align_grp[g], i, k, &done);
-                        
+
                         if (done == 0)
                         {
                             impd_add_cascade(&pstr_cascade_align_grp[g], k, i, &done);
                         }
                     }
                     if (done == 0)
-                    {   
+                    {
                         pstr_cascade_align_grp[group_count].member_idx[0] = i;
                         pstr_cascade_align_grp[group_count].member_idx[1] = k;
                         pstr_cascade_align_grp[group_count].member_count = 2;
@@ -376,8 +376,8 @@ VOID impd_calc_phase_filt_params(WORD32 config,
     FLOAT32 prod;
     WORD32 section = ph_alignment_filt->section_count;
     ia_filt_sect_struct* filt_section = &ph_alignment_filt->filt_section[section];
-    switch (config) 
-	{
+    switch (config)
+    {
         case CONFIG_REAL_POLE:
             ph_alignment_filt->gain *= (-radius);
             filt_section->a1 = - radius;
@@ -416,8 +416,8 @@ VOID impd_calc_phase_filt_delay(ia_unique_td_filt_element* element,
                                 ia_ph_alignment_filt_struct* ph_alignment_filt)
 {
     WORD32 i, delay=0, channel;
-    if (element->eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO) 
-	{
+    if (element->eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO)
+    {
         if (element->bs_real_zero_radius_one_count == 0)
         {
             delay = element->real_zero_count + 2 * element->generic_zero_count - element->real_pole_count - 2 * element->cmplx_pole_count;
@@ -442,10 +442,10 @@ VOID impd_calc_phase_filt(ia_unique_td_filt_element* element,
                           ia_matching_ph_filt_struct* matching_ph_filt)
 {
     WORD32 i;
-    
+
     memset(matching_ph_filt, 0, sizeof(ia_matching_ph_filt_struct));
     matching_ph_filt->gain = 1.0f;
-    
+
     if (element->eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO)
     {
         for (i=0; i<element->real_pole_count; i++)
@@ -464,10 +464,10 @@ VOID impd_calc_phase_filt(ia_unique_td_filt_element* element,
         }
     }
     impd_calc_phase_filt_delay(element, matching_ph_filt);
-    
+
     matching_ph_filt->num_matches_filter = 1;
     matching_ph_filt->matches_filter[0] = filt_ele_idx;
-    
+
     return;
 }
 
@@ -476,43 +476,43 @@ WORD32 impd_calc_filt_params(ia_unique_td_filt_element* element,
 {
     FLOAT32  zReal;
     FLOAT32* coeff;
-	//WORD32   offset_idx = 0;
-	WORD32   i;
-	WORD32   param_idx = 0;
+    //WORD32   offset_idx = 0;
+    WORD32   i;
+    WORD32   param_idx = 0;
 
-	ia_2nd_order_filt_params_struct *pstr_2nd_oder_filt_params = &interm_filt_params->ord_2_filt_params_of_zeros[0];
+    ia_2nd_order_filt_params_struct *pstr_2nd_oder_filt_params = &interm_filt_params->ord_2_filt_params_of_zeros[0];
 
-	for (i=0; i<element->bs_real_zero_radius_one_count; i+=2)
-	{
-		FLOAT32  radius = (FLOAT32)element->zero_sign[i + 0];
-		FLOAT32  angle  = (FLOAT32)element->zero_sign[i + 1];
-		FLOAT32  angle1 = radius;
-		FLOAT32  angle2 = angle;
-		pstr_2nd_oder_filt_params->radius = 1.0f;
-		coeff = pstr_2nd_oder_filt_params->coeff;
+    for (i=0; i<element->bs_real_zero_radius_one_count; i+=2)
+    {
+        FLOAT32  radius = (FLOAT32)element->zero_sign[i + 0];
+        FLOAT32  angle  = (FLOAT32)element->zero_sign[i + 1];
+        FLOAT32  angle1 = radius;
+        FLOAT32  angle2 = angle;
+        pstr_2nd_oder_filt_params->radius = 1.0f;
+        coeff = pstr_2nd_oder_filt_params->coeff;
 
-		if (angle1 != angle2)
-		{
-			coeff[0] = 0.0f;
-			coeff[1] = -1.0f;
-		}
-		else if (angle1 == 1.0f)
-		{
-			coeff[0] = -2.0f;
-			coeff[1] = 1.0f;
-		}
-		else
-		{
-			coeff[0] = 2.0f;
-			coeff[1] = 1.0f;
-		}
-		pstr_2nd_oder_filt_params += 1;
-		param_idx += 1;
-	}
+        if (angle1 != angle2)
+        {
+            coeff[0] = 0.0f;
+            coeff[1] = -1.0f;
+        }
+        else if (angle1 == 1.0f)
+        {
+            coeff[0] = -2.0f;
+            coeff[1] = 1.0f;
+        }
+        else
+        {
+            coeff[0] = 2.0f;
+            coeff[1] = 1.0f;
+        }
+        pstr_2nd_oder_filt_params += 1;
+        param_idx += 1;
+    }
     for (i=0; i<element->real_zero_count; i++)
     {
-		FLOAT32  radius = element->real_zero_radius[i];
-		//FLOAT32  angle  = 0.0f;
+        FLOAT32  radius = element->real_zero_radius[i];
+        //FLOAT32  angle  = 0.0f;
 
         pstr_2nd_oder_filt_params->radius = radius;
         if (fabs(radius) == 1.0f)
@@ -526,20 +526,20 @@ WORD32 impd_calc_filt_params(ia_unique_td_filt_element* element,
             coeff[1] = 1.0f;
         }
         pstr_2nd_oder_filt_params += 1;
-		param_idx += 1;
+        param_idx += 1;
     }
 
     for (i=0; i<element->generic_zero_count; i++)
     {
-		FLOAT32  radius = element->generic_zero_radius[i];
-		FLOAT32  angle  = element->generic_zero_angle[i];
+        FLOAT32  radius = element->generic_zero_radius[i];
+        FLOAT32  angle  = element->generic_zero_angle[i];
         zReal = radius * (FLOAT32)cos(M_PI * angle);
         pstr_2nd_oder_filt_params->radius = radius;
         coeff = pstr_2nd_oder_filt_params->coeff;
         coeff[0] = -2.0f * zReal;
         coeff[1] = radius * radius;
 
-		pstr_2nd_oder_filt_params += 1;
+        pstr_2nd_oder_filt_params += 1;
 
         zReal = (FLOAT32)cos(M_PI * angle) / radius;
         pstr_2nd_oder_filt_params->radius = radius;
@@ -547,31 +547,31 @@ WORD32 impd_calc_filt_params(ia_unique_td_filt_element* element,
         coeff[0] = -2.0f * zReal;
         coeff[1] = 1.0f / (radius * radius);
 
-		pstr_2nd_oder_filt_params += 1;
+        pstr_2nd_oder_filt_params += 1;
 
-		param_idx += 2;
+        param_idx += 2;
     }
 
     interm_filt_params->filter_param_count_of_zeros = param_idx;
-	param_idx = 0;
-	
+    param_idx = 0;
+
     pstr_2nd_oder_filt_params = &interm_filt_params->ord_2_filt_params_of_poles[0];
 
     for (i=0; i<element->real_pole_count; i++)
     {
-		FLOAT32  radius = element->real_pole_radius[i];
+        FLOAT32  radius = element->real_pole_radius[i];
         pstr_2nd_oder_filt_params->radius = radius;
         coeff = pstr_2nd_oder_filt_params->coeff;
         coeff[0] = -2.0f * radius;
         coeff[1] = radius * radius;
         param_idx += 1;
-		pstr_2nd_oder_filt_params += 1;
+        pstr_2nd_oder_filt_params += 1;
     }
 
     for (i=0; i<element->cmplx_pole_count; i++)
     {
-		FLOAT32  radius = element->complex_pole_radius[i];
-		FLOAT32  angle  = element->complex_pole_angle[i];
+        FLOAT32  radius = element->complex_pole_radius[i];
+        FLOAT32  angle  = element->complex_pole_angle[i];
 
         zReal = radius * (FLOAT32)cos(M_PI * angle);
         pstr_2nd_oder_filt_params->radius = radius;
@@ -579,17 +579,17 @@ WORD32 impd_calc_filt_params(ia_unique_td_filt_element* element,
         coeff[0] = -2.0f * zReal;
         coeff[1] = radius * radius;
 
-		pstr_2nd_oder_filt_params += 1;
+        pstr_2nd_oder_filt_params += 1;
 
         pstr_2nd_oder_filt_params->radius = radius;
         pstr_2nd_oder_filt_params->coeff[0] = coeff[0];
         pstr_2nd_oder_filt_params->coeff[1] = coeff[1];
 
-		pstr_2nd_oder_filt_params += 1;
-		param_idx += 2;
+        pstr_2nd_oder_filt_params += 1;
+        param_idx += 2;
     }
-	interm_filt_params->filter_param_count_of_poles = param_idx;
-	return 0;
+    interm_filt_params->filter_param_count_of_poles = param_idx;
+    return 0;
 }
 
 VOID impd_convert_fir_filt_params(WORD32 fir_filt_order,
@@ -599,31 +599,31 @@ VOID impd_convert_fir_filt_params(WORD32 fir_filt_order,
 {
     WORD32 i, channel;
     FLOAT32* coeff = fir_filter->coeff;
-    
+
     fir_filter->coeff_count = fir_filt_order + 1;
     for (i=0; i<fir_filt_order/2+1; i++) {
         coeff[i] = fir_coeff[i];
     }
 
-	if (fir_symmetry==1)
-	{
-		for (i=0; i<(fir_filt_order+1)/2; i++)
-		{
-			coeff[fir_filt_order-i] = - coeff[i];
-		}
+    if (fir_symmetry==1)
+    {
+        for (i=0; i<(fir_filt_order+1)/2; i++)
+        {
+            coeff[fir_filt_order-i] = - coeff[i];
+        }
 
-		if((fir_filt_order & 1) == 0)
-		{
-			coeff[fir_filt_order/2] = 0.0f;
-		}
-	}
-	else
-	{
-		for (i=0; i<(fir_filt_order+1)/2; i++)
-		{
-			coeff[fir_filt_order-i] = coeff[i];
-		}
-	}
+        if((fir_filt_order & 1) == 0)
+        {
+            coeff[fir_filt_order/2] = 0.0f;
+        }
+    }
+    else
+    {
+        for (i=0; i<(fir_filt_order+1)/2; i++)
+        {
+            coeff[fir_filt_order-i] = coeff[i];
+        }
+    }
 
     for (channel=0; channel<EQ_CHANNEL_COUNT_MAX; channel++)
     {
@@ -638,20 +638,20 @@ WORD32 impd_calc_filt_params_all(ia_unique_td_filt_element* element,
                                  ia_interm_filt_params_struct* interm_filt_params)
 {
     WORD32 err = 0;
-    
+
     interm_filt_params->filter_format = element->eq_filter_format;
     if (element->eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO)
     {
-		err = impd_calc_filt_params(element,
-									interm_filt_params);
-		if(err)
-			return err;
+        err = impd_calc_filt_params(element,
+                                    interm_filt_params);
+        if(err)
+            return err;
     }
     else
     {
         interm_filt_params->filter_param_count_of_zeros = 0;
         interm_filt_params->filter_param_count_of_poles = 0;
-        
+
         impd_convert_fir_filt_params (element->fir_filt_order,
                                       element->fir_symmetry,
                                       element->fir_coeff,
@@ -669,7 +669,7 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
     FLOAT32 max_radius, diff_radius;
     WORD32 coeff_count;
     FLOAT32* coeff;
-    
+
     for (i=0; i<REAL_POLE_COUNT_MAX + COMPLEX_POLE_COUNT_MAX; i++)
     {
         poles_over[i] = 0;
@@ -718,8 +718,8 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
                         if (pole_order == 2) {
                             if (interm_filt_params->ord_2_filt_params_of_zeros[i].coeff[1] != 0.0f)
                             {
-                                if (diff_radius > fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius)) 
-								{
+                                if (diff_radius > fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius))
+                                {
                                      diff_radius = (FLOAT32)fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius);
                                      zeros_idx = i;
                                 }
@@ -729,8 +729,8 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
                         {
                             if (interm_filt_params->ord_2_filt_params_of_zeros[i].coeff[1] == 0.0f)
                             {
-                                if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius))) 
-								{
+                                if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius)))
+                                {
                                     diff_radius = (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius));
                                     zeros_idx = i;
                                 }
@@ -739,7 +739,7 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
                     }
                 }
             }
-            if (zeros_idx == -1)   
+            if (zeros_idx == -1)
             {
                 for (i=0; i<interm_filt_params->filter_param_count_of_zeros; i++)
                 {
@@ -750,8 +750,8 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
                             if (pole_order == 2) {
                                 if (interm_filt_params->ord_2_filt_params_of_zeros[i].coeff[1] == 0.0f)
                                 {
-                                    if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius))) 
-									{
+                                    if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius)))
+                                    {
                                         diff_radius = (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius));
                                         zeros_idx = i;
                                     }
@@ -761,8 +761,8 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
                             {
                                 if (interm_filt_params->ord_2_filt_params_of_zeros[i].coeff[1] != 0.0f)
                                 {
-                                    if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius))) 
-									{
+                                    if (diff_radius > (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius)))
+                                    {
                                         diff_radius = (FLOAT32)(fabs(fabs(interm_filt_params->ord_2_filt_params_of_zeros[i].radius) - max_radius));
                                         zeros_idx = i;
                                     }
@@ -783,8 +783,8 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
             {
                 eq_filt_element->pstr_pole_zero_filt.filt_section[section].b1 = 0.0f;
                 eq_filt_element->pstr_pole_zero_filt.filt_section[section].b2 = 0.0f;
-                eq_filt_element->pstr_pole_zero_filt.audio_delay.delay++;   
-            }                                                         
+                eq_filt_element->pstr_pole_zero_filt.audio_delay.delay++;
+            }
             for (channel=0; channel<EQ_CHANNEL_COUNT_MAX; channel++)
             {
                 eq_filt_element->pstr_pole_zero_filt.filt_section[section].filt_sect_state[channel].in_state_1  = 0.0f;
@@ -797,7 +797,7 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
             section++;
         }
     } while (poles_idx >= 0);
-    
+
     eq_filt_element->pstr_pole_zero_filt.section_count = section;
 
     coeff_count = 1;
@@ -846,7 +846,7 @@ VOID impd_calc_eq_filt_elements(ia_interm_filt_params_struct* interm_filt_params
         eq_filt_element->pstr_pole_zero_filt.filt_coeffs_flag = 0;
         eq_filt_element->pstr_pole_zero_filt.fir_filter.coeff_count = 0;
     }
-    
+
     return;
 }
 
@@ -870,16 +870,16 @@ WORD32 impd_calc_filt_block(ia_unique_td_filt_element* unique_td_filt_ele,
         ia_eq_filt_ele_struct* eq_filt_element = &pstr_eq_filt_block->eq_filt_element[i];
         ia_filt_ele_struct* str_filter_element = &str_filter_block->str_filter_element[i];
         WORD32 filterIndex = str_filter_element->filt_ele_idx;
-        
+
         if (unique_td_filt_ele[filterIndex].eq_filter_format == FILTER_ELEMENT_FORMAT_POLE_ZERO)
         {
             err = impd_calc_filt_params_all(&(unique_td_filt_ele[filterIndex]),
                                              &interm_filt_params);
-            if (err) 
-				return (err);
+            if (err)
+                return (err);
 
             impd_calc_eq_filt_elements(&interm_filt_params, eq_filt_element);
-            
+
             eq_filt_element->format = FILTER_ELEMENT_FORMAT_POLE_ZERO;
         }
         else
@@ -906,14 +906,14 @@ WORD32 impd_calc_filt_block(ia_unique_td_filt_element* unique_td_filt_ele,
                 eq_filt_element->elementGainLinear = - eq_filt_element->elementGainLinear;
             }
         }
-        impd_calc_phase_filt(&(unique_td_filt_ele[filterIndex]), 
-							 i,
+        impd_calc_phase_filt(&(unique_td_filt_ele[filterIndex]),
+                             i,
                              &matching_ph_filt[i]);
     }
     pstr_eq_filt_block->element_count = str_filter_block->filter_element_count;
-    
-    pstr_eq_filt_block->matching_ph_filt_ele_0 = matching_ph_filt[0]; 
-    
+
+    pstr_eq_filt_block->matching_ph_filt_ele_0 = matching_ph_filt[0];
+
     return(0);
 }
 
@@ -940,7 +940,7 @@ WORD32 impd_calc_filt_cascade(ia_unique_td_filt_element* unique_td_filt_ele,
                     ia_filt_cascade_td_struct filt_cascade_td[])
 {
     WORD32 i, err, g;
-    
+
     for (g=0; g<ch_group_cnt; g++)
     {
         for (i=0; i<str_td_filter_cascade->str_filter_block_refs[g].filter_block_count; i++)
@@ -948,8 +948,8 @@ WORD32 impd_calc_filt_cascade(ia_unique_td_filt_element* unique_td_filt_ele,
             err = impd_calc_filt_block(unique_td_filt_ele,
                                     &(str_filter_block[str_td_filter_cascade->str_filter_block_refs[g].filter_block_index[i]]),
                                     &(filt_cascade_td[g].pstr_eq_filt_block[i]));
-            if (err) 
-				return(err);
+            if (err)
+                return(err);
         }
         filt_cascade_td[g].block_count = i;
         filt_cascade_td[g].cascade_gain_linear = (FLOAT32)(pow(10.0f, 0.05f * str_td_filter_cascade->eq_cascade_gain[g]));
@@ -966,7 +966,7 @@ VOID impd_calc_subband_eq(ia_eq_subband_gain_vector* str_eq_subband_gain_vector,
                           ia_subband_filt_struct* subband_filt)
 {
     WORD32 i;
-    
+
     for (i=0; i<eq_subband_gain_count; i++)
     {
         subband_filt->subband_coeff[i] = str_eq_subband_gain_vector->eq_subband_gain[i];
@@ -977,8 +977,8 @@ VOID impd_calc_subband_eq(ia_eq_subband_gain_vector* str_eq_subband_gain_vector,
 
 FLOAT32 impd_decode_eq_node_freq(WORD32 eq_node_freq_idx)
 {
-	/*((FLOAT32)((log10(STEP_RATIO_F_HI) / log10(STEP_RATIO_F_LO) - 1.0f) / (STEP_RATIO_EQ_NODE_COUNT_MAX - 1.0f)))*/
-	FLOAT32 step_ratio = 0.0739601809794f;
+    /*((FLOAT32)((log10(STEP_RATIO_F_HI) / log10(STEP_RATIO_F_LO) - 1.0f) / (STEP_RATIO_EQ_NODE_COUNT_MAX - 1.0f)))*/
+    FLOAT32 step_ratio = 0.0739601809794f;
     return((FLOAT32)(pow(STEP_RATIO_F_LO, 1.0f + eq_node_freq_idx * step_ratio)));
 }
 
@@ -987,7 +987,7 @@ FLOAT32 impd_calc_warp_freq_delta(FLOAT32 fsubband,
                                   WORD32  eq_node_freq_idx)
 {
     /*((FLOAT32)((log10(STEP_RATIO_F_HI) / log10(STEP_RATIO_F_LO) - 1.0f) / (STEP_RATIO_EQ_NODE_COUNT_MAX - 1.0f)))*/
-	FLOAT32 step_ratio = 0.0739601809794f;
+    FLOAT32 step_ratio = 0.0739601809794f;
     return((FLOAT32)((log10(fsubband)/log10(node_freq) - 1.0f) / step_ratio - (FLOAT32) eq_node_freq_idx));
 }
 
@@ -1000,10 +1000,10 @@ VOID impd_interpolate_eq_gain(WORD32   band_step,
                               FLOAT32* interpolated_gain)
 {
     FLOAT32 k1, k2, a, b, c, d;
-	FLOAT32 inv_band_step =(FLOAT32)( 1.0 / (FLOAT32)band_step);
+    FLOAT32 inv_band_step =(FLOAT32)( 1.0 / (FLOAT32)band_step);
     FLOAT32 inv_band_step_sqr = inv_band_step * inv_band_step; k1 = (right_gain - left_gain) * inv_band_step_sqr;
-    left_slope = (FLOAT32) (left_slope / 3.128f); 
-	right_slope = (FLOAT32) (right_slope / 3.128f); 
+    left_slope = (FLOAT32) (left_slope / 3.128f);
+    right_slope = (FLOAT32) (right_slope / 3.128f);
 
     k2 = right_slope + left_slope;
     a = inv_band_step * (inv_band_step * k2 - 2.0f * k1); b = 3.0f * k1 - inv_band_step * (k2 + left_slope);
@@ -1026,7 +1026,7 @@ WORD32 impd_interpolate_subband_spline(ia_eq_subband_gain_spline_struct* str_eq_
     FLOAT32 eq_node_freq[32];
     FLOAT32 subband_center_freq[256];
     WORD32  num_eq_nodes = str_eq_subband_gain_spline->num_eq_nodes;
-    
+
     FLOAT32* eq_slope = str_eq_subband_gain_spline->eq_slope;
     WORD32*  eq_freq_delta = str_eq_subband_gain_spline->eq_freq_delta;
     FLOAT32  eq_gain_initial = str_eq_subband_gain_spline->eq_gain_initial;
@@ -1050,20 +1050,20 @@ WORD32 impd_interpolate_subband_spline(ia_eq_subband_gain_spline_struct* str_eq_
         eq_node_freq_idx[num_eq_nodes] = max_eq_node_idx;
         eq_node_freq [num_eq_nodes] = impd_decode_eq_node_freq(eq_node_freq_idx[num_eq_nodes]); num_eq_nodes += 1;
     }
-    
+
     err = impd_derive_subband_center_freq(eq_subband_gain_count, eq_subband_gain_format, sample_rate, subband_center_freq);
-    if (err) 
-		return (err);
-    
-    for (n=0; n<num_eq_nodes-1; n++) 
-	{
-        for (b=0; b<eq_subband_gain_count; b++) 
-		{
+    if (err)
+        return (err);
+
+    for (n=0; n<num_eq_nodes-1; n++)
+    {
+        for (b=0; b<eq_subband_gain_count; b++)
+        {
             FLOAT32 fSub;
             fSub = max(subband_center_freq[b], eq_node_freq[0]);
             fSub = min(fSub, eq_node_freq[num_eq_nodes-1]);
-            if ((fSub >= eq_node_freq[n]) && (fSub <= eq_node_freq[n+1])) 
-			{
+            if ((fSub >= eq_node_freq[n]) && (fSub <= eq_node_freq[n+1]))
+            {
                 FLOAT32 warpedDeltaFreq = impd_calc_warp_freq_delta (fSub, eq_node_freq[0], eq_node_freq_idx[n]);
                 FLOAT32 gEqSubbandDb;
                 impd_interpolate_eq_gain(eq_freq_delta[n+1], eq_gain[n], eq_gain[n+1],
@@ -1088,7 +1088,7 @@ WORD32 impd_calc_subband_gains(ia_eq_coeff_struct* str_eq_coeff,
     WORD32 eq_subband_gain_representation = str_eq_coeff->eq_subband_gain_representation;
     WORD32 eq_subband_gain_count = str_eq_coeff->eq_subband_gain_count;
     WORD32 eq_subband_gain_format = str_eq_coeff->eq_subband_gain_format;
-    
+
     for (g=0; g<eq_ch_group_count; g++)
     {
         if (eq_subband_gain_representation == 1)
@@ -1098,8 +1098,8 @@ WORD32 impd_calc_subband_gains(ia_eq_coeff_struct* str_eq_coeff,
                                                   eq_subband_gain_format,
                                                   sample_rate,
                                                   &(subband_filt[g]));
-            if (err) 
-				return(err);
+            if (err)
+                return(err);
         }
         else
         {
@@ -1138,7 +1138,7 @@ VOID impd_get_eq_set_delay(ia_eq_set_struct* eq_set,
 {
     FLOAT32 delay, sect_delay;
     WORD32 k,  g, c, b;
-    
+
     delay = 0;
     for (c=0; c<eq_set->audio_num_chan; c++)
     {
@@ -1210,9 +1210,9 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
                           ia_eq_set_struct* eq_set)
 {
     WORD32 err, i, eq_frame_size_subband;
-    
+
     eq_set->domain = EQ_FILTER_DOMAIN_NONE;
-    
+
     if (sub_band_domain_mode == SUBBAND_DOMAIN_MODE_OFF)
     {
         if (str_eq_instructions->td_filter_cascade_present== 1)
@@ -1222,16 +1222,16 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
                                       &str_eq_instructions->str_td_filter_cascade,
                                       str_eq_instructions->eq_ch_group_count,
                                       eq_set->filt_cascade_td);
-            if (err) 
-				return (err);
+            if (err)
+                return (err);
         }
 
         eq_set->domain |= EQ_FILTER_DOMAIN_TIME;
     }
     if (sub_band_domain_mode != SUBBAND_DOMAIN_MODE_OFF)
     {
-        switch (sub_band_domain_mode) 
-		{
+        switch (sub_band_domain_mode)
+        {
                 case SUBBAND_DOMAIN_MODE_QMF64:
                     if (str_eq_coeff->eq_subband_gain_count != AUDIO_CODEC_SUBBAND_COUNT_QMF64)
                     {
@@ -1262,11 +1262,11 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
             err = impd_calc_subband_gains(str_eq_coeff,
                                      str_eq_instructions->eq_ch_group_count,
                                      str_eq_instructions->subband_gains_index,
-                                     sample_rate, 
+                                     sample_rate,
                                      eq_frame_size_subband,
                                      eq_set->subband_filt);
-            if (err) 
-				return (err);
+            if (err)
+                return (err);
         }
         else
         {
@@ -1280,8 +1280,8 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
                                                       sample_rate,
                                                       eq_frame_size_subband,
                                                       eq_set->subband_filt);
-                if (err) 
-					return (err);
+                if (err)
+                    return (err);
             }
 
         }
@@ -1289,7 +1289,7 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
     }
     eq_set->audio_num_chan = str_eq_instructions->eq_channel_count;
     eq_set->eq_ch_group_count = str_eq_instructions->eq_ch_group_count;
-    
+
     for (i=0; i<str_eq_instructions->eq_channel_count; i++)
     {
         eq_set->eq_ch_group_of_channel[i] = str_eq_instructions->eq_ch_group_of_channel[i];
@@ -1301,24 +1301,24 @@ WORD32 impd_derive_eq_set(ia_eq_coeff_struct* str_eq_coeff,
 VOID impd_process_filt_sect(ia_filt_sect_struct filt_section[EQ_FILTER_SECTION_COUNT_MAX],
                             WORD32 channel,
                             FLOAT32* audio_out,
-							WORD32 section_count)
+                            WORD32 section_count)
 {
-	WORD32 i;
+    WORD32 i;
 
-	for(i = 0; i < section_count; i++)
-	{
-		ia_filt_sect_state_struct* filt_sect_state = &filt_section[i].filt_sect_state[channel];
-		FLOAT32 audio_in = *audio_out;
-		*audio_out = audio_in + filt_section[i].b1 * filt_sect_state->in_state_1
-							  + filt_section[i].b2 * filt_sect_state->in_state_2
-							  - filt_section[i].a1 * filt_sect_state->out_state_1
-							  - filt_section[i].a2 * filt_sect_state->out_state_2;
+    for(i = 0; i < section_count; i++)
+    {
+        ia_filt_sect_state_struct* filt_sect_state = &filt_section[i].filt_sect_state[channel];
+        FLOAT32 audio_in = *audio_out;
+        *audio_out = audio_in + filt_section[i].b1 * filt_sect_state->in_state_1
+                              + filt_section[i].b2 * filt_sect_state->in_state_2
+                              - filt_section[i].a1 * filt_sect_state->out_state_1
+                              - filt_section[i].a2 * filt_sect_state->out_state_2;
 
-		filt_sect_state->in_state_2  = filt_sect_state->in_state_1;
-		filt_sect_state->in_state_1  = audio_in;
-		filt_sect_state->out_state_2 = filt_sect_state->out_state_1;
-		filt_sect_state->out_state_1 = *audio_out;
-	}
+        filt_sect_state->in_state_2  = filt_sect_state->in_state_1;
+        filt_sect_state->in_state_1  = audio_in;
+        filt_sect_state->out_state_2 = filt_sect_state->out_state_1;
+        filt_sect_state->out_state_1 = *audio_out;
+    }
     return;
 }
 
@@ -1386,7 +1386,7 @@ VOID impd_pole_zero_filt_process(ia_pole_zero_filt_struct* pstr_pole_zero_filt,
         inp = out;
     }
     impd_audio_delay_process(&pstr_pole_zero_filt->audio_delay, channel, inp, &out);
-    
+
     *ptr_audio_out = out;
     return ;
 }
@@ -1400,19 +1400,19 @@ VOID impd_subband_filter_process(ia_subband_filt_struct* pstr_subband_filt,
     WORD32 i,j;
     WORD32 eq_frame_size_subband = pstr_subband_filt->eq_frame_size_subband;
     WORD32 coeff_count = pstr_subband_filt->coeff_count;
-	
+
     FLOAT32* ptr_subband_coeff = pstr_subband_filt->subband_coeff;
 
-	for (i=0; i < eq_frame_size_subband; i++)
-	{
-		for (j=0; j < coeff_count; j++)
-		{
-			ptr_audio_real_buff[j] *= ptr_subband_coeff[j];
-			ptr_audio_imag_buff[j] *= ptr_subband_coeff[j];
-		}
-		ptr_audio_real_buff += coeff_count;
-		ptr_audio_imag_buff += coeff_count;
-	}
+    for (i=0; i < eq_frame_size_subband; i++)
+    {
+        for (j=0; j < coeff_count; j++)
+        {
+            ptr_audio_real_buff[j] *= ptr_subband_coeff[j];
+            ptr_audio_imag_buff[j] *= ptr_subband_coeff[j];
+        }
+        ptr_audio_real_buff += coeff_count;
+        ptr_audio_imag_buff += coeff_count;
+    }
     return;
 }
 
@@ -1422,12 +1422,12 @@ VOID impd_phase_align_filt_process(ia_ph_alignment_filt_struct* ph_alignment_fil
                                    WORD32   channel,
                                    FLOAT32* ptr_audio_out)
 {
-	FLOAT32  audio_in = *ptr_audio_out;
+    FLOAT32  audio_in = *ptr_audio_out;
     FLOAT32 inp = audio_in;
     FLOAT32 out = inp;
 
-	impd_process_filt_sect(ph_alignment_filt->filt_section, channel, &out, ph_alignment_filt->section_count);
-	inp = out;
+    impd_process_filt_sect(ph_alignment_filt->filt_section, channel, &out, ph_alignment_filt->section_count);
+    inp = out;
 
     impd_audio_delay_process(&ph_alignment_filt->audio_delay, channel, inp, &out);
 
@@ -1440,44 +1440,44 @@ VOID impd_eq_filt_element_process(ia_eq_filt_block_struct str_eq_filt_block[EQ_F
                                   WORD32   channel,
                                   FLOAT32  audio_in,
                                   FLOAT32* ptr_audio_out,
-								  WORD32 block_count)
+                                  WORD32 block_count)
 {
     WORD32  i;
     FLOAT32 inp = audio_in;
     FLOAT32 out = inp;
-	WORD32  k,j;
-	WORD32  element_count;
-	for(j = 0; j < block_count; j++)
-	{
-		FLOAT32 sum = 0.0f;
-		element_count = str_eq_filt_block[j].element_count;
-		for (k=0; k < element_count; k++)
-		{
-			switch (str_eq_filt_block[j].eq_filt_element[k].format)
-			{
-				case FILTER_ELEMENT_FORMAT_POLE_ZERO:
-					impd_pole_zero_filt_process(&str_eq_filt_block[j].eq_filt_element[k].pstr_pole_zero_filt, channel, inp, &out);
-					break;
-				case FILTER_ELEMENT_FORMAT_FIR:
-					impd_fir_filt_process(&str_eq_filt_block[j].eq_filt_element[k].fir_filter, channel, inp, &out);
-					break;
-				default:
-					break;
-			}
-			out *= str_eq_filt_block[j].eq_filt_element[k].elementGainLinear;
+    WORD32  k,j;
+    WORD32  element_count;
+    for(j = 0; j < block_count; j++)
+    {
+        FLOAT32 sum = 0.0f;
+        element_count = str_eq_filt_block[j].element_count;
+        for (k=0; k < element_count; k++)
+        {
+            switch (str_eq_filt_block[j].eq_filt_element[k].format)
+            {
+                case FILTER_ELEMENT_FORMAT_POLE_ZERO:
+                    impd_pole_zero_filt_process(&str_eq_filt_block[j].eq_filt_element[k].pstr_pole_zero_filt, channel, inp, &out);
+                    break;
+                case FILTER_ELEMENT_FORMAT_FIR:
+                    impd_fir_filt_process(&str_eq_filt_block[j].eq_filt_element[k].fir_filter, channel, inp, &out);
+                    break;
+                default:
+                    break;
+            }
+            out *= str_eq_filt_block[j].eq_filt_element[k].elementGainLinear;
 
-			for (i=0; i < str_eq_filt_block[j].eq_filt_element[k].num_ph_align_filt; i++)
-			{
-				inp = out;
-				impd_phase_align_filt_process(&str_eq_filt_block[j].eq_filt_element[k].ph_alignment_filt[i], 
-											  channel,
-											  &out);
-			}
-			sum += out;
-		}
-		inp = sum;
-	}
-	*ptr_audio_out = inp;
+            for (i=0; i < str_eq_filt_block[j].eq_filt_element[k].num_ph_align_filt; i++)
+            {
+                inp = out;
+                impd_phase_align_filt_process(&str_eq_filt_block[j].eq_filt_element[k].ph_alignment_filt[i],
+                                              channel,
+                                              &out);
+            }
+            sum += out;
+        }
+        inp = sum;
+    }
+    *ptr_audio_out = inp;
     return;
 }
 
@@ -1487,39 +1487,39 @@ WORD32 impd_process_eq_set_time_domain(ia_eq_set_struct* pstr_eq_set,
                                        FLOAT32 *ptr_audio_in,
                                        FLOAT32 *ptr_audio_out,
                                        WORD32 frame_size)
-{                                   
-    WORD32 g=pstr_eq_set->eq_ch_group_of_channel[channel],i,j; 
+{
+    WORD32 g=pstr_eq_set->eq_ch_group_of_channel[channel],i,j;
     //FLOAT32 sum = 0.0f;
-	//FLOAT32 temp1 = 0.0f;
-       
+    //FLOAT32 temp1 = 0.0f;
+
     if(pstr_eq_set==NULL || g<0)
         return 0;
-        
+
     if (pstr_eq_set->domain | EQ_FILTER_DOMAIN_TIME)
-	{
+    {
         for(i=0;i<frame_size;i++)
-		{
-			impd_eq_filt_element_process((pstr_eq_set->filt_cascade_td[g].pstr_eq_filt_block),
-										 channel, 
-										 ptr_audio_in[i], 
-										 &ptr_audio_out[i],
-										 pstr_eq_set->filt_cascade_td[g].block_count);
+        {
+            impd_eq_filt_element_process((pstr_eq_set->filt_cascade_td[g].pstr_eq_filt_block),
+                                         channel,
+                                         ptr_audio_in[i],
+                                         &ptr_audio_out[i],
+                                         pstr_eq_set->filt_cascade_td[g].block_count);
 
-			for (j=0; j<pstr_eq_set->filt_cascade_td[g].num_ph_align_filt; j++)
-			{
-				impd_phase_align_filt_process(&pstr_eq_set->filt_cascade_td[g].ph_alignment_filt[j], 
-											  channel, 
-											  &ptr_audio_out[i]);
-			}
+            for (j=0; j<pstr_eq_set->filt_cascade_td[g].num_ph_align_filt; j++)
+            {
+                impd_phase_align_filt_process(&pstr_eq_set->filt_cascade_td[g].ph_alignment_filt[j],
+                                              channel,
+                                              &ptr_audio_out[i]);
+            }
 
-			ptr_audio_out[i] = ptr_audio_out[i] * pstr_eq_set->filt_cascade_td[g].cascade_gain_linear;
-		}        
-    }   
+            ptr_audio_out[i] = ptr_audio_out[i] * pstr_eq_set->filt_cascade_td[g].cascade_gain_linear;
+        }
+    }
     else
-	{
+    {
         return -1;
-    } 
-    return 0;                                
+    }
+    return 0;
 }
 
 WORD32 impd_process_eq_set_subband_domain(ia_eq_set_struct* pstr_eq_set,
@@ -1534,15 +1534,15 @@ WORD32 impd_process_eq_set_subband_domain(ia_eq_set_struct* pstr_eq_set,
         g = pstr_eq_set->eq_ch_group_of_channel[channel];
         if (g >= 0)
         {
-            if (pstr_eq_set->domain == 0) 
-			{
+            if (pstr_eq_set->domain == 0)
+            {
                 return(-1);
             }
             else
             {
-                impd_subband_filter_process(&pstr_eq_set->subband_filt[g], 
-						                    &ptr_audio_real_buff[0], 
-											&ptr_audio_imag_buff[0]);
+                impd_subband_filter_process(&pstr_eq_set->subband_filt[g],
+                                            &ptr_audio_real_buff[0],
+                                            &ptr_audio_imag_buff[0]);
             }
         }
     }

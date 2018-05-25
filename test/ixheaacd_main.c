@@ -36,10 +36,8 @@
 IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_module_obj, WORD32 i_cmd, WORD32 i_idx,
                               pVOID pv_value);
 
-#ifdef ENABLE_DRC
 IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_module_obj, WORD32 i_cmd, WORD32 i_idx,
                             pVOID pv_value);
-#endif
 
 VOID ixheaacd_error_handler_init();
 VOID ia_testbench_error_handler_init();
@@ -100,10 +98,8 @@ WORD g_w_malloc_count;
 FILE *g_pf_out;
 FileWrapperPtr g_pf_inp; /* file pointer to bitstream file (mp4) */
 
-#ifdef ENABLE_DRC
 FILE *g_pf_interface;
 WORD32 interface_file_present = 0;
-#endif
 
 metadata_info meta_info;  // metadata pointer;
 WORD32 ixheaacd_i_bytes_to_read;
@@ -589,6 +585,33 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
           IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMESIZE, &ui_fs480);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
+
+    /*For MPEG-D DRC effect type*/
+    if (!strncmp((pCHAR8)argv[i], "-effect:", 8)) {
+        pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 8);
+        WORD32 ui_effect = atoi(pb_arg_val);
+        err_code = (*p_ia_process_api)(
+            p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+            IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE, &ui_effect);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+    /*For MPEG-D DRC target loudness*/
+    if (!strncmp((pCHAR8)argv[i], "-target_loudness:", 17)) {
+        pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 17);
+        WORD32 ui_target_loudness = atoi(pb_arg_val);
+        err_code = (*p_ia_process_api)(
+            p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+            IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS, &ui_target_loudness);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+    if (!strncmp((pCHAR8)argv[i], "-ld_testing:", 12)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 12);
+      UWORD32 ld_testing = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(
+          p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_LD_TESTING, &ld_testing);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
   }
 
   return IA_NO_ERROR;
@@ -749,10 +772,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* API obj */
   pVOID pv_ia_process_api_obj;
 
-#ifdef ENABLE_DRC
   pVOID pv_ia_drc_process_api_obj;
   UWORD32 pui_api_size;
-#endif
 
 /* First part                                        */
 /* Error Handler Init                                */
@@ -762,10 +783,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 /* Initialize memory tables                          */
 /* Get memory information and allocate memory        */
 
-#ifdef ENABLE_DRC
-  UWORD8 drc_ip_buf[8192 * 2];
-  UWORD8 drc_op_buf[8192 * 2];
-#endif
+  UWORD8 drc_ip_buf[8192 * 4];
+  UWORD8 drc_op_buf[8192 * 4];
 
   /* Memory variables */
   UWORD32 n_mems, ui_rem;
@@ -802,11 +821,13 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 i_out_bytes, i_total_bytes = 0;
   WORD32 i_samp_freq, i_num_chan, i_pcm_wd_sz, i_channel_mask;
 
-#ifdef ENABLE_DRC
+  UWORD32 i_sbr_mode;
+  WORD32 i_effect_type = 0;
+  WORD32 i_target_loudness = 0;
+  WORD32 i_loud_norm = 0;
   WORD32 drc_flag = 0;
   WORD32 mpegd_drc_present = 0;
   WORD32 uo_num_chan;
-#endif
 
   /* The process API function */
   IA_ERRORCODE(*p_ia_process_api)
@@ -893,7 +914,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-#ifdef ENABLE_DRC
   /*ITTIAM: Get API size for DRC*/
 
   /* Get the API size */
@@ -922,7 +942,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-#endif
 
   /* ******************************************************************/
   /* Set config parameters got from the user present in argc argv     */
@@ -1012,7 +1031,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* API object requires 4 bytes (WORD32) alignment */
   ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
 
-  /* Set pointer for process memory tables	*/
+  /* Set pointer for process memory tables    */
   err_code = (*p_ia_process_api)(
       pv_ia_process_api_obj, IA_API_CMD_SET_MEMTABS_PTR, 0,
       (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count] + 4 - ui_rem));
@@ -1021,7 +1040,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   g_w_malloc_count++;
 
-  /* initialize the API, post config, fill memory tables	*/
+  /* initialize the API, post config, fill memory tables    */
   err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_INIT,
                                  IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS, NULL);
 
@@ -1228,7 +1247,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   } while (!ui_init_done);
 
-#ifdef ENABLE_DRC
   if (interface_file_present == 1) {
     err_code =
         (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq, &i_num_chan,
@@ -1257,6 +1275,55 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                          IA_DRC_DEC_CONFIG_PARAM_PCM_WDSZ, &i_pcm_wd_sz);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
+
+    /*Set Effect Type*/
+
+    {
+        err_code = (*p_ia_process_api)(
+            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_EFFECT_TYPE, &i_effect_type);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        err_code =
+            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                IA_DRC_DEC_CONFIG_DRC_EFFECT_TYPE, &i_effect_type);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    }
+
+    /*Set target loudness */
+
+    {
+        err_code = (*p_ia_process_api)(
+            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS, &i_target_loudness);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        err_code =
+            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS, &i_target_loudness);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    }
+
+    /*Set loud_norm_flag*/
+    {
+        err_code = (*p_ia_process_api)(
+            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_LOUD_NORM, &i_loud_norm);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        err_code =
+            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                IA_DRC_DEC_CONFIG_DRC_LOUD_NORM, &i_loud_norm);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    }
+
+
+
+
+
 
     err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
                               IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS, NULL);
@@ -1418,21 +1485,14 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       }
 
       /*Read interface buffer config file bitstream*/
-      {
+
+      if(mpegd_drc_present==1){
         WORD32 interface_is_present = 1;
 
-        i_bytes_read = fread(drc_ip_buf, sizeof(WORD8), 16384, g_pf_interface);
 
         err_code = ia_drc_dec_api(
             pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
             IA_DRC_DEC_CONFIG_PARAM_INT_PRESENT, &interface_is_present);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
-
-        /* Set number of bytes to be processed */
-        err_code =
-            ia_drc_dec_api(pv_ia_drc_process_api_obj,
-                           IA_API_CMD_SET_INPUT_BYTES_IN_BS, 0, &i_bytes_read);
-
         _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
         /* Execute process */
@@ -1453,7 +1513,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       }
     }
   }
-#endif
 
   /* ******************************************************************/
   /* Get config params from API                                       */
@@ -1484,7 +1543,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   prev_sampling_rate = i_samp_freq;
 
   do {
-    if ((ui_inp_size - (i_buff_size - i_bytes_consumed)) > 0) {
+    if (((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)) > 0) {
       for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
         pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
       }
@@ -1493,7 +1552,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
         FileWrapper_Read(g_pf_inp, (unsigned char *)(pb_inp_buf + i_buff_size -
                                                      i_bytes_consumed),
-                         (ui_inp_size - (i_buff_size - i_bytes_consumed)),
+                         ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
                          (pUWORD32)&i_bytes_read);
 #ifdef ENABLE_LD_DEC
       } else
@@ -1554,7 +1613,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-#ifdef ENABLE_DRC
     if (interface_file_present == 1) {
       if (ui_exec_done != 1) {
         VOID *p_array;        // ITTIAM:buffer to handle gain payload
@@ -1600,13 +1658,12 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         }
       }
     }
-#endif
     /* How much buffer is used in input buffers */
     err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                    IA_API_CMD_GET_CURIDX_INPUT_BUF, 0,
                                    &i_bytes_consumed);
 
-    //	printf("bytes_consumed:  %d  \n", i_bytes_consumed);
+    //    printf("bytes_consumed:  %d  \n", i_bytes_consumed);
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
     /* Get the output bytes */
@@ -1619,9 +1676,39 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     i_total_bytes += i_out_bytes;
 
-#ifdef ENABLE_DRC
     if (mpegd_drc_present == 1) {
       memcpy(drc_ip_buf, pb_out_buf, i_out_bytes);
+
+
+      err_code = (*p_ia_process_api)(
+      pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+      IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE, &i_sbr_mode);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+
+      if (i_sbr_mode != 0)
+      {
+          WORD32 frame_length;
+          if (i_sbr_mode == 1)
+          {
+              frame_length = 2048;
+          }
+          else if(i_sbr_mode == 3)
+          {
+              frame_length = 4096;
+          }
+          else
+          {
+              frame_length = 1024;
+          }
+
+      err_code =
+      ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+      IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE, &frame_length);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      }
+
+
       err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj,
                                 IA_API_CMD_SET_INPUT_BYTES, 0, &i_out_bytes);
 
@@ -1635,7 +1722,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       memcpy(pb_out_buf, drc_op_buf, i_out_bytes);
     }
 
-#endif
 
     if (total_samples != 0)  // Usac stream
     {
@@ -1976,7 +2062,6 @@ int main(WORD32 argc, char *argv[]) {
                    (const char *)pb_input_file_path);
             strcat((char *)pb_metadata_file_name, (const char *)pb_arg_val);
 
-            g_pf_meta = NULL;
             g_pf_meta = fopen((const char *)pb_metadata_file_name, "r");
 
             if (g_pf_meta == NULL) {
@@ -2014,7 +2099,6 @@ int main(WORD32 argc, char *argv[]) {
             }
             file_count++;
           }
-#ifdef ENABLE_DRC
           if (!strncmp((const char *)fargv[i], "-infile:", 8)) {
             pWORD8 pb_arg_val = fargv[i] + 8;
             WORD8 pb_interface_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
@@ -2035,17 +2119,12 @@ int main(WORD32 argc, char *argv[]) {
             interface_file_present = 1;
             file_count++;
           }
-#endif
         }
         g_w_malloc_count = 0;
 
         printf("\n");
 
-#ifdef ENABLE_DRC
         if (file_count != 4 && file_count != 3 && file_count != 2)
-#else
-        if (file_count != 3 && file_count != 2)
-#endif
         {
           err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
           ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
@@ -2080,15 +2159,14 @@ int main(WORD32 argc, char *argv[]) {
           raw_testing = 0;
           fclose(g_pf_meta);
           memset_metadata(meta_info);
+          g_pf_meta=NULL;
         }
         FileWrapper_Close(g_pf_inp);
 
-#ifdef ENABLE_DRC
         if (g_pf_interface) {
           fclose(g_pf_interface);
           interface_file_present = 0;
         }
-#endif
       }
     }
   } else {
@@ -2168,7 +2246,6 @@ int main(WORD32 argc, char *argv[]) {
         file_count++;
       }
 
-#ifdef ENABLE_DRC
       if (!strncmp((const char *)fargv[i], "-infile:", 8)) {
         pWORD8 pb_arg_val = fargv[i] + 8;
         WORD8 pb_interface_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
@@ -2189,17 +2266,12 @@ int main(WORD32 argc, char *argv[]) {
         interface_file_present = 1;
         file_count++;
       }
-#endif
     }
     g_w_malloc_count = 0;
 
     printf("\n");
 
-#ifdef ENABLE_DRC
     if (file_count != 4 && file_count != 3 && file_count != 2)
-#else
-    if (file_count != 2 && file_count != 3)
-#endif
     {
       err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
       ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
@@ -2235,12 +2307,10 @@ int main(WORD32 argc, char *argv[]) {
       memset_metadata(meta_info);
     }
     FileWrapper_Close(g_pf_inp);
-#ifdef ENABLE_DRC
     if (g_pf_interface) {
       fclose(g_pf_interface);
       interface_file_present = 0;
     }
-#endif
   }
 
   return IA_NO_ERROR;

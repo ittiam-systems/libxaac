@@ -23,7 +23,7 @@
 VOID ixheaacd_aac_shellsort(WORD16 *in, WORD32 n);
 
 WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
-                                  ia_sbr_tables_struct *ptr_sbr_tables,
+
                                   ixheaacd_misc_tables *pstr_common_tables);
 
 VOID ixheaacd_calc_bands(WORD16 *diff, WORD16 start, WORD16 stop,
