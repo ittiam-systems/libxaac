@@ -79,20 +79,18 @@ extern ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes;
 extern ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes;
 extern ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes;
 
-ia_mps_dec_state_struct* ixheaacd_mps_create(
+VOID ixheaacd_mps_create(ia_mps_dec_state_struct* self,
     WORD32 bs_frame_len, WORD32 residual_coding,
     ia_usac_dec_mps_config_struct* mps212_config) {
   WORD32 num_ch;
   WORD32 err_code = 0;
 
-  ia_mps_dec_state_struct* self = NULL;
   ia_mps_bs_frame bs_frame;
-
-  self = (ia_mps_dec_state_struct*)calloc(1, sizeof(ia_mps_dec_state_struct));
-  if (self == NULL) return 0;
 
   self->num_parameter_sets = 1;
   self->qmf_band_count = 64;
+
+  self->res_ch_count = 0;
 
   if (mps212_config) {
     self->config = mps212_config;
@@ -110,11 +108,6 @@ ia_mps_dec_state_struct* ixheaacd_mps_create(
   }
 
   err_code = ixheaacd_mps_header_decode(self);
-
-  if (err_code == -1) {
-    free(self);
-    return 0;
-  }
 
   if ((self->residual_coding) && (self->res_bands > 0)) self->res_ch_count++;
 
@@ -154,7 +147,7 @@ ia_mps_dec_state_struct* ixheaacd_mps_create(
   memset(self->opd_smooth.smooth_r_phase, 0,
          MAX_PARAMETER_BANDS * sizeof(WORD32));
 
-  return self;
+  return;
 }
 
 static FLOAT32 ixheaacd_tsd_mul_re[] = {
@@ -278,12 +271,13 @@ VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct* self) {
   ixheaacd_mps_decor(self);
   ixheaacd_mps_mix_res_decor(self);
 }
-VOID ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
+WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
                         FLOAT32** input_buffer[4],
                         FLOAT32 (*output_buffer)[4096]) {
   WORD32 ch, ts, qs;
   WORD32 time_slots = self->time_slots;
   WORD32 in_ch_count = self->in_ch_count + self->res_ch_count;
+  WORD32 err = 0;
 
   self->output_buffer = output_buffer;
 
@@ -302,7 +296,7 @@ VOID ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
 
   self->present_time_slot += time_slots;
 
-  if (self->present_time_slot < self->time_slots) return;
+  if (self->present_time_slot < self->time_slots) return 0;
 
   self->present_time_slot = 0;
 
@@ -324,9 +318,12 @@ VOID ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
     ixheaacd_mps_time_env_shaping(self);
   }
 
-  ixheaacd_mps_temp_process(self);
+  err = ixheaacd_mps_temp_process(self);
+  if(err)
+     return err;
 
   self->parse_nxt_frame = 1;
+  return 0;
 }
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))

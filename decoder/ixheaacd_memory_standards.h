@@ -25,12 +25,12 @@
 /*****************************************************************************/
 /* standard memory table descriptor for libraries */
 typedef struct {
-  UWORD32 ui_size;         /* size of the memory in bytes	*/
-  UWORD32 ui_alignment;    /* alignment in bytes 			*/
-  UWORD32 ui_type;         /* type of memory 				*/
-  UWORD32 ui_placement[2]; /* 64 bit placement info		*/
-  UWORD32 ui_priority;     /* the importance for placement	*/
-  UWORD32 ui_placed[2];    /* the o_red location for placement	*/
+  UWORD32 ui_size;         /* size of the memory in bytes   */
+  UWORD32 ui_alignment;    /* alignment in bytes            */
+  UWORD32 ui_type;         /* type of memory                */
+  UWORD32 ui_placement[2]; /* 64 bit placement info     */
+  UWORD32 ui_priority;     /* the importance for placement  */
+  UWORD32 ui_placed[2];    /* the o_red location for placement  */
 } ia_mem_info_struct;
 
 /*****************************************************************************/

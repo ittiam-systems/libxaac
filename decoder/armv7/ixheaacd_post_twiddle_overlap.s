@@ -445,7 +445,7 @@ PROLOGUE_NEON:
     VUZP.16         D22, D23
     VMOV            D23, D30
 
-CORE_LOOP:
+CORE_LOOP_PTO:
     VST1.16         D14[0], [R0, : 16], R9
     VMULL.U16       Q15, D0, D9
 
@@ -709,7 +709,7 @@ CORE_LOOP:
     VMOV            D23, D30
 
     SUBS            R3, R3, #1
-    BNE             CORE_LOOP
+    BNE             CORE_LOOP_PTO
 
 
 

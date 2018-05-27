@@ -213,8 +213,9 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
   }
 }
 
-VOID ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
+WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
   WORD32 ch, ts, hyb;
+  WORD32 err = 0;
 
   for (ch = 0; ch < self->out_ch_count; ch++) {
     for (ts = 0; ts < self->time_slots; ts++) {
@@ -232,10 +233,13 @@ VOID ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
   ixheaacd_mps_qmf_hyb_synthesis(self);
 
   for (ch = 0; ch < self->out_ch_count; ch++) {
-    ixheaacd_sbr_dec_from_mps(&self->qmf_out_dir[ch][0][0].re,
+    err = ixheaacd_sbr_dec_from_mps(&self->qmf_out_dir[ch][0][0].re,
                               self->p_sbr_dec[ch], self->p_sbr_frame[ch],
                               self->p_sbr_header[ch]);
+    if(err)
+      return err;
   }
 
   ixheaacd_mps_synt_calc(self);
+  return err;
 }

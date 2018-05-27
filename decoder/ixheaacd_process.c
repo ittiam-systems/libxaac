@@ -145,7 +145,7 @@ static VOID ixheaacd_sbr_ext_data_read(
   cnt_bits_in = it_bit_buff->cnt_bits;
   count = (it_bit_buff->cnt_bits) >> 3;
   if (count > 0) {
-    if ((count < MAXSBRBYTES) &&
+    if (
         (esbr_bit_str->no_elements < MAXNRSBRELEMENTS)) {
       esbr_bit_str->str_sbr_ele[esbr_bit_str->no_elements].extension_type =
           EXT_SBR_DATA;
@@ -167,17 +167,13 @@ static VOID ixheaacd_sbr_ext_data_read(
 static VOID ixheaacd_read_ext_element(
     UWORD32 usac_ext_element_default_length,
     UWORD32 usac_ext_element_payload_frag, ia_bit_buf_struct *it_bit_buff
-#ifdef ENABLE_DRC
     ,
     ia_usac_decoder_config_struct *pstr_usac_dec_config, WORD32 elem_idx
-#endif
     ) {
   UWORD32 usac_ext_element_present;
   UWORD32 usac_ext_element_use_dft_length;
   UWORD32 pay_load_length, tmp;
-#ifdef ENABLE_DRC
   UWORD32 i;
-#endif
   usac_ext_element_present = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
   if (usac_ext_element_present) {
@@ -199,7 +195,6 @@ static VOID ixheaacd_read_ext_element(
       if (usac_ext_element_payload_frag)
         tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
 
-#ifdef ENABLE_DRC
       if (pstr_usac_dec_config->usac_ext_ele_payload_present[elem_idx]) {
         for (i = 0; i < pay_load_length; i++) {
           pstr_usac_dec_config->usac_ext_gain_payload_buf
@@ -208,16 +203,13 @@ static VOID ixheaacd_read_ext_element(
         }
         pstr_usac_dec_config->usac_ext_gain_payload_len += pay_load_length;
       } else {
-#endif
 
         it_bit_buff->ptr_read_next =
             it_bit_buff->ptr_read_next + pay_load_length;
         it_bit_buff->cnt_bits =
             it_bit_buff->cnt_bits - (WORD32)(pay_load_length * 8);
 
-#ifdef ENABLE_DRC
       }
-#endif
     }
   }
 }
@@ -280,10 +272,10 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
   ia_aac_dec_state_struct *p_state_aac_dec =
       (ia_aac_dec_state_struct *)codec_handle;
 
-  ia_usac_data_struct *pstr_usac_data = pstr_dec_data->pstr_usac_data;
+  ia_usac_data_struct *pstr_usac_data = &(pstr_dec_data->str_usac_data);
   ia_bit_buf_struct *it_bit_buff = &pstr_dec_data->dec_bit_buf;
 
-  ia_frame_data_struct *fd = pstr_dec_data->pstr_frame_data;
+  ia_frame_data_struct *fd = &(pstr_dec_data->str_frame_data);
 
   ia_usac_config_struct *pstr_usac_config =
       &(fd->str_audio_specific_config.str_usac_config);
@@ -297,9 +289,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
   WORD32 elem_idx = 0;
   WORD32 num_elements = pstr_usac_dec_config->num_elements;
 
-#ifdef ENABLE_DRC
   pstr_usac_dec_config->usac_ext_gain_payload_len = 0;
-#endif
   pstr_usac_data->usac_independency_flg =
       ixheaacd_read_bits_buf(it_bit_buff, 1);
 
@@ -346,7 +336,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           ixheaacd_esbr_process(
               pstr_usac_data, it_bit_buff, stereo_config_index,
               nr_core_coder_channels,
-              pstr_dec_data->pstr_usac_data->audio_object_type);
+              pstr_dec_data->str_usac_data.audio_object_type);
         }
 
         if (stereo_config_index > 0) {
@@ -354,9 +344,9 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           WORD32 ch;
 
           *num_out_channels =
-              p_state_aac_dec->mps_dec_handle[elem_idx]->out_ch_count;
+              p_state_aac_dec->mps_dec_handle.out_ch_count;
 
-          ixheaacd_mps_frame_parsing(p_state_aac_dec->mps_dec_handle[elem_idx],
+          ixheaacd_mps_frame_parsing(&p_state_aac_dec->mps_dec_handle,
                                      pstr_usac_data->usac_independency_flg,
                                      it_bit_buff);
 
@@ -367,26 +357,28 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
             ptr_inp[2 * ch + 1] =
                 pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[ch]
                     ->str_sbr_dec.pp_qmf_buf_imag;
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_dec[ch] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_dec[ch] =
                 (VOID *)(&pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[ch]
                               ->str_sbr_dec);
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_header[ch] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_header[ch] =
                 (VOID *)(pstr_usac_data->pstr_esbr_dec->pstr_sbr_header[ch]);
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_frame[ch] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_frame[ch] =
                 (VOID *)(pstr_usac_data->pstr_esbr_dec->frame_buffer[ch]);
           }
           if (nr_core_coder_channels == 1) {
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_dec[1] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_dec[1] =
                 (VOID *)(&pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[1]
                               ->str_sbr_dec);
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_header[1] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_header[1] =
                 (VOID *)(pstr_usac_data->pstr_esbr_dec->pstr_sbr_header[1]);
-            p_state_aac_dec->mps_dec_handle[0]->p_sbr_frame[1] =
+            p_state_aac_dec->mps_dec_handle.p_sbr_frame[1] =
                 (VOID *)(pstr_usac_data->pstr_esbr_dec->frame_buffer[1]);
           }
 
-          ixheaacd_mps_apply(p_state_aac_dec->mps_dec_handle[0], ptr_inp,
+          err = ixheaacd_mps_apply(&p_state_aac_dec->mps_dec_handle, ptr_inp,
                              pstr_usac_data->time_sample_vector);
+          if(err)
+              return err;
         }
 
         ch_offset += nr_core_coder_channels;
@@ -397,11 +389,8 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
             &pstr_usac_dec_config->str_usac_element_config[elem_idx];
         ixheaacd_read_ext_element(pusac_element_config->usac_ext_eleme_def_len,
                                   pusac_element_config->usac_ext_elem_pld_frag,
-                                  it_bit_buff
-#ifdef ENABLE_DRC
-                                  ,
+                                  it_bit_buff,
                                   pstr_usac_dec_config, elem_idx
-#endif
                                   );
 
         break;

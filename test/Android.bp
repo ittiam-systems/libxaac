@@ -10,7 +10,8 @@ cc_test {
         "-UARM_PROFILE_BOARD",
         "-DECLIPSE",
 		"-DDRC_ENABLE",
-		"-DMULTICHANNEL_ENABLE"
+		"-DMULTICHANNEL_ENABLE",
+		"-DENABLE_DRC"
     ],
 
     include_dirs: [

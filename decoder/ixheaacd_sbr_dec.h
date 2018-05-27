@@ -147,7 +147,7 @@ typedef struct ia_sbr_pers_struct {
 
 } ia_sbr_pers_struct;
 
-VOID ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
+WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                       ia_sbr_header_data_struct *ptr_header_data,
                       ia_sbr_frame_info_data_struct *ptr_frame_data,
                       ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
@@ -161,7 +161,7 @@ VOID ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                       ia_pvc_data_struct *ptr_pvc_data_str, FLAG drc_on,
                       WORD32 drc_sbr_factors[][64], WORD32 audio_object_type);
 
-WORD16 ixheaacd_create_sbrdec(ia_sbr_tables_struct *pstr_sbr_tables,
+WORD16 ixheaacd_create_sbrdec(
                               ixheaacd_misc_tables *pstr_common_table,
                               ia_sbr_channel_struct *ptr_sbr_channel,
                               ia_sbr_header_data_struct *ptr_header_data,
@@ -171,7 +171,7 @@ WORD16 ixheaacd_create_sbrdec(ia_sbr_tables_struct *pstr_sbr_tables,
 
 #define MAX_NUM_QMF_BANDS_ESBR 128
 
-VOID ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
+WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
                                VOID *p_sbr_frame, VOID *p_sbr_header);
 
 VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
@@ -187,7 +187,7 @@ VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                            WORD32 x_over_qmf[MAX_NUM_PATCHES],
                            FLOAT32 *scratch_buff, FLOAT32 *env_out);
 
-VOID ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
+WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
                           FLOAT32 ptr_src_buf_imag[][64],
                           FLOAT32 ptr_ph_vocod_buf_real[][64],
                           FLOAT32 ptr_ph_vocod_buf_imag[][64],

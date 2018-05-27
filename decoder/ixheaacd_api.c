@@ -154,7 +154,7 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
           p_temp + sizeof(ia_dec_data_struct);
 p_obj_exhaacplus_dec->p_state_aac->header_ptr = p_temp + sizeof(ia_dec_data_struct)
-	+ sizeof(ia_audio_specific_config_struct);
+    + sizeof(ia_audio_specific_config_struct);
     }
 
   } else {
@@ -315,10 +315,9 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
                               WORD32 i_idx, pVOID pv_value) {
   ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec = p_ia_enhaacplus_dec_obj;
   pUWORD32 pui_value = pv_value;
+  pWORD32 pui_value_signed = pv_value;
   pWORD8 pb_value = pv_value;
-#ifdef ENABLE_DRC
   pVOID *pp_value = (pVOID *)pv_value;
-#endif
 
   if ((i_cmd != IA_API_CMD_GET_API_SIZE) &&
       (i_cmd != IA_API_CMD_GET_LIB_ID_STRINGS)) {
@@ -393,9 +392,12 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_samp_freq = 0;
           p_obj_exhaacplus_dec->aac_config.ui_channel_mode = 3;
           p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 0;
+          p_obj_exhaacplus_dec->aac_config.ui_effect_type = 0;
+          p_obj_exhaacplus_dec->aac_config.ui_target_loudness = -24;
+          p_obj_exhaacplus_dec->aac_config.ui_loud_norm_flag = 0;
           p_obj_exhaacplus_dec->aac_config.ui_pce_found_in_hdr = 0;
           p_obj_exhaacplus_dec->aac_config.loas_present = 0;
-
+          p_obj_exhaacplus_dec->aac_config.ld_decoder = 0;
           p_obj_exhaacplus_dec->aac_config.ui_drc_enable = 1;
           p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
           p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
@@ -623,6 +625,17 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           break;
         }
 
+        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_LD_TESTING: {
+          if (*pui_value == 1) {
+            p_obj_exhaacplus_dec->aac_config.ld_decoder = 1;
+          } else if (*pui_value == 0) {
+            p_obj_exhaacplus_dec->aac_config.ld_decoder = 0;
+          } else {
+            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_LD_CONFIG);
+          }
+          break;
+        }
+
         case IA_ENHAACPLUS_DEC_CONFIG_PARAM_ELD_SBR_PRESENT: {
           if (*pui_value == 1) {
             p_obj_exhaacplus_dec->aac_config.eld_sbr_present = 1;
@@ -651,22 +664,40 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           break;
         }
 
+        case IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE: {
+            if (((*pui_value_signed) > 8) || ((*pui_value_signed) < -1) ) {
+                p_obj_exhaacplus_dec->aac_config.ui_effect_type = -1;
+                return (IA_ENHAACPLUS_DEC_CONFIG_NON_FATAL_INVALID_EFFECT_TYPE);
+            }
+            p_obj_exhaacplus_dec->aac_config.ui_effect_type = *pui_value_signed;
+            break;
+        }
+        case IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS: {
+            if(*pui_value_signed>=0)
+            {
+                p_obj_exhaacplus_dec->aac_config.ui_loud_norm_flag=1;
+            }
+            *pui_value_signed = -(*pui_value_signed >> 2);
+            if (((*pui_value_signed) > 0) ||((*pui_value_signed) < -63)) {
+                p_obj_exhaacplus_dec->aac_config.ui_target_loudness = 0;
+                return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_TARGET_LOUDNESS);
+            }
+            p_obj_exhaacplus_dec->aac_config.ui_target_loudness = *pui_value_signed;
+            break;
+        }
         default: { return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
       }
       break;
     }
 
     case IA_API_CMD_GET_CONFIG_PARAM: {
-#ifdef ENABLE_DRC
       UWORD32 i;
-#endif
       WORD32 *pvalue =
           (WORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz);
 
-      if (i_idx >= 0 && i_idx <= 5) {
+      if (i_idx >= 0 && i_idx <= 8) {
         *pui_value = pvalue[i_idx];
       }
-#ifdef ENABLE_DRC
       else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
@@ -737,7 +768,6 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         *pp_value = ptr_audio_specific_config->str_usac_config
                         .str_usac_dec_config.usac_ext_gain_payload_buf;
       }
-#endif
       else {
         return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
@@ -890,7 +920,7 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
           p_temp + sizeof(ia_dec_data_struct);
 p_obj_exhaacplus_dec->p_state_aac->header_ptr = p_temp + sizeof(ia_dec_data_struct)
-	+ sizeof(ia_audio_specific_config_struct);    
+    + sizeof(ia_audio_specific_config_struct);
 }
     memset(&(p_obj_exhaacplus_dec->aac_config), 0,
            sizeof(ia_aac_dec_config_struct));
@@ -1065,7 +1095,7 @@ IA_ERRORCODE ixheaacd_fill_aac_mem_tables(
 
     p_mem_info_aac->ui_size += sizeof(ia_dec_data_struct);
     p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
-	p_mem_info_aac->ui_size += 8300;
+    p_mem_info_aac->ui_size += 8300;
 
     p_mem_info_aac->ui_alignment = 8;
     p_mem_info_aac->ui_type = IA_MEMTYPE_PERSIST;
@@ -1466,12 +1496,14 @@ IA_ERRORCODE ixheaacd_dec_init(
     p_state_enhaacplus_dec->ptr_bit_stream =
         p_state_enhaacplus_dec->pstr_bit_buf;
 
+    if (p_state_enhaacplus_dec->s_adts_hdr_present) {                               //rajat
+        if (p_obj_exhaacplus_dec->aac_config.ld_decoder == 1)
+          p_state_enhaacplus_dec->audio_object_type = 23;
+    }
+
     if ((p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD) ||
         (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD))
       if (p_state_enhaacplus_dec->s_adts_hdr_present) {
-        if (p_obj_exhaacplus_dec->aac_config.ld_decoder == 1)
-          p_state_enhaacplus_dec->audio_object_type = 23;
-
         if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD) {
           p_state_enhaacplus_dec->eld_specific_config.ld_sbr_samp_rate = 1;
           p_state_enhaacplus_dec->eld_specific_config.ld_sbr_crc_flag = 0;
@@ -1790,6 +1822,7 @@ IA_ERRORCODE ixheaacd_dec_init(
                 p_state_enhaacplus_dec->eld_specific_config.ld_sbr_flag_present,
                 p_state_enhaacplus_dec->audio_object_type) != SBRDEC_OK) {
           p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = 0;
+          return -1;
         } else {
           if (!p_obj_exhaacplus_dec->aac_config.down_sample_flag) {
             sample_rate_1 *= 2;
@@ -2306,6 +2339,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
   { it_bit_buff->initial_cnt_bits = it_bit_buff->cnt_bits; }
 
+  if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD) {
+    if(p_state_enhaacplus_dec->s_adts_hdr_present)
+      p_state_enhaacplus_dec->frame_size = adts.aac_frame_length;
+  }
+
   if (p_state_enhaacplus_dec->pstr_drc_dec) {
     p_state_enhaacplus_dec->pstr_drc_dec->num_drc_elements = 0;
 
@@ -2502,6 +2540,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 p_state_enhaacplus_dec->eld_specific_config.ld_sbr_flag_present,
                 p_state_enhaacplus_dec->audio_object_type) != SBRDEC_OK) {
           p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = 0;
+          return -1;
         } else {
           if (!p_obj_exhaacplus_dec->aac_config.down_sample_flag) {
             frame_size = (WORD16)(frame_size * 2);

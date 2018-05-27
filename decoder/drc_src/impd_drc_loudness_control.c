@@ -1,22 +1,22 @@
 /******************************************************************************
- *                                                                             
- * Copyright (C) 2018 The Android Open Source Project                          
- *                                                                             
- * Licensed under the Apache License, Version 2.0 (the "License");           
- * you may not use this file except in compliance with the License.            
- * You may obtain a copy of the License at:                                    
- *                                                                             
- * http://www.apache.org/licenses/LICENSE-2.0                                  
- *                                                                            
- * Unless required by applicable law or agreed to in writing, software        
- * distributed under the License is distributed on an "AS IS" BASIS,        
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
- * See the License for the specific language governing permissions and        
- * limitations under the License.                                             
- *                                                                            
+ *
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  *****************************************************************************
- * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore 
-*/																			 
+ * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
+*/
 #include <stdio.h>
 #include <math.h>
 
@@ -55,7 +55,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
     eq_set_id[0] = 0;
     signal_peak_level[0] = 0.0f;
     explicit_peak_information_present[0] = 0;
-    
+
     k=0;
     if (drc_set_id_requested < 0)
     {
@@ -70,7 +70,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
     signal_peak_level[k] = 0.0f;
     explicit_peak_information_present[k] = 0;
     k++;
-    
+
     pre_lim_count = k;
 
     if (drc_set_id_requested < 0)
@@ -92,7 +92,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
         mode = 0;
         loudness_info_count = pstr_loudness_info->loudness_info_count;
     }
-    
+
     for (n=0; n<loudness_info_count; n++)
     {
         if (mode == 1)
@@ -175,7 +175,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
         }
     }
     if (match_found_flag == 0) {
-         for (i=0; i<str_drc_instruction_str->dwnmix_id_count; i++)       
+         for (i=0; i<str_drc_instruction_str->dwnmix_id_count; i++)
           {
         if (requested_dwnmix_id == str_drc_instruction_str->downmix_id[0] || ID_FOR_ANY_DOWNMIX == str_drc_instruction_str->downmix_id[0])
         {
@@ -200,7 +200,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
                             }
                         }
                     }
-                    else                                                                               
+                    else
 
                 {
                     eq_set_id[peak_count] = 0;
@@ -335,7 +335,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
                     }
                 }
             }
-            if (match_found_flag == 0) { 
+            if (match_found_flag == 0) {
                 ia_drc_instructions_struct* drc_instructions_drc_tmp;
                 for (n=0; n<pstr_drc_config->drc_instructions_count_plus; n++) {
                     drc_instructions_drc_tmp = &pstr_drc_config->str_drc_instruction_str[n];
@@ -343,7 +343,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
                         for (k=0; k<drc_instructions_drc_tmp->dwnmix_id_count; k++) {
                             if (ID_FOR_BASE_LAYOUT == drc_instructions_drc_tmp->downmix_id[k]) {
                                 if (drc_instructions_drc_tmp->limiter_peak_target_present) {
-                                    eq_set_id[peak_count] = -1; 
+                                    eq_set_id[peak_count] = -1;
                                     signal_peak_level[peak_count] = drc_instructions_drc_tmp->limiter_peak_target + signal_peak_level_tmp;
                                     explicit_peak_information_present[peak_count] = 0;
                                     match_found_flag = 1;
@@ -369,7 +369,7 @@ WORD32 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
 }
 
 
-    
+
 WORD32
 impd_extract_loudness_peak_to_average_info(ia_loudness_info_struct* loudness_info,
                                   WORD32     dyn_range_measurement_type,
@@ -409,7 +409,7 @@ impd_extract_loudness_peak_to_average_info(ia_loudness_info_struct* loudness_inf
                     }
                 }
                 break;
-                
+
             case MOMENTARY_LOUDNESS_TO_AVG:
                 if (loudness_measure->method_def == METHOD_DEFINITION_MOMENTARY_LOUDNESS_MAX)
                 {
@@ -421,7 +421,7 @@ impd_extract_loudness_peak_to_average_info(ia_loudness_info_struct* loudness_inf
                     }
                 }
                 break;
-                
+
             case TOP_OF_LOUDNESS_RANGE_TO_AVG:
                 if (loudness_measure->method_def == METHOD_DEFINITION_MAX_OF_LOUDNESS_RANGE)
                 {
@@ -433,10 +433,10 @@ impd_extract_loudness_peak_to_average_info(ia_loudness_info_struct* loudness_inf
                     }
                 }
                 break;
-                
+
             default:
                 return (UNEXPECTED_ERROR);
-                
+
                 break;
         }
     }
@@ -459,7 +459,7 @@ WORD32 impd_loudness_peak_to_average_info(
 {
     WORD32 n, err;
     WORD32 drc_set_id = max(0,str_drc_instruction_str->drc_set_id);
-    
+
     *loudness_peak_2_avg_value_present = 0;
 
     if (album_mode == 1)
@@ -510,7 +510,7 @@ WORD32 impd_overall_loudness_present( ia_loudness_info_struct* loudness_info,
                               WORD32* loudness_info_present)
 {
     WORD32 m;
-    
+
     *loudness_info_present = 0;
     for (m=0; m<loudness_info->measurement_count; m++)
     {
@@ -539,8 +539,8 @@ WORD32 impd_check_loud_info(WORD32 loudness_info_count,
             if (drc_set_id_requested == loudness_info[n].drc_set_id)
             {
                 err = impd_overall_loudness_present(&(loudness_info[n]), &loudness_info_present);
-                if (err) 
-					return (err);
+                if (err)
+                    return (err);
                 if (loudness_info_present)
                 {
                     loudness_info_matching[*info_count] = &(loudness_info[n]);
@@ -548,9 +548,9 @@ WORD32 impd_check_loud_info(WORD32 loudness_info_count,
                 }
             }
         }
-	}
-	
-	return (0);
+    }
+
+    return (0);
 }
 
 WORD32 impd_check_loud_payload(WORD32 loudness_info_count,
@@ -561,9 +561,9 @@ WORD32 impd_check_loud_payload(WORD32 loudness_info_count,
                               ia_loudness_info_struct* loudness_info_matching[])
 {
     WORD32 err = 0;
-    
+
     err = impd_check_loud_info(loudness_info_count, loudness_info, requested_dwnmix_id, drc_set_id_requested,   info_count, loudness_info_matching);
-	if (err || *info_count) goto matchEnd;
+    if (err || *info_count) goto matchEnd;
     err = impd_check_loud_info(loudness_info_count, loudness_info, ID_FOR_ANY_DOWNMIX, drc_set_id_requested,   info_count, loudness_info_matching); if (err || *info_count) goto matchEnd;
     err = impd_check_loud_info(loudness_info_count, loudness_info, requested_dwnmix_id, ID_FOR_ANY_DRC,      info_count, loudness_info_matching); if (err || *info_count) goto matchEnd;
     err = impd_check_loud_info(loudness_info_count, loudness_info, requested_dwnmix_id, ID_FOR_NO_DRC,       info_count, loudness_info_matching); if (err || *info_count) goto matchEnd;
@@ -587,7 +587,7 @@ WORD32 impd_find_overall_loudness_info(ia_drc_sel_proc_params_struct* pstr_drc_s
 {
     WORD32 err;
     WORD32 loudness_drc_set_id_requested;
-    
+
     *info_count = 0;
     if (drc_set_id_requested < 0)
     {
@@ -606,7 +606,7 @@ WORD32 impd_find_overall_loudness_info(ia_drc_sel_proc_params_struct* pstr_drc_s
                                             info_count,
                                             loudness_info_matching);
         if (err) return (err);
-        
+
     }
     if (*info_count == 0)
     {
@@ -630,7 +630,7 @@ impd_high_pass_loudness_adjust_info( ia_loudness_info_struct* loudness_info,
                               FLOAT32* loudness_hp_adjust)
 {
     WORD32 m, k;
-    
+
     *loudness_hp_adjust_present = 0;
     *loudness_hp_adjust = 0.0f;
     for (m=0; m<loudness_info->measurement_count; m++)
@@ -664,7 +664,7 @@ WORD32 impd_find_high_pass_loudness_adjust(
 {
     WORD32 n, err;
     WORD32 loudness_drc_set_id_requested;
-    
+
     if (drc_set_id_requested < 0)
     {
         loudness_drc_set_id_requested = 0;
@@ -673,9 +673,9 @@ WORD32 impd_find_high_pass_loudness_adjust(
     {
         loudness_drc_set_id_requested = drc_set_id_requested;
     }
-    
+
     *loudness_hp_adjust_present = 0;
-    
+
     if (album_mode == 1)
     {
         for (n=0; n<pstr_loudness_info->loudness_info_album_count; n++)
@@ -742,7 +742,7 @@ WORD32 impd_find_high_pass_loudness_adjust(
     }
     return(0);
 }
- 
+
 
 WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct,
                      ia_drc_loudness_info_set_struct* pstr_loudness_info,
@@ -759,7 +759,7 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
     WORD32 loudness_hp_adjust_present;
     WORD32 overall_loudness_info_present;
     FLOAT32 pre_proc_adjust;
-    
+
     k=0;
     if (drc_set_id_requested < 0)
     {
@@ -774,7 +774,7 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
     loudness[k] = UNDEFINED_LOUDNESS_VALUE;
     loudness_normalization_gain_db[k] = 0.0f;
     k++;
-    
+
     pre_lim_count = k;
 
     if (pstr_drc_sel_proc_params_struct->loudness_normalization_on == 1)
@@ -789,19 +789,19 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                                           &info_count,
                                           loudness_info);
         if (err) return (err);
-        
+
         if (overall_loudness_info_present == 1)
         {
             WORD32 requested_method_definition = METHOD_DEFINITION_PROGRAM_LOUDNESS;
             WORD32 other_method_definition = METHOD_DEFINITION_PROGRAM_LOUDNESS;
             WORD32 requested_measurement_system = MEASUREMENT_SYSTEM_BS_1770_4;
-            WORD32 requested_preprocessing = 0;     
-            
+            WORD32 requested_preprocessing = 0;
+
             WORD32* system_bonus = measurement_system_default_tbl;
-            
+
             WORD32 match_measure;
             FLOAT32 method_val = 0;
-            
+
             switch (pstr_drc_sel_proc_params_struct->loudness_measurement_method) {
                 case USER_METHOD_DEFINITION_DEFAULT:
                 case USER_METHOD_DEFINITION_PROGRAM_LOUDNESS:
@@ -812,12 +812,12 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                     requested_method_definition = METHOD_DEFINITION_ANCHOR_LOUDNESS;
                     other_method_definition  = METHOD_DEFINITION_PROGRAM_LOUDNESS;
                     break;
-                    
+
                 default:
                     return (UNEXPECTED_ERROR);
                     break;
             }
-            
+
             switch (pstr_drc_sel_proc_params_struct->loudness_measurement_system) {
                 case USER_MEASUREMENT_SYSTEM_DEFAULT:
                 case USER_MEASUREMENT_SYSTEM_BS_1770_4:
@@ -852,12 +852,12 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                     requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_E;
                     system_bonus = measurement_system_rms_e_tbl;
                     break;
-                    
+
                 default:
                     return (UNEXPECTED_ERROR);
                     break;
             }
-            
+
             switch (pstr_drc_sel_proc_params_struct->loudness_measurement_pre_proc) {
                 case USER_LOUDNESS_PREPROCESSING_DEFAULT:
                 case USER_LOUDNESS_PREPROCESSING_OFF:
@@ -866,12 +866,12 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                 case USER_LOUDNESS_PREPROCESSING_HIGHPASS:
                     requested_preprocessing = 1;
                     break;
-                    
+
                 default:
                     return (UNEXPECTED_ERROR);
                     break;
             }
-            
+
             for (k=0; k<info_count; k++)
             {
                 match_measure = -1;
@@ -884,7 +884,7 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                         match_measure = system_bonus[loudness_measure->measurement_system];
                     }
                 }
-                if (match_measure == -1) 
+                if (match_measure == -1)
                 {
                     for (n=0; n<loudness_info[k]->measurement_count; n++)
                     {
@@ -896,13 +896,13 @@ WORD32 impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_p
                         }
                     }
                 }
-                
+
                 if (requested_preprocessing == 1)
                 {
                     err = impd_find_high_pass_loudness_adjust(pstr_loudness_info, requested_dwnmix_id, drc_set_id_requested, pstr_drc_sel_proc_params_struct->album_mode, (FLOAT32)pstr_drc_sel_proc_params_struct->device_cut_off_frequency,
                                                          &loudness_hp_adjust_present, &pre_proc_adjust);
                     if (err) return (err);
-                    
+
                     if (loudness_hp_adjust_present == 0)
                     {
                         pre_proc_adjust = -2.0f;
@@ -943,7 +943,7 @@ impd_mixing_level_info(ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_s
     WORD32 album_mode = pstr_drc_sel_proc_params_struct->album_mode;
     WORD32 loudness_drc_set_id_requested;
     ia_loudness_info_struct* loudness_info;
-    
+
     *mixing_level = MIXING_LEVEL_DEFAULT;
     if (drc_set_id_requested < 0)
     {

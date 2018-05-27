@@ -985,7 +985,7 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
               ixheaacd_mult32(cov_matrix.phi_02, cov_matrix.phi_11))) >>
           (LPC_SCALE_FACTOR - 1);
       tmp_i = (ixheaacd_sub32_sat(
-                  ixheaacd_add32(
+                  ixheaacd_add32_sat(
                       ixheaacd_mult32(cov_matrix.phi_01_im, cov_matrix.phi_12),
                       ixheaacd_mult32(cov_matrix.phi_01, cov_matrix.phi_12_im)),
                   ixheaacd_mult32(cov_matrix.phi_02_im, cov_matrix.phi_11))) >>
