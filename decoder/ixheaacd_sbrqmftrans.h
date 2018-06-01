@@ -21,11 +21,11 @@
 #define IXHEAACD_SBRQMFTRANS_H
 
 WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
-                            FLOAT32 qmf_buf_real[][64],
-                            FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
-                            FLOAT32 pv_qmf_buf_real[][64],
-                            FLOAT32 pv_qmf_buf_imag[][64],
-                            WORD32 pitch_in_bins);
+                              FLOAT32 qmf_buf_real[][64],
+                              FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
+                              FLOAT32 pv_qmf_buf_real[][64],
+                              FLOAT32 pv_qmf_buf_imag[][64],
+                              WORD32 pitch_in_bins);
 
 WORD32 ixheaacd_qmf_hbe_data_reinit(
     ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,

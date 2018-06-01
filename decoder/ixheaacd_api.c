@@ -143,8 +143,9 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
       UWORD32 *meminfo =
           (UWORD32 *)p_obj_exhaacplus_dec->p_mem_info_aac + i_idx;
       UWORD32 pers_size = meminfo[0];
-      p_temp = p_temp + pers_size - (sizeof(ia_dec_data_struct) +
-                                     sizeof(ia_audio_specific_config_struct) + (8300));
+      p_temp = p_temp + pers_size -
+               (sizeof(ia_dec_data_struct) +
+                sizeof(ia_audio_specific_config_struct) + (8300));
       p_obj_exhaacplus_dec->p_state_aac = pv_value;
 
       memset(p_obj_exhaacplus_dec->p_state_aac, 0,
@@ -153,8 +154,9 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
       p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data = p_temp;
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
           p_temp + sizeof(ia_dec_data_struct);
-p_obj_exhaacplus_dec->p_state_aac->header_ptr = p_temp + sizeof(ia_dec_data_struct)
-    + sizeof(ia_audio_specific_config_struct);
+      p_obj_exhaacplus_dec->p_state_aac->header_ptr =
+          p_temp + sizeof(ia_dec_data_struct) +
+          sizeof(ia_audio_specific_config_struct);
     }
 
   } else {
@@ -665,25 +667,25 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         }
 
         case IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE: {
-            if (((*pui_value_signed) > 8) || ((*pui_value_signed) < -1) ) {
-                p_obj_exhaacplus_dec->aac_config.ui_effect_type = -1;
-                return (IA_ENHAACPLUS_DEC_CONFIG_NON_FATAL_INVALID_EFFECT_TYPE);
-            }
-            p_obj_exhaacplus_dec->aac_config.ui_effect_type = *pui_value_signed;
-            break;
+          if (((*pui_value_signed) > 8) || ((*pui_value_signed) < -1)) {
+            p_obj_exhaacplus_dec->aac_config.ui_effect_type = -1;
+            return (IA_ENHAACPLUS_DEC_CONFIG_NON_FATAL_INVALID_EFFECT_TYPE);
+          }
+          p_obj_exhaacplus_dec->aac_config.ui_effect_type = *pui_value_signed;
+          break;
         }
         case IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS: {
-            if(*pui_value_signed>=0)
-            {
-                p_obj_exhaacplus_dec->aac_config.ui_loud_norm_flag=1;
-            }
-            *pui_value_signed = -(*pui_value_signed >> 2);
-            if (((*pui_value_signed) > 0) ||((*pui_value_signed) < -63)) {
-                p_obj_exhaacplus_dec->aac_config.ui_target_loudness = 0;
-                return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_TARGET_LOUDNESS);
-            }
-            p_obj_exhaacplus_dec->aac_config.ui_target_loudness = *pui_value_signed;
-            break;
+          if (*pui_value_signed >= 0) {
+            p_obj_exhaacplus_dec->aac_config.ui_loud_norm_flag = 1;
+          }
+          *pui_value_signed = -(*pui_value_signed >> 2);
+          if (((*pui_value_signed) > 0) || ((*pui_value_signed) < -63)) {
+            p_obj_exhaacplus_dec->aac_config.ui_target_loudness = 0;
+            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_TARGET_LOUDNESS);
+          }
+          p_obj_exhaacplus_dec->aac_config.ui_target_loudness =
+              *pui_value_signed;
+          break;
         }
         default: { return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
       }
@@ -697,8 +699,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
       if (i_idx >= 0 && i_idx <= 8) {
         *pui_value = pvalue[i_idx];
-      }
-      else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
+      } else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
                  p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
@@ -767,8 +768,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
                  p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
         *pp_value = ptr_audio_specific_config->str_usac_config
                         .str_usac_dec_config.usac_ext_gain_payload_buf;
-      }
-      else {
+      } else {
         return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
       break;
@@ -910,18 +910,19 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(
            sizeof(ia_aac_dec_state_struct));
     {
       pUWORD8 p_temp = (pUWORD8)p_obj_exhaacplus_dec->p_state_aac;
-      UWORD32 *meminfo =
-          (UWORD32 *)p_obj_exhaacplus_dec->p_mem_info_aac;
+      UWORD32 *meminfo = (UWORD32 *)p_obj_exhaacplus_dec->p_mem_info_aac;
       UWORD32 pers_size = meminfo[0];
-      p_temp = p_temp + pers_size - (sizeof(ia_dec_data_struct) +
-                                     sizeof(ia_audio_specific_config_struct) + (8300));
+      p_temp = p_temp + pers_size -
+               (sizeof(ia_dec_data_struct) +
+                sizeof(ia_audio_specific_config_struct) + (8300));
 
       p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data = p_temp;
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
           p_temp + sizeof(ia_dec_data_struct);
-p_obj_exhaacplus_dec->p_state_aac->header_ptr = p_temp + sizeof(ia_dec_data_struct)
-    + sizeof(ia_audio_specific_config_struct);
-}
+      p_obj_exhaacplus_dec->p_state_aac->header_ptr =
+          p_temp + sizeof(ia_dec_data_struct) +
+          sizeof(ia_audio_specific_config_struct);
+    }
     memset(&(p_obj_exhaacplus_dec->aac_config), 0,
            sizeof(ia_aac_dec_config_struct));
 
@@ -1496,9 +1497,9 @@ IA_ERRORCODE ixheaacd_dec_init(
     p_state_enhaacplus_dec->ptr_bit_stream =
         p_state_enhaacplus_dec->pstr_bit_buf;
 
-    if (p_state_enhaacplus_dec->s_adts_hdr_present) {                               //rajat
-        if (p_obj_exhaacplus_dec->aac_config.ld_decoder == 1)
-          p_state_enhaacplus_dec->audio_object_type = 23;
+    if (p_state_enhaacplus_dec->s_adts_hdr_present) {  // rajat
+      if (p_obj_exhaacplus_dec->aac_config.ld_decoder == 1)
+        p_state_enhaacplus_dec->audio_object_type = 23;
     }
 
     if ((p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD) ||
@@ -2340,7 +2341,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   { it_bit_buff->initial_cnt_bits = it_bit_buff->cnt_bits; }
 
   if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD) {
-    if(p_state_enhaacplus_dec->s_adts_hdr_present)
+    if (p_state_enhaacplus_dec->s_adts_hdr_present)
       p_state_enhaacplus_dec->frame_size = adts.aac_frame_length;
   }
 

@@ -555,18 +555,19 @@ VOID ixheaacd_esbr_synthesis_filt_block(
 }
 
 WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
-                      ia_sbr_header_data_struct *ptr_header_data,
-                      ia_sbr_frame_info_data_struct *ptr_frame_data,
-                      ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
-                      ia_ps_dec_struct *ptr_ps_dec,
-                      ia_sbr_qmf_filter_bank_struct *ptr_qmf_synth_bank_r,
-                      ia_sbr_scale_fact_struct *ptr_sbr_sf_r,
-                      FLAG apply_processing, FLAG low_pow_flag,
-                      WORD32 *ptr_work_buf_core,
-                      ia_sbr_tables_struct *sbr_tables_ptr,
-                      ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
-                      ia_pvc_data_struct *ptr_pvc_data, FLAG drc_on,
-                      WORD32 drc_sbr_factors[][64], WORD32 audio_object_type) {
+                        ia_sbr_header_data_struct *ptr_header_data,
+                        ia_sbr_frame_info_data_struct *ptr_frame_data,
+                        ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
+                        ia_ps_dec_struct *ptr_ps_dec,
+                        ia_sbr_qmf_filter_bank_struct *ptr_qmf_synth_bank_r,
+                        ia_sbr_scale_fact_struct *ptr_sbr_sf_r,
+                        FLAG apply_processing, FLAG low_pow_flag,
+                        WORD32 *ptr_work_buf_core,
+                        ia_sbr_tables_struct *sbr_tables_ptr,
+                        ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
+                        ia_pvc_data_struct *ptr_pvc_data, FLAG drc_on,
+                        WORD32 drc_sbr_factors[][64],
+                        WORD32 audio_object_type) {
   WORD i;
   WORD slot, reserve;
   WORD save_lb_scale;
@@ -715,8 +716,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
           ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_frame_data->pitch_in_bins);
-      if(err_code)
-          return err_code;
+      if (err_code) return err_code;
 
       if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
         ixheaacd_hbe_repl_spec(
@@ -731,15 +731,15 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 
     if (!mps_sbr_flag && apply_processing) {
       WORD32 err_code = 0;
-      err_code = ixheaacd_generate_hf(ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
-                           ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
-                           ptr_sbr_dec->ph_vocod_qmf_real + (SBR_HF_ADJ_OFFSET),
-                           ptr_sbr_dec->ph_vocod_qmf_imag + (SBR_HF_ADJ_OFFSET),
-                           ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
-                           ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
-                           ptr_frame_data, ptr_header_data);
-      if(err_code)
-         return err_code;
+      err_code = ixheaacd_generate_hf(
+          ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->ph_vocod_qmf_real + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->ph_vocod_qmf_imag + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET), ptr_frame_data,
+          ptr_header_data);
+      if (err_code) return err_code;
 
       ptr_pvc_data->pvc_rate = ptr_header_data->upsamp_fac;
 
@@ -759,22 +759,21 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
       ptr_pvc_data->prev_pvc_rate = ptr_pvc_data->pvc_rate;
 
       ptr_frame_data->pstr_sbr_header = ptr_header_data;
-      if(ptr_header_data->hbe_flag == 0)
-          ixheaacd_sbr_env_calc(ptr_frame_data,
-              ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
-              ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
-              ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
-              ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
-              NULL,
-              ptr_sbr_dec->scratch_buff, pvc_dec_out_buf);
+      if (ptr_header_data->hbe_flag == 0)
+        ixheaacd_sbr_env_calc(
+            ptr_frame_data, ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET), NULL,
+            ptr_sbr_dec->scratch_buff, pvc_dec_out_buf);
       else
-      ixheaacd_sbr_env_calc(ptr_frame_data,
-                            ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
-                            ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
-                            ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
-                            ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
-                            ptr_sbr_dec->p_hbe_txposer->x_over_qmf,
-                            ptr_sbr_dec->scratch_buff, pvc_dec_out_buf);
+        ixheaacd_sbr_env_calc(
+            ptr_frame_data, ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
+            ptr_sbr_dec->p_hbe_txposer->x_over_qmf, ptr_sbr_dec->scratch_buff,
+            pvc_dec_out_buf);
 
     } else {
       for (i = 0; i < 64; i++) {
@@ -1015,10 +1014,10 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 }
 
 WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
-                       ia_sbr_header_data_struct *ptr_header_data,
-                       ia_sbr_frame_info_data_struct *ptr_frame_data,
-                       FLAG apply_processing, FLAG low_pow_flag,
-                       ia_sbr_tables_struct *ptr_sbr_tables, WORD ch_fac) {
+                         ia_sbr_header_data_struct *ptr_header_data,
+                         ia_sbr_frame_info_data_struct *ptr_frame_data,
+                         FLAG apply_processing, FLAG low_pow_flag,
+                         ia_sbr_tables_struct *ptr_sbr_tables, WORD ch_fac) {
   WORD32 i;
   WORD32 op_delay;
 
@@ -1110,8 +1109,7 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
         ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
         ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
         ptr_frame_data->pitch_in_bins);
-    if(err)
-        return err;
+    if (err) return err;
 
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       ixheaacd_hbe_repl_spec(
@@ -1139,7 +1137,7 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
 }
 
 WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
-                               VOID *p_sbr_frame, VOID *p_sbr_header) {
+                                 VOID *p_sbr_frame, VOID *p_sbr_header) {
   WORD32 i, k;
   ia_sbr_frame_info_data_struct *ptr_frame_data =
       (ia_sbr_frame_info_data_struct *)p_sbr_frame;
@@ -1204,32 +1202,32 @@ WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
   ptr_header_data->pstr_freq_band_data->qmf_sb_prev =
       ptr_header_data->pstr_freq_band_data->sub_band_start;
 
-  err = ixheaacd_generate_hf(ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                       ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET, NULL,
-                       NULL,
-                       ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                       ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-                       ptr_frame_data, ptr_header_data);
-  if(err)
-    return err;
+  err = ixheaacd_generate_hf(
+      ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+      ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET, NULL, NULL,
+      ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+      ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET, ptr_frame_data,
+      ptr_header_data);
+  if (err) return err;
 
   ptr_frame_data->pstr_sbr_header = ptr_header_data;
   ptr_frame_data->sbr_mode = ORIG_SBR;
   ptr_frame_data->prev_sbr_mode = ORIG_SBR;
-  if(ptr_header_data->hbe_flag == 0)
-      ixheaacd_sbr_env_calc(
-          ptr_frame_data, ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-          ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-          ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-          ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-          NULL, ptr_sbr_dec->scratch_buff, NULL);
+  if (ptr_header_data->hbe_flag == 0)
+    ixheaacd_sbr_env_calc(ptr_frame_data,
+                          ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+                          NULL, ptr_sbr_dec->scratch_buff, NULL);
   else
-      ixheaacd_sbr_env_calc(
-      ptr_frame_data, ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-      ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-      ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-      ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-      ptr_sbr_dec->p_hbe_txposer->x_over_qmf, ptr_sbr_dec->scratch_buff, NULL);
+    ixheaacd_sbr_env_calc(ptr_frame_data,
+                          ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+                          ptr_sbr_dec->p_hbe_txposer->x_over_qmf,
+                          ptr_sbr_dec->scratch_buff, NULL);
 
   for (i = 0; i < no_bins; i++) {
     FLOAT32 *p_loc_mps_qmf_output =

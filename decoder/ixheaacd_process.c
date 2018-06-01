@@ -147,8 +147,7 @@ static VOID ixheaacd_sbr_ext_data_read(
   cnt_bits_in = it_bit_buff->cnt_bits;
   count = (it_bit_buff->cnt_bits) >> 3;
   if (count > 0) {
-    if (
-        (esbr_bit_str->no_elements < MAXNRSBRELEMENTS)) {
+    if ((esbr_bit_str->no_elements < MAXNRSBRELEMENTS)) {
       esbr_bit_str->str_sbr_ele[esbr_bit_str->no_elements].extension_type =
           EXT_SBR_DATA;
       esbr_bit_str->str_sbr_ele[esbr_bit_str->no_elements].size_payload = count;
@@ -168,10 +167,8 @@ static VOID ixheaacd_sbr_ext_data_read(
 
 static WORD32 ixheaacd_read_ext_element(
     UWORD32 usac_ext_element_default_length,
-    UWORD32 usac_ext_element_payload_frag, ia_bit_buf_struct *it_bit_buff
-    ,
-    ia_usac_decoder_config_struct *pstr_usac_dec_config, WORD32 elem_idx
-    ) {
+    UWORD32 usac_ext_element_payload_frag, ia_bit_buf_struct *it_bit_buff,
+    ia_usac_decoder_config_struct *pstr_usac_dec_config, WORD32 elem_idx) {
   UWORD32 usac_ext_element_present;
   UWORD32 usac_ext_element_use_dft_length;
   UWORD32 pay_load_length, tmp;
@@ -193,7 +190,7 @@ static WORD32 ixheaacd_read_ext_element(
       }
     }
     if ((it_bit_buff->cnt_bits >> 3) < (WORD32)pay_load_length)
-        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+      return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
     if (pay_load_length > 0) {
       if (usac_ext_element_payload_frag)
         tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
@@ -206,12 +203,10 @@ static WORD32 ixheaacd_read_ext_element(
         }
         pstr_usac_dec_config->usac_ext_gain_payload_len += pay_load_length;
       } else {
-
         it_bit_buff->ptr_read_next =
             it_bit_buff->ptr_read_next + pay_load_length;
         it_bit_buff->cnt_bits =
             it_bit_buff->cnt_bits - (WORD32)(pay_load_length * 8);
-
       }
     }
   }
@@ -313,15 +308,15 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
 
       case ID_USAC_CPE:
         nr_core_coder_channels = (stereo_config_index == 1) ? 1 : 2;
-        if((stereo_config_index > 1) && (p_state_aac_dec->num_of_output_ch<2))
-            return -1;
+        if ((stereo_config_index > 1) &&
+            (p_state_aac_dec->num_of_output_ch < 2))
+          return -1;
         goto core_data_extracting;
       case ID_USAC_LFE:
         nr_core_coder_channels = 1;
 
       core_data_extracting:
-        if(ch_offset >= MAX_NUM_CHANNELS)
-           return -1;
+        if (ch_offset >= MAX_NUM_CHANNELS) return -1;
         err = ixheaacd_core_coder_data(ele_id, pstr_usac_data, elem_idx,
                                        &ch_offset, it_bit_buff,
                                        nr_core_coder_channels);
@@ -346,16 +341,14 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
               pstr_usac_data, it_bit_buff, stereo_config_index,
               nr_core_coder_channels,
               pstr_dec_data->str_usac_data.audio_object_type);
-          if(err_code < 0)
-              return err_code;
+          if (err_code < 0) return err_code;
         }
 
         if (stereo_config_index > 0) {
           FLOAT32 **ptr_inp[2 * 2];
           WORD32 ch;
 
-          *num_out_channels =
-              p_state_aac_dec->mps_dec_handle.out_ch_count;
+          *num_out_channels = p_state_aac_dec->mps_dec_handle.out_ch_count;
 
           ixheaacd_mps_frame_parsing(&p_state_aac_dec->mps_dec_handle,
                                      pstr_usac_data->usac_independency_flg,
@@ -387,9 +380,8 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           }
 
           err = ixheaacd_mps_apply(&p_state_aac_dec->mps_dec_handle, ptr_inp,
-                             pstr_usac_data->time_sample_vector);
-          if(err)
-              return err;
+                                   pstr_usac_data->time_sample_vector);
+          if (err) return err;
         }
 
         ch_offset += nr_core_coder_channels;
@@ -398,13 +390,11 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
       case ID_USAC_EXT: {
         ia_usac_dec_element_config_struct *pusac_element_config =
             &pstr_usac_dec_config->str_usac_element_config[elem_idx];
-        err = ixheaacd_read_ext_element(pusac_element_config->usac_ext_eleme_def_len,
-                                  pusac_element_config->usac_ext_elem_pld_frag,
-                                  it_bit_buff,
-                                  pstr_usac_dec_config, elem_idx
-                                  );
-        if (err != 0)
-          return err;
+        err = ixheaacd_read_ext_element(
+            pusac_element_config->usac_ext_eleme_def_len,
+            pusac_element_config->usac_ext_elem_pld_frag, it_bit_buff,
+            pstr_usac_dec_config, elem_idx);
+        if (err != 0) return err;
 
         break;
       }

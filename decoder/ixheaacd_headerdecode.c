@@ -604,7 +604,8 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
     ixheaacd_conf_default(&(pstr_audio_specific_config->str_usac_config));
     err = ixheaacd_config(it_bit_buff,
-                          &(pstr_audio_specific_config->str_usac_config),&(pstr_audio_specific_config->channel_configuration));
+                          &(pstr_audio_specific_config->str_usac_config),
+                          &(pstr_audio_specific_config->channel_configuration));
     if (err != 0) return -1;
 
     if (pstr_audio_specific_config->audio_object_type == AOT_USAC) {
@@ -798,10 +799,11 @@ WORD32 ixheaacd_check_if_adts(ia_adts_header_struct *adts,
 
   result = ixheaacd_adtsframe(adts, it_bit_buff);
 
-  max_frm_len_per_ch = ixheaacd_mult32(768 , (adts->no_raw_data_blocks + 1));
+  max_frm_len_per_ch = ixheaacd_mult32(768, (adts->no_raw_data_blocks + 1));
 
   if (adts->channel_configuration != 0)
-    max_frm_len_per_ch = ixheaacd_mult32(max_frm_len_per_ch, adts->channel_configuration);
+    max_frm_len_per_ch =
+        ixheaacd_mult32(max_frm_len_per_ch, adts->channel_configuration);
   else
     max_frm_len_per_ch = max_frm_len_per_ch * usr_max_ch;
 

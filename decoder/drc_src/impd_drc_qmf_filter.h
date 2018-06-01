@@ -20,21 +20,17 @@
 #ifndef IMPD_DRC_QMF_FILTER_H
 #define IMPD_DRC_QMF_FILTER_H
 
+#define QMF_NUM_FILT_BANDS 64
+#define QMF_FILT_RESOLUTION 64
 
-#define QMF_NUM_FILT_BANDS                    64
-#define QMF_FILT_RESOLUTION                   64
+typedef struct ia_drc_qmf_filt_struct {
+  FLOAT64* ana_buff;
+  FLOAT64* syn_buff;
+  FLOAT64 ana_tab_real[QMF_NUM_FILT_BANDS][2 * QMF_NUM_FILT_BANDS];
+  FLOAT64 ana_tab_imag[QMF_NUM_FILT_BANDS][2 * QMF_NUM_FILT_BANDS];
+  FLOAT64 syn_tab_real[2 * QMF_NUM_FILT_BANDS][QMF_NUM_FILT_BANDS];
+  FLOAT64 syn_tab_imag[2 * QMF_NUM_FILT_BANDS][QMF_NUM_FILT_BANDS];
 
-
-typedef struct ia_drc_qmf_filt_struct
-{
-
-FLOAT64* ana_buff;
-FLOAT64* syn_buff;
-FLOAT64  ana_tab_real[QMF_NUM_FILT_BANDS][2*QMF_NUM_FILT_BANDS];
-FLOAT64  ana_tab_imag[QMF_NUM_FILT_BANDS][2*QMF_NUM_FILT_BANDS];
-FLOAT64  syn_tab_real[2*QMF_NUM_FILT_BANDS][QMF_NUM_FILT_BANDS];
-FLOAT64  syn_tab_imag[2*QMF_NUM_FILT_BANDS][QMF_NUM_FILT_BANDS];
-
-}ia_drc_qmf_filt_struct;
+} ia_drc_qmf_filt_struct;
 
 #endif

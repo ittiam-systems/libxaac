@@ -50,21 +50,21 @@ FIRST_STAGE_R4:
     ADD             r0, r0, #4
     CMP             r0, lr, ASR #1
 
-    ADD             r4, r4, r6 @x0r = x0r + x2r@
-    ADD             r5, r5, r7 @x0i = x0i + x2i@
+    ADD             r4, r4, r6          @x0r = x0r + x2r@
+    ADD             r5, r5, r7          @x0i = x0i + x2i@
     SUB             r6, r4, r6, lsl#1   @x2r = x0r - (x2r << 1)@
     SUB             r7, r5, r7, lsl#1   @x2i = x0i - (x2i << 1)@
-    ADD             r8, r8, r10 @x1r = x1r + x3r@
-    ADD             r9, r9, r11 @x1i = x1i + x3i@
+    ADD             r8, r8, r10         @x1r = x1r + x3r@
+    ADD             r9, r9, r11         @x1i = x1i + x3i@
     SUB             r1, r8, r10, lsl#1  @x3r = x1r - (x3r << 1)@
     SUB             r11, r9, r11, lsl#1 @x3i = x1i - (x3i << 1)@
 
-    ADD             r4, r4, r8 @x0r = x0r + x1r@
-    ADD             r5, r5, r9 @x0i = x0i + x1i@
+    ADD             r4, r4, r8          @x0r = x0r + x1r@
+    ADD             r5, r5, r9          @x0i = x0i + x1i@
     SUB             r8, r4, r8, lsl#1   @x1r = x0r - (x1r << 1)@
     SUB             r9, r5, r9, lsl#1   @x1i = x0i - (x1i << 1)
-    ADD             r6, r6, r11 @x2r = x2r + x3i@
-    SUB             r7, r7, r1 @x2i = x2i - x3r@
+    ADD             r6, r6, r11         @x2r = x2r + x3i@
+    SUB             r7, r7, r1          @x2i = x2i - x3r@
     SUB             r10, r6, r11, lsl#1 @x3i = x2r - (x3i << 1)@
     ADD             r11, r7, r1, lsl#1  @x3r = x2i + (x3r << 1)@
 
@@ -108,23 +108,23 @@ LOOP_TRIVIAL_TWIDDLE:
 @MOV    r10,r10,ASR #1
 @MOV    r11,r11,ASR #1
 
-    ADD             r4, r4, r8 @x0r = x0r + x2r@
-    ADD             r5, r5, r9 @x0i = x0i + x2i@
+    ADD             r4, r4, r8          @x0r = x0r + x2r@
+    ADD             r5, r5, r9          @x0i = x0i + x2i@
     SUB             r8, r4, r8, lsl #1  @x2r = x0r - (x2r << 1)@
     SUB             r9, r5, r9, lsl #1  @x2i = x0i - (x2i << 1)@
-    ADD             r6, r6, r10 @x1r = x1r + x3r@
-    ADD             r7, r7, r11 @x1i = x1i + x3i@
+    ADD             r6, r6, r10         @x1r = x1r + x3r@
+    ADD             r7, r7, r11         @x1i = x1i + x3i@
     SUB             r2, r6, r10, lsl #1 @x3r = x1r - (x3r << 1)@
     SUB             r11, r7, r11, lsl #1 @x3i = x1i - (x3i << 1)@
 
-    ADD             r4, r4, r6 @x0r = x0r + x1r@
-    ADD             r5, r5, r7 @x0i = x0i + x1i@
+    ADD             r4, r4, r6          @x0r = x0r + x1r@
+    ADD             r5, r5, r7          @x0i = x0i + x1i@
 @MOV    r4,r4,ASR #1
 @MOV    r5,r5,ASR #1
     SUB             r6, r4, r6, lsl #1  @x1r = x0r - (x1r << 1)@
     SUB             r7, r5, r7, lsl #1  @x1i = x0i - (x1i << 1)
-    ADD             r8, r8, r11 @x2r = x2r + x3i@
-    SUB             r9, r9, r2 @x2i = x2i - x3r@
+    ADD             r8, r8, r11         @x2r = x2r + x3i@
+    SUB             r9, r9, r2          @x2i = x2i - x3r@
     SUB             r10, r8, r11, lsl#1 @x3i = x2r - (x3i << 1)@
     ADD             r11, r9, r2, lsl#1  @x3r = x2i + (x3r << 1)
 
@@ -241,23 +241,23 @@ RADIX4_BFLY:
 
 
     ADD             r4, r8, r4          @x0r = x0r + x2r@
-    ADD             r5, r9, r5 @x0i = x0i + x2i@
+    ADD             r5, r9, r5          @x0i = x0i + x2i@
     SUB             r8, r4, r8, lsl#1   @x2r = x0r - (x2r << 1)@
     SUB             r9, r5, r9, lsl#1   @x2i = x0i - (x2i << 1)@
-    ADD             r6, r6, r10 @x1r = x1r + x3r@
-    ADD             r7, r7, r11 @x1i = x1i + x3i@
+    ADD             r6, r6, r10         @x1r = x1r + x3r@
+    ADD             r7, r7, r11         @x1i = x1i + x3i@
     SUB             r10, r6, r10, lsl#1 @x3r = x1r - (x3r << 1)@
     SUB             r11, r7, r11, lsl#1 @x3i = x1i - (x3i << 1)@
 
-    ADD             r4, r4, r6 @x0r = x0r + x1r@
-    ADD             r5, r5, r7 @x0i = x0i + x1i@
+    ADD             r4, r4, r6          @x0r = x0r + x1r@
+    ADD             r5, r5, r7          @x0i = x0i + x1i@
     SUB             r6, r4, r6, lsl#1   @x1r = x0r - (x1r << 1)@
     SUB             r7, r5, r7, lsl#1   @x1i = x0i - (x1i << 1)
     STRD            r4, [r12]           @r4=x0r,  r5=x0i
     ADD             r12, r12, r0
 
-    ADD             r8, r8, r11 @x2r = x2r + x3i@
-    SUB             r9, r9, r10 @x2i = x2i - x3r@
+    ADD             r8, r8, r11         @x2r = x2r + x3i@
+    SUB             r9, r9, r10         @x2i = x2i - x3r@
     SUB             r4, r8, r11, lsl#1  @x3i = x2r - (x3i << 1)@
     ADD             r5, r9, r10, lsl#1  @x3r = x2i + (x3r << 1)
 
@@ -504,20 +504,20 @@ RADIX4_BFLY_3:
     ADD             r5, r9, r5          @x0i = x0i + x2i@
     SUB             r8, r4, r8, lsl#1   @x2r = x0r - (x2r << 1)@
     SUB             r9, r5, r9, lsl#1   @x2i = x0i - (x2i << 1)@
-    ADD             r6, r6, r10 @x1r = x1r + x3r@
-    ADD             r7, r7, r11 @x1i = x1i + x3i@
+    ADD             r6, r6, r10         @x1r = x1r + x3r@
+    ADD             r7, r7, r11         @x1i = x1i + x3i@
     SUB             r10, r6, r10, lsl#1 @x3r = x1r - (x3r << 1)@
     SUB             r11, r7, r11, lsl#1 @x3i = x1i - (x3i << 1)@
 
-    ADD             r4, r4, r6 @x0r = x0r + x1r@
-    ADD             r5, r5, r7 @x0i = x0i + x1i@
+    ADD             r4, r4, r6          @x0r = x0r + x1r@
+    ADD             r5, r5, r7          @x0i = x0i + x1i@
     SUB             r6, r4, r6, lsl#1   @x1r = x0r - (x1r << 1)@
     SUB             r7, r5, r7, lsl#1   @x1i = x0i - (x1i << 1)
     STRD            r4, [r12]           @r4=x0r,  r5=x0i
     ADD             r12, r12, r0
 
-    ADD             r8, r8, r11 @x2r = x2r + x3i@
-    SUB             r9, r9, r10 @x2i = x2i - x3r@
+    ADD             r8, r8, r11         @x2r = x2r + x3i@
+    SUB             r9, r9, r10         @x2i = x2i - x3r@
     SUB             r4, r8, r11, lsl#1  @x3i = x2r - (x3i << 1)@
     ADD             r5, r9, r10, lsl#1  @x3r = x2i + (x3r << 1)
 
@@ -634,20 +634,20 @@ RADIX4_BFLY_4:
     ADD             r5, r9, r5          @x0i = x0i + x2i@
     SUB             r8, r4, r8, lsl#1   @x2r = x0r - (x2r << 1)@
     SUB             r9, r5, r9, lsl#1   @x2i = x0i - (x2i << 1)@
-    ADD             r6, r6, r10 @x1r = x1r + x3r@
-    SUB             r7, r7, r11 @x1i = x1i - x3i@
+    ADD             r6, r6, r10         @x1r = x1r + x3r@
+    SUB             r7, r7, r11         @x1i = x1i - x3i@
     SUB             r10, r6, r10, lsl#1 @x3r = x1r - (x3r << 1)@
     ADD             r11, r7, r11, lsl#1 @x3i = x1i + (x3i << 1)@
 
-    ADD             r4, r4, r6 @x0r = x0r + x1r@
-    ADD             r5, r5, r7 @x0i = x0i + x1i@
+    ADD             r4, r4, r6          @x0r = x0r + x1r@
+    ADD             r5, r5, r7          @x0i = x0i + x1i@
     SUB             r6, r4, r6, lsl#1   @x1r = x0r - (x1r << 1)@
     SUB             r7, r5, r7, lsl#1   @x1i = x0i - (x1i << 1)
     STRD            r4, [r12]           @r4=x0r,  r5=x0i
     ADD             r12, r12, r0
 
-    ADD             r8, r8, r11 @x2r = x2r + x3i@
-    SUB             r9, r9, r10 @x2i = x2i - x3r@
+    ADD             r8, r8, r11         @x2r = x2r + x3i@
+    SUB             r9, r9, r10         @x2i = x2i - x3r@
     SUB             r4, r8, r11, lsl#1  @x3i = x2r - (x3i << 1)@
     ADD             r5, r9, r10, lsl#1  @x3r = x2i + (x3r << 1)
 
