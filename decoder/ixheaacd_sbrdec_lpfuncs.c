@@ -1073,6 +1073,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
 
     patch = 0;
     while (sb < usb) {
+      if(MAX_NUM_PATCHES <= patch)
+         return -1;
       ptr_frame_data->patch_param.start_subband[patch] = sb;
       num_bands_in_patch = goal_sb - sb;
 
@@ -1109,11 +1111,7 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
       }
 
       if (num_bands_in_patch <= 0) {
-        if(num_bands_in_patch == 0)
-        {
-           return -1;
-        }
-        continue;
+          return -1;
       }
 
       for (k2 = sb; k2 < sb + num_bands_in_patch; k2++) {
@@ -1246,6 +1244,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
     }
   }
   ptr_frame_data->patch_param.num_patches = patch;
+  if(patch >= (MAX_NUM_PATCHES + 1))
+     return -1;
   for (i = 0; i < num_if_bands; i++) {
     bw_array_prev[i] = bw_array[i];
   }

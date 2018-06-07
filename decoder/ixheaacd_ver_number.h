@@ -18,9 +18,9 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #ifdef _ARM_
-#define xHE_AAC_DEC_ITTIAM_VER "_ARM $Rev: 1.38 $"
+#define xHE_AAC_DEC_ITTIAM_VER "_ARM $Rev: 1.41 $"
 #elif _X86_
-#define xHE_AAC_DEC_ITTIAM_VER "_X86 $Rev: 1.38 $"
+#define xHE_AAC_DEC_ITTIAM_VER "_X86 $Rev: 1.41 $"
 #else
-#define xHE_AAC_DEC_ITTIAM_VER "_MSVC $Rev: 1.38 $"
+#define xHE_AAC_DEC_ITTIAM_VER "_MSVC $Rev: 1.41 $"
 #endif

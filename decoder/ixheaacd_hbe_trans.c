@@ -99,7 +99,7 @@ static FLOAT32 *ixheaacd_map_prot_filter(WORD32 filt_length) {
   }
 }
 
-VOID ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                   WORD16 *p_freq_band_tab[2], WORD16 *p_num_sfb,
                                   WORD32 upsamp_4_flag) {
   WORD32 synth_size, sfb, patch, stop_patch;
@@ -214,9 +214,14 @@ VOID ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
       }
     }
   }
+  if(ptr_hbe_txposer->k_start < 0)
+  {
+     return -1;
+  }
+  return 0;
 }
 
-VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                             FLOAT32 qmf_buf_real[][64],
                             FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
                             FLOAT32 pv_qmf_buf_real[][64],
@@ -224,6 +229,7 @@ VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                             WORD32 pitch_in_bins) {
   WORD32 i, qmf_band_idx;
   WORD32 qmf_voc_columns = ptr_hbe_txposer->no_bins / 2;
+  WORD32 err_code = 0;
 
   memcpy(ptr_hbe_txposer->ptr_input_buf,
          ptr_hbe_txposer->ptr_input_buf +
@@ -239,7 +245,9 @@ VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
            TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(FLOAT32));
   }
 
-  ixheaacd_complex_anal_filt(ptr_hbe_txposer);
+  err_code = ixheaacd_complex_anal_filt(ptr_hbe_txposer);
+  if(err_code)
+      return err_code;
 
   for (i = 0; i < (ptr_hbe_txposer->hbe_qmf_out_len - ptr_hbe_txposer->no_bins);
        i++) {
@@ -272,6 +280,7 @@ VOID ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                         ixheaacd_phase_vocoder_cos_table[qmf_band_idx]);
     }
   }
+  return 0;
 }
 
 VOID ixheaacd_norm_qmf_in_buf_4(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,

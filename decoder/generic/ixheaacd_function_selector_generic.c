@@ -62,6 +62,7 @@
 #include "ixheaacd_env_calc.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_dsp_fft32x32s.h"
+#if !__ARM_NEON__
 
 WORD32 (*ixheaacd_fix_div)(WORD32, WORD32) = &ixheaacd_fix_div_dec;
 
@@ -246,3 +247,6 @@ VOID (*ixheaacd_scale_factor_process)
 (WORD32 *x_invquant, WORD16 *scale_fact, WORD no_band, WORD8 *width,
  WORD32 *scale_tables_ptr, WORD32 total_channels, WORD32 object_type,
  WORD32 aac_sf_data_resil_flag) = &ixheaacd_scale_factor_process_dec;
+
+#endif
+
