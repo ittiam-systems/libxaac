@@ -49,8 +49,11 @@ FileWrapperPtr FileWrapper_Open(char fileName[]) {
 
   if ((transport->fileCtxt = it_fopen((void *)fileName, 1, 0)) == NULL) {
     transport->inputFile = fopen(fileName, "rb");
-    if (!transport->inputFile)
+    if (!transport->inputFile) {
+      free(transport);
       return 0;
+    }
+
     else
       return transport;
   }
@@ -58,9 +61,10 @@ FileWrapperPtr FileWrapper_Open(char fileName[]) {
   if ((transport->mp4Ctxt = it_mp4_parser_init(transport->fileCtxt, NULL)) ==
       NULL) {
     transport->inputFile = fopen(fileName, "rb");
-    if (!transport->inputFile)
+    if (!transport->inputFile) {
+      free(transport);
       return 0;
-    else
+    } else
       return transport;
   }
   transport->isMp4File = 1;
@@ -68,14 +72,16 @@ FileWrapperPtr FileWrapper_Open(char fileName[]) {
   /* As max channels is 8 and +2 for upto two Ind CoupCh */
   transport->interim_buffer = malloc(10 * 768);
   if (transport->interim_buffer == NULL) {
+    free(transport);
     return 0;
   }
   return transport;
 #else
   transport->inputFile = fopen(fileName, "rb");
-  if (!transport->inputFile)
+  if (!transport->inputFile) {
+    free(transport);
     return 0;
-  else
+  } else
     return transport;
 #endif
 }

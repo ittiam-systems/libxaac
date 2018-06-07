@@ -25,10 +25,6 @@
 
 #define IA_MAX_CMDLINE_LENGTH 100
 
-void metadata_info_init(metadata_info *meta_info) {
-  meta_info = (metadata_info *)malloc(sizeof(metadata_info));
-}
-
 void metadata_free(metadata_info *meta_info) {
   if (meta_info->ia_mp4_stsz_size != NULL) free(meta_info->ia_mp4_stsz_size);
   // free(meta_info);
@@ -41,80 +37,79 @@ int ixheaacd_read_metadata_info(FILE *g_pf_metadata, metadata_info *meta_info) {
   WORD32 i, j, k, l;
   i = j = k = l = 0;
   while (fgets((char *)cmd, IA_MAX_CMDLINE_LENGTH, g_pf_metadata)) {
-      if (!strncmp((pCHAR8)cmd, "-dec_info_init:", 15)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
-        UWORD32 dec_info_init = atoi(pb_arg_val);
-        meta_info->dec_info_init = dec_info_init;
-        file_count++;
-      }
-      else if (!strncmp((pCHAR8)cmd, "-g_track_count:", 15)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
-        UWORD32 g_track_count = atoi(pb_arg_val);
-        meta_info->g_track_count = g_track_count;
-        file_count++;
-      }
+    if (!strncmp((pCHAR8)cmd, "-dec_info_init:", 15)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
+      UWORD32 dec_info_init = atoi(pb_arg_val);
+      meta_info->dec_info_init = dec_info_init;
+      file_count++;
+    } else if (!strncmp((pCHAR8)cmd, "-g_track_count:", 15)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 15);
+      UWORD32 g_track_count = atoi(pb_arg_val);
+      meta_info->g_track_count = g_track_count;
+      file_count++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-movie_time_scale:", 18)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
-        UWORD32 movie_time_scale = atoi(pb_arg_val);
-        meta_info->movie_time_scale = movie_time_scale;
-        file_count++;
-      }
+    else if (!strncmp((pCHAR8)cmd, "-movie_time_scale:", 18)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
+      UWORD32 movie_time_scale = atoi(pb_arg_val);
+      meta_info->movie_time_scale = movie_time_scale;
+      file_count++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-media_time_scale:", 18)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
-        UWORD32 media_time_scale = atoi(pb_arg_val);
-        meta_info->media_time_scale = media_time_scale;
-        file_count++;
-      }
+    else if (!strncmp((pCHAR8)cmd, "-media_time_scale:", 18)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
+      UWORD32 media_time_scale = atoi(pb_arg_val);
+      meta_info->media_time_scale = media_time_scale;
+      file_count++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-ia_mp4_stsz_entries:", 21)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 21);
-        UWORD32 ia_mp4_stsz_entries = atoi(pb_arg_val);
-        meta_info->ia_mp4_stsz_entries = ia_mp4_stsz_entries;
+    else if (!strncmp((pCHAR8)cmd, "-ia_mp4_stsz_entries:", 21)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 21);
+      UWORD32 ia_mp4_stsz_entries = atoi(pb_arg_val);
+      meta_info->ia_mp4_stsz_entries = ia_mp4_stsz_entries;
 
-        meta_info->ia_mp4_stsz_size =
-            (UWORD32 *)malloc(sizeof(int) * ia_mp4_stsz_entries);
-        file_count++;
-      }
-      /*
-      else if {
-        //printf("Wrong file order,Check file order");
-        //return -1;
-      }
-      */
-      else if (!strncmp((pCHAR8)cmd, "-playTimeInSamples:", 19)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 19);
-        UWORD32 playTimeInSamples = atoi(pb_arg_val);
-        meta_info->playTimeInSamples[i] = playTimeInSamples;
-        i++;
-      }
+      meta_info->ia_mp4_stsz_size =
+          (UWORD32 *)malloc(sizeof(int) * ia_mp4_stsz_entries);
+      file_count++;
+    }
+    /*
+    else if {
+      //printf("Wrong file order,Check file order");
+      //return -1;
+    }
+    */
+    else if (!strncmp((pCHAR8)cmd, "-playTimeInSamples:", 19)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 19);
+      UWORD32 playTimeInSamples = atoi(pb_arg_val);
+      meta_info->playTimeInSamples[i] = playTimeInSamples;
+      i++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-startOffsetInSamples:", 22)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 22);
-        UWORD32 startOffsetInSamples = atoi(pb_arg_val);
-        meta_info->startOffsetInSamples[j] = startOffsetInSamples;
-        j++;
-      }
+    else if (!strncmp((pCHAR8)cmd, "-startOffsetInSamples:", 22)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 22);
+      UWORD32 startOffsetInSamples = atoi(pb_arg_val);
+      meta_info->startOffsetInSamples[j] = startOffsetInSamples;
+      j++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-useEditlist:", 13)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 13);
-        UWORD32 useEditlist = atoi(pb_arg_val);
-        meta_info->useEditlist[k] = useEditlist;
-        k++;
-      }
+    else if (!strncmp((pCHAR8)cmd, "-useEditlist:", 13)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 13);
+      UWORD32 useEditlist = atoi(pb_arg_val);
+      meta_info->useEditlist[k] = useEditlist;
+      k++;
+    }
 
-      else if (!strncmp((pCHAR8)cmd, "-ia_mp4_stsz_size:", 18)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
-        UWORD32 ia_mp4_stsz_size = atoi(pb_arg_val);
-        meta_info->ia_mp4_stsz_size[l] = ia_mp4_stsz_size;
-        l++;
-      }
+    else if (!strncmp((pCHAR8)cmd, "-ia_mp4_stsz_size:", 18)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(cmd + 18);
+      UWORD32 ia_mp4_stsz_size = atoi(pb_arg_val);
+      meta_info->ia_mp4_stsz_size[l] = ia_mp4_stsz_size;
+      l++;
+    }
 
-      else {
-        printf("Command not found");
-        return -1;
-      }
+    else {
+      printf("Command not found");
+      return -1;
+    }
   }
 
   for (; i < MAX_TRACKS_PER_LAYER; i++) {

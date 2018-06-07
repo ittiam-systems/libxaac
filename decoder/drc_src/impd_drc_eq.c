@@ -1342,30 +1342,28 @@ WORD32 impd_process_eq_set_time_domain(ia_eq_set_struct* pstr_eq_set,
                                        WORD32 channel, FLOAT32* ptr_audio_in,
                                        FLOAT32* ptr_audio_out,
                                        WORD32 frame_size) {
-  WORD32 g = pstr_eq_set->eq_ch_group_of_channel[channel], i, j;
-  // FLOAT32 sum = 0.0f;
-  // FLOAT32 temp1 = 0.0f;
+  WORD32 i, j, g = 0;
 
-  if (pstr_eq_set == NULL || g < 0) return 0;
+  if (pstr_eq_set == NULL) return 0;
 
-  if (pstr_eq_set->domain | EQ_FILTER_DOMAIN_TIME) {
-    for (i = 0; i < frame_size; i++) {
-      impd_eq_filt_element_process(
-          (pstr_eq_set->filt_cascade_td[g].pstr_eq_filt_block), channel,
-          ptr_audio_in[i], &ptr_audio_out[i],
-          pstr_eq_set->filt_cascade_td[g].block_count);
+  g = pstr_eq_set->eq_ch_group_of_channel[channel];
 
-      for (j = 0; j < pstr_eq_set->filt_cascade_td[g].num_ph_align_filt; j++) {
-        impd_phase_align_filt_process(
-            &pstr_eq_set->filt_cascade_td[g].ph_alignment_filt[j], channel,
-            &ptr_audio_out[i]);
-      }
+  if (g < 0) return 0;
 
-      ptr_audio_out[i] = ptr_audio_out[i] *
-                         pstr_eq_set->filt_cascade_td[g].cascade_gain_linear;
+  for (i = 0; i < frame_size; i++) {
+    impd_eq_filt_element_process(
+        (pstr_eq_set->filt_cascade_td[g].pstr_eq_filt_block), channel,
+        ptr_audio_in[i], &ptr_audio_out[i],
+        pstr_eq_set->filt_cascade_td[g].block_count);
+
+    for (j = 0; j < pstr_eq_set->filt_cascade_td[g].num_ph_align_filt; j++) {
+      impd_phase_align_filt_process(
+          &pstr_eq_set->filt_cascade_td[g].ph_alignment_filt[j], channel,
+          &ptr_audio_out[i]);
     }
-  } else {
-    return -1;
+
+    ptr_audio_out[i] =
+        ptr_audio_out[i] * pstr_eq_set->filt_cascade_td[g].cascade_gain_linear;
   }
   return 0;
 }
