@@ -88,6 +88,8 @@
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
 
+#include "ixheaacd_error_codes.h"
+
 #define MAXNRSBRELEMENTS 6
 
 VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct,
@@ -107,7 +109,7 @@ WORD16 ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                              ia_bit_buf_struct *it_bit_buff,
                              WORD32 stereo_config_idx, WORD16 num_channels,
                              WORD32 audio_object_type) {
-  WORD16 err_code;
+  WORD16 err_code = 0;
   ia_aac_dec_sbr_bitstream_struct *esbr_bit_str = &usac_data->esbr_bit_str[0];
   ia_handle_sbr_dec_inst_struct self = usac_data->pstr_esbr_dec;
 
@@ -164,7 +166,7 @@ static VOID ixheaacd_sbr_ext_data_read(
   }
 }
 
-static VOID ixheaacd_read_ext_element(
+static WORD32 ixheaacd_read_ext_element(
     UWORD32 usac_ext_element_default_length,
     UWORD32 usac_ext_element_payload_frag, ia_bit_buf_struct *it_bit_buff
     ,
@@ -190,7 +192,8 @@ static VOID ixheaacd_read_ext_element(
         pay_load_length = (UWORD32)((WORD32)pay_load_length + val_add - 2);
       }
     }
-
+    if ((it_bit_buff->cnt_bits >> 3) < (WORD32)pay_load_length)
+        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
     if (pay_load_length > 0) {
       if (usac_ext_element_payload_frag)
         tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
@@ -212,6 +215,7 @@ static VOID ixheaacd_read_ext_element(
       }
     }
   }
+  return 0;
 }
 
 static VOID ixheaacd_sbr_ele_type_set(
@@ -268,6 +272,7 @@ VOID ixheaacd_ms_processing(ia_usac_data_struct *pstr_usac_data) {
 WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
                              WORD32 *num_out_channels, VOID *codec_handle) {
   WORD32 ele_id = 0;
+  WORD32 err_code = 0;
 
   ia_aac_dec_state_struct *p_state_aac_dec =
       (ia_aac_dec_state_struct *)codec_handle;
@@ -308,11 +313,15 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
 
       case ID_USAC_CPE:
         nr_core_coder_channels = (stereo_config_index == 1) ? 1 : 2;
+        if((stereo_config_index > 1) && (p_state_aac_dec->num_of_output_ch<2))
+            return -1;
         goto core_data_extracting;
       case ID_USAC_LFE:
         nr_core_coder_channels = 1;
 
       core_data_extracting:
+        if(ch_offset >= MAX_NUM_CHANNELS)
+           return -1;
         err = ixheaacd_core_coder_data(ele_id, pstr_usac_data, elem_idx,
                                        &ch_offset, it_bit_buff,
                                        nr_core_coder_channels);
@@ -333,10 +342,12 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
 
         if ((pstr_usac_data->sbr_ratio_idx > 0) &&
             (pstr_usac_data->esbr_bit_str[0].no_elements != 0)) {
-          ixheaacd_esbr_process(
+          err_code = ixheaacd_esbr_process(
               pstr_usac_data, it_bit_buff, stereo_config_index,
               nr_core_coder_channels,
               pstr_dec_data->str_usac_data.audio_object_type);
+          if(err_code < 0)
+              return err_code;
         }
 
         if (stereo_config_index > 0) {
@@ -387,11 +398,13 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
       case ID_USAC_EXT: {
         ia_usac_dec_element_config_struct *pusac_element_config =
             &pstr_usac_dec_config->str_usac_element_config[elem_idx];
-        ixheaacd_read_ext_element(pusac_element_config->usac_ext_eleme_def_len,
+        err = ixheaacd_read_ext_element(pusac_element_config->usac_ext_eleme_def_len,
                                   pusac_element_config->usac_ext_elem_pld_frag,
                                   it_bit_buff,
                                   pstr_usac_dec_config, elem_idx
                                   );
+        if (err != 0)
+          return err;
 
         break;
       }

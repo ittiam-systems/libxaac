@@ -141,7 +141,7 @@ WORD32 ixheaacd_ssc_huff_dec(ia_huffman_data_type h,
 int ixheaacd_extract_frame_info_ld(ia_bit_buf_struct *it_bit_buff,
                                    ia_sbr_frame_info_data_struct *h_frame_data);
 
-VOID ixheaacd_pvc_time_freq_grid_info(
+WORD32 ixheaacd_pvc_time_freq_grid_info(
     ia_bit_buf_struct *it_bit_buff,
     ia_sbr_frame_info_data_struct *ptr_frame_data);
 

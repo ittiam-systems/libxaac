@@ -20,6 +20,10 @@
 #include <math.h>
 #include <string.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_constants.h"
+#include <ixheaacd_basic_ops32.h>
+#include <ixheaacd_basic_ops16.h>
+#include <ixheaacd_basic_ops40.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 
@@ -40,6 +44,9 @@
 #include "ixheaacd_arith_dec.h"
 
 #include "ixheaacd_bit_extract.h"
+
+#include "ixheaacd_error_codes.h"
+
 
 #define ARITH_ESCAPE 16
 
@@ -1664,6 +1671,10 @@ VOID ixheaacd_copy_to_bitbuff(ia_bit_buf_struct *it_bit_buff_src,
   it_bit_buff_dst->cnt_bits = it_bit_buff_src->cnt_bits;
 
   it_bit_buff_dst->size = it_bit_buff_src->size;
+
+  it_bit_buff_dst->max_size = it_bit_buff_src->max_size;
+
+
 }
 
 static WORD32 ixheaacd_arith_get_context(WORD8 *c_prev, WORD8 *c_pres,
@@ -1832,6 +1843,7 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       }
       if (esc_nb < 0) {
         esc_nb = 0;
+        return -1;
       }
     }
 
@@ -1871,6 +1883,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
   }
 
   bit_count -= 16 - 2;
+  if(bit_count > it_bit_buff->cnt_bits)
+      return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
 
   if (bit_count > 0) {
     bit_count_5 = bit_count >> 5;
@@ -1962,7 +1976,7 @@ static VOID ixheaacd_esc_iquant(WORD32 *q, WORD32 *coef, WORD32 noise_level,
 
       coef[i] = flag * (coef[i] << 1);
     }
-    temp = (fac_fix * coef[i]);
+    temp = ixheaacd_mult64_sat(fac_fix , (WORD64)coef[i]);
 
     coef[i] = (WORD32)(temp >> 22);
   }

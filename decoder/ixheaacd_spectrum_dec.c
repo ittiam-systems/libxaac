@@ -393,6 +393,11 @@ WORD32 ixheaacd_fd_channel_stream(
   ixheaacd_scale_factor_data(info, tot_sfb, *max_sfb, info->sfb_per_sbk,
                              ptr_code_book);
 
+  if((it_bit_buff->ptr_read_next > it_bit_buff->ptr_bit_buf_end - 3) && (it_bit_buff->size == it_bit_buff->max_size))
+  {
+    return -1;
+  }
+
   ixheaacd_section_data(usac_data, it_bit_buff, info, global_gain,
                         usac_data->factors[chn], usac_data->group_dis[chn],
                         ptr_code_book);
