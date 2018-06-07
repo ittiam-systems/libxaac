@@ -705,7 +705,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
         op_delay + codec_x_delay + SBR_HF_ADJ_OFFSET);
 
     if (hbe_flag) {
-      ixheaacd_qmf_hbe_apply(
+      WORD32 err_code = ixheaacd_qmf_hbe_apply(
           ptr_sbr_dec->p_hbe_txposer,
           ptr_sbr_dec->qmf_buf_real + (op_delay + SBR_HF_ADJ_OFFSET) +
               ESBR_HBE_DELAY_OFFSET,
@@ -715,6 +715,8 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
           ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_frame_data->pitch_in_bins);
+      if(err_code)
+          return err_code;
 
       if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
         ixheaacd_hbe_repl_spec(
@@ -1012,7 +1014,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
   return 0;
 }
 
-void ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
+WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
                        ia_sbr_header_data_struct *ptr_header_data,
                        ia_sbr_frame_info_data_struct *ptr_frame_data,
                        FLAG apply_processing, FLAG low_pow_flag,
@@ -1098,7 +1100,7 @@ void ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
       op_delay + codec_x_delay + SBR_HF_ADJ_OFFSET);
 
   if (hbe_flag) {
-    ixheaacd_qmf_hbe_apply(
+    WORD32 err = ixheaacd_qmf_hbe_apply(
         ptr_sbr_dec->p_hbe_txposer,
         ptr_sbr_dec->qmf_buf_real + (op_delay + SBR_HF_ADJ_OFFSET) +
             ESBR_HBE_DELAY_OFFSET,
@@ -1108,6 +1110,8 @@ void ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
         ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
         ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
         ptr_frame_data->pitch_in_bins);
+    if(err)
+        return err;
 
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       ixheaacd_hbe_repl_spec(
@@ -1131,7 +1135,7 @@ void ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
       mps_sbr_flag, ch_fac);
 
   ptr_frame_data->prev_sbr_mode = sbr_mode;
-  return;
+  return 0;
 }
 
 WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,

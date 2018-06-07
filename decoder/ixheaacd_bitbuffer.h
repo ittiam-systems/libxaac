@@ -82,6 +82,7 @@ typedef struct ia_bit_buf_struct {
   UWORD8 *byte_ptr;
   UWORD8 *ptr_start;
   WORD32 write_bit_count;
+  WORD32 max_size;
 
 } ia_bit_buf_struct;
 

@@ -256,6 +256,9 @@ WORD32 ixheaacd_decode_init(
   usac_data->pstr_usac_winmap[2] = &usac_data->str_eight_short_info;
   usac_data->pstr_usac_winmap[3] = &usac_data->str_only_long_info;
   usac_data->pstr_usac_winmap[4] = &usac_data->str_only_long_info;
+
+  if((usac_data->ccfl != 480) && (usac_data->ccfl != 512) && (usac_data->ccfl != 768) && (usac_data->ccfl != 960) &&(usac_data->ccfl != 1024))
+      return -1;
   ixheaacd_info_init(&ixheaacd_samp_rate_info[usac_data->sampling_rate_idx],
                      usac_data->ccfl, usac_data->pstr_usac_winmap[0],
                      usac_data->pstr_usac_winmap[2], usac_data->sfb_width_short,

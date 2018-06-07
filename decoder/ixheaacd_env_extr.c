@@ -107,7 +107,7 @@ VOID ixheaacd_huffman_decode(WORD32 it_bit_buff, WORD16 *h_index, WORD16 *len,
   *len = length;
 }
 
-static VOID ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
+static WORD32 ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
                                             ia_bit_buf_struct *it_bit_buff,
                                             WORD32 indepFlag) {
   WORD32 i, j, k;
@@ -158,6 +158,10 @@ static VOID ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
         length = (UWORD8)ixheaacd_read_bits_buf(it_bit_buff, length_bits);
         length += 1;
         sum_length += length;
+        if((k+length-1) > PVC_NUM_TIME_SLOTS)
+        {
+            return -1;
+        }
         for (j = 1; j < length; j++, k++) {
           pvc_id[k] = pvc_id[k - 1];
         }
@@ -221,6 +225,7 @@ static VOID ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
   for (i = 0; i < PVC_NUM_TIME_SLOTS; i++) {
     ptr_pvc_data->pvc_id[i] = pvc_id[i];
   }
+  return 0;
 }
 
 static VOID ixheaacd_pvc_env_dtdf_data(
@@ -624,12 +629,13 @@ static WORD16 ixheaacd_read_extn_data(
   return 1;
 }
 
-VOID ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
+WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
                                ia_bit_buf_struct *it_bit_buff, WORD32 hbe_flag,
                                ia_pvc_data_struct *ptr_pvc_data,
                                ia_sbr_tables_struct *ptr_sbr_tables,
                                ia_sbr_header_data_struct *ptr_header_data) {
   WORD32 i;
+  WORD32 err_code = 0;
   ia_env_extr_tables_struct *env_extr_tables_ptr =
       ptr_sbr_tables->env_extr_tables_ptr;
   WORD32 usac_independency_flag = ptr_frame_data->usac_independency_flag;
@@ -651,7 +657,9 @@ VOID ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
     }
   }
 
-  ixheaacd_pvc_time_freq_grid_info(it_bit_buff, ptr_frame_data);
+  err_code = ixheaacd_pvc_time_freq_grid_info(it_bit_buff, ptr_frame_data);
+  if(err_code)
+      return err_code;
 
   ptr_pvc_data->prev_sbr_mode = PVC_SBR;
 
@@ -679,6 +687,8 @@ VOID ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
   ixheaacd_read_sbr_addi_data(ptr_frame_data, ptr_header_data, it_bit_buff);
 
   ptr_frame_data->coupling_mode = COUPLING_OFF;
+
+  return 0;
 }
 
 WORD8 ixheaacd_sbr_read_sce(ia_sbr_header_data_struct *ptr_header_data,
@@ -1442,7 +1452,7 @@ int ixheaacd_extract_frame_info_ld(
   return 1;
 }
 
-VOID ixheaacd_pvc_time_freq_grid_info(
+WORD32 ixheaacd_pvc_time_freq_grid_info(
     ia_bit_buf_struct *it_bit_buff,
     ia_sbr_frame_info_data_struct *ptr_frame_data) {
   WORD32 bs_num_env = 0, bs_num_noise = 0;
@@ -1475,7 +1485,8 @@ VOID ixheaacd_pvc_time_freq_grid_info(
   } else {
     time_border[0] = 0;
   }
-
+  if(time_border[0] < 0)
+      return -1;
   pvc_time_border[0] = 0;
   bs_freq_res[0] = 0;
 
@@ -1528,6 +1539,7 @@ VOID ixheaacd_pvc_time_freq_grid_info(
   for (i = 0; i < (bs_num_noise + 1); i++) {
     p_frame_info->noise_border_vec[i] = time_border_noise[i];
   }
+  return 0;
 }
 
 WORD16 ixheaacd_sbr_time_freq_grid_info(

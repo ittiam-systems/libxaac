@@ -249,6 +249,8 @@ WORD32 ixheaacd_ext_element_config(
 
   ixheaacd_read_escape_value(it_bit_buff, &(usac_ext_element_config_length), 4,
                              8, 16);
+  if(usac_ext_element_config_length >= 768)
+      return -1;
 
   flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
@@ -366,7 +368,7 @@ VOID ixheaacd_cpe_config(
 WORD32 ixheaacd_decoder_config(
     ia_bit_buf_struct *it_bit_buff,
     ia_usac_decoder_config_struct *pstr_usac_decoder_config,
-    WORD32 sbr_ratio_index) {
+    WORD32 sbr_ratio_index, UINT32 *chan) {
   UWORD32 elem_idx = 0;
   UWORD32 err = 0;
 
@@ -404,6 +406,9 @@ WORD32 ixheaacd_decoder_config(
       case ID_USAC_CPE:
         ixheaacd_cpe_config(it_bit_buff, pstr_usac_element_config,
                             sbr_ratio_index);
+    if (pstr_usac_element_config->stereo_config_index > 1 && *chan <2)
+            return -1;
+
         break;
 
       case ID_USAC_LFE:
@@ -494,7 +499,7 @@ WORD32 ixheaacd_config_extension(
 }
 
 WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
-                       ia_usac_config_struct *pstr_usac_conf) {
+                       ia_usac_config_struct *pstr_usac_conf, UINT32 *chan) {
   WORD32 tmp, err;
   err = 0;
 
@@ -534,7 +539,7 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
 
   err = ixheaacd_decoder_config(
       it_bit_buff, &(pstr_usac_conf->str_usac_dec_config),
-      ixheaacd_sbr_ratio(pstr_usac_conf->core_sbr_framelength_index));
+      ixheaacd_sbr_ratio(pstr_usac_conf->core_sbr_framelength_index),chan);
   if (err != 0) return -1;
 
   tmp = ixheaacd_read_bits_buf(it_bit_buff, 1);

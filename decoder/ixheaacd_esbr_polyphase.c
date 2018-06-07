@@ -46,7 +46,7 @@
 
 #include "string.h"
 
-VOID ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
+WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
   WORD32 idx;
   WORD32 anal_size = 2 * ptr_hbe_txposer->synth_size;
   WORD32 N = (10 * anal_size);
@@ -120,8 +120,10 @@ VOID ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
         *ptr_u++ = ((*analy_cos_sin_tab++) * u[k]);
         *ptr_u++ = ((*analy_cos_sin_tab++) * u[k]);
       }
-
-      (*ixheaacd_cmplx_anal_fft)(u_in, u_out, anal_size * 2);
+      if(ixheaacd_cmplx_anal_fft != NULL)
+          (*ixheaacd_cmplx_anal_fft)(u_in, u_out, anal_size * 2);
+      else
+          return -1;
 
       for (k = 0; k < anal_size / 2; k++) {
         *(anal_buf + 1) = -*ptr_v++;
@@ -136,9 +138,10 @@ VOID ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
       }
     }
   }
+  return 0;
 }
 
-VOID ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                               WORD32 num_columns, FLOAT32 qmf_buf_real[][64],
                               FLOAT32 qmf_buf_imag[][64]) {
   WORD32 i, j, k, l, idx;
@@ -159,7 +162,8 @@ VOID ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                        (idx + 1) * ptr_hbe_txposer->synth_size;
     FLOAT32 *synth_cos_tab = ptr_hbe_txposer->synth_cos_tab;
     const FLOAT32 *interp_window_coeff = ptr_hbe_txposer->synth_wind_coeff;
-
+    if(ptr_hbe_txposer->k_start < 0)
+         return -1;
     for (k = 0; k < synth_size; k++) {
       WORD32 ki = ptr_hbe_txposer->k_start + k;
       synth_buf_r[k] = (FLOAT32)(
@@ -206,7 +210,10 @@ VOID ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
       FLOAT32 *syn_buf = &buffer[kmax];
       kmax += synth_size;
 
-      (*ixheaacd_real_synth_fft)(synth_buf_r, synth_out, synth_size * 2);
+      if(ixheaacd_real_synth_fft != NULL)
+          (*ixheaacd_real_synth_fft)(synth_buf_r, synth_out, synth_size * 2);
+      else
+          return -1;
 
       for (k = 0; k < kmax; k++) {
         tmp = ((*ptr_u++) * (*synth_cos_tab++));
@@ -243,4 +250,5 @@ VOID ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
       out_buf[i] = (FLOAT32)accu_r;
     }
   }
+  return 0;
 }

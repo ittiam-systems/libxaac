@@ -101,6 +101,7 @@ cc_library_static {
         "decoder/ixheaacd_mps_poly_filt.c",
         "decoder/ixheaacd_huff_code_reorder.c",
         "decoder/ixheaacd_rev_vlc.c",
+        "decoder/ixheaacd_qmf_dec.c",
         "decoder/drc_src/impd_drc_api.c",
         "decoder/drc_src/impd_drc_bitbuffer.c",
         "decoder/drc_src/impd_drc_dec.c",
@@ -129,8 +130,6 @@ cc_library_static {
         "decoder/drc_src/impd_drc_selection_process_init.c",
         "decoder/drc_src/impd_drc_shape_filter.c",
         "decoder/drc_src/impd_drc_static_payload.c",
-
-        "decoder/ixheaacd_qmf_dec.c",
     ],
 
     sanitize: {
@@ -148,6 +147,7 @@ cc_library_static {
 
             srcs: [
                 "decoder/generic/ixheaacd_function_selector_generic.c",
+                "decoder/generic/ixheaacd_qmf_dec_generic.c",
             ],
             neon: {
                 cflags: [
@@ -158,6 +158,7 @@ cc_library_static {
                 ],
 
                 srcs: [
+                    "decoder/armv7/ixheaacd_qmf_dec_armv7.c",
                     "decoder/armv7/ixheaacd_fft_armv7.c",
                     "decoder/armv7/ixheaacd_function_selector_armv7.c",
                     "decoder/armv7/ixheaacd_overlap_add1.s",
@@ -231,6 +232,7 @@ cc_library_static {
             ],
 
             srcs: [
+                "decoder/armv8/ixheaacd_qmf_dec_armv8.c",
                 "decoder/armv8/ixheaacd_function_selector_armv8.c",
                 "decoder/armv8/ixheaacd_calcmaxspectralline.s",
                 "decoder/armv8/ixheaacd_sbr_imdct_using_fft.s",
@@ -262,6 +264,7 @@ cc_library_static {
             ],
 
             srcs: [
+                "decoder/generic/ixheaacd_qmf_dec_generic.c",
                 "decoder/x86/ixheaacd_function_selector_x86.c",
             ],
         },
@@ -274,7 +277,32 @@ cc_library_static {
             ],
 
             srcs: [
+                "decoder/generic/ixheaacd_qmf_dec_generic.c",
                 "decoder/x86_64/ixheaacd_function_selector_x86_64.c",
+            ],
+        },
+
+        mips: {
+            cflags: [
+            ],
+
+            local_include_dirs: [
+            ],
+
+            srcs: [
+                "decoder/generic/ixheaacd_function_selector_generic.c",
+            ],
+        },
+
+        mips64: {
+            cflags: [
+            ],
+
+            local_include_dirs: [
+            ],
+
+            srcs: [
+                "decoder/generic/ixheaacd_function_selector_generic.c",
             ],
         },
     },

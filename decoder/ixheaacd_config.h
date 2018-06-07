@@ -627,6 +627,6 @@ UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_frame_len_idx,
                             WORD32 *output_samples,WORD32 *sampling_freq, UWORD32* sample_freq_indx);
 
 WORD32 ixheaacd_config(ia_bit_buf_struct *bit_buff,
-                       ia_usac_config_struct *pstr_usac_conf);
+                       ia_usac_config_struct *pstr_usac_conf, UINT32 *chan);
 
 #endif /* IXHEAACD_CONFIG_H */

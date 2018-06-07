@@ -413,7 +413,10 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
       } else {
         fac_length = len_subfrm / 2;
       }
-
+      if((pstr_td_frame_data->fac_data[0] < 0) || (pstr_td_frame_data->fac_data[0] > 128))
+      {
+           return -1;
+      }
       gain = ixheaacd_pow_10_i_by_128[pstr_td_frame_data->fac_data[0]];
 
       memcpy(ptr_scratch, &pstr_td_frame_data->fac_data[0],
@@ -699,6 +702,14 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short_flag
 
   for (i = 0; i < num_subfr_by2 + 2; i++) {
     tp = pitch[i];
+    if((i * LEN_SUBFR + MAX_PITCH) < tp)
+    {
+       return -1;
+    }
+    else if((i * LEN_SUBFR + MAX_PITCH - tp) >= 1883)
+    {
+       return -1;
+    }
     if (pitch_gain[i] > 0.0f) {
       synth_corr = 0.0f, synth_energy = 1e-6f;
       for (k = 0; k < LEN_SUBFR; k++) {
