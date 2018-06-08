@@ -298,15 +298,14 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
       if (config_len != 0) {
         /* updating the config parameters*/
-        ia_bit_buf_struct *config_bit_buf =
-            (ia_bit_buf_struct *)malloc(sizeof(ia_bit_buf_struct));
+        ia_bit_buf_struct config_bit_buf;
 
-        config_bit_buf->ptr_bit_buf_base = config;
-        config_bit_buf->size = config_len << 3;
-        config_bit_buf->ptr_read_next = config_bit_buf->ptr_bit_buf_base;
-        config_bit_buf->ptr_bit_buf_end = (UWORD8 *)config + config_len;
-        config_bit_buf->bit_pos = 7;
-        config_bit_buf->cnt_bits = config_bit_buf->size;
+        config_bit_buf.ptr_bit_buf_base = config;
+        config_bit_buf.size = config_len << 3;
+        config_bit_buf.ptr_read_next = config_bit_buf.ptr_bit_buf_base;
+        config_bit_buf.ptr_bit_buf_end = (UWORD8 *)config + config_len;
+        config_bit_buf.bit_pos = 7;
+        config_bit_buf.cnt_bits = config_bit_buf.size;
 
         suitable_tracks =
             ixheaacd_frm_data_init(pstr_audio_specific_config, pstr_dec_data);
@@ -315,11 +314,10 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
         /* call codec re-configure*/
         err = ixheaacd_config(
-            config_bit_buf, &(pstr_dec_data->str_frame_data
+            &config_bit_buf, &(pstr_dec_data->str_frame_data
                                   .str_audio_specific_config.str_usac_config),
             &(pstr_audio_specific_config
                   ->channel_configuration) /*&pstr_audio_specific_config->str_usac_config*/);
-        free(config_bit_buf);
         if (err != 0) return -1;
 
         delay = ixheaacd_decode_create(
