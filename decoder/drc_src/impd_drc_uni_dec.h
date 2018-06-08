@@ -21,22 +21,18 @@
 #define IMPD_DRC_UNI_DEC_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-WORD32 impd_select_drc_coefficients(ia_drc_config* drc_config,
-                                       ia_uni_drc_coeffs_struct** drc_coefficients_drc,
-                                       WORD32* drc_coefficients_selected);
+WORD32 impd_select_drc_coefficients(
+    ia_drc_config* drc_config, ia_uni_drc_coeffs_struct** drc_coefficients_drc,
+    WORD32* drc_coefficients_selected);
 
-WORD32 impd_init_selected_drc_set(ia_drc_config* drc_config,
-                   ia_drc_params_struct* ia_drc_params_struct,
-                   WORD32 audio_num_chan,
-                   WORD32 drc_set_id_selected,
-                   WORD32 downmix_id_selected,
-                   ia_filter_banks_struct* ia_filter_banks_struct,
-                   ia_overlap_params_struct* pstr_overlap_params
-                   );
+WORD32 impd_init_selected_drc_set(
+    ia_drc_config* drc_config, ia_drc_params_struct* ia_drc_params_struct,
+    WORD32 audio_num_chan, WORD32 drc_set_id_selected,
+    WORD32 downmix_id_selected, ia_filter_banks_struct* ia_filter_banks_struct,
+    ia_overlap_params_struct* pstr_overlap_params);
 
 #ifdef __cplusplus
 }

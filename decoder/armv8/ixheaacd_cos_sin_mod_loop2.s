@@ -131,9 +131,9 @@ ixheaacd_cos_sin_mod_loop2:
 LOOP1:
     LD1             {v2.2s}, [x0]
     LD1             {v3.2s}, [x10]
-    LDR             w5, [x3] //RE2
+    LDR             w5, [x3]            //RE2
     sxtw            x5, w5
-    LDR             w6, [x11] //RE3
+    LDR             w6, [x11]           //RE3
     sxtw            x6, w6
     //VTRN.32 D2, D3
     TRN1            v4.2s, v2.2s, v3.2s

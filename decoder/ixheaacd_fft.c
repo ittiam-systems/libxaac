@@ -1154,14 +1154,14 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x3r = x1r - (x3r << 1);
         x3i = x1i - (x3i << 1);
 
-        x0r = ixheaacd_add32_sat(x0r , x1r);
-        x0i = ixheaacd_add32_sat(x0i , x1i);
-        x1r = ixheaacd_sub32_sat(x0r , (x1r << 1));
-        x1i = ixheaacd_sub32_sat(x0i , (x1i << 1));
-        x2r = ixheaacd_sub32_sat(x2r , x3i);
-        x2i = ixheaacd_add32_sat(x2i , x3r);
-        x3i = ixheaacd_add32_sat(x2r , (x3i << 1));
-        x3r = ixheaacd_sub32_sat(x2i , (x3r << 1));
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, (x1r << 1));
+        x1i = ixheaacd_sub32_sat(x0i, (x1i << 1));
+        x2r = ixheaacd_sub32_sat(x2r, x3i);
+        x2i = ixheaacd_add32_sat(x2i, x3r);
+        x3i = ixheaacd_add32_sat(x2r, (x3i << 1));
+        x3r = ixheaacd_sub32_sat(x2i, (x3r << 1));
 
         *data = x0r;
         *(data + 1) = x0i;

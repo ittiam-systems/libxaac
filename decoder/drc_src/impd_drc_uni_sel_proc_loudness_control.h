@@ -26,62 +26,55 @@ extern "C" {
 
 WORD32
 impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
-                   ia_drc_loudness_info_set_struct* pstr_loudness_info,
-                   ia_drc_instructions_struct* str_drc_instruction_str,
-                   const WORD32 requested_dwnmix_id,
-                   const WORD32 album_mode,
-                   const WORD32 num_compression_eq_count,
-                   const WORD32* num_compression_eq_id,
-                   WORD32* peak_info_count,
-                   WORD32 eq_set_id[],
-                   FLOAT32 signal_peak_level[],
-                   WORD32 explicit_peak_information_present[]);
+                            ia_drc_loudness_info_set_struct* pstr_loudness_info,
+                            ia_drc_instructions_struct* str_drc_instruction_str,
+                            const WORD32 requested_dwnmix_id,
+                            const WORD32 album_mode,
+                            const WORD32 num_compression_eq_count,
+                            const WORD32* num_compression_eq_id,
+                            WORD32* peak_info_count, WORD32 eq_set_id[],
+                            FLOAT32 signal_peak_level[],
+                            WORD32 explicit_peak_information_present[]);
 
 WORD32
-impd_extract_loudness_peak_to_average_info(ia_loudness_info_struct* loudness_info,
-                                  const WORD32     dyn_range_measurement_type,
-                                  WORD32 *         loudness_peak_2_avg_value_present,
-                                  FLOAT32*        loudness_peak_2_avg_value);
+impd_extract_loudness_peak_to_average_info(
+    ia_loudness_info_struct* loudness_info,
+    const WORD32 dyn_range_measurement_type,
+    WORD32* loudness_peak_2_avg_value_present,
+    FLOAT32* loudness_peak_2_avg_value);
 
 WORD32
 impd_overall_loudness_present(const ia_loudness_info_struct* loudness_info,
                               WORD32* loudness_info_present);
 
 WORD32
-impd_find_overall_loudness_info(ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct,
-                            ia_drc_loudness_info_set_struct* pstr_loudness_info,
-                            const WORD32 requested_dwnmix_id,
-                            const WORD32 drc_set_id_requested,
-                            WORD32* overall_loudness_info_present,
-                            WORD32* loudness_info_count,
-                            ia_loudness_info_struct* loudness_info[]);
+impd_find_overall_loudness_info(
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct,
+    ia_drc_loudness_info_set_struct* pstr_loudness_info,
+    const WORD32 requested_dwnmix_id, const WORD32 drc_set_id_requested,
+    WORD32* overall_loudness_info_present, WORD32* loudness_info_count,
+    ia_loudness_info_struct* loudness_info[]);
 
 WORD32
-impd_high_pass_loudness_adjust_info(const ia_loudness_info_struct* loudness_info,
-                              WORD32* loudness_hp_adjust_present,
-                              FLOAT32* loudness_hp_adjust);
+impd_high_pass_loudness_adjust_info(
+    const ia_loudness_info_struct* loudness_info,
+    WORD32* loudness_hp_adjust_present, FLOAT32* loudness_hp_adjust);
 
 WORD32
 impd_find_high_pass_loudness_adjust(
-                               ia_drc_loudness_info_set_struct* pstr_loudness_info,
-                               const WORD32 requested_dwnmix_id,
-                               const WORD32 drc_set_id_requested,
-                               const WORD32 album_mode,
-                               const FLOAT32 device_cutoff_freq,
-                               WORD32* loudness_hp_adjust_present,
-                               FLOAT32* loudness_hp_adjust);
+    ia_drc_loudness_info_set_struct* pstr_loudness_info,
+    const WORD32 requested_dwnmix_id, const WORD32 drc_set_id_requested,
+    const WORD32 album_mode, const FLOAT32 device_cutoff_freq,
+    WORD32* loudness_hp_adjust_present, FLOAT32* loudness_hp_adjust);
 
 WORD32
-impd_init_loudness_control (ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct,
-                     ia_drc_loudness_info_set_struct* pstr_loudness_info,
-                     const WORD32 requested_dwnmix_id,
-                     const WORD32 drc_set_id_requested,
-                     const WORD32  num_compression_eq_count,
-                     const WORD32* num_compression_eq_id,
-                     WORD32*   loudness_info_count,
-                     WORD32    eq_set_id[],
-                     FLOAT32  loudness_normalization_gain_db[],
-                     FLOAT32  loudness[]);
+impd_init_loudness_control(
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct,
+    ia_drc_loudness_info_set_struct* pstr_loudness_info,
+    const WORD32 requested_dwnmix_id, const WORD32 drc_set_id_requested,
+    const WORD32 num_compression_eq_count, const WORD32* num_compression_eq_id,
+    WORD32* loudness_info_count, WORD32 eq_set_id[],
+    FLOAT32 loudness_normalization_gain_db[], FLOAT32 loudness[]);
 
 #ifdef __cplusplus
 }

@@ -142,7 +142,6 @@ ia_bit_buf_struct *ixheaacd_create_bit_buf(ia_bit_buf_struct *it_bit_buff,
 
   it_bit_buff->max_size = it_bit_buff->size;
 
-
   ixheaacd_adts_crc_open(it_bit_buff->pstr_adts_crc_info);
 
   return it_bit_buff;

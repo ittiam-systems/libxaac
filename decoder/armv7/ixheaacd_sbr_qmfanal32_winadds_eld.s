@@ -51,17 +51,17 @@ LOOP:
     MOV             R6, R6, LSL #1      @
     VLD1.16         {D1, D2}, [R2]!     @ tmpQmf_c1[2*(n +   0)] load and incremented
 
-    MOV             R7, #244 @ NOT USED further
+    MOV             R7, #244            @ NOT USED further
 
     MOV             R9, R0
     ADD             R0, R0, #120        @ incrementing R0 by 120 + 8 = 128
 
-    MOV             R11, R4 @ Mov winAdd to R11
+    MOV             R11, R4             @ Mov winAdd to R11
     VLD1.16         D2, [R0], R6        @ tmpQ1[n +  64] load and incremented by R6
     ADD             R11, R11, #128      @ increment winAdd by 128
 
 
-    MOV             R10, R2 @
+    MOV             R10, R2             @
     ADD             R2, R2, #112        @ This should be 240 --> 112
 
     VMULL.S16       Q15, D0, D1

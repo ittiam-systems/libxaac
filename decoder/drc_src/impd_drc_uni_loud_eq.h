@@ -20,10 +20,8 @@
 #ifndef IMPD_DRC_UNI_LOUD_EQ_H
 #define IMPD_DRC_UNI_LOUD_EQ_H
 
-
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #ifdef __cplusplus

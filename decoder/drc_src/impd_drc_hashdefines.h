@@ -20,11 +20,10 @@
 #ifndef IMPD_DRC_HASHDEFINES_H
 #define IMPD_DRC_HASHDEFINES_H
 
-
-#define DEC_TYPE_TD                    0
-#define DEC_TYPE_TD_QMF64              1
-#define DEC_TYPE_QMF64                 2
-#define DEC_TYPE_STFT256               3
-#define BITSTREAM_FILE_FORMAT_SPLIT    1
+#define DEC_TYPE_TD 0
+#define DEC_TYPE_TD_QMF64 1
+#define DEC_TYPE_QMF64 2
+#define DEC_TYPE_STFT256 3
+#define BITSTREAM_FILE_FORMAT_SPLIT 1
 
 #endif
