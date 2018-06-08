@@ -28,12 +28,14 @@ WORD32
 impd_drc_sel_proc_init_dflt(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc);
 
 WORD32
-impd_drc_sel_proc_init_sel_proc_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
-                                               ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct);
+impd_drc_sel_proc_init_sel_proc_params(
+    ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params_struct);
 
 WORD32
-impd_drc_sel_proc_init_interface_params(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
-                                                 ia_drc_interface_struct* pstr_drc_interface);
+impd_drc_sel_proc_init_interface_params(
+    ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
+    ia_drc_interface_struct* pstr_drc_interface);
 
 #ifdef __cplusplus
 }

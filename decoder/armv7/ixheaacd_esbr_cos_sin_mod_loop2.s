@@ -94,8 +94,8 @@ ixheaacd_esbr_cos_sin_mod_loop2:
 LOOP1:
     VLD1.32         {D2}, [R0]
     VLD1.32         {D3}, [R10]
-    LDR             R5, [R3] @RE2
-    LDR             R6, [R11] @RE3
+    LDR             R5, [R3]            @RE2
+    LDR             R6, [R11]           @RE3
     VTRN.32         D2, D3
 
     VMULL.S32       q2, d0, d2          @qsub 2nd

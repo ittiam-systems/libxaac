@@ -47,7 +47,6 @@
 
 #include "ixheaacd_error_codes.h"
 
-
 #define ARITH_ESCAPE 16
 
 UWORD16 ixheaacd_ari_cf_r[3][4] = {
@@ -1673,8 +1672,6 @@ VOID ixheaacd_copy_to_bitbuff(ia_bit_buf_struct *it_bit_buff_src,
   it_bit_buff_dst->size = it_bit_buff_src->size;
 
   it_bit_buff_dst->max_size = it_bit_buff_src->max_size;
-
-
 }
 
 static WORD32 ixheaacd_arith_get_context(WORD8 *c_prev, WORD8 *c_pres,
@@ -1826,8 +1823,7 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       pki = ixheaacd_arith_get_pk(s1 + ixheaacd_esc_nb_offset[esc_nb]);
       bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                         ixheaacd_ari_cf_m[pki], 17);
-      if(bit_count ==  -1)
-      {
+      if (bit_count == -1) {
         return -1;
       }
 
@@ -1861,17 +1857,14 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
         WORD32 lsbidx = (a == 0) ? 1 : ((b == 0) ? 0 : 2);
         bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                           ixheaacd_ari_cf_r[lsbidx], 4);
-        if(bit_count ==  -1)
-        {
+        if (bit_count == -1) {
           return -1;
         }
         a = (a << 1) | (m & 1);
         b = (b << 1) | ((m >> 1) & 1);
       }
-      if((a > (8183)) || (b > (8183)))
-          return -1;
-      if((a < (-8183)) || (b < (-8183)))
-          return -1;
+      if ((a > (8183)) || (b > (8183))) return -1;
+      if ((a < (-8183)) || (b < (-8183))) return -1;
       quant[2 * i + 0] = a;
       quant[2 * i + 1] = b;
       temp = a + b + 1;
@@ -1883,8 +1876,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
   }
 
   bit_count -= 16 - 2;
-  if(bit_count > it_bit_buff->cnt_bits)
-      return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+  if (bit_count > it_bit_buff->cnt_bits)
+    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
 
   if (bit_count > 0) {
     bit_count_5 = bit_count >> 5;
@@ -1910,10 +1903,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       m = (m << 1) * temp1;
       temp1 = m - (temp1);
     }
-    if((temp0 > (8183)) || (temp1 > (8183)))
-      return -1;
-    if((temp0 < (-8183)) || (temp1 < (-8183)))
-      return -1;
+    if ((temp0 > (8183)) || (temp1 > (8183))) return -1;
+    if ((temp0 < (-8183)) || (temp1 < (-8183))) return -1;
     *quant++ = temp0;
     *quant++ = temp1;
   }
@@ -1976,7 +1967,7 @@ static VOID ixheaacd_esc_iquant(WORD32 *q, WORD32 *coef, WORD32 noise_level,
 
       coef[i] = flag * (coef[i] << 1);
     }
-    temp = ixheaacd_mult64_sat(fac_fix , (WORD64)coef[i]);
+    temp = ixheaacd_mult64_sat(fac_fix, (WORD64)coef[i]);
 
     coef[i] = (WORD32)(temp >> 22);
   }

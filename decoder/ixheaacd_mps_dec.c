@@ -79,9 +79,9 @@ extern ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes;
 extern ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes;
 extern ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes;
 
-VOID ixheaacd_mps_create(ia_mps_dec_state_struct* self,
-    WORD32 bs_frame_len, WORD32 residual_coding,
-    ia_usac_dec_mps_config_struct* mps212_config) {
+VOID ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
+                         WORD32 residual_coding,
+                         ia_usac_dec_mps_config_struct* mps212_config) {
   WORD32 num_ch;
   WORD32 err_code = 0;
 
@@ -272,8 +272,8 @@ VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct* self) {
   ixheaacd_mps_mix_res_decor(self);
 }
 WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
-                        FLOAT32** input_buffer[4],
-                        FLOAT32 (*output_buffer)[4096]) {
+                          FLOAT32** input_buffer[4],
+                          FLOAT32 (*output_buffer)[4096]) {
   WORD32 ch, ts, qs;
   WORD32 time_slots = self->time_slots;
   WORD32 in_ch_count = self->in_ch_count + self->res_ch_count;
@@ -319,8 +319,7 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
   }
 
   err = ixheaacd_mps_temp_process(self);
-  if(err)
-     return err;
+  if (err) return err;
 
   self->parse_nxt_frame = 1;
   return 0;

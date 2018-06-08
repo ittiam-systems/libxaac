@@ -18,21 +18,17 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 
-
 #ifndef IMPD_DRC_DEFINITIONS_H
 #define IMPD_DRC_DEFINITIONS_H
 
+#define LIBNAME "IA_DRC"
+#define LIB_APIVERSION 1
 
+#define IA_DRC_PERSIST_IDX (0)
+#define IA_DRC_SCRATCH_IDX (1)
+#define IA_DRC_INPUT_IDX (2)
+#define IA_DRC_OUTPUT_IDX (3)
 
-#define LIBNAME                "IA_DRC"
-#define LIB_APIVERSION          1
-
-
-#define IA_DRC_PERSIST_IDX          (0)
-#define IA_DRC_SCRATCH_IDX          (1)
-#define IA_DRC_INPUT_IDX            (2)
-#define IA_DRC_OUTPUT_IDX           (3)
-
-#define FRAME_SIZE                  512
+#define FRAME_SIZE 512
 
 #endif

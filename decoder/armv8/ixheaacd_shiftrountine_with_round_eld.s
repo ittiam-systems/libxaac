@@ -54,10 +54,10 @@ S_WITH_R_L5:
 
 
 
-    MOV             v1.s[0], W4 //QADD        x4, x4, x9
-    MOV             v1.s[1], W5 //QADD        x4, x4, x9
-    MOV             v1.s[2], W6 //QADD        x4, x4, x9
-    MOV             v1.s[3], W7 //QADD        x4, x4, x9
+    MOV             v1.s[0], W4         //QADD        x4, x4, x9
+    MOV             v1.s[1], W5         //QADD        x4, x4, x9
+    MOV             v1.s[2], W6         //QADD        x4, x4, x9
+    MOV             v1.s[3], W7         //QADD        x4, x4, x9
     lsl             w14, w3, #1
 
     SQSHL           v1.4s, v1.4s, v3.4s

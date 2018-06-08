@@ -23,24 +23,23 @@
 #ifndef COMPILE_FOR_DRC_ENCODER
 #endif
 
-#define EQ_CHANNEL_COUNT_MAX                        8
-#define EQ_AUDIO_DELAY_MAX                          1024
-#define EQ_FIR_FILTER_SIZE_MAX                      128
-#define EQ_SUBBAND_COUNT_MAX                        256
-#define EQ_INTERMEDIATE_2ND_ORDER_PARAMS_COUNT_MAX  32
-#define EQ_INTERMEDIATE_PARAMETER_COUNT_MAX         32
-#define EQ_FILTER_SECTION_COUNT_MAX                 8
-#define EQ_FILTER_ELEMENT_COUNT_MAX                 4
-#define EQ_FILTER_COUNT_MAX                         4
-#define MATCHING_PHASE_FILTER_COUNT_MAX             32
+#define EQ_CHANNEL_COUNT_MAX 8
+#define EQ_AUDIO_DELAY_MAX 1024
+#define EQ_FIR_FILTER_SIZE_MAX 128
+#define EQ_SUBBAND_COUNT_MAX 256
+#define EQ_INTERMEDIATE_2ND_ORDER_PARAMS_COUNT_MAX 32
+#define EQ_INTERMEDIATE_PARAMETER_COUNT_MAX 32
+#define EQ_FILTER_SECTION_COUNT_MAX 8
+#define EQ_FILTER_ELEMENT_COUNT_MAX 4
+#define EQ_FILTER_COUNT_MAX 4
+#define MATCHING_PHASE_FILTER_COUNT_MAX 32
 
-#define EQ_FILTER_DOMAIN_NONE                       0
-#define EQ_FILTER_DOMAIN_TIME                       (1<<0)
-#define EQ_FILTER_DOMAIN_SUBBAND                    (1<<1)
+#define EQ_FILTER_DOMAIN_NONE 0
+#define EQ_FILTER_DOMAIN_TIME (1 << 0)
+#define EQ_FILTER_DOMAIN_SUBBAND (1 << 1)
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #ifdef __cplusplus
