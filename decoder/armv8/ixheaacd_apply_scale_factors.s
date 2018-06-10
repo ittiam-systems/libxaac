@@ -32,7 +32,7 @@ ixheaacd_scale_factor_process_armv8:
 
     MOV             x21, x6
     MOV             x22, x7
-    CMP             x2, #0 // Tbands
+    CMP             x2, #0              // Tbands
 
     BGT             lbl17
 
@@ -50,7 +50,7 @@ ADD_34:
 
 TBANDS_LOOP:
     LDRSH           x5, [x1], #2        // scale_factor = *Scfactor++;
-    LDRB            w4, [x3], #1 //Offset [1]
+    LDRB            w4, [x3], #1        //Offset [1]
     sxtw            x4, w4
 
 
@@ -149,8 +149,8 @@ SHIFT_NEGTIVE: //;loop over sfbWidth a multiple of 4
     ASR             x6, x6, #16
     ASR             x7, x7, #16
 
-    LSL             x6, x6, #2 // shl for fixmul_32x16b and shl32(buffer,1)
-    LSL             x7, x7, #2 // shl for fixmul_32x16b and shl32(buffer,1)
+    LSL             x6, x6, #2          // shl for fixmul_32x16b and shl32(buffer,1)
+    LSL             x7, x7, #2          // shl for fixmul_32x16b and shl32(buffer,1)
 
     STP             w6, w7, [x0], #8    // *x_invquant++ = buffex1;
 

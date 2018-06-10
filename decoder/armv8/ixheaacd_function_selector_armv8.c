@@ -229,20 +229,20 @@ VOID(*ixheaacd_aac_ld_dec_rearrange)
 (WORD32 *ip, WORD32 *op, WORD32 mdct_len_2,
  UWORD8 *re_arr_tab) = &ixheaacd_rearrange_dec;
 
-VOID (*ixheaacd_fft32x32_ld)
+VOID(*ixheaacd_fft32x32_ld)
 (ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 npoints,
  WORD32 *ptr_x, WORD32 *ptr_y) = &ixheaacd_imdct_using_fft_armv8;
 
-VOID (*ixheaacd_fft32x32_ld2)
+VOID(*ixheaacd_fft32x32_ld2)
 (ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 npoints,
  WORD32 *ptr_x, WORD32 *ptr_y) = &ixheaacd_fft32x32_ld2_armv8;
 
 WORD16 (*ixheaacd_neg_expo_inc)(WORD16 neg_expo) = &ixheaacd_neg_expo_inc_arm;
 
-VOID (*ixheaacd_inv_dit_fft_8pt)
+VOID(*ixheaacd_inv_dit_fft_8pt)
 (WORD32 *x, WORD32 *real, WORD32 *imag) = &ixheaacd_inv_dit_fft_8pt_armv8;
 
-VOID (*ixheaacd_scale_factor_process)
+VOID(*ixheaacd_scale_factor_process)
 (WORD32 *x_invquant, WORD16 *scale_fact, WORD no_band, WORD8 *width,
  WORD32 *scale_tables_ptr, WORD32 total_channels, WORD32 object_type,
  WORD32 aac_sf_data_resil_flag) = &ixheaacd_scale_factor_process_armv8;

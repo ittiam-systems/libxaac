@@ -158,10 +158,10 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
   }
   y[0] += (4 * kv[0] + sum);
   z[0] = (y[0] - 2) >> count;
-  if(m != 0)
-     rem1[0] = (y[0] - 2) % m;
+  if (m != 0)
+    rem1[0] = (y[0] - 2) % m;
   else
-     rem1[0] = (y[0] - 2);
+    rem1[0] = (y[0] - 2);
 
   memcpy(rem2, rem1, 8 * sizeof(WORD32));
 

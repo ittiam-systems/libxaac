@@ -472,8 +472,8 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
 }
 
 VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
-                           ia_sbr_qmf_filter_bank_struct *syn_qmf,
-                           ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
+                                ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                                ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
   WORD32 L = syn_qmf->no_channels;
   const WORD32 M = (L >> 1);
   WORD32 *dct_in = qmf_real;
@@ -490,9 +490,9 @@ VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
   filter_states[3 * M] = 0;
 }
 
-VOID ixheaacd_inv_emodulation(
-    WORD32 *qmf_real, ia_sbr_qmf_filter_bank_struct *syn_qmf,
-    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
+VOID ixheaacd_inv_emodulation(WORD32 *qmf_real,
+                              ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                              ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
   ixheaacd_cos_sin_mod(qmf_real, syn_qmf, (WORD16 *)qmf_dec_tables_ptr->w1024,
                        (WORD32 *)qmf_dec_tables_ptr->dig_rev_table2_128);
 }
@@ -1103,7 +1103,6 @@ VOID ixheaacd_esbr_cos_sin_mod(WORD32 *subband,
   }
 }
 
-
 VOID ixheaacd_esbr_fwd_modulation(
     const WORD32 *time_sample_buf, WORD32 *real_subband, WORD32 *imag_subband,
     ia_sbr_qmf_filter_bank_struct *qmf_bank,
@@ -1344,6 +1343,3 @@ VOID ixheaacd_radix4bfly(const WORD16 *w, WORD32 *x, WORD32 index1,
     w_ptr = w_ptr - fft_jmp;
   }
 }
-
-
-
