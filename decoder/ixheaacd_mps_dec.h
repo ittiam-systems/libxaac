@@ -346,7 +346,7 @@ VOID ixheaacd_mps_config(ia_mps_dec_state_struct *self, WORD32 frame_len,
                          WORD32 residual_coding,
                          ia_usac_dec_mps_config_struct *mps212_config);
 
-VOID ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self);
 
