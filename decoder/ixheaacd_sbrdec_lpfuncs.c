@@ -1161,6 +1161,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
     FLOAT32 alpha_real[2], alpha_imag[2];
 
     bw_index = 0, patch = 1;
+    if (NULL == ptr_ph_vocod_buf_real || NULL == ptr_ph_vocod_buf_imag)
+      return -1;
 
     for (k2 = sub_band_start; k2 < f_master_tbl[num_mf_bands]; k2++) {
       ixheaacd_esbr_calc_co_variance(&str_auto_corr, &ptr_ph_vocod_buf_real[0],
