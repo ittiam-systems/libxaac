@@ -48,6 +48,9 @@ typedef struct {
   FLOAT32 *analy_cos_sin_tab;
 
   FLOAT32 norm_qmf_in_buf[46][128];
+  VOID (*ixheaacd_real_synth_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
+
+  VOID (*ixheaacd_cmplx_anal_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
 } ia_esbr_hbe_txposer_struct;
 

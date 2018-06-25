@@ -37,8 +37,4 @@ VOID ixheaacd_real_synth_fft_p2(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
 VOID ixheaacd_real_synth_fft_p3(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
-VOID (*ixheaacd_real_synth_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
-
-VOID (*ixheaacd_cmplx_anal_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
-
 #endif
