@@ -370,6 +370,13 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
                 (VOID *)(pstr_usac_data->pstr_esbr_dec->frame_buffer[ch]);
           }
           if (nr_core_coder_channels == 1) {
+            if (p_state_aac_dec->mps_dec_handle.res_ch_count != 0) {
+              ptr_inp[2] = pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[1]
+                               ->str_sbr_dec.pp_qmf_buf_real;
+              ptr_inp[2 + 1] =
+                  pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[1]
+                      ->str_sbr_dec.pp_qmf_buf_imag;
+            }
             p_state_aac_dec->mps_dec_handle.p_sbr_dec[1] =
                 (VOID *)(&pstr_usac_data->pstr_esbr_dec->pstr_sbr_channel[1]
                               ->str_sbr_dec);
