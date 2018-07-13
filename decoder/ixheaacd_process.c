@@ -308,7 +308,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
 
       case ID_USAC_CPE:
         nr_core_coder_channels = (stereo_config_index == 1) ? 1 : 2;
-        if ((stereo_config_index > 1) &&
+        if (((stereo_config_index > 1) || (stereo_config_index == 0)) &&
             (p_state_aac_dec->num_of_output_ch < 2))
           return -1;
         goto core_data_extracting;

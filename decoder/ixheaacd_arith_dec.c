@@ -1950,6 +1950,9 @@ static VOID ixheaacd_esc_iquant(WORD32 *q, WORD32 *coef, WORD32 noise_level,
     if (q[i] < 0) {
       flag = -1;
       q[i] = -q[i];
+      if (q[i] >= 8192) {
+        q[i] = 8191;
+      }
     }
 
     if (q[i] < 1024) {
