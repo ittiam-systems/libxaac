@@ -537,11 +537,12 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
         ixheaacd_read_bits_buf(it_bit_buff, 5);
   }
 
-  if ((aac_state_struct->audio_object_type >= AOT_AAC_MAIN ||
-       aac_state_struct->audio_object_type <= AOT_AAC_LTP ||
+  if (((aac_state_struct->audio_object_type >= AOT_AAC_MAIN &&
+        aac_state_struct->audio_object_type <= AOT_AAC_LTP) ||
        aac_state_struct->audio_object_type == AOT_AAC_SCAL ||
        aac_state_struct->audio_object_type == AOT_TWIN_VQ ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LD ||
+       aac_state_struct->audio_object_type == AOT_ER_AAC_ELD ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LC) &&
       aac_state_struct->audio_object_type != AOT_USAC)
 

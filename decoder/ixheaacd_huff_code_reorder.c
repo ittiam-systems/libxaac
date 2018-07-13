@@ -1727,14 +1727,11 @@ static VOID ixheaacd_hcr_reorder_quantized_spec_coeff(
   WORD32 *arr_temp_values = ptr_hcr_info->str_segment_info.arr_temp_values;
   WORD32 *ptr_bak = ptr_hcr_info->str_segment_info.arr_temp_values;
 
-  WORD32 cnt = 0;
-
   for (i = num_sect; i != 0; i--) {
     num_spec_val_sect = *ptr_num_sorted_cw_in_sect++
                         << ptr_cb_dim_shift_tbl[*ptr_sorted_cb];
     ptr_teva = &arr_temp_values[*ptr_reorder_offset++];
     for (j = num_spec_val_sect; j != 0; j--) {
-      cnt++;
       qsc = *ptr_quant_spec_coeff++;
       abs_qsc = ixheaacd_abs32(qsc);
       if (abs_qsc <= ptr_lav_tbl[*ptr_sorted_cb]) {
