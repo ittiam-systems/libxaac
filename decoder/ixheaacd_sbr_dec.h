@@ -148,21 +148,20 @@ typedef struct ia_sbr_pers_struct {
 } ia_sbr_pers_struct;
 
 WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
-                      ia_sbr_header_data_struct *ptr_header_data,
-                      ia_sbr_frame_info_data_struct *ptr_frame_data,
-                      ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
-                      ia_ps_dec_struct *ptr_ps_dec,
-                      ia_sbr_qmf_filter_bank_struct *ptr_qmf_synth_bank_r,
-                      ia_sbr_scale_fact_struct *ptr_sbr_sf_r,
-                      FLAG apply_processing, FLAG low_pow_flag,
-                      WORD32 *ptr_work_buf_core,
-                      ia_sbr_tables_struct *sbr_tables_ptr,
-                      ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
-                      ia_pvc_data_struct *ptr_pvc_data_str, FLAG drc_on,
-                      WORD32 drc_sbr_factors[][64], WORD32 audio_object_type);
+                        ia_sbr_header_data_struct *ptr_header_data,
+                        ia_sbr_frame_info_data_struct *ptr_frame_data,
+                        ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
+                        ia_ps_dec_struct *ptr_ps_dec,
+                        ia_sbr_qmf_filter_bank_struct *ptr_qmf_synth_bank_r,
+                        ia_sbr_scale_fact_struct *ptr_sbr_sf_r,
+                        FLAG apply_processing, FLAG low_pow_flag,
+                        WORD32 *ptr_work_buf_core,
+                        ia_sbr_tables_struct *sbr_tables_ptr,
+                        ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
+                        ia_pvc_data_struct *ptr_pvc_data_str, FLAG drc_on,
+                        WORD32 drc_sbr_factors[][64], WORD32 audio_object_type);
 
-WORD16 ixheaacd_create_sbrdec(
-                              ixheaacd_misc_tables *pstr_common_table,
+WORD16 ixheaacd_create_sbrdec(ixheaacd_misc_tables *pstr_common_table,
                               ia_sbr_channel_struct *ptr_sbr_channel,
                               ia_sbr_header_data_struct *ptr_header_data,
                               WORD16 chan, FLAG down_sample_flag,
@@ -172,14 +171,14 @@ WORD16 ixheaacd_create_sbrdec(
 #define MAX_NUM_QMF_BANDS_ESBR 128
 
 WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
-                               VOID *p_sbr_frame, VOID *p_sbr_header);
+                                 VOID *p_sbr_frame, VOID *p_sbr_header);
 
 WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
-                            FLOAT32 qmf_buf_real[][64],
-                            FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
-                            FLOAT32 pv_qmf_buf_real[][64],
-                            FLOAT32 pv_qmf_buf_imag[][64],
-                            WORD32 pitch_in_bins);
+                              FLOAT32 qmf_buf_real[][64],
+                              FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
+                              FLOAT32 pv_qmf_buf_real[][64],
+                              FLOAT32 pv_qmf_buf_imag[][64],
+                              WORD32 pitch_in_bins);
 
 VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                            FLOAT32 input_real[][64], FLOAT32 input_imag[][64],
@@ -188,13 +187,13 @@ VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                            FLOAT32 *scratch_buff, FLOAT32 *env_out);
 
 WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
-                          FLOAT32 ptr_src_buf_imag[][64],
-                          FLOAT32 ptr_ph_vocod_buf_real[][64],
-                          FLOAT32 ptr_ph_vocod_buf_imag[][64],
-                          FLOAT32 ptr_dst_buf_real[][64],
-                          FLOAT32 ptr_dst_buf_imag[][64],
-                          ia_sbr_frame_info_data_struct *ptr_frame_data,
-                          ia_sbr_header_data_struct *ptr_header_data);
+                            FLOAT32 ptr_src_buf_imag[][64],
+                            FLOAT32 ptr_ph_vocod_buf_real[][64],
+                            FLOAT32 ptr_ph_vocod_buf_imag[][64],
+                            FLOAT32 ptr_dst_buf_real[][64],
+                            FLOAT32 ptr_dst_buf_imag[][64],
+                            ia_sbr_frame_info_data_struct *ptr_frame_data,
+                            ia_sbr_header_data_struct *ptr_header_data);
 
 VOID ixheaacd_clr_subsamples(WORD32 *ptr_qmf_buf, WORD32 num, WORD32 size);
 
@@ -217,17 +216,17 @@ WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
                                  ia_sbr_header_data_struct *ptr_header_data);
 
 WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
-                            FLOAT32 qmf_buf_real[][64],
-                            FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
-                            FLOAT32 pv_qmf_buf_real[][64],
-                            FLOAT32 pv_qmf_buf_imag[][64],
-                            WORD32 pitch_in_bins);
+                              FLOAT32 qmf_buf_real[][64],
+                              FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
+                              FLOAT32 pv_qmf_buf_real[][64],
+                              FLOAT32 pv_qmf_buf_imag[][64],
+                              WORD32 pitch_in_bins);
 
 WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
-                       ia_sbr_header_data_struct *ptr_header_data,
-                       ia_sbr_frame_info_data_struct *ptr_frame_data,
-                       FLAG apply_processing, FLAG low_pow_flag,
-                       ia_sbr_tables_struct *sbr_tables_ptr, WORD32 ch_fac);
+                         ia_sbr_header_data_struct *ptr_header_data,
+                         ia_sbr_frame_info_data_struct *ptr_frame_data,
+                         FLAG apply_processing, FLAG low_pow_flag,
+                         ia_sbr_tables_struct *sbr_tables_ptr, WORD32 ch_fac);
 
 VOID ixheaacd_hbe_repl_spec(WORD32 x_over_qmf[MAX_NUM_PATCHES],
                             FLOAT32 qmf_buf_real[][64],

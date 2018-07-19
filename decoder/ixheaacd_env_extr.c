@@ -108,8 +108,8 @@ VOID ixheaacd_huffman_decode(WORD32 it_bit_buff, WORD16 *h_index, WORD16 *len,
 }
 
 static WORD32 ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
-                                            ia_bit_buf_struct *it_bit_buff,
-                                            WORD32 indepFlag) {
+                                              ia_bit_buf_struct *it_bit_buff,
+                                              WORD32 indepFlag) {
   WORD32 i, j, k;
   WORD32 fixed_length = 0, num_grid_info = 0, grid_info;
   UWORD8 div_mode, ns_mode;
@@ -158,9 +158,8 @@ static WORD32 ixheaacd_read_esbr_pvc_envelope(ia_pvc_data_struct *ptr_pvc_data,
         length = (UWORD8)ixheaacd_read_bits_buf(it_bit_buff, length_bits);
         length += 1;
         sum_length += length;
-        if((k+length-1) > PVC_NUM_TIME_SLOTS)
-        {
-            return -1;
+        if ((k + length - 1) > PVC_NUM_TIME_SLOTS) {
+          return -1;
         }
         for (j = 1; j < length; j++, k++) {
           pvc_id[k] = pvc_id[k - 1];
@@ -565,7 +564,6 @@ static WORD16 ixheaacd_validate_frame_info(
   return 1;
 }
 
-
 static WORD16 ixheaacd_read_extn_data(
     ia_sbr_header_data_struct *ptr_header_data, ia_ps_dec_struct *ptr_ps_dec,
     ia_bit_buf_struct *it_bit_buff, ia_ps_tables_struct *ps_tables_ptr) {
@@ -630,10 +628,11 @@ static WORD16 ixheaacd_read_extn_data(
 }
 
 WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
-                               ia_bit_buf_struct *it_bit_buff, WORD32 hbe_flag,
-                               ia_pvc_data_struct *ptr_pvc_data,
-                               ia_sbr_tables_struct *ptr_sbr_tables,
-                               ia_sbr_header_data_struct *ptr_header_data) {
+                                 ia_bit_buf_struct *it_bit_buff,
+                                 WORD32 hbe_flag,
+                                 ia_pvc_data_struct *ptr_pvc_data,
+                                 ia_sbr_tables_struct *ptr_sbr_tables,
+                                 ia_sbr_header_data_struct *ptr_header_data) {
   WORD32 i;
   WORD32 err_code = 0;
   ia_env_extr_tables_struct *env_extr_tables_ptr =
@@ -658,8 +657,7 @@ WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
   }
 
   err_code = ixheaacd_pvc_time_freq_grid_info(it_bit_buff, ptr_frame_data);
-  if(err_code)
-      return err_code;
+  if (err_code) return err_code;
 
   ptr_pvc_data->prev_sbr_mode = PVC_SBR;
 
@@ -1485,8 +1483,7 @@ WORD32 ixheaacd_pvc_time_freq_grid_info(
   } else {
     time_border[0] = 0;
   }
-  if(time_border[0] < 0)
-      return -1;
+  if (time_border[0] < 0) return -1;
   pvc_time_border[0] = 0;
   bs_freq_res[0] = 0;
 

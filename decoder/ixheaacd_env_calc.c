@@ -1311,12 +1311,14 @@ VOID ixheaacd_enery_calc_persfb(WORD32 **anal_buf_real, WORD32 **anal_buf_imag,
   }
 }
 
-VOID ixheaacd_subbandgain_calc(
-    WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant, WORD16 nrg_est_mant,
-    WORD16 nrg_est_exp, WORD16 tmp_noise_exp, WORD16 nrg_ref_exp,
-    FLAG sine_present_flag, FLAG sine_mapped_matrix, FLAG noise_absc_flag,
-    WORD16 *ptr_nrg_gain_mant, WORD16 *ptr_noise_floor_mant,
-    WORD16 *ptr_nrg_sine_m, ixheaacd_misc_tables *pstr_common_tables) {
+VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
+                               WORD16 nrg_est_mant, WORD16 nrg_est_exp,
+                               WORD16 tmp_noise_exp, WORD16 nrg_ref_exp,
+                               FLAG sine_present_flag, FLAG sine_mapped_matrix,
+                               FLAG noise_absc_flag, WORD16 *ptr_nrg_gain_mant,
+                               WORD16 *ptr_noise_floor_mant,
+                               WORD16 *ptr_nrg_sine_m,
+                               ixheaacd_misc_tables *pstr_common_tables) {
   WORD16 var1_mant;
   WORD16 var1_exp;
   WORD16 var2_mant;

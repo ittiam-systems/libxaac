@@ -1199,7 +1199,6 @@ VOID ixheaacd_process_single_scf(WORD32 scale_factor, WORD32 *x_invquant,
   object_type = 0;
   aac_sf_data_resil_flag = 0;
 
-
   if (scale_factor < 24) {
     for (j = width; j > 0; j--) {
       *x_invquant++ = 0;

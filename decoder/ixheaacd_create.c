@@ -232,8 +232,7 @@ WORD32 ixheaacd_decode_init(
       &aac_dec_handle->pstr_aac_tables->pstr_block_tables
            ->tns_max_bands_tbl_usac;
 
-
-      for (i = 0; i < 11 ; i++) {
+  for (i = 0; i < 11; i++) {
     if (ixheaacd_sampling_boundaries[i] <= sample_rate) break;
   }
 
@@ -257,8 +256,10 @@ WORD32 ixheaacd_decode_init(
   usac_data->pstr_usac_winmap[3] = &usac_data->str_only_long_info;
   usac_data->pstr_usac_winmap[4] = &usac_data->str_only_long_info;
 
-  if((usac_data->ccfl != 480) && (usac_data->ccfl != 512) && (usac_data->ccfl != 768) && (usac_data->ccfl != 960) &&(usac_data->ccfl != 1024))
-      return -1;
+  if ((usac_data->ccfl != 480) && (usac_data->ccfl != 512) &&
+      (usac_data->ccfl != 768) && (usac_data->ccfl != 960) &&
+      (usac_data->ccfl != 1024))
+    return -1;
   ixheaacd_info_init(&ixheaacd_samp_rate_info[usac_data->sampling_rate_idx],
                      usac_data->ccfl, usac_data->pstr_usac_winmap[0],
                      usac_data->pstr_usac_winmap[2], usac_data->sfb_width_short,
@@ -323,8 +324,8 @@ WORD32 ixheaacd_decode_init(
                     .str_usac_element_config[ele_id]
                     .str_usac_mps212_config);
 
-          ixheaacd_mps_create(&aac_dec_handle->mps_dec_handle,
-              bs_frame_length, bs_residual_coding, ptr_usac_mps212_config);
+          ixheaacd_mps_create(&aac_dec_handle->mps_dec_handle, bs_frame_length,
+                              bs_residual_coding, ptr_usac_mps212_config);
         }
         break;
       }
@@ -371,7 +372,8 @@ WORD32 ixheaacd_dec_data_init(VOID *handle,
       &pstr_frame_data->str_layer.sample_rate_layer,
       &layer_config->samp_frequency_index);
 
-  pstr_stream_config->sampling_frequency = pstr_frame_data->str_layer.sample_rate_layer;
+  pstr_stream_config->sampling_frequency =
+      pstr_frame_data->str_layer.sample_rate_layer;
   pstr_stream_config->samp_frequency_index = layer_config->samp_frequency_index;
 
   num_elements = ptr_usac_config->str_usac_dec_config.num_elements;
@@ -399,8 +401,6 @@ WORD32 ixheaacd_dec_data_init(VOID *handle,
   usac_data->esbr_bit_str[1].no_elements = 0;
 
   num_out_chan = ptr_usac_config->num_out_channels;
-
-
 
   if (usac_data->ccfl == 768)
     pstr_frame_data->str_layer.sample_rate_layer =
@@ -535,28 +535,28 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
     switch (aot) {
       case AOT_USAC:
 
-          err = ixheaacd_dec_data_init(handle, pstr_frame_data,
-                                       &(pstr_dec_data->str_usac_data));
+        err = ixheaacd_dec_data_init(handle, pstr_frame_data,
+                                     &(pstr_dec_data->str_usac_data));
 
-          switch (pstr_dec_data->str_usac_data.sbr_ratio_idx) {
-            case 0:
-              handle->aac_config.ui_sbr_mode = 0;
-              break;
-            case 1:
-              handle->aac_config.ui_sbr_mode = 1;
-              break;
-            case 2:
-              handle->aac_config.ui_sbr_mode = 1;
-              break;
-            case 3:
-              handle->aac_config.ui_sbr_mode = 3;
-              break;
+        switch (pstr_dec_data->str_usac_data.sbr_ratio_idx) {
+          case 0:
+            handle->aac_config.ui_sbr_mode = 0;
+            break;
+          case 1:
+            handle->aac_config.ui_sbr_mode = 1;
+            break;
+          case 2:
+            handle->aac_config.ui_sbr_mode = 1;
+            break;
+          case 3:
+            handle->aac_config.ui_sbr_mode = 3;
+            break;
 
-            default:
-              handle->aac_config.ui_sbr_mode = 0;
-          }
+          default:
+            handle->aac_config.ui_sbr_mode = 0;
+        }
 
-          if (err == -1) return -1;
+        if (err == -1) return -1;
 
         break;
 
@@ -595,11 +595,11 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
     memset(&usac_def_header, 0, sizeof(ia_sbr_header_data_struct));
 
     for (elem_idx = 0; elem_idx < num_ele; elem_idx++) {
-
-        UWORD32 usac_ele_type =
-            ptr_usac_config->str_usac_dec_config.usac_element_type[elem_idx];
-        ia_usac_dec_element_config_struct *ptr_usac_ele_config =
-            &ptr_usac_config->str_usac_dec_config.str_usac_element_config[elem_idx];
+      UWORD32 usac_ele_type =
+          ptr_usac_config->str_usac_dec_config.usac_element_type[elem_idx];
+      ia_usac_dec_element_config_struct *ptr_usac_ele_config =
+          &ptr_usac_config->str_usac_dec_config
+               .str_usac_element_config[elem_idx];
 
       ia_usac_dec_sbr_config_struct *ptr_usac_sbr_config =
           &(ptr_usac_dec_config->str_usac_element_config[elem_idx]
@@ -611,39 +611,29 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
       harmonic_sbr[elem_idx] =
           (ptr_usac_sbr_config != NULL) ? ptr_usac_sbr_config->harmonic_sbr : 0;
 
-      if (ptr_usac_sbr_config->bs_inter_tes)
-          inter_test_flag = 1;
-      if (ptr_usac_sbr_config->bs_pvc)
-          bs_pvc_flag = 1;
-      if (ptr_usac_sbr_config->harmonic_sbr)
-          harmonic_Sbr_flag = 1;
+      if (ptr_usac_sbr_config->bs_inter_tes) inter_test_flag = 1;
+      if (ptr_usac_sbr_config->bs_pvc) bs_pvc_flag = 1;
+      if (ptr_usac_sbr_config->harmonic_sbr) harmonic_Sbr_flag = 1;
 
+      if ((usac_ele_type != ID_USAC_LFE) && (usac_ele_type != ID_USAC_EXT)) {
+        ia_usac_dec_sbr_config_struct *ptr_usac_sbr_config =
+            &(ptr_usac_ele_config->str_usac_sbr_config);
 
-
-
-        if ((usac_ele_type != ID_USAC_LFE) && (usac_ele_type != ID_USAC_EXT)) {
-          ia_usac_dec_sbr_config_struct *ptr_usac_sbr_config =
-              &(ptr_usac_ele_config->str_usac_sbr_config);
-
-          usac_def_header.start_freq = ptr_usac_sbr_config->dflt_start_freq;
-          usac_def_header.stop_freq = ptr_usac_sbr_config->dflt_stop_freq;
-          usac_def_header.header_extra_1 =
-              ptr_usac_sbr_config->dflt_header_extra1;
-          usac_def_header.header_extra_2 =
-              ptr_usac_sbr_config->dflt_header_extra2;
-          usac_def_header.freq_scale = ptr_usac_sbr_config->dflt_freq_scale;
-          usac_def_header.alter_scale = ptr_usac_sbr_config->dflt_alter_scale;
-          usac_def_header.noise_bands = ptr_usac_sbr_config->dflt_noise_bands;
-          usac_def_header.limiter_bands =
-              ptr_usac_sbr_config->dflt_limiter_bands;
-          usac_def_header.limiter_gains =
-              ptr_usac_sbr_config->dflt_limiter_gains;
-          usac_def_header.interpol_freq =
-              ptr_usac_sbr_config->dflt_interpol_freq;
-          usac_def_header.smoothing_mode =
-              ptr_usac_sbr_config->dflt_smoothing_mode;
-        }
-
+        usac_def_header.start_freq = ptr_usac_sbr_config->dflt_start_freq;
+        usac_def_header.stop_freq = ptr_usac_sbr_config->dflt_stop_freq;
+        usac_def_header.header_extra_1 =
+            ptr_usac_sbr_config->dflt_header_extra1;
+        usac_def_header.header_extra_2 =
+            ptr_usac_sbr_config->dflt_header_extra2;
+        usac_def_header.freq_scale = ptr_usac_sbr_config->dflt_freq_scale;
+        usac_def_header.alter_scale = ptr_usac_sbr_config->dflt_alter_scale;
+        usac_def_header.noise_bands = ptr_usac_sbr_config->dflt_noise_bands;
+        usac_def_header.limiter_bands = ptr_usac_sbr_config->dflt_limiter_bands;
+        usac_def_header.limiter_gains = ptr_usac_sbr_config->dflt_limiter_gains;
+        usac_def_header.interpol_freq = ptr_usac_sbr_config->dflt_interpol_freq;
+        usac_def_header.smoothing_mode =
+            ptr_usac_sbr_config->dflt_smoothing_mode;
+      }
     }
 
     pstr_dec_data->str_usac_data.down_samp_sbr = 0;
@@ -664,7 +654,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
       }
 
       {
-
         void *sbr_persistent_mem_v = aac_dec_handle->sbr_persistent_mem_u;
 
         pstr_dec_data->str_usac_data.pstr_esbr_dec = ixheaacd_init_sbr(

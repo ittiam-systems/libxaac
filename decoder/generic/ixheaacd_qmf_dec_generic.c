@@ -706,8 +706,8 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
 }
 
 VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
-                           ia_sbr_qmf_filter_bank_struct *syn_qmf,
-                           ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
+                                ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                                ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
   WORD32 L = syn_qmf->no_channels;
   const WORD32 M = (L >> 1);
   WORD32 *dct_in = qmf_real;
@@ -723,9 +723,9 @@ VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,
   filter_states[3 * M] = 0;
 }
 
-VOID ixheaacd_inv_emodulation(
-    WORD32 *qmf_real, ia_sbr_qmf_filter_bank_struct *syn_qmf,
-    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
+VOID ixheaacd_inv_emodulation(WORD32 *qmf_real,
+                              ia_sbr_qmf_filter_bank_struct *syn_qmf,
+                              ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
   if (syn_qmf->no_channels == 64)
     ixheaacd_cos_sin_mod(qmf_real, syn_qmf, qmf_dec_tables_ptr->w_32,
                          qmf_dec_tables_ptr->dig_rev_table2_32);
@@ -1675,7 +1675,7 @@ VOID ixheaacd_radix4bfly(const WORD16 *w, WORD32 *x, WORD32 index1,
 
 VOID ixheaacd_postradixcompute4(WORD32 *ptr_y, WORD32 *ptr_x,
                                 const WORD32 *p_dig_rev_tbl, WORD32 npoints) {
-  WORD32 i,  k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 xh0_0, xh1_0, xl0_0, xl1_0;
   WORD32 xh0_1, xh1_1, xl0_1, xl1_1;
@@ -1782,7 +1782,7 @@ VOID ixheaacd_postradixcompute4(WORD32 *ptr_y, WORD32 *ptr_x,
 
 VOID ixheaacd_postradixcompute2(WORD32 *ptr_y, WORD32 *ptr_x,
                                 const WORD32 *pdig_rev_tbl, WORD32 npoints) {
-  WORD32 i,  k;
+  WORD32 i, k;
   WORD32 h2;
   WORD32 x_0, x_1, x_2, x_3;
   WORD32 x_4, x_5, x_6, x_7;
