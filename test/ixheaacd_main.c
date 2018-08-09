@@ -1576,6 +1576,16 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     if (raw_testing) {
       ixheaacd_i_bytes_to_read =
           get_metadata_dec_exec(meta_info, frame_counter);
+
+      if (ixheaacd_i_bytes_to_read <= 0) {
+        err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+                                       IA_API_CMD_INPUT_OVER, 0, NULL);
+
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        return IA_NO_ERROR;
+      }
+
       err_code =
           (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
                               0, &ixheaacd_i_bytes_to_read);
