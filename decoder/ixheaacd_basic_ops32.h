@@ -319,13 +319,9 @@ static PLATFORM_INLINE WORD32 ixheaacd_negate32(WORD32 a) {
 static PLATFORM_INLINE WORD32 ixheaacd_negate32_sat(WORD32 a) {
   WORD32 neg_val;
 
-
-  if (a == MIN_32)
-  {
+  if (a == MIN_32) {
     neg_val = MAX_32;
-  }
-  else
-  {
+  } else {
     neg_val = -a;
   }
   return neg_val;

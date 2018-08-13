@@ -24,12 +24,15 @@
 extern "C" {
 #endif /* __cplusplus */
 
-WORD32 impd_set_default_params_selection_process(ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
+WORD32 impd_set_default_params_selection_process(
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
 
-WORD32 impd_set_custom_params(const WORD32 param_set_idx,
-                           ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
+WORD32 impd_set_custom_params(
+    const WORD32 param_set_idx,
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
 
-WORD32 impd_eval_custom_params_selection_process(ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
+WORD32 impd_eval_custom_params_selection_process(
+    ia_drc_sel_proc_params_struct* pstr_drc_sel_proc_params);
 
 #ifdef __cplusplus
 }

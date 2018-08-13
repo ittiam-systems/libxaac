@@ -221,7 +221,8 @@ WORD32 ixheaacd_fwd_alias_cancel_tool(
     WORD32 fac_length, FLOAT32 *iaq, WORD32 gain);
 
 WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short,
-                          FLOAT32 out_buffer[], ia_usac_lpd_decoder_handle st);
+                            FLOAT32 out_buffer[],
+                            ia_usac_lpd_decoder_handle st);
 
 VOID ixheaacd_reset_acelp_data_fix(ia_usac_data_struct *usac_data,
                                    ia_usac_lpd_decoder_handle st,

@@ -72,8 +72,8 @@ extern const FLOAT64 ixheaacd_power_10_table[28];
 static WORD32 ixheaacd_calc_max_spectralline(WORD32 *p_in_ibuffer, WORD32 n) {
   WORD32 k, shiftp, itemp = 0;
   for (k = 0; k < n; k++) {
-
-    if (ixheaacd_abs32_sat(p_in_ibuffer[k]) > itemp) itemp = ixheaacd_abs32_sat(p_in_ibuffer[k]);
+    if (ixheaacd_abs32_sat(p_in_ibuffer[k]) > itemp)
+      itemp = ixheaacd_abs32_sat(p_in_ibuffer[k]);
   }
 
   shiftp = ixheaacd_norm32(itemp);
@@ -400,8 +400,7 @@ static WORD32 ixheaacd_fd_imdct_short(ia_usac_data_struct *usac_data,
       p_out_buffer[k] = ((FLOAT32)p_out_ibuffer[k]) * qfac;
     }
     err_code = ixheaacd_lpd_bpf_fix(usac_data, 1, p_out_buffer, st);
-    if(err_code != 0)
-        return err_code;
+    if (err_code != 0) return err_code;
 
     for (k = 0; k < ixheaacd_drc_offset->n_long; k++) {
       p_out_ibuffer[k] = (WORD32)(p_out_buffer[k] * (1 << 15));
@@ -498,8 +497,7 @@ static WORD32 ixheaacd_fd_imdct_long(ia_usac_data_struct *usac_data,
       p_out_buffer[k] = ((FLOAT32)p_out_ibuffer[k]) * qfac;
     }
     err_code = ixheaacd_lpd_bpf_fix(usac_data, 0, p_out_buffer, st);
-    if(err_code != 0)
-        return err_code;
+    if (err_code != 0) return err_code;
 
     for (k = 0; k < ixheaacd_drc_offset->n_long; k++) {
       p_out_ibuffer[k] = (WORD32)(p_out_buffer[k] * (1 << 15));

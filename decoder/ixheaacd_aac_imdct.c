@@ -49,11 +49,11 @@
     (j) = _ >> (m);                                           \
   } while (0)
 
-#define MPYHIRC(x, y)                                                       \
-  \
-(((WORD32)((short)(x >> 16) * (unsigned short)(y & 0x0000FFFF) + 0x4000) >> \
-      15) +                                                                 \
-      ((WORD32)((short)(x >> 16) * (short)((y) >> 16)) << 1))
+#define MPYHIRC(x, y)                                                         \
+                                                                              \
+  (((WORD32)((short)(x >> 16) * (unsigned short)(y & 0x0000FFFF) + 0x4000) >> \
+    15) +                                                                     \
+   ((WORD32)((short)(x >> 16) * (short)((y) >> 16)) << 1))
 
 #define MPYLUHS(x, y) \
   ((WORD32)((unsigned short)(x & 0x0000FFFF) * (short)(y >> 16)))
@@ -78,7 +78,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_shr32_drc(WORD32 a, WORD32 b) {
     else
       out_val = 0;
   } else {
-    a = ixheaacd_add32_sat(a,(1 << (b - 1)));
+    a = ixheaacd_add32_sat(a, (1 << (b - 1)));
     out_val = (WORD32)a >> b;
   }
 

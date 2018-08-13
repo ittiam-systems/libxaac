@@ -983,4 +983,3 @@ VOID ixheaacd_cplx_synt_qmffilt(
   qmf_bank->filter_pos_syn = filter_coeff;
   qmf_bank->ixheaacd_drc_offset = ixheaacd_drc_offset;
 }
-
