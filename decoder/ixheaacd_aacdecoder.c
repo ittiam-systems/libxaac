@@ -508,7 +508,12 @@ WORD32 ixheaacd_aacdec_decodeframe(
                 goto _ia_handle_error;
               }
               aac_dec_handle->frame_status = 0;
-              error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+              if (error_code > 0) {
+                error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+                return error_code;
+              } else {
+                return error_code;
+              }
             }
           }
 
