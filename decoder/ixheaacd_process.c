@@ -316,7 +316,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
         nr_core_coder_channels = 1;
 
       core_data_extracting:
-        if (ch_offset >= MAX_NUM_CHANNELS) return -1;
+        if (ch_offset >= MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         err = ixheaacd_core_coder_data(ele_id, pstr_usac_data, elem_idx,
                                        &ch_offset, it_bit_buff,
                                        nr_core_coder_channels);
