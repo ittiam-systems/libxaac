@@ -103,7 +103,7 @@ VOID ixheaacd_allocate_mem_persistent(
   persistent_used = ixheaacd_getsize_sbr_persistent();
 
   ixheaacd_set_sbr_persistent_buffers(
-      p_state_enhaacplus_dec->sbr_persistent_mem_v, &persistent_used, channels,
+      p_state_enhaacplus_dec->sbr_persistent_mem_v, &persistent_used, MAXNRSBRCHANNELS,
       ps_enable);
 
   *persistent_used_total += persistent_used;
