@@ -354,11 +354,10 @@ VOID ixheaacd_aac_tns_process(
         scale_spec = (*ixheaacd_calc_max_spectral_line)(ptr_tmp, size);
       }
 
-      if (filter->direction != -1) {
-        position = start;
-      } else {
+      if (filter->direction == -1) {
         position = stop - 1;
-        if (((win << 7) + position) < filter->order) continue;
+      } else {
+        position = start;
       }
 
       if ((num_ch <= 2) &&
