@@ -922,7 +922,7 @@ WORD32 ixheaacd_latm_header_decode(
         result = ixheaacd_latm_audio_mux_element(
             it_bit_buff, &latm_struct_element, aac_state_struct,
             pstr_samp_rate_info);
-        if (result < 0) {
+        if (result != 0) {
           sync_status = 0;
           aac_state_struct->sync_status = sync_status;
 
