@@ -113,10 +113,11 @@ WORD16 ixheaacd_read_section_data(
         sect_len_incr = 1;
 
       sect_len = (sect_len + sect_len_incr);
-      top = (sfb + sect_len);
 
       if (aac_spect_data_resil_flag) {
-        if (num_lines_sec_idx >= MAX_SFB_HCR) {
+        top = (sfb + sect_len);
+        if ((num_lines_sec_idx >= MAX_SFB_HCR) ||
+            (top >= MAX_SCALE_FACTOR_BANDS_LONG)) {
           return -1;
         }
         ptr_num_sect_lines[num_lines_sec_idx] =
