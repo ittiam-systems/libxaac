@@ -2440,6 +2440,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
           time_data, channel, p_obj_exhaacplus_dec->aac_config.ui_max_channels,
           p_state_enhaacplus_dec->audio_object_type);
 
+      if(p_state_enhaacplus_dec->ch_config == 2 && channel == 1)
+          return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+
       error_code = ixheaacd_aacdec_decodeframe(
           p_obj_exhaacplus_dec, &aac_scratch_struct, actual_out_buffer,
           p_obj_exhaacplus_dec->aac_config.frame_status, &type, &ch_idx, 0,
