@@ -238,8 +238,9 @@ WORD16 ixheaacd_dec_coupling_channel_element(
         ind_channel_info->cc_gain[c] =
             common_tables_ptr->cc_gain_scale[gain_element_scale];
         for (i = 0; i < (-norm_value) - 1; i++) {
-          ind_channel_info->cc_gain[c] *=
-              common_tables_ptr->cc_gain_scale[gain_element_scale];
+          ind_channel_info->cc_gain[c] = ixheaacd_mul32_sh(
+              ind_channel_info->cc_gain[c],
+              common_tables_ptr->cc_gain_scale[gain_element_scale], 29);
         }
       }
     } else {
