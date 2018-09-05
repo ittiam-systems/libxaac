@@ -316,7 +316,8 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
 
   ixheaacd_mps_create_w(self);
 
-  ixheaacd_mps_apply_mix_matrix(self);
+  err = ixheaacd_mps_apply_mix_matrix(self);
+  if (err < 0) return err;
 
   if (self->config->bs_temp_shape_config == 2) {
     ixheaacd_mps_time_env_shaping(self);
