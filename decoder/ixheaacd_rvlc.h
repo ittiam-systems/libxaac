@@ -15,7 +15,7 @@ void ixheaacd_carry_bit_branch_val(UWORD8 carry_bit, UWORD32 tree_node,
                                    UWORD32 *branch_val, UWORD32 *branch_node);
 
 VOID ixheaacd_huff_sfb_table(WORD32 it_bit_buff, WORD16 *huff_index,
-                             WORD16 *len, const UWORD16 *code_book_tbl,
+                             WORD32 *len, const UWORD16 *code_book_tbl,
                              const UWORD32 *idx_table);
 
 #endif

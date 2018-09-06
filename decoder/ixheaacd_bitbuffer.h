@@ -120,7 +120,8 @@ UWORD32 ixheaacd_aac_read_byte_corr(UWORD8 **ptr_read_next, WORD32 *ptr_bit_pos,
                                     WORD32 *readword, UWORD8 *p_bit_buf_end);
 
 UWORD32 ixheaacd_aac_read_byte_corr1(UWORD8 **ptr_read_next,
-                                     WORD16 *ptr_bit_pos, WORD32 *readword);
+                                     WORD32 *ptr_bit_pos, WORD32 *readword,
+                                     UWORD8 *p_bit_buf_end);
 
 #define get_no_bits_available(it_bit_buff) ((it_bit_buff)->cnt_bits)
 #define ixheaacd_no_bits_read(it_bit_buff) \

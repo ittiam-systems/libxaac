@@ -907,7 +907,8 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
   WORD32 flush_cw;
   WORD32 i, value, norm_val, off;
   WORD32 out1, out2;
-  WORD16 index, length;
+  WORD16 index;
+  WORD32 length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 spec_index = ptr_hcr_info->str_dec_io.quant_spec_coeff_idx;
   WORD32 *spec_coef =
@@ -923,8 +924,8 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
     if (read_bit_offset) {
       *read_bits -= read_bit_offset;
       *bit_pos += read_bit_offset;
-      ixheaacd_aac_read_byte_corr1(&ptr_read_next, (WORD16 *)bit_pos,
-                                   read_word);
+      ixheaacd_aac_read_byte_corr1(&ptr_read_next, bit_pos, read_word,
+                                   it_bit_buff->ptr_bit_buf_end);
     }
 
     read_word1 = *read_word << *bit_pos;
@@ -1339,7 +1340,8 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
   WORD32 out1, out2;
   UWORD16 cw_len;
 
-  WORD16 index, length;
+  WORD16 index;
+  WORD32 length;
 
   WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr);
   UWORD8 *ptr_read_next = itt_bit_buff->byte_ptr;
@@ -1348,7 +1350,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
   ixheaacd_huff_sfb_table(read_word, &index, &length, code_book_tbl, idx_table);
   cw_len = length;
 
-  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
   out1 = index / 17;
   out2 = index - out1 * 17;
@@ -1374,7 +1376,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
     cw_len++;
   }
 
-  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
   if (sp1 == 16) {
     i = 4;
@@ -1386,13 +1388,13 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
     length += (norm_val - 21);
     cw_len += (norm_val - 21);
 
-    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
     off = ixheaacd_extu(read_word, length, 32 - i);
     length += i;
     cw_len += i;
 
-    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
     i = off + ((WORD32)1 << i);
 
@@ -1414,13 +1416,13 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
     length += (norm_val - 21);
     cw_len += (norm_val - 21);
 
-    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
     off = ixheaacd_extu(read_word, length, 32 - i);
     length += i;
     cw_len += i;
 
-    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
+    ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
     i = off + ((WORD32)1 << i);
 
     if (out2 < 0)

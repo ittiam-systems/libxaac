@@ -142,21 +142,22 @@ UWORD32 ixheaacd_aac_read_2bytes(UWORD8 **ptr_read_next, WORD32 *bit_pos,
 }
 
 UWORD32 ixheaacd_aac_read_byte_corr1(UWORD8 **ptr_read_next,
-                                     WORD16 *ptr_bit_pos, WORD32 *readword) {
+                                     WORD32 *ptr_bit_pos, WORD32 *readword,
+                                     UWORD8 *p_bit_buf_end) {
   UWORD8 *v = *ptr_read_next;
-  WORD16 bits_consumed = *ptr_bit_pos;
+  WORD32 bits_consumed = *ptr_bit_pos;
+  WORD32 temp_bit_count = 0;
 
   while (bits_consumed >= 8) {
-    if ((bits_consumed -= 8) >= 0) {
-      {
-        *readword = (*readword << 8) | *v;
-        v++;
-      }
-    } else {
-      bits_consumed += 8;
+    bits_consumed -= 8;
+    if ((p_bit_buf_end < v) && (p_bit_buf_end != 0))
+      temp_bit_count += 8;
+    else {
+      *readword = (*readword << 8) | *v;
+      v++;
     }
   }
-  *ptr_bit_pos = bits_consumed;
+  *ptr_bit_pos = bits_consumed + temp_bit_count;
   *ptr_read_next = v;
   return 1;
 }

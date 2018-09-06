@@ -103,7 +103,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_drc(WORD32 a, WORD32 b,
 WORD32 ixheaacd_cnt_leading_ones(WORD32 a);
 
 VOID ixheaacd_huff_sfb_table(WORD32 it_bit_buff, WORD16 *huff_index,
-                             WORD16 *len, const UWORD16 *code_book_tbl,
+                             WORD32 *len, const UWORD16 *code_book_tbl,
                              const UWORD32 *idx_table) {
   UWORD32 temp = 0;
   UWORD32 temp1 = 0;
@@ -170,7 +170,8 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word1(
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
   WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  WORD16 index, length;
+  WORD16 index;
+  WORD32 length;
   ptr_read_next += 4;
 
   do {
@@ -335,7 +336,8 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_11(
   WORD idx;
   WORD32 out1, out2;
   WORD32 err_code = 0;
-  WORD16 index, length;
+  WORD16 index;
+  WORD32 length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
   WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
