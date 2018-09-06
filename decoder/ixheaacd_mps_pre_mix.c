@@ -55,8 +55,8 @@ extern const WORD32 ixheaacd_re_weight_Q28[16][8][31];
 extern const WORD32 ixheaacd_beta_Q28[16][8][31];
 extern const WORD32 ixheaacd_weight_Q28[16][8][31];
 extern const WORD32 ixheaacd_c_l_table_Q31[31];
-extern const WORD32 ixheaacd_sin_table_Q31[16][31];
-extern const WORD32 ixheaacd_cos_table_Q31[16][31];
+extern const WORD32 ixheaacd_sin_table_Q31[8][31];
+extern const WORD32 ixheaacd_cos_table_Q31[8][31];
 extern const WORD32 ixheaacd_atan_table_Q28[16][8][31];
 extern WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
@@ -200,6 +200,8 @@ static VOID ixheaacd_mps_par2umx_ps_core(WORD32 cld[MAX_PARAMETER_BANDS],
   for (band = 0; band < ott_band_count; band++) {
     cld_idx = *cld++ + 15;
     icc_idx = *icc++;
+
+    icc_idx = icc_idx & 7;
 
     c_l_temp = (ixheaacd_c_l_table_Q31[cld_idx]);
     c_r_temp = (ixheaacd_c_l_table_Q31[30 - cld_idx]);
