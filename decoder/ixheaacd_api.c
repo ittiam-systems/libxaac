@@ -2424,7 +2424,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
             (WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v + (8 * 1024) +
             pers_used;
       }
-      actual_out_buffer = p_state_enhaacplus_dec->coup_ch_output;
+      if (p_obj_exhaacplus_dec->aac_config.element_type[1] < 3 &&
+          p_obj_exhaacplus_dec->aac_config.element_type[1] > 0 &&
+          p_obj_exhaacplus_dec->aac_config.ui_max_channels > 2) {
+        actual_out_buffer = p_state_enhaacplus_dec->coup_ch_output;
+      }
       ch_fac = 1;
       slot_ele = 0;
     }
