@@ -347,7 +347,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
             prev_data_ele_present = 1;
 
-            if (ptr_adts_crc_info->crc_active == 1) {
+            if (ptr_adts_crc_info->crc_active == 1 &&
+                ptr_adts_crc_info->no_reg < 7) {
               crc_reg = ixheaacd_adts_crc_start_reg(
                   ptr_adts_crc_info, it_bit_buff, CRC_ADTS_RAW_DATA_BLK_LEN);
             }
@@ -485,7 +486,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
         {
           WORD32 flag = 1;
 
-          if ((ele_type != ID_FIL) && (ptr_adts_crc_info->crc_active == 1)) {
+          if ((ele_type != ID_FIL) && (ptr_adts_crc_info->crc_active == 1) &&
+              (ptr_adts_crc_info->no_reg < 7)) {
             crc_reg =
                 ixheaacd_adts_crc_start_reg(ptr_adts_crc_info, it_bit_buff, 0);
           }
@@ -586,7 +588,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
             prev_data_ele_present = 1;
 
-            if (ptr_adts_crc_info->crc_active == 1) {
+            if ((ptr_adts_crc_info->crc_active == 1) &&
+                (ptr_adts_crc_info->no_reg < 7)) {
               crc_reg = ixheaacd_adts_crc_start_reg(
                   ptr_adts_crc_info, it_bit_buff, CRC_ADTS_RAW_DATA_BLK_LEN);
             }
