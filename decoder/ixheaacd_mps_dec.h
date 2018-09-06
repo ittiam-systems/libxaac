@@ -339,8 +339,8 @@ typedef struct ia_mps_dec_state_struct {
 
 VOID ixheaacd_mps_init_pre_and_post_matrix(ia_mps_dec_state_struct *self);
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self);
-VOID ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
-VOID ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
 
 VOID ixheaacd_mps_config(ia_mps_dec_state_struct *self, WORD32 frame_len,
                          WORD32 residual_coding,
@@ -371,7 +371,7 @@ VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
                                WORD32 *h_real, WORD32 param_set_idx,
                                WORD32 res_bands);
 
-VOID ixheaacd_mps_upmix_interp(
+WORD32 ixheaacd_mps_upmix_interp(
     WORD32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                    [MAX_M_INPUT],
     WORD32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
