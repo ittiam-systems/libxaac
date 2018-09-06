@@ -230,8 +230,9 @@ VOID ixheaacd_read_scale_factor_data(
             bit_pos += length;
             ixheaacd_aac_read_byte_corr(&ptr_read_next, &bit_pos, &read_word,
                                         it_bit_buff->ptr_bit_buf_end);
-            while (bit_pos > 8)
-              ixheaacd_aac_read_byte(&ptr_read_next, &bit_pos, &read_word);
+
+            ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                                         it_bit_buff->ptr_bit_buf_end);
 
             norm_value = index - 60;
           }
