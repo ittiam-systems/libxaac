@@ -940,8 +940,8 @@ WORD32 ixheaacd_aac_headerdecode(
     WORD32 *bytes_consumed,
     const ia_aac_dec_huffman_tables_struct *pstr_huffmann_tables) {
   struct ia_bit_buf_struct it_bit_buff, *handle_bit_buff;
-  ia_adif_header_struct adif;
-  ia_adts_header_struct adts;
+  ia_adif_header_struct adif = {0};
+  ia_adts_header_struct adts = {0};
   WORD32 result;
   WORD32 header_len;
   WORD32 sync = 0;
@@ -1031,7 +1031,7 @@ WORD32 ixheaacd_aac_headerdecode(
 
         if ((adts.aac_frame_length + ADTS_HEADER_LENGTH) <
             (header_len - bytes_taken)) {
-          ia_adts_header_struct adts_loc;
+          ia_adts_header_struct adts_loc = {0};
 
           handle_bit_buff = ixheaacd_create_init_bit_buf(
               &it_bit_buff, (UWORD8 *)(buffer + adts.aac_frame_length),
