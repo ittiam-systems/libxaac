@@ -223,7 +223,7 @@ static const int ixheaacd_ld_env_table_480[15][4] = {
     {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1},
 };
 
-static const int ixheaacd_ld_env_table_time_slot[4] = {8, 5, 0, 0};
+static const int ixheaacd_ld_env_table_time_slot[7] = {8, 5, 0, 0, 0, 0, 0};
 
 #define SBR_CLA_BITS 2
 #define SBR_ABS_BITS 2
