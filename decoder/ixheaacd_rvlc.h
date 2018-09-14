@@ -3,9 +3,10 @@
 void ixheaacd_rvlc_read(
     ia_bit_buf_struct *itt_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info);
-void ixheaacd_rvlc_dec(ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
-                       ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info,
-                       ia_bit_buf_struct *itt_bit_buff);
+IA_ERRORCODE ixheaacd_rvlc_dec(
+    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
+    ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info,
+    ia_bit_buf_struct *itt_bit_buff);
 void ixheaacd_hcr_read(ia_bit_buf_struct *itt_bit_buff,
                        ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
                        WORD32 ele_type);

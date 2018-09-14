@@ -84,6 +84,7 @@ typedef unsigned int UWORD;    /*   ulp     SLOOPIDX ulp_index      */
 typedef LOOPIDX LOOPINDEX;   /* lp    LOOPIDX  lp_index       */
 typedef ULOOPIDX ULOOPINDEX; /* ulp   SLOOPIDX ulp_index      */
 
+typedef WORD32 IA_ERRORCODE;
 #define PLATFORM_INLINE __inline
 
 #endif /* IXHEAACD_TYPE_DEF_H */
