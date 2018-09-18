@@ -656,6 +656,7 @@ WORD32 ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
   WORD32 usac_flag = ptr_header_data->usac_flag;
   WORD32 temp_1 =
       ptr_prev_data_ch_0->end_position - ptr_header_data->num_time_slots;
+  if (temp_1 < 0) return -1;
   temp_1 = ptr_sbr_data->str_frame_info_details.border_vec[0] - temp_1;
 
   if ((!ptr_header_data->err_flag_prev) && (!ptr_header_data->err_flag) &&
