@@ -263,6 +263,7 @@ static WORD16 ixheaacd_read_block_data(
     if (ptr_aac_dec_channel_info->str_tns_info.tns_data_present)
       error_code =
           ixheaacd_read_tns_data(it_bit_buff, ptr_aac_dec_channel_info);
+    if (error_code) return error_code;
   }
 
   if (aac_spect_data_resil_flag &&
@@ -282,11 +283,12 @@ static WORD16 ixheaacd_read_block_data(
     if (ptr_aac_dec_channel_info->str_tns_info.tns_data_present)
       error_code =
           ixheaacd_read_tns_data(it_bit_buff, ptr_aac_dec_channel_info);
+    if (error_code) return error_code;
   }
 
   { it_bit_buff->bit_pos = 7 - it_bit_buff->bit_pos; }
 
-  error_code |= ixheaacd_read_spectral_data(
+  error_code = ixheaacd_read_spectral_data(
       it_bit_buff, ptr_aac_dec_channel_info, ptr_aac_tables, total_channels,
       frame_size, object_type, aac_spect_data_resil_flag,
       aac_sf_data_resil_flag);
