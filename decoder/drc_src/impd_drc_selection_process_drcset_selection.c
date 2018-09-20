@@ -728,7 +728,7 @@ WORD32 impd_drc_set_preselection(
   ia_drc_instructions_struct* str_drc_instruction_str = NULL;
 
   impd_select_drc_coeff3(pstr_drc_config, &str_p_loc_drc_coefficients_uni_drc);
-
+  if (str_p_loc_drc_coefficients_uni_drc == NULL) return UNEXPECTED_ERROR;
   k = 0;
   for (d = 0; d < num_downmix_id_requests; d++) {
     err = impd_find_eq_set_no_compression(
