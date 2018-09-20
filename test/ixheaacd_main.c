@@ -1332,6 +1332,29 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
 
+    /* Get memory info tables size */
+    err_code =
+        ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_GET_MEMTABS_SIZE,
+                       0, &ui_proc_mem_tabs_size);
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    g_pv_arr_alloc_memory[g_w_malloc_count] = malloc(ui_proc_mem_tabs_size);
+
+    if (g_pv_arr_alloc_memory[g_w_malloc_count] == NULL) {
+      err_code = IA_TESTBENCH_MFMAN_FATAL_MEM_ALLOC_FAILED;
+      _IA_HANDLE_ERROR(&ixheaacd_ia_testbench_error_info,
+                       (pWORD8) "Mem tables alloc", err_code);
+    }
+
+    /* Set pointer for process memory tables    */
+    err_code = ia_drc_dec_api(
+        pv_ia_drc_process_api_obj, IA_API_CMD_SET_MEMTABS_PTR, 0,
+        (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count]));
+
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    g_w_malloc_count++;
+
     err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
                               IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS, NULL);
 
