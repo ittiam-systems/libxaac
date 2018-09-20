@@ -2101,7 +2101,7 @@ VOID ixheaacd_fill_prog_config_slots(
 
 IA_ERRORCODE ixheaacd_dec_execute(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec) {
-  ia_adts_header_struct adts;
+  ia_adts_header_struct adts = {0};
   ia_aac_dec_state_struct *p_state_enhaacplus_dec;
 
   UWORD8 *in_buffer;
