@@ -1307,12 +1307,20 @@ WORD32 impd_parse_loud_eq_instructions(
   temp = impd_read_bits_buf(it_bit_buff, 8);
   if (it_bit_buff->error) return it_bit_buff->error;
 
+  /* Parsed but unused */
   loud_eq_instructions->loudness_after_drc = (temp >> 7) & 0x01;
 
+  /* Parsed but unused */
   loud_eq_instructions->loudness_after_eq = (temp >> 6) & 0x01;
 
+  /* Parsed but unused */
   loud_eq_instructions->loud_eq_gain_sequence_count = temp & 0x3F;
 
+  if (loud_eq_instructions->loud_eq_gain_sequence_count >
+      LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX)
+    return UNEXPECTED_ERROR;
+
+  /* Section under for loop, Parsed but unused */
   for (i = 0; i < loud_eq_instructions->loud_eq_gain_sequence_count; i++) {
     temp = impd_read_bits_buf(it_bit_buff, 7);
     if (it_bit_buff->error) return it_bit_buff->error;
