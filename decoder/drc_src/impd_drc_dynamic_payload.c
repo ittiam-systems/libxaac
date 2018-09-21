@@ -1276,7 +1276,8 @@ WORD32 impd_parse_loud_eq_instructions(
     if (additional_eq_set_id_present) {
       additional_eq_set_id_cnt = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
-
+      if (additional_eq_set_id_cnt >= EQ_SET_ID_COUNT_MAX)
+        return UNEXPECTED_ERROR;
       for (i = 0; i < additional_eq_set_id_cnt; i++) {
         loud_eq_instructions->eq_set_id[i + 1] =
             impd_read_bits_buf(it_bit_buff, 6);
