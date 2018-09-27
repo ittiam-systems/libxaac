@@ -548,6 +548,10 @@ static WORD32 impd_parametic_drc_parse_coeff(
   str_drc_coeff_param_drc->reset_parametric_drc = (temp >> 6) & 1;
   str_drc_coeff_param_drc->parametric_drc_gain_set_count = temp & 0x3f;
 
+  if (str_drc_coeff_param_drc->parametric_drc_gain_set_count >
+      SEQUENCE_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   for (i = 0; i < str_drc_coeff_param_drc->parametric_drc_gain_set_count; i++) {
     err = impd_parametric_drc_parse_gain_set_params(
         it_bit_buff, drc_config,
