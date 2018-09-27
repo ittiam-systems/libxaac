@@ -914,6 +914,10 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
         str_drc_config_ext->parametric_drc_instructions_count =
             impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (str_drc_config_ext->parametric_drc_instructions_count >
+            PARAM_DRC_INSTRUCTIONS_COUNT_MAX)
+          return (UNEXPECTED_ERROR);
+
         for (i = 0; i < str_drc_config_ext->parametric_drc_instructions_count;
              i++) {
           err = impd_parse_parametric_drc_instructions(
