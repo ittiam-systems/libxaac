@@ -1124,6 +1124,9 @@ impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
   if (it_bit_buff->error) return it_bit_buff->error;
 
   drc_config->dwnmix_instructions_count = (temp >> 1) & 0x7f;
+  if (drc_config->dwnmix_instructions_count > DOWNMIX_INSTRUCTION_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   drc_config->drc_description_basic_present = temp & 1;
 
   if (drc_config->drc_description_basic_present == 1) {
