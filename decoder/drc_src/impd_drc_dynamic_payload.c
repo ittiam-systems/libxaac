@@ -587,6 +587,10 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   if (str_drc_config_ext->loud_eq_instructions_flag == 1) {
     str_drc_config_ext->loud_eq_instructions_count =
         impd_read_bits_buf(it_bit_buff, 4);
+    if (str_drc_config_ext->loud_eq_instructions_count >
+        LOUD_EQ_INSTRUCTIONS_COUNT_MAX)
+      return UNEXPECTED_ERROR;
+
     if (it_bit_buff->error) return it_bit_buff->error;
     for (i = 0; i < str_drc_config_ext->loud_eq_instructions_count; i++) {
       err = impd_parse_loud_eq_instructions(
@@ -605,6 +609,8 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
     if (err) return (err);
     str_drc_config_ext->eq_instructions_count =
         impd_read_bits_buf(it_bit_buff, 4);
+    if (str_drc_config_ext->eq_instructions_count > EQ_INSTRUCTIONS_COUNT_MAX)
+      return UNEXPECTED_ERROR;
     if (it_bit_buff->error) return it_bit_buff->error;
     for (i = 0; i < str_drc_config_ext->eq_instructions_count; i++) {
       err = impd_parse_eq_instructions(
@@ -625,7 +631,8 @@ WORD32 impd_parse_filt_block(ia_bit_buf_struct* it_bit_buff,
   for (j = 0; j < block_count; j++) {
     str_filter_block->filter_element_count = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
-
+    if (str_filter_block->filter_element_count > FILTER_ELEMENT_COUNT_MAX)
+      return UNEXPECTED_ERROR;
     str_filter_element = &str_filter_block->str_filter_element[0];
     for (k = 0; k < str_filter_block->filter_element_count; k++) {
       temp = impd_read_bits_buf(it_bit_buff, 7);
@@ -922,6 +929,10 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
 
   str_eq_coeff->unique_filter_block_count = impd_read_bits_buf(it_bit_buff, 6);
   if (it_bit_buff->error) return it_bit_buff->error;
+
+  if (str_eq_coeff->unique_filter_block_count > FILTER_BLOCK_COUNT_MAX) {
+    return (UNEXPECTED_ERROR);
+  }
 
   err = impd_parse_filt_block(it_bit_buff, &(str_eq_coeff->str_filter_block[0]),
                               str_eq_coeff->unique_filter_block_count);
@@ -1276,7 +1287,8 @@ WORD32 impd_parse_loud_eq_instructions(
     if (additional_eq_set_id_present) {
       additional_eq_set_id_cnt = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
-
+      if (additional_eq_set_id_cnt >= EQ_SET_ID_COUNT_MAX)
+        return UNEXPECTED_ERROR;
       for (i = 0; i < additional_eq_set_id_cnt; i++) {
         loud_eq_instructions->eq_set_id[i + 1] =
             impd_read_bits_buf(it_bit_buff, 6);
