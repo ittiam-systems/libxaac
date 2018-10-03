@@ -1696,6 +1696,11 @@ impd_drc_parse_coeff(
       str_p_loc_drc_coefficients_uni_drc->characteristic_left_count =
           impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
+
+      if (str_p_loc_drc_coefficients_uni_drc->characteristic_left_count >
+          SPLIT_CHARACTERISTIC_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
+
       for (i = 1;
            i <= str_p_loc_drc_coefficients_uni_drc->characteristic_left_count;
            i++) {
@@ -1713,6 +1718,10 @@ impd_drc_parse_coeff(
       str_p_loc_drc_coefficients_uni_drc->characteristic_right_count =
           impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
+
+      if (str_p_loc_drc_coefficients_uni_drc->characteristic_right_count >
+          SPLIT_CHARACTERISTIC_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
       for (i = 1;
            i <= str_p_loc_drc_coefficients_uni_drc->characteristic_right_count;
            i++) {
