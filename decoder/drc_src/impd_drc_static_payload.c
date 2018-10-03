@@ -896,6 +896,7 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
       impd_read_bits_buf(it_bit_buff, 4);
   if (it_bit_buff->error) return it_bit_buff->error;
   while (str_drc_config_ext->drc_config_ext_type[k] != UNIDRCCONFEXT_TERM) {
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     bit_size_len = impd_read_bits_buf(it_bit_buff, 4);
     if (it_bit_buff->error) return it_bit_buff->error;
     ext_size_bits = bit_size_len + 4;
