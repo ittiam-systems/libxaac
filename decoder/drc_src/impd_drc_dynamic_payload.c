@@ -625,7 +625,8 @@ WORD32 impd_parse_filt_block(ia_bit_buf_struct* it_bit_buff,
   for (j = 0; j < block_count; j++) {
     str_filter_block->filter_element_count = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
-
+    if (str_filter_block->filter_element_count > FILTER_ELEMENT_COUNT_MAX)
+      return UNEXPECTED_ERROR;
     str_filter_element = &str_filter_block->str_filter_element[0];
     for (k = 0; k < str_filter_block->filter_element_count; k++) {
       temp = impd_read_bits_buf(it_bit_buff, 7);
@@ -922,6 +923,10 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
 
   str_eq_coeff->unique_filter_block_count = impd_read_bits_buf(it_bit_buff, 6);
   if (it_bit_buff->error) return it_bit_buff->error;
+
+  if (str_eq_coeff->unique_filter_block_count > FILTER_BLOCK_COUNT_MAX) {
+    return (UNEXPECTED_ERROR);
+  }
 
   err = impd_parse_filt_block(it_bit_buff, &(str_eq_coeff->str_filter_block[0]),
                               str_eq_coeff->unique_filter_block_count);
