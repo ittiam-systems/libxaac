@@ -694,7 +694,7 @@ WORD32 impd_manage_drc_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
       &pstr_drc_uni_sel_proc->uni_drc_sel_proc_params;
 
   impd_select_drc_coeff3(pstr_drc_config, &str_p_loc_drc_coefficients_uni_drc);
-
+  if (str_p_loc_drc_coefficients_uni_drc == NULL) return UNEXPECTED_ERROR;
   for (i = 0; i < pstr_drc_config->drc_instructions_uni_drc_count; i++) {
     str_drc_instruction_str = &pstr_drc_config->str_drc_instruction_str[i];
     if (str_drc_instruction_str->no_independent_use) continue;
@@ -898,6 +898,8 @@ WORD32 impd_manage_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
       (FLOAT32)(pow(2.0f, pstr_drc_uni_sel_proc->compl_level_supported_total));
 
   impd_select_drc_coeff3(pstr_drc_config, &str_p_loc_drc_coefficients_uni_drc);
+
+  if (str_p_loc_drc_coefficients_uni_drc == NULL) return UNEXPECTED_ERROR;
 
   for (p = 0; p < 4; p++) {
     if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_drc_set_ids[p] <= 0)
