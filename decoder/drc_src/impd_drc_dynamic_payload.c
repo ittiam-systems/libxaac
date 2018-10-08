@@ -558,6 +558,10 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   if (it_bit_buff->error) return it_bit_buff->error;
   if (drc_coeffs_and_instructions_uni_drc_v1_flag == 1) {
     drc_coefficients_uni_drc_v1_count = impd_read_bits_buf(it_bit_buff, 3);
+    if ((drc_coefficients_uni_drc_v1_count +
+         drc_config->drc_coefficients_drc_count) > DRC_COEFF_COUNT_MAX) {
+      return (UNEXPECTED_ERROR);
+    }
     if (it_bit_buff->error) return it_bit_buff->error;
     for (i = 0; i < drc_coefficients_uni_drc_v1_count; i++) {
       err = impd_drc_parse_coeff(
