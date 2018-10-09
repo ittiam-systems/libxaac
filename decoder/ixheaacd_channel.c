@@ -1147,6 +1147,26 @@ WORD32 ixheaacd_ltp_data(WORD32 object_type, ia_ics_info_struct *ics,
       ltp->long_used[sfb] = ixheaacd_read_bits_buf(bs, 1);
     }
   }
-
+  if (ics->frame_length == 480) {
+    if ((ics->sampling_rate_index > 5) &&
+        (ltp->last_band > MAX_LTP_SFB_SR_FIVE_PLUS_480))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_PLUS_480;
+    else if ((ics->sampling_rate_index == 5) &&
+             (ltp->last_band > MAX_LTP_SFB_SR_FIVE_480))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_480;
+    else if ((ics->sampling_rate_index < 5) &&
+             (ltp->last_band > MAX_LTP_SFB_SR_FIVE_LESS_480))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_LESS_480;
+  } else if (ics->frame_length == 512) {
+    if ((ics->sampling_rate_index > 5) &&
+        (ltp->last_band > MAX_LTP_SFB_SR_FIVE_PLUS_512))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_PLUS_512;
+    else if ((ics->sampling_rate_index == 5) &&
+             (ltp->last_band > MAX_LTP_SFB_SR_FIVE_512))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_512;
+    else if ((ics->sampling_rate_index < 5) &&
+             (ltp->last_band > MAX_LTP_SFB_SR_FIVE_LESS_512))
+      ltp->last_band = MAX_LTP_SFB_SR_FIVE_LESS_512;
+  }
   return 0;
 }
