@@ -958,7 +958,9 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   ia_auto_corr_ele_struct str_auto_corr;
 
   WORD16 *ptr_invf_band_tbl =
-      &ptr_header_data->pstr_freq_band_data->freq_band_tbl_noise[1];
+      &ptr_header_data->pstr_freq_band_data
+           ->freq_band_tbl_noise[1];  // offest 1 used as base address of
+                                      // ptr_invf_band_tbl
   WORD32 num_if_bands = ptr_header_data->pstr_freq_band_data->num_nf_bands;
   WORD32 sub_band_start = ptr_header_data->pstr_freq_band_data->sub_band_start;
   WORD16 *f_master_tbl = ptr_header_data->pstr_freq_band_data->f_master_tbl;
@@ -1120,8 +1122,12 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
       for (k2 = sb; k2 < sb + num_bands_in_patch; k2++) {
         k = k2 - patch_stride;
         bw_index = 0;
-        while (k2 >= ptr_invf_band_tbl[bw_index]) bw_index++;
+        while (k2 >= ptr_invf_band_tbl[bw_index]) {
+          bw_index++;
+          if (bw_index >= MAX_NOISE_COEFFS) return -1;
+        }
 
+        if (bw_index >= MAX_NUM_PATCHES) return -1;
         bw = bw_array[bw_index];
 
         a0r = bw * alpha_real[k][0];
@@ -1212,8 +1218,12 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
         alpha_imag[1] = 0.0f;
       }
 
-      while (k2 >= ptr_invf_band_tbl[bw_index]) bw_index++;
+      while (k2 >= ptr_invf_band_tbl[bw_index]) {
+        bw_index++;
+        if (bw_index >= MAX_NOISE_COEFFS) return -1;
+      }
 
+      if (bw_index >= MAX_NUM_PATCHES) return -1;
       bw = bw_array[bw_index];
 
       a0r = bw * alpha_real[0];
