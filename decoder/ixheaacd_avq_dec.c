@@ -24,6 +24,9 @@
 #include <assert.h>
 #include <string.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_constants.h"
+#include <ixheaacd_basic_ops32.h>
+#include <ixheaacd_basic_ops40.h>
 #include "ixheaacd_acelp_com.h"
 
 extern const WORD32 ixheaacd_factorial_7[8];
@@ -275,24 +278,29 @@ static VOID ixheaacd_gosset_decode_base_index(WORD32 n, UWORD32 code_book_ind,
 
 VOID ixheaacd_rotated_gosset_mtx_dec(WORD32 qn, WORD32 code_book_idx,
                                      WORD32 *kv, WORD32 *b) {
-  WORD32 i, m, c[8];
-  WORD32 count = 0;
-
   if (qn <= 4) {
     ixheaacd_gosset_decode_base_index(qn, code_book_idx, b);
   } else {
-    m = 1;
+    WORD32 i, m, c[8];
+    WORD32 count = 0;
     while (qn > 4) {
-      m *= 2;
       count++;
       qn -= 2;
     }
+
+    if (count >= 31)
+      m = MAX_32;
+    else
+      m = 1 << count;
 
     ixheaacd_gosset_decode_base_index(qn, code_book_idx, b);
 
     ixheaacd_voronoi_idx_dec(kv, m, c, count);
 
-    for (i = 0; i < 8; i++) b[i] = m * b[i] + c[i];
+    for (i = 0; i < 8; i++) {
+      b[i] =
+          ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)m * (WORD64)b[i]), c[i]);
+    }
   }
   return;
 }
