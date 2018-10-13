@@ -527,8 +527,9 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
                                 (WORD32)((WORD64)ixheaacd_mult32x32in64(
                                              alpha_q_im_temp, dmx_im[i]) >>
                                          24);
-              r_spec[i] = (factor)*ixheaacd_sub32_sat(l_spec[i], mid_side);
-              l_spec[i] = l_spec[i] + mid_side;
+              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
+              l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
 
           } else {
@@ -549,7 +550,8 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
                                           alpha_q_re_temp, l_spec[i]) >>
                                       24));
 
-              r_spec[i] = (factor) * (ixheaacd_sub32_sat(l_spec[i], mid_side));
+              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
               l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
 
