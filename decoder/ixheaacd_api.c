@@ -1417,13 +1417,13 @@ IA_ERRORCODE ixheaacd_dec_init(
           p_obj_exhaacplus_dec, (UWORD8 *)in_buffer, &header_bytes_consumed,
           aac_persistent_mem->str_aac_decoder.pstr_aac_tables
               ->pstr_huffmann_tables);
-
-      memcpy(sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[0],
-             &p_obj_exhaacplus_dec->p_state_aac->str_sbr_config,
-             sizeof(ia_sbr_header_data_struct));
-      memcpy(sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[1],
-             &p_obj_exhaacplus_dec->p_state_aac->str_sbr_config,
-             sizeof(ia_sbr_header_data_struct));
+      if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD ||
+          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD) {
+        *sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[0] =
+            p_obj_exhaacplus_dec->p_state_aac->str_sbr_config;
+        *sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[1] =
+            p_obj_exhaacplus_dec->p_state_aac->str_sbr_config;
+      }
 
       if (return_val < 0) {
         if (return_val ==
