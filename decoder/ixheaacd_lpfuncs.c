@@ -98,7 +98,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_shr32_drc(WORD32 a, WORD32 b) {
     else
       out_val = 0;
   } else {
-    a += (1 << (b - 1));
+    a = ixheaacd_add32_sat(a, (1 << (b - 1)));
     out_val = (WORD32)a >> b;
   }
 
