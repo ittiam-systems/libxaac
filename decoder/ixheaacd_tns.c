@@ -178,10 +178,11 @@ static VOID ixheaacd_tns_ar_filter_usac(WORD32 *spectrum, WORD32 size,
   }
 }
 
-VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
-                        WORD32 nbands, ia_sfb_info_struct *pstr_sfb_info,
-                        ia_tns_frame_info_struct *pstr_tns) {
-  WORD32 f, max_order, start, stop, size, inc;
+IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
+                                WORD32 nbands,
+                                ia_sfb_info_struct *pstr_sfb_info,
+                                ia_tns_frame_info_struct *pstr_tns) {
+  WORD32 f, start, stop, size, inc;
   WORD32 n_filt, coef_res, order, direction;
   WORD32 *ptr_spec;
   WORD32 scale_spec;
@@ -197,7 +198,6 @@ VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
   WORD32 nbins = (pstr_sfb_info->islong) ? 1024 : 128;
   WORD32 i, j, idx;
 
-  max_order = (pstr_sfb_info->islong) ? 15 : 7;
   idx = (pstr_sfb_info->islong) ? 0 : 1;
 
   ptr_spec = &usac_data->scratch_buffer[0];
@@ -222,10 +222,6 @@ VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
         start = filt->start_band;
         stop = filt->stop_band;
 
-        if (order > max_order) {
-          fprintf(stderr, "Error in tns max order: %d %d\n", order, max_order);
-        }
-
         if (!order) continue;
 
         ixheaacd_tns_dec_coef_usac(usac_data, filt, coef_res,
@@ -240,10 +236,12 @@ VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
         start = ixheaacd_min32(start, tmp);
 
         start = ixheaacd_min32(start, nbands);
+        if (start > pstr_sfb_info->sfb_per_sbk) return -1;
         start = sfb_offset(start);
 
         stop = ixheaacd_min32(stop, tmp);
         stop = ixheaacd_min32(stop, nbands);
+        if (stop > pstr_sfb_info->sfb_per_sbk) return -1;
         stop = sfb_offset(stop);
 
         guard_band = 31 - ixheaacd_norm32(filt->order);
@@ -310,4 +308,5 @@ VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
 
     spec += pstr_sfb_info->bins_per_sbk;
   }
+  return 0;
 }

@@ -847,9 +847,10 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   if (pstr_core_coder->tns_on_lr == 0 && (id != ID_USAC_LFE)) {
     for (ch = 0, chn = left; chn <= right; ch++, chn++) {
       if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-        ixheaacd_tns_apply(
+        err_code = ixheaacd_tns_apply(
             usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
             usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+        if (err_code) return err_code;
       }
     }
   }
@@ -873,9 +874,10 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
     if (pstr_core_coder->tns_on_lr) {
       for (ch = 0, chn = left; chn <= right; ch++, chn++) {
         if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-          ixheaacd_tns_apply(
+          err_code = ixheaacd_tns_apply(
               usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
               usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+          if (err_code) return err_code;
         }
       }
     }
