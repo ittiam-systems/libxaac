@@ -19,7 +19,7 @@
 */
 #include "ixheaacd_sbr_common.h"
 #include <ixheaacd_type_def.h>
-
+#include <assert.h>
 #include "ixheaacd_constants.h"
 #include <ixheaacd_basic_ops32.h>
 #include <ixheaacd_basic_ops16.h>
@@ -43,6 +43,28 @@ VOID ixheaacd_byte_align(ia_bit_buf_struct *it_bit_buff,
   }
 
   *align_bits_cnt = it_bit_buff->cnt_bits;
+}
+
+WORD32 ixheaacd_skip_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
+  UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
+  WORD bit_pos = it_bit_buff->bit_pos;
+
+  if (it_bit_buff->cnt_bits < no_of_bits)
+    longjmp(*(it_bit_buff->xaac_jmp_buf),
+            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+  it_bit_buff->cnt_bits -= no_of_bits;
+
+  ptr_read_next += no_of_bits / 8;
+  bit_pos -= (no_of_bits % 8);
+  if (bit_pos < 0) {
+    bit_pos += 8;
+    ptr_read_next++;
+  }
+  assert(bit_pos >= 0 && bit_pos <= 7);
+
+  it_bit_buff->ptr_read_next = ptr_read_next;
+  it_bit_buff->bit_pos = (WORD16)bit_pos;
+  return no_of_bits;
 }
 
 WORD32 ixheaacd_show_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {

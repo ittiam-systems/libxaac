@@ -640,54 +640,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 }
 
 {
-  WORD32 write_flag = 0;
-  WORD32 system_flag = 1;
-  WORD32 len;
-
-  if (system_flag) {
-    if (write_flag == 0) {
-      if ((SIZE_T)it_bit_buff->ptr_read_next ==
-          (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
-        len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                 (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                1)
-               << 3) -
-              (SIZE_T)it_bit_buff->size;
-      } else {
-        len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                 (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                1)
-               << 3) -
-              (((((SIZE_T)it_bit_buff->ptr_read_next -
-                  (SIZE_T)it_bit_buff->ptr_bit_buf_base))
-                << 3) +
-               7 - it_bit_buff->bit_pos);
-      }
-      if (len > 0) {
-        if ((SIZE_T)it_bit_buff->ptr_read_next ==
-            (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
-          len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                   (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                  1)
-                 << 3) -
-                (SIZE_T)it_bit_buff->size - 0;
-        } else {
-          len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                   (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                  1)
-                 << 3) -
-                ((((((SIZE_T)it_bit_buff->ptr_read_next -
-                     (SIZE_T)it_bit_buff->ptr_bit_buf_base))
-                   << 3) +
-                  7 - it_bit_buff->bit_pos) -
-                 0);
-        }
-        if (len > 0) {
-          dummy = ixheaacd_read_bits_buf(it_bit_buff, len);
-        }
-      }
-    }
-  }
+  dummy = ixheaacd_skip_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
 
   if ((SIZE_T)it_bit_buff->ptr_read_next ==
       (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
