@@ -353,38 +353,42 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[1], filter[1]);
   sum = ixheaacd_mac32x32in64(sum, in[0], filter[2]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[3], 4);
-  *out += (WORD32)((sum * factor_even) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   sum = ixheaacd_mult32x32in64(in[1], filter[0]);
   sum = ixheaacd_mac32x32in64(sum, in[0], filter[1]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[2], 5);
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
   out++;
 
   sum = ixheaacd_mult32x32in64(in[0], filter[0]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[1], 6);
-
-  *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
-
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 3], filter);
-    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_odd) >> 15));
+    *out = ixheaacd_add32_sat(
+        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 2], filter);
-    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
+    *out = ixheaacd_add32_sat(
+        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
     out++;
   }
   i = length - 3;
   sum = 0;
   sum = ixheaacd_mac32x32in64_n(sum, &in[i - 3], filter, 6);
   sum = ixheaacd_mac32x32in64(sum, in[i + 2], filter[6]);
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 
   out++;
   i = length - 2;
@@ -393,7 +397,8 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[i + 1], filter[5]);
   sum = ixheaacd_mac32x32in64(sum, in[i], filter[6]);
 
-  *out += (WORD32)((sum * factor_even) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   i = length - 1;
@@ -403,7 +408,8 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[i - 1], filter[5]);
   sum = ixheaacd_mac32x32in64(sum, in[i - 2], filter[6]);
 
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 }
 
 static WORD32 ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
@@ -520,13 +526,14 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
           alpha_q_im_temp = alpha_q_im[grp][sfb] * 1677722;
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
-              WORD32 mid_side = r_spec[i] -
-                                (WORD32)((WORD64)ixheaacd_mult32x32in64(
-                                             alpha_q_re_temp, l_spec[i]) >>
-                                         24) -
-                                (WORD32)((WORD64)ixheaacd_mult32x32in64(
-                                             alpha_q_im_temp, dmx_im[i]) >>
-                                         24);
+              WORD32 mid_side = ixheaacd_sub32_sat(
+                  ixheaacd_sub32_sat(r_spec[i],
+                                     (WORD32)((WORD64)ixheaacd_mult32x32in64(
+                                                  alpha_q_re_temp, l_spec[i]) >>
+                                              24)),
+                  (WORD32)((WORD64)ixheaacd_mult32x32in64(alpha_q_im_temp,
+                                                          dmx_im[i]) >>
+                           24));
               r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
                           (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
               l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
