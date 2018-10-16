@@ -599,7 +599,7 @@ const WORD64 ixheaacd_table_exp[32] = {
 static const WORD32 ixheaacd_pow_14_3[8] = {0,    3251, 4096,  5161,
                                             6502, 8192, 10321, 13004};
 
-const WORD32 ixheaacd_pow_table_Q13[1024] = {0,
+const WORD32 ixheaacd_pow_table_Q13[1025] = {0,
                                              131072 >> 4,
                                              330281 >> 4,
                                              567116 >> 4,
@@ -1622,7 +1622,8 @@ const WORD32 ixheaacd_pow_table_Q13[1024] = {0,
                                              84111783,
                                              84221751,
                                              84331755,
-                                             84441795};
+                                             84441795,
+                                             84551870};
 
 static WORD32 ixheaacd_esc_nb_offset[8] = {0,      131072, 262144, 393216,
                                            524288, 655360, 786432, 917504};
@@ -1943,16 +1944,13 @@ static VOID ixheaacd_esc_iquant(WORD32 *q, WORD32 *coef, WORD32 noise_level,
       }
     }
 
-    if (q[i] >= 8192) {
-      q[i] = 8191;
-    }
-
     if (q[i] < 0) {
       flag = -1;
       q[i] = -q[i];
-      if (q[i] >= 8192) {
-        q[i] = 8191;
-      }
+    }
+
+    if (q[i] >= 8192) {
+      q[i] = 8191;
     }
 
     if (q[i] < 1024) {
