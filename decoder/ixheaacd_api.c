@@ -1455,8 +1455,6 @@ IA_ERRORCODE ixheaacd_dec_init(
         }
         if (return_val == 0)
           p_obj_exhaacplus_dec->p_state_aac->ui_init_done = 1;
-
-        p_obj_exhaacplus_dec->p_state_aac->header_dec_done = 1;
         return return_val;
       }
 
@@ -2048,6 +2046,10 @@ IA_ERRORCODE ixheaacd_dec_init(
     memcpy(it_bit_buff, &temp_bit_buff, sizeof(struct ia_bit_buf_struct));
 
     p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
+
+    if (p_obj_exhaacplus_dec->p_state_aac->header_dec_done == 1) {
+      p_obj_exhaacplus_dec->p_state_aac->header_dec_done = 0;
+    }
   }
   return err_code;
 }
