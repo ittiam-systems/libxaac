@@ -85,9 +85,13 @@ ixheaacd_aac_showbits_7(ia_bit_buf_struct *it_bit_buff) {
   UWORD8 *v = it_bit_buff->ptr_read_next;
   UWORD32 b = 0;
   UWORD32 x;
-  b = (((WORD32)v[0] << 8) | (WORD32)(v[1]));
+  b = ((WORD32)v[0] << 8);
+  if (it_bit_buff->bit_pos < 6) {
+    b |= (WORD32)(v[1]);
+  }
   x = (UWORD32)b << (15 + 8 - it_bit_buff->bit_pos);
   x = (UWORD32)x >> (25);
+
   return x;
 }
 
