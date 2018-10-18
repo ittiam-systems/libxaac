@@ -113,7 +113,8 @@ WORD32 ixheaacd_show_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits);
 VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,
                                WORD32 ixheaacd_drc_offset);
 
-UWORD32 ixheaacd_aac_showbits_32(UWORD8 *ptr_read_next);
+UWORD32 ixheaacd_aac_showbits_32(UWORD8 *ptr_read_next, WORD32 cnt_bits,
+                                 WORD32 *increment);
 
 UWORD32 ixheaacd_aac_read_byte(UWORD8 **ptr_read_next, WORD32 *bit_pos,
                                WORD32 *readword);

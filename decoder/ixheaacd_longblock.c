@@ -174,23 +174,10 @@ VOID ixheaacd_read_scale_factor_data(
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = 7 - it_bit_buff->bit_pos;
   WORD32 read_word;
-  WORD32 diffbytes;
-
-  diffbytes = it_bit_buff->ptr_bit_buf_end - ptr_read_next;
-  diffbytes++;
-  if (diffbytes >= 4) {
-    read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-    diffbytes = 4;
-    ptr_read_next = it_bit_buff->ptr_read_next + 4;
-  } else {
-    WORD32 ii;
-    read_word = 0;
-    for (ii = 0; ii < diffbytes; ii++) {
-      read_word = (read_word << 8) | (*ptr_read_next);
-      ptr_read_next++;
-    }
-    read_word <<= ((4 - diffbytes) << 3);
-  }
+  WORD32 increment;
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   ptr_code_book = ptr_aac_dec_channel_info->ptr_code_book;
 
@@ -305,7 +292,7 @@ VOID ixheaacd_read_scale_factor_data(
     }
   }
 
-  it_bit_buff->ptr_read_next = ptr_read_next - diffbytes;
+  it_bit_buff->ptr_read_next = ptr_read_next - increment;
 
   it_bit_buff->bit_pos = 7 - bit_pos;
   {

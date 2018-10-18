@@ -82,15 +82,25 @@
 
 #define SPEC(ptr, w, gl) ((ptr) + ((w) * (gl)))
 
-#define _SWAP(a, b)                                                         \
-  (b = (((WORD32)a[0] << 24) | ((WORD32)a[1] << 16) | ((WORD32)a[2] << 8) | \
-        ((WORD32)a[3])))
-
-UWORD32 ixheaacd_aac_showbits_32(UWORD8 *ptr_read_next) {
+UWORD32 ixheaacd_aac_showbits_32(UWORD8 *ptr_read_next, WORD32 cnt_bits,
+                                 WORD32 *increment) {
   UWORD8 *v = ptr_read_next;
   UWORD32 b = 0;
+  WORD32 i;
+  WORD32 bumped = 0;
 
-  _SWAP(v, b);
+  for (i = 0; i < 4; i++) {
+    b = b << 8;
+    if (cnt_bits > 0) {
+      b = b | *v;
+      v++;
+      bumped++;
+    }
+    cnt_bits -= 8;
+  }
+  if (increment != NULL) {
+    *increment = bumped;
+  }
   return b;
 }
 
