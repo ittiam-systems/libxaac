@@ -33,8 +33,8 @@ typedef WORD32 IA_ERRORCODE;
 /*****************************************************************************/
 /* Constant hash defines                                                     */
 /*****************************************************************************/
-#define IA_NO_ERROR                 0x00000000
+#define IA_NO_ERROR 0x00000000
 /* error handling 'AND' definition */
-#define IA_FATAL_ERROR              0x80000000
+#define IA_FATAL_ERROR 0x80000000
 
 #endif /* __IMPD_ERROR_STANDARDS_H__ */

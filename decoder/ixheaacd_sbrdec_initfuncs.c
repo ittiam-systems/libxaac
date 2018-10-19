@@ -601,7 +601,6 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
       ixheaacd_esbr_hbe_data_init(ptr_sbr_dec[1]->p_hbe_txposer, samp_per_frame,
                                   sbr_ratio_idx == SBR_UPSAMPLE_IDX_4_1 ? 1 : 0,
                                   output_frame_size, hbe_txposer_buffers);
-
     }
 
     p_str_sbr_dec_inst->ptr_pvc_data_str->prev_first_bnd_idx = -1;
@@ -769,8 +768,7 @@ static PLATFORM_INLINE WORD16 ixheaacd_create_sbr_env_calc(
   ixheaacd_reset_sbrenvelope_calc(hs);
 
   if ((chan == 0) && (audio_object_type == AOT_ER_AAC_ELD)) {
-    err = ixheaacd_calc_frq_bnd_tbls(ptr_header_data,
-                                     pstr_common_table);
+    err = ixheaacd_calc_frq_bnd_tbls(ptr_header_data, pstr_common_table);
   }
 
   return err;
@@ -1107,9 +1105,9 @@ WORD16 ixheaacd_create_sbrdec(ixheaacd_misc_tables *pstr_common_table,
   ptr_sbr_channel->pstr_prev_frame_data =
       sbr_persistent_mem->pstr_prev_frame_data[chan];
 
-  err = ixheaacd_create_sbr_env_calc(
-      pstr_common_table, &hs->str_sbr_calc_env, chan,
-      sbr_persistent_mem, ptr_header_data, audio_object_type);
+  err = ixheaacd_create_sbr_env_calc(pstr_common_table, &hs->str_sbr_calc_env,
+                                     chan, sbr_persistent_mem, ptr_header_data,
+                                     audio_object_type);
 
   if (err) {
     return (-1);

@@ -20,6 +20,4 @@
 #ifndef IMPD_DRC_UNI_SHAPE_FILTER_H
 #define IMPD_DRC_UNI_SHAPE_FILTER_H
 
-
-
 #endif

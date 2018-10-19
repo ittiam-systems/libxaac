@@ -20,34 +20,28 @@
 #ifndef IMPD_DRC_BITBUFFER_H
 #define IMPD_DRC_BITBUFFER_H
 
+typedef struct ia_bit_buf_struct {
+  UWORD8 *ptr_bit_buf_base;
+  UWORD8 *ptr_bit_buf_end;
 
-typedef struct ia_bit_buf_struct
-{
-    UWORD8 *ptr_bit_buf_base;
-    UWORD8 *ptr_bit_buf_end;
+  UWORD8 *ptr_read_next;
 
-    UWORD8 *ptr_read_next;
+  WORD32 bit_pos;
+  WORD32 cnt_bits;
 
-    WORD32  bit_pos;
-    WORD32  cnt_bits;
+  WORD32 size;
+  WORD32 error;
 
-    WORD32  size;
-    WORD32 error;
+} ia_bit_buf_struct;
 
+ia_bit_buf_struct *impd_create_bit_buf(ia_bit_buf_struct *it_bit_buff,
+                                       UWORD8 *ptr_bit_buf_base,
+                                       WORD32 bit_buf_size);
 
-}ia_bit_buf_struct;
+ia_bit_buf_struct *impd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
+                                            UWORD8 *ptr_bit_buf_base,
+                                            WORD32 bit_buf_size);
 
-
-ia_bit_buf_struct * impd_create_bit_buf(ia_bit_buf_struct* it_bit_buff,
-                                             UWORD8  *ptr_bit_buf_base,
-                                             WORD32  bit_buf_size);
-
-ia_bit_buf_struct * impd_create_init_bit_buf(ia_bit_buf_struct* it_bit_buff,
-                                                  UWORD8  *ptr_bit_buf_base,
-                                                  WORD32  bit_buf_size);
-
-WORD32 impd_read_bits_buf(ia_bit_buf_struct* it_bit_buff,
-                          WORD no_of_bits);
-
+WORD32 impd_read_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits);
 
 #endif

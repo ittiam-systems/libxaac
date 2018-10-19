@@ -21,70 +21,67 @@
 #define IMPD_DRC_PROCESS_AUDIO_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 typedef struct {
-    WORD32 multiband_audio_sig_count;
-    WORD32 frame_size;
-    FLOAT32** non_interleaved_audio;
+  WORD32 multiband_audio_sig_count;
+  WORD32 frame_size;
+  FLOAT32** non_interleaved_audio;
 } ia_audio_band_buffer_struct;
 
 typedef struct {
-    WORD32 audio_num_chan;
-    WORD32 frame_size;
-    WORD32 audio_sub_band_count;
-    WORD32 audio_sub_band_frame_size;
-    WORD32 audio_delay_samples;
-    WORD32 audio_delay_sub_band_samples;
-    FLOAT32** audio_io_buffer_delayed;
-    FLOAT32** audio_buffer_delayed_real;
-    FLOAT32** audio_buffer_delayed_imag;
-    FLOAT32** audio_in_out_buf;
-    FLOAT32** audio_real_buff;
-    FLOAT32** audio_imag_buff;
+  WORD32 audio_num_chan;
+  WORD32 frame_size;
+  WORD32 audio_sub_band_count;
+  WORD32 audio_sub_band_frame_size;
+  WORD32 audio_delay_samples;
+  WORD32 audio_delay_sub_band_samples;
+  FLOAT32** audio_io_buffer_delayed;
+  FLOAT32** audio_buffer_delayed_real;
+  FLOAT32** audio_buffer_delayed_imag;
+  FLOAT32** audio_in_out_buf;
+  FLOAT32** audio_real_buff;
+  FLOAT32** audio_imag_buff;
 } ia_audio_in_out_buf;
-
 
 WORD32
 impd_apply_gains_subband(ia_drc_instructions_struct* pstr_drc_instruction_arr,
-           const WORD32 drc_instructions_index,
-           ia_drc_params_struct* ia_drc_params_struct,
-           ia_gain_buffer_struct* pstr_gain_buf,
-           ia_overlap_params_struct* pstr_overlap_params,
-           FLOAT32* deinterleaved_audio_delayed_re[],
-           FLOAT32* deinterleaved_audio_delayed_im[],
-           FLOAT32* deinterleaved_audio_re[],
-           FLOAT32* deinterleaved_audio_im[]);
-
+                         const WORD32 drc_instructions_index,
+                         ia_drc_params_struct* ia_drc_params_struct,
+                         ia_gain_buffer_struct* pstr_gain_buf,
+                         ia_overlap_params_struct* pstr_overlap_params,
+                         FLOAT32* deinterleaved_audio_delayed_re[],
+                         FLOAT32* deinterleaved_audio_delayed_im[],
+                         FLOAT32* deinterleaved_audio_re[],
+                         FLOAT32* deinterleaved_audio_im[]);
 
 WORD32
 impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
-                 const WORD32 drc_instructions_index,
-                 ia_drc_params_struct* ia_drc_params_struct,
-                 FLOAT32* audio_io_buf[],
-                 ia_audio_band_buffer_struct* audio_band_buffer,
-                 ia_filter_banks_struct* ia_filter_banks_struct,
-                 const WORD32 passThru);
+                          const WORD32 drc_instructions_index,
+                          ia_drc_params_struct* ia_drc_params_struct,
+                          FLOAT32* audio_io_buf[],
+                          ia_audio_band_buffer_struct* audio_band_buffer,
+                          ia_filter_banks_struct* ia_filter_banks_struct,
+                          const WORD32 passThru);
 
 WORD32
-impd_store_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
-                       ia_audio_in_out_buf* audio_io_buf_internal);
+impd_store_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
+                                ia_audio_in_out_buf* audio_io_buf_internal);
 
 WORD32
-impd_store_audio_io_buffer_freq(FLOAT32*         audio_real_buff[],
-                       FLOAT32*         audio_imag_buff[],
-                       ia_audio_in_out_buf* audio_io_buf_internal);
+impd_store_audio_io_buffer_freq(FLOAT32* audio_real_buff[],
+                                FLOAT32* audio_imag_buff[],
+                                ia_audio_in_out_buf* audio_io_buf_internal);
 
 WORD32
-impd_retrieve_audio_io_buffer_time(FLOAT32*         audio_in_out_buf[],
-                          ia_audio_in_out_buf* audio_io_buf_internal);
+impd_retrieve_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
+                                   ia_audio_in_out_buf* audio_io_buf_internal);
 
 WORD32
-impd_retrieve_audio_buffer_freq(FLOAT32*         audio_real_buff[],
-                          FLOAT32*         audio_imag_buff[],
-                          ia_audio_in_out_buf* audio_io_buf_internal);
+impd_retrieve_audio_buffer_freq(FLOAT32* audio_real_buff[],
+                                FLOAT32* audio_imag_buff[],
+                                ia_audio_in_out_buf* audio_io_buf_internal);
 
 WORD32
 impd_advance_audio_io_buffer_time(ia_audio_in_out_buf* audio_io_buf_internal);

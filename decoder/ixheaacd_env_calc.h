@@ -71,7 +71,6 @@ VOID ixheaacd_enery_calc_persfb(WORD32 **anal_buf_real, WORD32 **anal_buf_imag,
                                 WORD16 *nrg_est_m, FLAG low_pow_flag,
                                 ia_sbr_tables_struct *ptr_sbr_tables);
 
-
 VOID ixheaacd_avggain_calc(WORD16 *ptr_enrg_orig, WORD16 *nrg_est,
                            WORD32 sub_band_start, WORD32 sub_band_end,
                            WORD16 *sum_orig_mant, WORD16 *sum_orig_exp,
@@ -172,12 +171,14 @@ VOID ixheaacd_conv_ergtoamplitude_armv7(WORD32 bands, WORD16 noise_e,
                                         WORD16 *noise_level_mant,
                                         WORD16 *sqrt_table);
 
- VOID ixheaacd_subbandgain_calc(
-    WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant, WORD16 nrg_est_mant,
-    WORD16 nrg_est_exp, WORD16 tmp_noise_exp, WORD16 nrg_ref_exp,
-    FLAG sine_present_flag, FLAG sine_mapped_matrix, FLAG noise_absc_flag,
-    WORD16 *ptr_nrg_gain_mant, WORD16 *ptr_noise_floor_mant,
-    WORD16 *ptr_nrg_sine_m, ixheaacd_misc_tables *pstr_common_tables);
+VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
+                               WORD16 nrg_est_mant, WORD16 nrg_est_exp,
+                               WORD16 tmp_noise_exp, WORD16 nrg_ref_exp,
+                               FLAG sine_present_flag, FLAG sine_mapped_matrix,
+                               FLAG noise_absc_flag, WORD16 *ptr_nrg_gain_mant,
+                               WORD16 *ptr_noise_floor_mant,
+                               WORD16 *ptr_nrg_sine_m,
+                               ixheaacd_misc_tables *pstr_common_tables);
 PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *ptr_filt_buf,
                                               WORD16 *ptr_filt_buf_noise,
                                               WORD16 *nrg_gain,

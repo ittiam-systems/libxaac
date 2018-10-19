@@ -140,8 +140,7 @@ static UWORD8 ixheaacd_err_detect_pcw_segment(WORD8 remaining_bits_in_segment,
   return 0;
 }
 
-static VOID ixheaacd_nonpcw_sideinfo_init(
-    ia_hcr_info_struct *ptr_hcr_info) {
+static VOID ixheaacd_nonpcw_sideinfo_init(ia_hcr_info_struct *ptr_hcr_info) {
   UWORD16 i, k;
   UWORD8 cb_dim;
   UWORD8 *ptr_cb = ptr_hcr_info->str_non_pcw_side_info.ptr_cb;
@@ -1066,14 +1065,13 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
   return arr_seg_start_l;
 }
 
-static VOID ixheaacd_decode_pcw(
-    ia_bit_buf_struct *itt_bit_buff, ia_hcr_info_struct *ptr_hcr_info,
-    ia_aac_dec_tables_struct *ptr_aac_tables) {
+static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
+                                ia_hcr_info_struct *ptr_hcr_info,
+                                ia_aac_dec_tables_struct *ptr_aac_tables) {
   UWORD16 ext_sort_sec;
   UWORD16 cur_ext_sort_cw_sec;
   UWORD8 codebook;
   UWORD8 dimension;
-
 
   WORD32 num_ext_sorted_cw_in_sect_idx =
       ptr_hcr_info->sect_info.num_ext_sorted_cw_in_sect_idx;
@@ -1101,7 +1099,6 @@ static VOID ixheaacd_decode_pcw(
 
   WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->ptr_read_next);
   WORD32 read_bits = itt_bit_buff->cnt_bits;
-
 
   itt_bit_buff->ptr_read_next += 4;
 
@@ -1342,9 +1339,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
   WORD32 out1, out2;
   UWORD16 cw_len;
 
-
   WORD16 index, length;
-
 
   WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr);
   UWORD8 *ptr_read_next = itt_bit_buff->byte_ptr;
@@ -1352,7 +1347,6 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
   ixheaacd_huff_sfb_table(read_word, &index, &length, code_book_tbl, idx_table);
   cw_len = length;
-
 
   ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
 
@@ -1362,7 +1356,6 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
   sp1 = out1;
   sp2 = out2;
-
 
   if (out1) {
     if (flush_cw & 0x80000000) {
@@ -1384,7 +1377,6 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
   ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word);
 
   if (sp1 == 16) {
-
     i = 4;
     value = ixheaacd_extu(read_word, length, 23);
     value = value | 0xfffffe00;
@@ -1616,8 +1608,6 @@ static VOID ixheaacd_decode_hcr_non_pcw(
             extra_code_bits = max(tot_bits_to_save - 32, 0);
             code_bits_to_save = min(tot_bits_to_save, 32);
 
-
-
             ptr_hcr_info->str_segment_info.code_extra[*cw_offset] =
                 ixheaacd_read_bit(itt_bit_buff, extra_code_bits);
             ptr_hcr_info->str_segment_info.code[*cw_offset] =
@@ -1654,9 +1644,9 @@ static VOID ixheaacd_decode_hcr_non_pcw(
   }
 }
 
-VOID ixheaacd_decode_non_pcw(
-    ia_bit_buf_struct *itt_bit_buff, ia_hcr_info_struct *ptr_hcr_info,
-    ia_aac_dec_tables_struct *ptr_aac_tables) {
+VOID ixheaacd_decode_non_pcw(ia_bit_buf_struct *itt_bit_buff,
+                             ia_hcr_info_struct *ptr_hcr_info,
+                             ia_aac_dec_tables_struct *ptr_aac_tables) {
   UWORD32 num_valid_segment;
   WORD32 cw_offset;
   WORD32 trial;
@@ -1856,8 +1846,8 @@ UWORD32 ixheaacd_hcr_decoder(
   ptr_hcr_info->str_dec_io.quant_spec_coeff_idx = ptr_tmp4;
   ptr_hcr_info->sect_info.ext_sorted_sect_max_cb_len_idx = ptr_tmp5;
 
-  ixheaacd_hcr_reorder_quantized_spec_coeff(
-      ptr_hcr_info, ptr_aac_dec_channel_info);
+  ixheaacd_hcr_reorder_quantized_spec_coeff(ptr_hcr_info,
+                                            ptr_aac_dec_channel_info);
 
   bit_cnt_offset = (WORD32)itt_bit_buff->cnt_bits - (WORD32)save_bit_cnt;
   if (bit_cnt_offset) {

@@ -506,8 +506,7 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
     ixheaacd_preemphsis_tool_float(code, TILT_CODE, LEN_SUBFR, tmp);
     i = pitch_lag;
     if (pitch_lag_frac > 2) i++;
-    if(i >= 0)
-      ixheaacd_acelp_pitch_sharpening(code, i);
+    if (i >= 0) ixheaacd_acelp_pitch_sharpening(code, i);
 
     index = pstr_td_frame_data->gains[k * 4 + subfr_nb];
 

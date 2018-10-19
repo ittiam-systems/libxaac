@@ -234,10 +234,9 @@ WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
 
   for (ch = 0; ch < self->out_ch_count; ch++) {
     err = ixheaacd_sbr_dec_from_mps(&self->qmf_out_dir[ch][0][0].re,
-                              self->p_sbr_dec[ch], self->p_sbr_frame[ch],
-                              self->p_sbr_header[ch]);
-    if(err)
-      return err;
+                                    self->p_sbr_dec[ch], self->p_sbr_frame[ch],
+                                    self->p_sbr_header[ch]);
+    if (err) return err;
   }
 
   ixheaacd_mps_synt_calc(self);
