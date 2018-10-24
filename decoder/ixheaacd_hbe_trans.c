@@ -132,32 +132,32 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
             (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
         ptr_hbe_txposer->analy_cos_sin_tab =
             (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_8;
-        ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
         break;
       case 8:
         ptr_hbe_txposer->synth_cos_tab =
             (FLOAT32 *)ixheaacd_synth_cos_table_kl_8;
         ptr_hbe_txposer->analy_cos_sin_tab =
             (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_16;
-        ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
         break;
       case 12:
         ptr_hbe_txposer->synth_cos_tab =
             (FLOAT32 *)ixheaacd_synth_cos_table_kl_12;
         ptr_hbe_txposer->analy_cos_sin_tab =
             (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_24;
-        ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p3;
-        ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p3;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p3;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p3;
         break;
       case 16:
         ptr_hbe_txposer->synth_cos_tab =
             (FLOAT32 *)ixheaacd_synth_cos_table_kl_16;
         ptr_hbe_txposer->analy_cos_sin_tab =
             (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_32;
-        ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
         break;
       case 20:
         ptr_hbe_txposer->synth_cos_tab =
@@ -170,8 +170,8 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
             (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
         ptr_hbe_txposer->analy_cos_sin_tab =
             (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_8;
-        ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
     }
 
     ptr_hbe_txposer->synth_wind_coeff = ixheaacd_map_prot_filter(synth_size);
@@ -213,9 +213,9 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
         break;
       }
     }
-  }
-  if (ptr_hbe_txposer->k_start < 0) {
-    return -1;
+    if (ptr_hbe_txposer->k_start < 0) {
+      return -1;
+    }
   }
   return 0;
 }
