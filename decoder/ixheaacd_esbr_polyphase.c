@@ -120,8 +120,9 @@ WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
         *ptr_u++ = ((*analy_cos_sin_tab++) * u[k]);
         *ptr_u++ = ((*analy_cos_sin_tab++) * u[k]);
       }
-      if (ixheaacd_cmplx_anal_fft != NULL)
-        (*ixheaacd_cmplx_anal_fft)(u_in, u_out, anal_size * 2);
+      if (ptr_hbe_txposer->ixheaacd_cmplx_anal_fft != NULL)
+        (*(ptr_hbe_txposer->ixheaacd_cmplx_anal_fft))(u_in, u_out,
+                                                      anal_size * 2);
       else
         return -1;
 
@@ -209,8 +210,9 @@ WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
       FLOAT32 *syn_buf = &buffer[kmax];
       kmax += synth_size;
 
-      if (ixheaacd_real_synth_fft != NULL)
-        (*ixheaacd_real_synth_fft)(synth_buf_r, synth_out, synth_size * 2);
+      if (ptr_hbe_txposer->ixheaacd_real_synth_fft != NULL)
+        (*(ptr_hbe_txposer->ixheaacd_real_synth_fft))(synth_buf_r, synth_out,
+                                                      synth_size * 2);
       else
         return -1;
 
