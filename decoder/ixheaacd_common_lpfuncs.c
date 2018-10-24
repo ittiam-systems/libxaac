@@ -166,7 +166,7 @@ WORD ixheaacd_get_channel_mask(
 VOID ixheaacd_read_data_stream_element(ia_bit_buf_struct *it_bit_buff,
                                        WORD32 *byte_align_bits,
                                        ia_drc_dec_struct *drc_handle) {
-  ia_bit_buf_struct temp_bs;
+  ia_bit_buf_struct temp_bs = {0};
   WORD32 count = ixheaacd_read_bits_buf(it_bit_buff, 13);
   WORD32 cnt = (count & 0xff);
   WORD32 start_pos = 0;

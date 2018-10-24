@@ -1800,7 +1800,7 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
   WORD32 i, j, lev, pki, esc_nb;
   WORD32 m;
   WORD32 c = 0;
-  struct ia_bit_buf_struct it_bit_buff_temp;
+  struct ia_bit_buf_struct it_bit_buff_temp = {0};
   WORD32 bit_count = 0;
   WORD32 s1;
   WORD32 temp;
