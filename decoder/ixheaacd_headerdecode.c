@@ -1082,7 +1082,9 @@ WORD32 ixheaacd_aac_headerdecode(
             bytes_taken += *bytes_consumed;
             *bytes_consumed = bytes_taken;
             return result;
-          } else
+          } else if (result == -1)
+            return -1;
+          else
             bytes_taken += *bytes_consumed - 1;
           continue;
         }
