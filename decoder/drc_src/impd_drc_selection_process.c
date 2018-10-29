@@ -640,6 +640,7 @@ WORD32 impd_find_eq_set_no_compression(ia_drc_config* pstr_drc_config,
         for (c = 0; c < str_eq_instructions->drc_set_id_count; c++) {
           if ((str_eq_instructions->drc_set_id[c] == ID_FOR_ANY_DRC) ||
               (str_eq_instructions->drc_set_id[c] == 0)) {
+            if (k >= MAX_NUM_COMPRESSION_EQ) return UNEXPECTED_ERROR;
             num_compression_eq_id[k] = str_eq_instructions->eq_set_id;
             k++;
           }

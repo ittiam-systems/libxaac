@@ -86,6 +86,8 @@ extern "C" {
 
 #define SELECTION_CANDIDATE_COUNT_MAX 32
 
+#define MAX_NUM_COMPRESSION_EQ (16)
+
 #define PROC_COMPLETE 1
 #define UNEXPECTED_ERROR 2
 #define PARAM_ERROR 3
