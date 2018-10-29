@@ -2382,7 +2382,9 @@ impd_parse_loudness_info(ia_bit_buf_struct* it_bit_buff, WORD32 version,
     temp = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
 
+    /* Parsed but unused */
     loudness_info->true_peak_level_measurement_system = (temp >> 2) & 0xf;
+    /* Parsed but unused */
     loudness_info->true_peak_level_reliability = temp & 3;
   }
 
