@@ -28,7 +28,6 @@
 #include "impd_drc_parser.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
-
 WORD32 impd_parse_loud_eq_instructions(
     ia_bit_buf_struct* it_bit_buff,
     ia_loud_eq_instructions_struct* loud_eq_instructions);
@@ -918,7 +917,7 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
                                   ia_eq_coeff_struct* str_eq_coeff) {
   WORD32 err = 0;
   WORD32 eq_gain_cnt, mu, nu, temp;
-  WORD32 subband_gain_len_tbl[7] = {0, 32, 39, 64, 71, 128, 135};
+  static const WORD32 subband_gain_len_tbl[7] = {0, 32, 39, 64, 71, 128, 135};
 
   str_eq_coeff->eq_delay_max_present = impd_read_bits_buf(it_bit_buff, 1);
   if (it_bit_buff->error) return it_bit_buff->error;
@@ -961,15 +960,17 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
     str_eq_coeff->eq_subband_gain_representation = (temp >> 4) & 0x01;
 
     str_eq_coeff->eq_subband_gain_format = temp & 0x0F;
-
-    if (str_eq_coeff->eq_subband_gain_format == GAINFORMAT_UNIFORM) {
+    if ((str_eq_coeff->eq_subband_gain_format > 0) &&
+        (str_eq_coeff->eq_subband_gain_format < GAINFORMAT_UNIFORM)) {
+      str_eq_coeff->eq_subband_gain_count =
+          subband_gain_len_tbl[str_eq_coeff->eq_subband_gain_format];
+    } else {
+      /* Gain format 0 or any value between 7 to 15 is considered as default
+       * case */
       eq_gain_cnt = impd_read_bits_buf(it_bit_buff, 8);
       if (it_bit_buff->error) return it_bit_buff->error;
       str_eq_coeff->eq_subband_gain_count = eq_gain_cnt + 1;
-
-    } else
-      str_eq_coeff->eq_subband_gain_count =
-          subband_gain_len_tbl[str_eq_coeff->eq_subband_gain_format];
+    }
 
     if (str_eq_coeff->eq_subband_gain_representation == 1) {
       err = impd_parse_eq_subband_gain_spline(
