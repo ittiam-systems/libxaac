@@ -968,8 +968,13 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
       /* Gain format 0 or any value between 7 to 15 is considered as default
        * case */
       eq_gain_cnt = impd_read_bits_buf(it_bit_buff, 8);
+
       if (it_bit_buff->error) return it_bit_buff->error;
       str_eq_coeff->eq_subband_gain_count = eq_gain_cnt + 1;
+
+      if (str_eq_coeff->eq_subband_gain_count > EQ_SUBBAND_GAIN_COUNT_MAX)
+        return UNEXPECTED_ERROR;
+
     }
 
     if (str_eq_coeff->eq_subband_gain_representation == 1) {
