@@ -81,6 +81,8 @@
 #include "ixheaacd_struct.h"
 #include "ixheaacd_function_selector.h"
 
+#include "ixheaacd_error_standards.h"
+
 #undef ALLOW_SMALL_FRAMELENGTH
 
 #define ALLOW_SMALL_FRAMELENGTH
@@ -811,11 +813,12 @@ WORD32 ixheaacd_check_if_adts(ia_adts_header_struct *adts,
           (adts->profile != AAC_LC_PROFILE));
 }
 
-WORD32 ixheaacd_latm_header_decode(
+IA_ERRORCODE ixheaacd_latm_header_decode(
     ia_aac_dec_state_struct *aac_state_struct,
     struct ia_bit_buf_struct *it_bit_buff, WORD32 *bytes_consumed,
     ia_sampling_rate_info_struct *pstr_samp_rate_info) {
-  WORD32 sync, result;
+  WORD32 sync;
+  IA_ERRORCODE result;
   WORD32 next_sync, audio_mux_len_bytes_last;
   WORD32 audio_mux_len_bits_last;
   WORD32 sync_status = aac_state_struct->sync_status;
@@ -931,7 +934,7 @@ WORD32 ixheaacd_latm_header_decode(
       }
     }
   }
-  return 0;
+  return IA_NO_ERROR;
 }
 
 WORD32 ixheaacd_aac_headerdecode(
