@@ -34,7 +34,6 @@ WORD32 impd_read_bits_buf(ia_bit_buf_struct* it_bit_buff, WORD no_of_bits) {
   UWORD32 ret_val;
   UWORD8* ptr_read_next = it_bit_buff->ptr_read_next;
   WORD bit_pos = it_bit_buff->bit_pos;
-  it_bit_buff->error = 0;
 
   if (it_bit_buff->cnt_bits <= 0) {
     it_bit_buff->error = 1;
@@ -68,6 +67,26 @@ WORD32 impd_read_bits_buf(ia_bit_buf_struct* it_bit_buff, WORD no_of_bits) {
   return ret_val;
 }
 
+WORD32 impd_skip_bits_buf(ia_bit_buf_struct* it_bit_buff, WORD no_of_bits) {
+  UWORD8* ptr_read_next = it_bit_buff->ptr_read_next;
+  WORD bit_pos = it_bit_buff->bit_pos;
+
+  if (it_bit_buff->cnt_bits < no_of_bits) {
+    it_bit_buff->error = 1;
+    return -1;
+  }
+
+  it_bit_buff->cnt_bits -= no_of_bits;
+
+  bit_pos -= no_of_bits;
+  while (bit_pos < 0) {
+    bit_pos += 8;
+    ptr_read_next++;
+  }
+  it_bit_buff->ptr_read_next = ptr_read_next;
+  it_bit_buff->bit_pos = (WORD16)bit_pos;
+  return no_of_bits;
+}
 ia_bit_buf_struct* impd_create_bit_buf(ia_bit_buf_struct* it_bit_buff,
                                        UWORD8* ptr_bit_buf_base,
                                        WORD32 bit_buf_size) {
@@ -79,6 +98,7 @@ ia_bit_buf_struct* impd_create_bit_buf(ia_bit_buf_struct* it_bit_buff,
 
   it_bit_buff->cnt_bits = 0;
   it_bit_buff->size = bit_buf_size << 3;
+  it_bit_buff->error = 0;
 
   return it_bit_buff;
 }
