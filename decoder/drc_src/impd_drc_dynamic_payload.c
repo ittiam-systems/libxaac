@@ -342,7 +342,7 @@ WORD32 impd_drc_uni_gain_read(ia_bit_buf_struct* it_bit_buff,
 WORD32 impd_parse_uni_drc_gain_ext(
     ia_bit_buf_struct* it_bit_buff,
     ia_uni_drc_gain_ext_struct* uni_drc_gain_ext) {
-  WORD32 i, k;
+  WORD32 k;
   WORD32 bit_size_len, ext_size_bits, bit_size, other_bit;
 
   k = 0;
@@ -350,6 +350,7 @@ WORD32 impd_parse_uni_drc_gain_ext(
       impd_read_bits_buf(it_bit_buff, 4);
   if (it_bit_buff->error) return it_bit_buff->error;
   while (uni_drc_gain_ext->uni_drc_gain_ext_type[k] != UNIDRCGAINEXT_TERM) {
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     bit_size_len = impd_read_bits_buf(it_bit_buff, 3);
     if (it_bit_buff->error) return it_bit_buff->error;
     ext_size_bits = bit_size_len + 4;
@@ -358,14 +359,9 @@ WORD32 impd_parse_uni_drc_gain_ext(
     if (it_bit_buff->error) return it_bit_buff->error;
     uni_drc_gain_ext->ext_bit_size[k] = bit_size + 1;
 
-    switch (uni_drc_gain_ext->uni_drc_gain_ext_type[k]) {
-      default:
-        for (i = 0; i < uni_drc_gain_ext->ext_bit_size[k]; i++) {
-          other_bit = impd_read_bits_buf(it_bit_buff, 1);
-          if (it_bit_buff->error) return it_bit_buff->error;
-        }
-        break;
-    }
+    other_bit =
+        impd_skip_bits_buf(it_bit_buff, uni_drc_gain_ext->ext_bit_size[k]);
+    if (it_bit_buff->error) return it_bit_buff->error;
     k++;
     uni_drc_gain_ext->uni_drc_gain_ext_type[k] =
         impd_read_bits_buf(it_bit_buff, 4);

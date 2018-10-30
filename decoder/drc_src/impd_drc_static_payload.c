@@ -1591,6 +1591,7 @@ impd_parse_loudness_info_set_ext(
 
     bit_size = impd_read_bits_buf(it_bit_buff, ext_size_bits);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     loudness_info_set->str_loudness_info_set_ext.ext_bit_size[k] = bit_size + 1;
 
     switch (loudness_info_set->str_loudness_info_set_ext

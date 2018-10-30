@@ -44,4 +44,5 @@ ia_bit_buf_struct *impd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
 
 WORD32 impd_read_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits);
 
+WORD32 impd_skip_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits);
 #endif
