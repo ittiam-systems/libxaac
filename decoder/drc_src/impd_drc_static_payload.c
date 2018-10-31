@@ -896,6 +896,7 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
       impd_read_bits_buf(it_bit_buff, 4);
   if (it_bit_buff->error) return it_bit_buff->error;
   while (str_drc_config_ext->drc_config_ext_type[k] != UNIDRCCONFEXT_TERM) {
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     bit_size_len = impd_read_bits_buf(it_bit_buff, 4);
     if (it_bit_buff->error) return it_bit_buff->error;
     ext_size_bits = bit_size_len + 4;
@@ -1590,6 +1591,7 @@ impd_parse_loudness_info_set_ext(
 
     bit_size = impd_read_bits_buf(it_bit_buff, ext_size_bits);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     loudness_info_set->str_loudness_info_set_ext.ext_bit_size[k] = bit_size + 1;
 
     switch (loudness_info_set->str_loudness_info_set_ext
@@ -2382,7 +2384,9 @@ impd_parse_loudness_info(ia_bit_buf_struct* it_bit_buff, WORD32 version,
     temp = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
 
+    /* Parsed but unused */
     loudness_info->true_peak_level_measurement_system = (temp >> 2) & 0xf;
+    /* Parsed but unused */
     loudness_info->true_peak_level_reliability = temp & 3;
   }
 

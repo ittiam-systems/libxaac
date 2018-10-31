@@ -441,8 +441,8 @@ typedef struct {
   FLOAT32 sample_peak_level;
   WORD32 true_peak_level_present;
   FLOAT32 true_peak_level;
-  WORD32 true_peak_level_measurement_system;
-  WORD32 true_peak_level_reliability;
+  WORD32 true_peak_level_measurement_system; /* Parsed but unused */
+  WORD32 true_peak_level_reliability;        /* Parsed but unused */
   WORD32 measurement_count;
   ia_loudness_measure_struct loudness_measure[MEASUREMENT_COUNT_MAX];
 } ia_loudness_info_struct;
@@ -456,17 +456,24 @@ typedef struct {
   WORD32 drc_set_id[DRC_SET_ID_COUNT_MAX];
   WORD32 eq_set_id_count;
   WORD32 eq_set_id[EQ_SET_ID_COUNT_MAX];
-  WORD32 loudness_after_drc;
-  WORD32 loudness_after_eq;
-  WORD32 loud_eq_gain_sequence_count;
-  WORD32 gain_seq_idx[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  WORD32 drc_characteristic_format_is_cicp[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  WORD32 drc_characteristic[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  WORD32 drc_characteristic_left_index[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  WORD32 drc_characteristic_right_index[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  WORD32 frequency_range_index[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  FLOAT32 loud_eq_scaling[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
-  FLOAT32 loud_eq_offset[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX];
+  WORD32 loudness_after_drc;                            /* Parsed but unused */
+  WORD32 loudness_after_eq;                             /* Parsed but unused */
+  WORD32 loud_eq_gain_sequence_count;                   /* Parsed but unused */
+  WORD32 gain_seq_idx[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
+  WORD32 drc_characteristic_format_is_cicp
+      [LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
+  WORD32 drc_characteristic[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but
+                                                                 unused */
+  WORD32 drc_characteristic_left_index
+      [LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
+  WORD32 drc_characteristic_right_index
+      [LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
+  WORD32 frequency_range_index[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but
+                                                                    unused */
+  FLOAT32
+  loud_eq_scaling[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
+  FLOAT32
+  loud_eq_offset[LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX]; /* Parsed but unused */
 } ia_loud_eq_instructions_struct;
 
 typedef struct {
