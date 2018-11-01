@@ -97,7 +97,8 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
 VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
                              WORD32 *rem2) {
   WORD32 i, y0[8], y1[8];
-  WORD32 e0, e1, x1[8], tmp;
+  WORD32 x1[8], tmp;
+  WORD64 e0, e1;
 
   ixheaacd_nearest_neighbor_2d(x, y0, count, rem1);
   for (i = 0; i < 8; i++) {
@@ -122,9 +123,9 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
   e0 = e1 = 0;
   for (i = 0; i < 8; i++) {
     tmp = rem1[i];
-    e0 += tmp * tmp;
+    e0 += (WORD64)tmp * tmp;
     tmp = rem2[i];
-    e1 += tmp * tmp;
+    e1 += (WORD64)tmp * tmp;
   }
 
   if (e0 < e1) {

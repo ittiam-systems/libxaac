@@ -364,18 +364,20 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
 
   sum = ixheaacd_mult32x32in64(in[0], filter[0]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[1], 6);
-  *out += (WORD32)((sum * factor_even) >> 15);
+
+  *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
+
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 3], filter);
-    *out += (WORD32)((sum * factor_odd) >> 15);
+    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_odd) >> 15));
     out++;
 
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 2], filter);
-    *out += (WORD32)((sum * factor_even) >> 15);
+    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
     out++;
   }
   i = length - 3;
@@ -525,7 +527,7 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
                                 (WORD32)((WORD64)ixheaacd_mult32x32in64(
                                              alpha_q_im_temp, dmx_im[i]) >>
                                          24);
-              r_spec[i] = (factor) * (l_spec[i] - mid_side);
+              r_spec[i] = (factor)*ixheaacd_sub32_sat(l_spec[i], mid_side);
               l_spec[i] = l_spec[i] + mid_side;
             }
 
