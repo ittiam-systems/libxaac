@@ -1427,6 +1427,8 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
       }
     }
 
+    if (data_bands <= 0) return -1;
+
     if (!ixheaacd_huff_decode(it_bit_buff, data_array[0], data_array[1],
                               data_type, diff_type[0], diff_type[1],
                               pilot_coding_flag, pilot_data, data_bands,
