@@ -287,6 +287,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
   WORD32 ch_offset = 0;
 
   WORD32 elem_idx = 0;
+  WORD32 num_ch_out = 0;
   WORD32 num_elements = pstr_usac_dec_config->num_elements;
 
   pstr_usac_dec_config->usac_ext_gain_payload_len = 0;
@@ -304,6 +305,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
     switch (ele_id = pstr_usac_dec_config->usac_element_type[elem_idx]) {
       case ID_USAC_SCE:
         nr_core_coder_channels = 1;
+        num_ch_out += 1;
         goto core_data_extracting;
 
       case ID_USAC_CPE:
@@ -311,14 +313,17 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
         if (((stereo_config_index > 1) || (stereo_config_index == 0)) &&
             (p_state_aac_dec->num_of_output_ch < 2))
           return -1;
+        num_ch_out += 2;
         goto core_data_extracting;
       case ID_USAC_LFE:
         nr_core_coder_channels = 1;
+        num_ch_out += 1;
 
       core_data_extracting:
         if (ch_offset >= MAX_NUM_CHANNELS_USAC_LVL2) return -1;
+        if (num_ch_out > MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         err = ixheaacd_core_coder_data(ele_id, pstr_usac_data, elem_idx,
-                                       &ch_offset, it_bit_buff,
+                                       ch_offset, it_bit_buff,
                                        nr_core_coder_channels);
         if (err != 0) return -1;
 
