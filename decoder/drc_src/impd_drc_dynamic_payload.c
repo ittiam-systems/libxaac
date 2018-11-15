@@ -1170,6 +1170,9 @@ WORD32 impd_parse_eq_instructions(
     }
   }
 
+  if (str_eq_instructions->eq_ch_group_count > EQ_CHANNEL_GROUP_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   str_eq_instructions->td_filter_cascade_present =
       impd_read_bits_buf(it_bit_buff, 1);
   if (it_bit_buff->error) return it_bit_buff->error;
