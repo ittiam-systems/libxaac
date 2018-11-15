@@ -1538,6 +1538,9 @@ impd_parse_gain_set_params(ia_bit_buf_struct* it_bit_buff, WORD32 version,
           *gain_seq_idx = (*gain_seq_idx) + 1;
         }
       }
+
+      if (*gain_seq_idx >= SEQUENCE_COUNT_MAX) return UNEXPECTED_ERROR;
+
       gain_set_params->gain_params[i].gain_seq_idx = *gain_seq_idx;
       err = impd_parse_gain_set_params_characteristics(
           it_bit_buff, version, &(gain_set_params->gain_params[i]));
