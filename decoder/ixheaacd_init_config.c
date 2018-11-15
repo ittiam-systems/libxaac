@@ -506,7 +506,8 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
   pstr_usac_conf->core_sbr_framelength_index =
       ixheaacd_read_bits_buf(it_bit_buff, 3);
 
-  if (pstr_usac_conf->core_sbr_framelength_index > 4) return -1;
+  if (pstr_usac_conf->core_sbr_framelength_index > MAX_CORE_SBR_FRAME_LEN_IDX)
+    return -1;
 
   pstr_usac_conf->channel_configuration_index =
       ixheaacd_read_bits_buf(it_bit_buff, 5);
