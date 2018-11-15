@@ -68,11 +68,12 @@ VOID ixheaacd_shellsort(WORD32 *in, WORD32 n) {
   } while (inc > 1);
 }
 
-VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
-                           FLOAT32 input_real[][64], FLOAT32 input_imag[][64],
-                           FLOAT32 input_real1[][64], FLOAT32 input_imag1[][64],
-                           WORD32 x_over_qmf[MAX_NUM_PATCHES],
-                           FLOAT32 *scratch_buff, FLOAT32 *env_out) {
+WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
+                             FLOAT32 input_real[][64], FLOAT32 input_imag[][64],
+                             FLOAT32 input_real1[][64],
+                             FLOAT32 input_imag1[][64],
+                             WORD32 x_over_qmf[MAX_NUM_PATCHES],
+                             FLOAT32 *scratch_buff, FLOAT32 *env_out) {
   WORD8 harmonics[64];
   FLOAT32(*env_tmp)[48];
   FLOAT32(*noise_level_pvc)[48];
@@ -192,6 +193,7 @@ VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
       ui = frame_data->pstr_sbr_header->pstr_freq_band_data
                ->freq_band_tbl_hi[i + 1];
       tmp = ((ui + li) - (sub_band_start << 1)) >> 1;
+      if ((tmp >= 64) || (tmp < 0)) return -1;
 
       harmonics[tmp] = add_harmonics[i];
     }
@@ -559,6 +561,7 @@ VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
       ui = frame_data->pstr_sbr_header->pstr_freq_band_data
                ->freq_band_tbl_hi[i + 1];
       tmp = ((ui + li) - (sub_band_start << 1)) >> 1;
+      if ((tmp >= 64) || (tmp < 0)) return -1;
 
       harmonics[tmp] = add_harmonics[i];
     }
@@ -783,6 +786,7 @@ VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
   frame_data->phase_index = phase_index;
   frame_data->pstr_sbr_header->esbr_start_up = esbr_start_up;
   frame_data->pstr_sbr_header->esbr_start_up_pvc = esbr_start_up_pvc;
+  return 0;
 }
 
 VOID ixheaacd_createlimiterbands(WORD32 lim_table[4][12 + 1],
