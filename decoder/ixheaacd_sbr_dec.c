@@ -759,21 +759,16 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
       ptr_pvc_data->prev_pvc_rate = ptr_pvc_data->pvc_rate;
 
       ptr_frame_data->pstr_sbr_header = ptr_header_data;
-      if (ptr_header_data->hbe_flag == 0)
-        ixheaacd_sbr_env_calc(
-            ptr_frame_data, ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET), NULL,
-            ptr_sbr_dec->scratch_buff, pvc_dec_out_buf);
-      else
-        ixheaacd_sbr_env_calc(
-            ptr_frame_data, ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->p_hbe_txposer->x_over_qmf, ptr_sbr_dec->scratch_buff,
-            pvc_dec_out_buf);
+      err_code = ixheaacd_sbr_env_calc(
+          ptr_frame_data, ptr_sbr_dec->sbr_qmf_out_real + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->sbr_qmf_out_imag + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
+          ptr_sbr_dec->qmf_buf_imag + (SBR_HF_ADJ_OFFSET),
+          (ptr_header_data->hbe_flag == 0)
+              ? NULL
+              : ptr_sbr_dec->p_hbe_txposer->x_over_qmf,
+          ptr_sbr_dec->scratch_buff, pvc_dec_out_buf);
+      if (err_code) return err_code;
 
     } else {
       for (i = 0; i < 64; i++) {
@@ -1213,22 +1208,16 @@ WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
   ptr_frame_data->pstr_sbr_header = ptr_header_data;
   ptr_frame_data->sbr_mode = ORIG_SBR;
   ptr_frame_data->prev_sbr_mode = ORIG_SBR;
-  if (ptr_header_data->hbe_flag == 0)
-    ixheaacd_sbr_env_calc(ptr_frame_data,
-                          ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-                          NULL, ptr_sbr_dec->scratch_buff, NULL);
-  else
-    ixheaacd_sbr_env_calc(ptr_frame_data,
-                          ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
-                          ptr_sbr_dec->p_hbe_txposer->x_over_qmf,
-                          ptr_sbr_dec->scratch_buff, NULL);
+  err = ixheaacd_sbr_env_calc(
+      ptr_frame_data, ptr_sbr_dec->mps_sbr_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+      ptr_sbr_dec->mps_sbr_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+      ptr_sbr_dec->mps_qmf_buf_real + SBR_HF_ADJ_OFFSET,
+      ptr_sbr_dec->mps_qmf_buf_imag + SBR_HF_ADJ_OFFSET,
+      (ptr_header_data->hbe_flag == 0) ? NULL
+                                       : ptr_sbr_dec->p_hbe_txposer->x_over_qmf,
+      ptr_sbr_dec->scratch_buff, NULL);
 
+  if (err) return err;
   for (i = 0; i < no_bins; i++) {
     FLOAT32 *p_loc_mps_qmf_output =
         p_mps_qmf_output + i * (MAX_NUM_QMF_BANDS_ESBR * 2);
