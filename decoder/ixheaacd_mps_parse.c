@@ -1077,6 +1077,8 @@ WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
     }
   }
 
+  if (self->num_bands_ipd > MAX_PARAMETER_BANDS) return -1;
+
   self->dir_sig_count = 1;
   self->decor_sig_count = 1;
 
