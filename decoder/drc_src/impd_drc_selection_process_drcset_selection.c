@@ -305,6 +305,7 @@ WORD32 impd_select_drcs_without_compr_effects(
       }
     }
     if (match == 1) {
+      if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
       memcpy(&selection_candidate_info_step_2[k], &selection_candidate_info[i],
              sizeof(ia_selection_candidate_info_struct));
       k++;
@@ -365,6 +366,7 @@ WORD32 impd_match_effect_type_attempt(
                0x0) ||
               ((drc_instructions_dependent->drc_set_effect & effect_bit_idx) !=
                0x0)) {
+            if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
             memcpy(&selection_candidate_info_step_2[k],
                    &selection_candidate_info[i],
                    sizeof(ia_selection_candidate_info_struct));
@@ -375,6 +377,7 @@ WORD32 impd_match_effect_type_attempt(
                0x0) &&
               ((drc_instructions_dependent->drc_set_effect & effect_bit_idx) ==
                0x0)) {
+            if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
             memcpy(&selection_candidate_info_step_2[k],
                    &selection_candidate_info[i],
                    sizeof(ia_selection_candidate_info_struct));
@@ -385,6 +388,7 @@ WORD32 impd_match_effect_type_attempt(
         if (state_requested == 1) {
           if ((str_drc_instruction_str->drc_set_effect & effect_bit_idx) !=
               0x0) {
+            if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
             memcpy(&selection_candidate_info_step_2[k],
                    &selection_candidate_info[i],
                    sizeof(ia_selection_candidate_info_struct));
@@ -393,6 +397,7 @@ WORD32 impd_match_effect_type_attempt(
         } else {
           if ((str_drc_instruction_str->drc_set_effect & effect_bit_idx) ==
               0x0) {
+            if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
             memcpy(&selection_candidate_info_step_2[k],
                    &selection_candidate_info[i],
                    sizeof(ia_selection_candidate_info_struct));
@@ -511,6 +516,7 @@ WORD32 impd_match_dynamic_range(
       if (requested_dyn_range_range_flag == 1) {
         if ((lp_avg_val >= dynamic_range_min_requested) &&
             (lp_avg_val <= dynamic_range_max_requested)) {
+          if (k >= DRC_INSTRUCTIONS_COUNT_MAX) return UNEXPECTED_ERROR;
           selected[k] = i;
           k++;
         }
@@ -522,6 +528,7 @@ WORD32 impd_match_dynamic_range(
             deviation_min = deviation;
             k = 0;
           }
+          if (k >= DRC_INSTRUCTIONS_COUNT_MAX) return UNEXPECTED_ERROR;
           selected[k] = i;
           k++;
         }
@@ -645,6 +652,7 @@ WORD32 impd_match_drc_characteristic_attempt(
       }
     }
     if ((ref_count > 0) && (((FLOAT32)match_count) > 0.5f * ref_count)) {
+      if (n >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
       memcpy(&selection_candidate_info[n], &selection_candidate_info[i],
              sizeof(ia_selection_candidate_info_struct));
       n++;
@@ -981,6 +989,7 @@ WORD32 impd_drc_set_preselection(
             &matching_eq_set_count, matching_eq_instrucions_index);
         if (err) return (err);
         for (j = 0; j < matching_eq_set_count; j++) {
+          if (n >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
           memcpy(&selection_candidate_info_step_2[n],
                  &selection_candidate_info[k],
                  sizeof(ia_selection_candidate_info_struct));
@@ -992,6 +1001,7 @@ WORD32 impd_drc_set_preselection(
         }
       }
       if (str_drc_instruction_str->requires_eq == 0) {
+        if (n >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
         memcpy(&selection_candidate_info_step_2[n],
                &selection_candidate_info[k],
                sizeof(ia_selection_candidate_info_struct));
@@ -999,10 +1009,9 @@ WORD32 impd_drc_set_preselection(
         n++;
       }
     }
-    for (k = 0; k < n; k++) {
-      memcpy(&selection_candidate_info[k], &selection_candidate_info_step_2[k],
-             sizeof(ia_selection_candidate_info_struct));
-    }
+    if (n > SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
+    memcpy(selection_candidate_info, selection_candidate_info_step_2,
+           n * sizeof(ia_selection_candidate_info_struct));
     *selection_candidate_count = n;
     n = 0;
     for (k = 0; k < *selection_candidate_count; k++) {
@@ -1084,6 +1093,7 @@ WORD32 impd_drc_set_preselection(
       for (n = 0; n < pstr_loudness_info->loudness_info_album_count; n++) {
         if (loudness_drc_set_id_requested ==
             pstr_loudness_info->str_loudness_info_album[n].drc_set_id) {
+          if (j >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
           memcpy(&selection_candidate_info[j], &selection_candidate_info[k],
                  sizeof(ia_selection_candidate_info_struct));
           j++;
