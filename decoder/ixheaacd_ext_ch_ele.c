@@ -639,7 +639,7 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   WORD32 err_code = 0;
   WORD32 k = 0, ch = 0, chn, left = 0, right = 0;
 
-  ia_usac_tmp_core_coder_struct str_tmp_core_coder;
+  ia_usac_tmp_core_coder_struct str_tmp_core_coder = {0};
   ia_usac_tmp_core_coder_struct *pstr_core_coder = &str_tmp_core_coder;
   ia_td_frame_data_struct td_frame;
 
