@@ -633,7 +633,7 @@ WORD32 ixheaacd_ics_info(ia_usac_data_struct *usac_data, WORD32 chn,
 }
 
 WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
-                                WORD32 elem_idx, WORD32 *chan_offset,
+                                WORD32 elem_idx, WORD32 chan_offset,
                                 ia_bit_buf_struct *it_bit_buff,
                                 WORD32 nr_core_coder_channels) {
   WORD32 err_code = 0;
@@ -660,8 +660,8 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
     pstr_core_coder->common_window = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
     if (pstr_core_coder->common_window) {
-      left = *chan_offset;
-      right = *chan_offset + 1;
+      left = chan_offset;
+      right = chan_offset + 1;
 
       err_code =
           ixheaacd_ics_info(usac_data, left, &pstr_core_coder->max_sfb[left],
@@ -698,8 +698,8 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
       pstr_core_coder->ms_mask_present[0] =
           ixheaacd_read_ms_mask(usac_data, pstr_core_coder, it_bit_buff, left);
     } else {
-      left = *chan_offset;
-      right = *chan_offset + 1;
+      left = chan_offset;
+      right = chan_offset + 1;
 
       pstr_core_coder->ms_mask_present[0] = 0;
       pstr_core_coder->ms_mask_present[1] = 0;
@@ -768,12 +768,12 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   } else {
     pstr_core_coder->common_window = 0;
     pstr_core_coder->common_tw = 0;
-    left = *chan_offset;
-    right = *chan_offset;
-    if (nr_core_coder_channels == 2) right = *chan_offset + 1;
+    left = chan_offset;
+    right = chan_offset;
+    if (nr_core_coder_channels == 2) right = chan_offset + 1;
   }
 
-  for (ch = 0, chn = *chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
+  for (ch = 0, chn = chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
     if (pstr_core_coder->core_mode[ch] == 1) {
       err_code =
           ixheaacd_tw_buff_update(usac_data, chn, usac_data->str_tddec[chn]);

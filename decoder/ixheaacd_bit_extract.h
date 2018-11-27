@@ -50,7 +50,7 @@ VOID ixheaacd_read_tns_u(ia_sfb_info_struct *pstr_sfb_info,
                          ia_bit_buf_struct *it_bit_buff);
 
 WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
-                                WORD32 elem_idx, WORD32 *chan_offset,
+                                WORD32 elem_idx, WORD32 chan_offset,
                                 ia_bit_buf_struct *it_bit_buff,
                                 WORD32 nr_core_coder_channels);
 
