@@ -2131,6 +2131,7 @@ impd_parse_drc_instructions_uni_drc(
 
   ch_cnt = drc_config->channel_layout.base_channel_count;
 
+  if (ch_cnt > MAX_CHANNEL_COUNT) return (UNEXPECTED_ERROR);
   for (c = 0; c < MAX_CHANNEL_COUNT; c++) {
     unique_idx[c] = -10;
     unique_scaling[c] = -10.0f;
@@ -2161,17 +2162,13 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_parameters_cnt += 1;
+        if ((c + repeat_parameters_cnt) > MAX_CHANNEL_COUNT)
+          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_parameters_cnt; k++) {
           str_drc_instruction_str->gain_set_index[c] =
               str_drc_instruction_str->gain_set_index[c - 1];
-          str_drc_instruction_str->str_ducking_modifiers_for_channel[c]
-              .ducking_scaling_flag =
-              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1]
-                  .ducking_scaling_flag;
-          str_drc_instruction_str->str_ducking_modifiers_for_channel[c]
-              .ducking_scaling =
-              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1]
-                  .ducking_scaling;
+          str_drc_instruction_str->str_ducking_modifiers_for_channel[c] =
+              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1];
           c++;
         }
       }
@@ -2283,6 +2280,7 @@ impd_parse_drc_instructions_uni_drc(
       ch_cnt = 1;
     }
 
+    if (ch_cnt > MAX_CHANNEL_COUNT) return (UNEXPECTED_ERROR);
     c = 0;
     while (c < ch_cnt) {
       WORD32 bs_gain_set_idx;
@@ -2302,6 +2300,8 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_gain_set_idx_cnt += 1;
+        if ((c + repeat_gain_set_idx_cnt) > MAX_CHANNEL_COUNT)
+          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_gain_set_idx_cnt; k++) {
           str_drc_instruction_str->gain_set_index[c] = bs_gain_set_idx - 1;
           c++;
