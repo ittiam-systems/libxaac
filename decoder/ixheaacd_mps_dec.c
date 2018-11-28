@@ -302,8 +302,9 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
 
   self->present_time_slot = 0;
 
-  ixheaacd_mps_frame_decode(self);
+  err = ixheaacd_mps_frame_decode(self);
 
+  if (err != 0) return err;
   ixheaacd_mps_qmf_hyb_analysis(self);
 
   ixheaacd_pre_and_mix_matrix_calculation(self);
