@@ -683,7 +683,7 @@ static float ixheaacd_mps_de_quantize(int value, int param_type) {
   }
 }
 
-static VOID ixheaacd_mps_mapindexdata(
+static WORD32 ixheaacd_mps_mapindexdata(
     ia_mps_dec_state_struct *self, ia_mps_data_struct *frame_xxx_data,
     float out_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int out_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
@@ -790,18 +790,25 @@ static VOID ixheaacd_mps_mapindexdata(
     x2 = param_slots[i2];
 
     if (interpolate_local[i] == 1) {
-      assert(i2 < num_parameter_sets);
+      if (i2 < num_parameter_sets) {
+        return -1;
+      }
       for (band = band_start; band < band_stop; band++) {
         int yi, y1, y2;
+        yi = 0;
         y1 = out_idx_data[i1][band];
         y2 = out_idx_data[i2][band];
         if (param_type == IPD) {
           if (y2 - y1 > 8) y1 += 16;
           if (y1 - y2 > 8) y2 += 16;
 
-          yi = (y1 + (xi - x1) * (y2 - y1) / (x2 - x1)) % 16;
+          if (x2 != x1) {
+            yi = (y1 + (xi - x1) * (y2 - y1) / (x2 - x1)) % 16;
+          }
         } else {
-          yi = y1 + (xi - x1) * (y2 - y1) / (x2 - x1);
+          if (x2 != x1) {
+            yi = y1 + (xi - x1) * (y2 - y1) / (x2 - x1);
+          }
         }
         out_idx_data[i][band] = yi;
       }
@@ -829,26 +836,35 @@ static VOID ixheaacd_mps_mapindexdata(
           out_idx_data[num_parameter_sets - 1][band];
     }
   }
+
+  return 0;
 }
 
-static VOID ixheaacd_mps_dec_and_mapframeott(ia_mps_dec_state_struct *self) {
+static WORD32 ixheaacd_mps_dec_and_mapframeott(ia_mps_dec_state_struct *self) {
   ia_mps_bs_frame *cur_bit_stream_ptr = &(self->bs_frame);
+  WORD32 err_code = 0;
 
-  ixheaacd_mps_mapindexdata(self, &cur_bit_stream_ptr->cld_data, self->cld_data,
-                            cur_bit_stream_ptr->cld_idx,
-                            cur_bit_stream_ptr->cmp_cld_idx,
-                            cur_bit_stream_ptr->cld_idx_pre, CLD);
+  err_code = ixheaacd_mps_mapindexdata(
+      self, &cur_bit_stream_ptr->cld_data, self->cld_data,
+      cur_bit_stream_ptr->cld_idx, cur_bit_stream_ptr->cmp_cld_idx,
+      cur_bit_stream_ptr->cld_idx_pre, CLD);
+  if (err_code != 0) return err_code;
 
-  ixheaacd_mps_mapindexdata(self, &cur_bit_stream_ptr->icc_data, self->icc_data,
-                            cur_bit_stream_ptr->icc_idx,
-                            cur_bit_stream_ptr->cmp_icc_idx,
-                            cur_bit_stream_ptr->icc_idx_pre, ICC);
+  err_code = ixheaacd_mps_mapindexdata(
+      self, &cur_bit_stream_ptr->icc_data, self->icc_data,
+      cur_bit_stream_ptr->icc_idx, cur_bit_stream_ptr->cmp_icc_idx,
+      cur_bit_stream_ptr->icc_idx_pre, ICC);
+  if (err_code != 0) return err_code;
+  if ((self->config->bs_phase_coding)) {
+    err_code = ixheaacd_mps_mapindexdata(
+        self, &cur_bit_stream_ptr->ipd_data, self->ipd_data,
+        cur_bit_stream_ptr->ipd_idx, cur_bit_stream_ptr->ipd_idx_data,
+        cur_bit_stream_ptr->ipd_idx_prev, IPD);
 
-  if ((self->config->bs_phase_coding))
-    ixheaacd_mps_mapindexdata(self, &cur_bit_stream_ptr->ipd_data,
-                              self->ipd_data, cur_bit_stream_ptr->ipd_idx,
-                              cur_bit_stream_ptr->ipd_idx_data,
-                              cur_bit_stream_ptr->ipd_idx_prev, IPD);
+    if (err_code != 0) return err_code;
+  }
+
+  return 0;
 }
 
 static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
@@ -939,16 +955,19 @@ static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
   }
 }
 
-VOID ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
+WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
   int i;
-  if (self->parse_nxt_frame == 1) return;
+  WORD32 err_code = 0;
+  if (self->parse_nxt_frame == 1) return 0;
 
   self->ext_frame_flag = 0;
   if (self->param_slots[self->num_parameter_sets - 1] != self->time_slots - 1) {
     self->ext_frame_flag = 1;
   }
 
-  ixheaacd_mps_dec_and_mapframeott(self);
+  err_code = ixheaacd_mps_dec_and_mapframeott(self);
+
+  if (err_code != 0) return err_code;
 
   ixheaacd_mps_dec_and_mapframesmg(self);
 
@@ -966,6 +985,8 @@ VOID ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
     self->inv_param_slot_diff_Q30[i] =
         (int)floor(self->inv_param_slot_diff[i] * 1073741824 + 0.5);
   }
+
+  return 0;
 }
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
