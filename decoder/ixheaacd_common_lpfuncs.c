@@ -211,12 +211,13 @@ VOID ixheaacd_read_data_stream_element(ia_bit_buf_struct *it_bit_buff,
     }
   }
 
+  if (it_bit_buff->cnt_bits < (cnt << 3)) {
+    longjmp(*(it_bit_buff->xaac_jmp_buf),
+            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+  }
   it_bit_buff->ptr_read_next += cnt;
   it_bit_buff->cnt_bits -= ((cnt) << 3);
 
-  if (it_bit_buff->ptr_read_next > it_bit_buff->ptr_bit_buf_end) {
-    it_bit_buff->ptr_read_next = it_bit_buff->ptr_bit_buf_base;
-  }
 }
 
 VOID ixheaacd_read_fill_element(ia_bit_buf_struct *it_bit_buff,
@@ -243,12 +244,13 @@ VOID ixheaacd_read_fill_element(ia_bit_buf_struct *it_bit_buff,
     } else {
       ixheaacd_read_bits_buf(it_bit_buff, 4);
 
+      if (it_bit_buff->cnt_bits < ((count - 1) << 3)) {
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      }
       it_bit_buff->ptr_read_next += count - 1;
       it_bit_buff->cnt_bits -= ((count - 1) << 3);
 
-      if (it_bit_buff->ptr_read_next > it_bit_buff->ptr_bit_buf_end) {
-        it_bit_buff->ptr_read_next = it_bit_buff->ptr_bit_buf_base;
-      }
     }
   }
 }

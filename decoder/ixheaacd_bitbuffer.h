@@ -20,6 +20,8 @@
 #ifndef IXHEAACD_BITBUFFER_H
 #define IXHEAACD_BITBUFFER_H
 
+#include <setjmp.h>
+
 #define CRC_ADTS_HEADER_LEN 56
 #define CRC_ADTS_RAW_DATA_BLK_LEN 192
 #define CRC_ADTS_RAW_IIND_ICS 128
@@ -83,6 +85,7 @@ typedef struct ia_bit_buf_struct {
   UWORD8 *ptr_start;
   WORD32 write_bit_count;
   WORD32 max_size;
+  jmp_buf *xaac_jmp_buf;
 
 } ia_bit_buf_struct;
 

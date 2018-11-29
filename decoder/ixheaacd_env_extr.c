@@ -1138,9 +1138,15 @@ VOID ixheaacd_read_env_data(ia_sbr_frame_info_data_struct *ptr_frame_data,
     }
 
     for (i = (1 - dtdf_dir_flag); i < no_band[j]; i++) {
-      readword = ixheaacd_show_bits_buf(it_bit_buff, 20);
-      ixheaacd_huffman_decode(readword << 12, &index, &length,
-                              (const UWORD16 *)h, (const UWORD32 *)idx_tab);
+      if (it_bit_buff->cnt_bits < 20) {
+        readword = ixheaacd_show_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+        readword = readword << (32 - it_bit_buff->cnt_bits);
+      } else {
+        readword = ixheaacd_show_bits_buf(it_bit_buff, 20);
+        readword = readword << 12;
+      }
+      ixheaacd_huffman_decode(readword, &index, &length, (const UWORD16 *)h,
+                              (const UWORD32 *)idx_tab);
       delta = index - lav;
       ixheaacd_read_bits_buf(it_bit_buff, length);
       p_sbr_sf[ixheaacd_drc_offset + i] =

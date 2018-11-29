@@ -203,10 +203,14 @@ static WORD32 ixheaacd_read_ext_element(
         }
         pstr_usac_dec_config->usac_ext_gain_payload_len += pay_load_length;
       } else {
+        if (it_bit_buff->cnt_bits < (WORD32)(pay_load_length << 3)) {
+          longjmp(*(it_bit_buff->xaac_jmp_buf),
+                  IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+        }
         it_bit_buff->ptr_read_next =
             it_bit_buff->ptr_read_next + pay_load_length;
         it_bit_buff->cnt_bits =
-            it_bit_buff->cnt_bits - (WORD32)(pay_load_length * 8);
+            it_bit_buff->cnt_bits - (WORD32)(pay_load_length << 3);
       }
     }
   }

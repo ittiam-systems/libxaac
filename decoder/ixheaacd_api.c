@@ -1256,9 +1256,20 @@ IA_ERRORCODE ixheaacd_dec_init(
   IA_ERRORCODE err_code = IA_NO_ERROR;
   struct ia_aac_persistent_struct *aac_persistent_mem;
   struct ia_sbr_pers_struct *sbr_persistent_mem;
+  WORD32 ret_val;
 
   p_obj_exhaacplus_dec->p_state_aac =
       p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_PERSIST_IDX];
+
+  if (p_obj_exhaacplus_dec->p_state_aac != NULL) {
+    ret_val = setjmp(p_obj_exhaacplus_dec->p_state_aac->xaac_jmp_buf);
+    if (ret_val != 0) {
+      p_obj_exhaacplus_dec->p_state_aac->i_bytes_consumed =
+          p_obj_exhaacplus_dec->p_state_aac->ui_in_bytes;
+      p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = 0;
+      return IA_NO_ERROR;
+    }
+  }
 
   time_data = (WORD16 *)(p_obj_exhaacplus_dec
                              ->pp_mem_aac[IA_ENHAACPLUS_DEC_OUTPUT_IDX]);
@@ -1492,6 +1503,8 @@ IA_ERRORCODE ixheaacd_dec_init(
         &p_state_enhaacplus_dec->str_bit_buf, (UWORD8 *)in_buffer,
         p_obj_exhaacplus_dec->p_mem_info_aac[IA_ENHAACPLUS_DEC_INPUT_IDX]
             .ui_size);
+    p_state_enhaacplus_dec->pstr_bit_buf->xaac_jmp_buf =
+        &(p_state_enhaacplus_dec->xaac_jmp_buf);
 
     p_state_enhaacplus_dec->ptr_bit_stream =
         p_state_enhaacplus_dec->pstr_bit_buf;
@@ -1611,6 +1624,8 @@ IA_ERRORCODE ixheaacd_dec_init(
 
     ixheaacd_create_init_bit_buf(it_bit_buff, in_buffer,
                                  p_state_enhaacplus_dec->ui_in_bytes);
+    p_state_enhaacplus_dec->pstr_bit_buf->xaac_jmp_buf =
+        &(p_state_enhaacplus_dec->xaac_jmp_buf);
 
     it_bit_buff->adts_header_present =
         p_state_enhaacplus_dec->s_adts_hdr_present;
@@ -1803,6 +1818,10 @@ IA_ERRORCODE ixheaacd_dec_init(
             1, frame_size_1 * 2, NULL, NULL,
             p_state_enhaacplus_dec->str_sbr_config,
             p_state_enhaacplus_dec->audio_object_type);
+        if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+          p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->xaac_jmp_buf =
+              &(p_state_enhaacplus_dec->xaac_jmp_buf);
+        }
       } else {
       }
 
@@ -1861,6 +1880,10 @@ IA_ERRORCODE ixheaacd_dec_init(
               frame_size_2 * 2, NULL, NULL,
               p_state_enhaacplus_dec->str_sbr_config,
               p_state_enhaacplus_dec->audio_object_type);
+        }
+        if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+          p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->xaac_jmp_buf =
+              &(p_state_enhaacplus_dec->xaac_jmp_buf);
         }
       }
 
@@ -1995,6 +2018,10 @@ IA_ERRORCODE ixheaacd_dec_init(
               frame_size_2 * 2, NULL, NULL,
               p_state_enhaacplus_dec->str_sbr_config,
               p_state_enhaacplus_dec->audio_object_type);
+          if (p_state_enhaacplus_dec->str_sbr_dec_info[i]) {
+            p_state_enhaacplus_dec->str_sbr_dec_info[i]->xaac_jmp_buf =
+                &(p_state_enhaacplus_dec->xaac_jmp_buf);
+          }
         }
 
         i++;
@@ -2128,8 +2155,19 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
   SIZE_T bytes_for_sync;
   WORD32 audio_mux_length_bytes_last = 0;
+  WORD32 ret_val;
 
   p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 0;
+
+  if (p_obj_exhaacplus_dec->p_state_aac != NULL) {
+    ret_val = setjmp(p_obj_exhaacplus_dec->p_state_aac->xaac_jmp_buf);
+    if (ret_val != 0) {
+      p_obj_exhaacplus_dec->p_state_aac->i_bytes_consumed =
+          p_obj_exhaacplus_dec->p_state_aac->ui_in_bytes;
+      p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = 0;
+      return IA_NO_ERROR;
+    }
+  }
 
   time_data = (WORD16 *)(p_obj_exhaacplus_dec
                              ->pp_mem_aac[IA_ENHAACPLUS_DEC_OUTPUT_IDX]);
@@ -2237,6 +2275,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   {
     ixheaacd_create_init_bit_buf(it_bit_buff, in_buffer,
                                  p_state_enhaacplus_dec->ui_in_bytes);
+    it_bit_buff->xaac_jmp_buf = &(p_state_enhaacplus_dec->xaac_jmp_buf);
 
     it_bit_buff->adts_header_present =
         p_state_enhaacplus_dec->s_adts_hdr_present;
@@ -2536,6 +2575,10 @@ IA_ERRORCODE ixheaacd_dec_execute(
           ps_enable, 1, frame_size * 2, NULL, NULL,
           p_state_enhaacplus_dec->str_sbr_config,
           p_state_enhaacplus_dec->audio_object_type);
+      if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+        p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->xaac_jmp_buf =
+            &(p_state_enhaacplus_dec->xaac_jmp_buf);
+      }
     }
 
     {

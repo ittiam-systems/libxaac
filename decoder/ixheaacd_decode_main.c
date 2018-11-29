@@ -280,6 +280,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     pstr_dec_data->dec_bit_buf.ptr_read_next = (UWORD8 *)inbuffer;
     pstr_dec_data->dec_bit_buf.bit_pos = 7;
     pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
+    pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
 
     pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
     if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
@@ -306,6 +307,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         config_bit_buf.ptr_bit_buf_end = (UWORD8 *)config + config_len;
         config_bit_buf.bit_pos = 7;
         config_bit_buf.cnt_bits = config_bit_buf.size;
+        config_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
 
         suitable_tracks =
             ixheaacd_frm_data_init(pstr_audio_specific_config, pstr_dec_data);
@@ -334,6 +336,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
       pstr_dec_data->dec_bit_buf.ptr_read_next = (UWORD8 *)inbuffer;
       pstr_dec_data->dec_bit_buf.bit_pos = 7;
       pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
+      pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
 
       pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
 

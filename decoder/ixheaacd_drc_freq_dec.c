@@ -677,6 +677,10 @@ static int ixheaacd_drc_read_compression(ia_handle_bit_buf_struct bs,
 
   memcpy(&local_bs, bs, sizeof(ia_bit_buf_struct));
 
+  if (local_bs.size < bs_pos) {
+    longjmp(*(local_bs.xaac_jmp_buf),
+            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+  }
   bytes = (local_bs.size - bs_pos) >> 3;
   bits = (local_bs.size - bs_pos) % 8;
 

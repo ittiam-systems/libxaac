@@ -20,6 +20,8 @@
 #ifndef IXHEAACD_SBR_DEC_H
 #define IXHEAACD_SBR_DEC_H
 
+#include <setjmp.h>
+
 typedef struct {
   WORD32 x_over_qmf[MAX_NUM_PATCHES];
   WORD32 max_stretch;
@@ -121,6 +123,7 @@ struct ia_sbr_dec_inst_struct {
   FLAG prev_sbr_mode;
   FLAG inter_tes_flag;
   FLAG aot_usac_flag;
+  jmp_buf *xaac_jmp_buf;
 };
 
 typedef struct ia_sbr_pers_struct {
