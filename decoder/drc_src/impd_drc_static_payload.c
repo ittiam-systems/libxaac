@@ -548,6 +548,10 @@ static WORD32 impd_parametic_drc_parse_coeff(
   str_drc_coeff_param_drc->reset_parametric_drc = (temp >> 6) & 1;
   str_drc_coeff_param_drc->parametric_drc_gain_set_count = temp & 0x3f;
 
+  if (str_drc_coeff_param_drc->parametric_drc_gain_set_count >
+      SEQUENCE_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   for (i = 0; i < str_drc_coeff_param_drc->parametric_drc_gain_set_count; i++) {
     err = impd_parametric_drc_parse_gain_set_params(
         it_bit_buff, drc_config,
@@ -910,6 +914,10 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
         str_drc_config_ext->parametric_drc_instructions_count =
             impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (str_drc_config_ext->parametric_drc_instructions_count >
+            PARAM_DRC_INSTRUCTIONS_COUNT_MAX)
+          return (UNEXPECTED_ERROR);
+
         for (i = 0; i < str_drc_config_ext->parametric_drc_instructions_count;
              i++) {
           err = impd_parse_parametric_drc_instructions(
@@ -1120,6 +1128,9 @@ impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
   if (it_bit_buff->error) return it_bit_buff->error;
 
   drc_config->dwnmix_instructions_count = (temp >> 1) & 0x7f;
+  if (drc_config->dwnmix_instructions_count > DOWNMIX_INSTRUCTION_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   drc_config->drc_description_basic_present = temp & 1;
 
   if (drc_config->drc_description_basic_present == 1) {
@@ -1692,6 +1703,11 @@ impd_drc_parse_coeff(
       str_p_loc_drc_coefficients_uni_drc->characteristic_left_count =
           impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
+
+      if (str_p_loc_drc_coefficients_uni_drc->characteristic_left_count >
+          SPLIT_CHARACTERISTIC_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
+
       for (i = 1;
            i <= str_p_loc_drc_coefficients_uni_drc->characteristic_left_count;
            i++) {
@@ -1709,6 +1725,10 @@ impd_drc_parse_coeff(
       str_p_loc_drc_coefficients_uni_drc->characteristic_right_count =
           impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
+
+      if (str_p_loc_drc_coefficients_uni_drc->characteristic_right_count >
+          SPLIT_CHARACTERISTIC_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
       for (i = 1;
            i <= str_p_loc_drc_coefficients_uni_drc->characteristic_right_count;
            i++) {

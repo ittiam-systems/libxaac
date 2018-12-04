@@ -148,25 +148,25 @@ IA_ERRORCODE impd_init_drc_decode_post_config(
         p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
             .buf_interpolation_count = drc_instruction_str->gain_element_count;
         for (i = 0;
-             i < p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+             i < p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
                      .buf_interpolation_count;
              i++) {
-          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
               .buf_interpolation[i]
               .str_node.time = 0;
-          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
               .buf_interpolation[i]
               .prev_node.time = -1;
-          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
               .buf_interpolation[i]
               .str_node.loc_db_gain = 0.0f;
-          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+          p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
               .buf_interpolation[i]
               .str_node.slope = 0.0f;
 
           for (j = 0; j < 2 * AUDIO_CODEC_FRAME_SIZE_MAX + MAX_SIGNAL_DELAY;
                j++) {
-            p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[i]
+            p_drc_gain_dec_structs->drc_gain_buffers.pstr_gain_buf[k]
                 .buf_interpolation[i]
                 .lpcm_gains[j] = 1.f;
           }
