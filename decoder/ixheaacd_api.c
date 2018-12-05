@@ -137,6 +137,8 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
       return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALIGN);
     }
     p_obj_exhaacplus_dec->pp_mem_aac[i_idx] = pv_value;
+    memset(p_obj_exhaacplus_dec->pp_mem_aac[i_idx], 0,
+           p_obj_exhaacplus_dec->p_mem_info_aac[i_idx].ui_size);
 
     if (i_idx == IA_ENHAACPLUS_DEC_PERSIST_IDX) {
       pUWORD8 p_temp = pv_value;
