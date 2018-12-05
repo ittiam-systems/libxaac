@@ -380,6 +380,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     case IA_API_CMD_INIT: {
       switch (i_idx) {
         case IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS: {
+          memset(p_obj_exhaacplus_dec, 0, sizeof(*p_obj_exhaacplus_dec));
           p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz = 16;
           p_obj_exhaacplus_dec->aac_config.flag_downmix = 0;
           p_obj_exhaacplus_dec->aac_config.flag_08khz_out = 0;
