@@ -111,7 +111,7 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
         x1[i] = x[i] - 1;
       } else {
         x1[i] = 0;
-        rem2[i] = rem2[i] - (1 << count);
+        rem2[i] = ixheaacd_sub32_sat(rem2[i], (1 << count));
       }
     } else {
       x1[i] = x[i] - 1;
