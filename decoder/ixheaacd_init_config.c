@@ -63,6 +63,8 @@
 #include "ixheaacd_struct.h"
 #include "ixheaacd_constants.h"
 
+#include "ixheaacd_error_codes.h"
+
 UWORD32 ixheaacd_sbr_ratio(UWORD32 core_sbr_framelength_idx) {
   UWORD32 sbr_ratio_index = 0x0FF;
 
@@ -517,7 +519,7 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
                                (UWORD32 *)(&(pstr_usac_conf->num_out_channels)),
                                5, 8, 16);
     if (BS_MAX_NUM_OUT_CHANNELS < pstr_usac_conf->num_out_channels) {
-      return -1;
+      return IA_ENHAACPLUS_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
     }
     for (i = 0; i < pstr_usac_conf->num_out_channels; i++)
       pstr_usac_conf->output_channel_pos[i] =

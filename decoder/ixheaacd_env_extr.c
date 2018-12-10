@@ -1328,8 +1328,7 @@ int ixheaacd_extract_frame_info_ld(
   WORD16 time_border[MAX_ENVELOPES + 1];
   WORD16 time_border_noise[2 + 1];
   WORD16 f[MAX_ENVELOPES + 1];
-  int rel_bord_lead[3];
-  int rel_bord_trail[3] = {0};
+  int rel_bord_lead[7] ={0};
 
   ia_frame_info_struct *v_frame_info = &h_frame_data->str_frame_info_details;
 
@@ -1381,11 +1380,6 @@ int ixheaacd_extract_frame_info_ld(
       for (env = 1; env <= num_rel_lead; env++) {
         time_border[env] = abs_bord_lead;
         for (k = 0; k <= env - 1; k++) time_border[env] += rel_bord_lead[k];
-      }
-      for (env = num_rel_lead + 1; env < bs_num_env; env++) {
-        time_border[env] = abs_bord_trail;
-        for (k = 0; k <= bs_num_env - env - 1; k++)
-          time_border[env] -= rel_bord_trail[k];
       }
       break;
 

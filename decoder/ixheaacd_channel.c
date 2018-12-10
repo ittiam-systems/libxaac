@@ -460,7 +460,8 @@ WORD16 ixheaacd_individual_ch_stream(
     ia_ics_info_struct *ptr_ics_info = &ptr_aac_dec_ch_info->str_ics_info;
 
     if (ch == 1) {
-      if (it_bit_buff->pstr_adts_crc_info->crc_active == 1) {
+      if (it_bit_buff->pstr_adts_crc_info->crc_active == 1 &&
+          (it_bit_buff->pstr_adts_crc_info->no_reg < 7)) {
         crc_reg =
             ixheaacd_adts_crc_start_reg(it_bit_buff->pstr_adts_crc_info,
                                         it_bit_buff, CRC_ADTS_RAW_IIND_ICS);
