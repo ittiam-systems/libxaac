@@ -62,6 +62,7 @@
 #include "ixheaacd_info.h"
 #include "ixheaacd_struct.h"
 #include "ixheaacd_constants.h"
+#include "ixheaacd_error_standards.h"
 
 #include "ixheaacd_error_codes.h"
 
@@ -502,6 +503,10 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
   if (pstr_usac_conf->usac_sampling_frequency_index == 0x1f) {
     pstr_usac_conf->usac_sampling_frequency =
         ixheaacd_read_bits_buf(it_bit_buff, 24);
+
+    if (pstr_usac_conf->usac_sampling_frequency > USAC_MAX_SAMPLE_RATE) {
+      return IA_FATAL_ERROR;
+    }
 
   } else {
     static const WORD32 sampling_rate_tbl[] = {
