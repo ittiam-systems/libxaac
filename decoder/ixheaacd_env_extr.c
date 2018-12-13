@@ -1328,7 +1328,7 @@ int ixheaacd_extract_frame_info_ld(
   WORD16 time_border[MAX_ENVELOPES + 1];
   WORD16 time_border_noise[2 + 1];
   WORD16 f[MAX_ENVELOPES + 1];
-  int rel_bord_lead[7] ={0};
+  int rel_bord_lead[7] = {0};
 
   ia_frame_info_struct *v_frame_info = &h_frame_data->str_frame_info_details;
 
@@ -1354,6 +1354,9 @@ int ixheaacd_extract_frame_info_ld(
       bs_transient_position =
           ixheaacd_read_bits_buf(it_bit_buff, SBR_TRAN_BITS);
       v_frame_info->frame_class = 0;
+      if ((numTimeSlots != 16) && (bs_transient_position >= LD_ENV_TBL_480)) {
+        return -1;
+      }
       bs_num_env = (numTimeSlots == 16)
                        ? ixheaacd_ld_env_table_512[bs_transient_position]
                                                   [SBR_ENVT_NUMENV]
