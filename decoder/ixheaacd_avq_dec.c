@@ -58,9 +58,10 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
 
     if (x[i] % 2 != 0) {
       if (x[i] < 0) {
-        rem_temp[i] = -(rem_temp[i] - (1 << count));
+        rem_temp[i] = ixheaacd_negate32_sat(
+            ixheaacd_sub32_sat(rem_temp[i], (1 << count)));
       } else {
-        rem_temp[i] = rem_temp[i] - (1 << count);
+        rem_temp[i] = ixheaacd_sub32_sat(rem_temp[i], (1 << count));
       }
     }
   }
