@@ -28,8 +28,6 @@ ixheaacd_covariance_matrix_calc_2_armv7:
 AUTO_CORR_LOOP:
 
     STR             r0 , [sp, #-4]!
-    STR             r1 , [sp, #-4]!
-    LDR             r1 , [sp], #4
 
 
 
