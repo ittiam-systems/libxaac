@@ -57,5 +57,5 @@ extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_16[16 * 16 * 2];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_24[24 * 24 * 2];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_32[32 * 32 * 2];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_40[40 * 80 * 2];
-extern const FLOAT32 ixheaacd_sel_case[4][8];
+extern const FLOAT32 ixheaacd_sel_case[5][8];
 #endif

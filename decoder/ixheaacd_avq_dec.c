@@ -31,8 +31,8 @@
 
 extern const WORD32 ixheaacd_factorial_7[8];
 extern const WORD32 ixheaacd_iso_code_index_table[LEN_ABS_LEADER];
-extern const UWORD8 ixheaacd_iso_code_data_table[LEN_ABS_LEADER];
-extern const UWORD32 ixheaacd_signed_leader_is[LEN_ABS_LEADER];
+extern const UWORD8 ixheaacd_iso_code_data_table[LEN_SIGN_LEADER];
+extern const UWORD32 ixheaacd_signed_leader_is[LEN_SIGN_LEADER];
 extern const WORD32 ixheaacd_iso_code_num_table[],
     ixheaacd_pos_abs_leaders_a3[], ixheaacd_pos_abs_leaders_a4[];
 extern const UWORD8 ixheaacd_absolute_leader_tab_da[][8];
