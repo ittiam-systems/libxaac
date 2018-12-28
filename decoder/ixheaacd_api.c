@@ -2112,7 +2112,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   WORD16 frame_size = 0;
   WORD32 sample_rate_dec = 0;
   WORD32 sample_rate = 0;
-  WORD16 num_ch;
+  WORD16 num_ch = 0;
   struct ia_bit_buf_struct *it_bit_buff;
   WORD32 error_code = IA_NO_ERROR;
   WORD ch_idx1;
@@ -2479,6 +2479,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
         }
       }
 
+      num_ch = p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]->channels;
       if (skip_full_decode == 0) {
         if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD ||
             p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD)
@@ -2488,7 +2489,6 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
         sample_rate_dec =
             p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]->sampling_rate;
-        num_ch = p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]->channels;
       }
     }
 
