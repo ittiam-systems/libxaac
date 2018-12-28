@@ -682,7 +682,7 @@ static WORD32 ixheaacd_mps_mapindexdata(
     int out_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int cmp_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int idx_prev[MAX_PARAMETER_BANDS], int param_type) {
-  int interpolate_local[MAX_PARAMETER_SETS_MPS];
+  int interpolate_local[MAX_PARAMETER_SETS_MPS] = {0};
   int map[MAX_PARAMETER_BANDS + 1];
 
   int set_index, i, band, parm_slot;
