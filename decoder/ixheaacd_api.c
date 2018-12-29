@@ -2425,6 +2425,10 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 p_state_enhaacplus_dec->frame_length
 
                 );
+        if (!p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]) {
+          p_state_enhaacplus_dec->i_bytes_consumed = 1;
+          return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+        }
         p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]->p_ind_channel_info =
             (WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v + (8 * 1024) +
             pers_used;
