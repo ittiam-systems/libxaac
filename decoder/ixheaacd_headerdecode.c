@@ -1107,6 +1107,22 @@ WORD32 ixheaacd_aac_headerdecode(
       return err_code;
     }
 
+    switch (aac_state_struct->audio_object_type) {
+        case AOT_AAC_MAIN:
+        case AOT_AAC_LC:
+        case AOT_AAC_SSR:
+        case AOT_AAC_LTP:
+        case AOT_AAC_SCAL:
+        case AOT_TWIN_VQ:
+        case AOT_ER_AAC_LD:
+        case AOT_ER_AAC_ELD:
+        case AOT_ER_AAC_LC:
+        case AOT_USAC:
+          break;
+        default:
+          return IA_ENHAACPLUS_DEC_INIT_FATAL_AUDIOOBJECTTYPE_NOT_SUPPORTED;
+      }
+
     if (aac_state_struct->audio_object_type != AOT_USAC)
       aac_state_struct->usac_flag = 0;
     *bytes_consumed = bytes_taken;
