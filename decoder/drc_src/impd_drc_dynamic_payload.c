@@ -123,7 +123,7 @@ WORD32 impd_dec_gains(ia_bit_buf_struct* it_bit_buff, WORD32 no_nodes,
 WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
                        WORD32 gain_interpolation_type,
                        ia_node_struct* str_node) {
-  WORD32 k, e, m, bit;
+  WORD32 k, e, bit;
   WORD32 code;
   WORD32 code_found;
   FLOAT32 slope_value = 0;
@@ -141,6 +141,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
     end_marker = impd_read_bits_buf(it_bit_buff, 1);
     if (it_bit_buff->error) return it_bit_buff->error;
   }
+  if (k > NODE_COUNT_MAX) return UNEXPECTED_ERROR;
   *no_nodes = k;
 
   if (gain_interpolation_type == GAIN_INTERPOLATION_TYPE_SPLINE) {
@@ -150,7 +151,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
       code_found = 0;
       e = 0;
       while ((e < no_slope_code_entries) && (!code_found)) {
-        for (m = 0; m < ptr_slope_code_table[e].size - num_bits_read; m++) {
+        while (num_bits_read < ptr_slope_code_table[e].size) {
           bit = impd_read_bits_buf(it_bit_buff, 1);
           if (it_bit_buff->error) return it_bit_buff->error;
           code = (code << 1) + bit;
@@ -163,6 +164,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
             break;
           }
           e++;
+          if (e >= no_slope_code_entries) return UNEXPECTED_ERROR;
         }
       }
       str_node[k].slope = slope_value;
