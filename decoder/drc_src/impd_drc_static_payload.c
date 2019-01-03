@@ -2239,6 +2239,9 @@ impd_parse_drc_instructions_uni_drc(
       str_drc_instruction_str->num_drc_ch_groups = g;
     }
 
+    if (str_drc_instruction_str->num_drc_ch_groups >
+        min(CHANNEL_GROUP_COUNT_MAX, MAX_CHANNEL_COUNT))
+      return UNEXPECTED_ERROR;
     for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups; g++) {
       WORD32 set =
           (str_drc_instruction_str->drc_set_effect & EFFECT_BIT_DUCK_OTHER)
@@ -2344,6 +2347,10 @@ impd_parse_drc_instructions_uni_drc(
     }
 
     str_drc_instruction_str->num_drc_ch_groups = g;
+
+    if (str_drc_instruction_str->num_drc_ch_groups >
+        min(CHANNEL_GROUP_COUNT_MAX, MAX_CHANNEL_COUNT))
+      return UNEXPECTED_ERROR;
     for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups; g++) {
       WORD32 set, band_count;
 
