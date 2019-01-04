@@ -39,7 +39,20 @@
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_drc_dec.h"
 
+#include "ixheaacd_sbr_scale.h"
+#include "ixheaacd_env_extr_part.h"
+#include "ixheaacd_sbr_rom.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
+#include "ixheaacd_common_rom.h"
+#include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_sbr_const.h"
+#include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_sbrdecoder.h"
+#include "ixheaacd_env_extr.h"
+#include "ixheaacd_env_calc.h"
+#include "ixheaacd_pvc_dec.h"
+#include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 
@@ -50,7 +63,6 @@
 #include <ixheaacd_type_def.h>
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
-#include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_defines.h"
 #include <ixheaacd_aac_rom.h>
 #include "ixheaacd_common_rom.h"
@@ -677,6 +689,9 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
 
       if (pstr_dec_data->str_usac_data.pstr_esbr_dec == NULL) {
         return -1;
+      } else {
+        pstr_dec_data->str_usac_data.pstr_esbr_dec->xaac_jmp_buf =
+            &(aac_dec_handle->xaac_jmp_buf);
       }
     }
   }

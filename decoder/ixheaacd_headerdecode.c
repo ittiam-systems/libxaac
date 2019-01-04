@@ -971,6 +971,7 @@ WORD32 ixheaacd_aac_headerdecode(
   handle_bit_buff = ixheaacd_create_bit_buf(&it_bit_buff, (UWORD8 *)buffer,
                                             (WORD16)header_len);
   handle_bit_buff->cnt_bits += (header_len << 3);
+  handle_bit_buff->xaac_jmp_buf = &aac_state_struct->xaac_jmp_buf;
 
   if (is_ga_header == 1) {
     return ixheaacd_ga_hdr_dec(aac_state_struct, header_len, bytes_consumed,

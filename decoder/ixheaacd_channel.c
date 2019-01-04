@@ -879,6 +879,12 @@ WORD16 ixheaacd_read_spectral_data(
         ixheaacd_huff_mute_erroneous_lines(pstr_hcr_info);
       }
 
+      if (it_bit_buff->cnt_bits <
+          ptr_aac_dec_channel_info->reorder_spect_data_len) {
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      }
+
       it_bit_buff->cnt_bits +=
           -ptr_aac_dec_channel_info->reorder_spect_data_len;
       it_bit_buff->ptr_read_next =

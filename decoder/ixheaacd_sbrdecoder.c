@@ -383,6 +383,7 @@ WORD16 ixheaacd_applysbr(ia_handle_sbr_dec_inst_struct self,
                                      ptr_bit_str_ele->size_payload);
 
         it_bit_buff = &local_bit_buf;
+        it_bit_buff->xaac_jmp_buf = self->xaac_jmp_buf;
         if (audio_object_type == AOT_ER_AAC_ELD) {
           if (eld_sbr_flag != 1) {
             ixheaacd_read_bits_buf(&local_bit_buf, LEN_NIBBLE);

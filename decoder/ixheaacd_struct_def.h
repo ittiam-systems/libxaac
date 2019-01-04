@@ -20,6 +20,8 @@
 #ifndef IXHEAACD_STRUCT_DEF_H
 #define IXHEAACD_STRUCT_DEF_H
 
+#include <setjmp.h>
+
 #define MAX_OUTPUT_CHANNELS (8)
 #define MAX_NUM_OTT (1)
 
@@ -230,6 +232,7 @@ typedef struct ia_aac_dec_state_struct {
   UWORD8 *header_ptr;
   WORD32 header_length;
   ia_sbr_header_data_struct str_sbr_config;
+  jmp_buf xaac_jmp_buf;
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {
