@@ -592,6 +592,9 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
     gain = pitch_gain[i];
     if (gain > 0.0f) {
       synth_corr = 0.0f, synth_energy = 1e-6f;
+      if ((((i * LEN_SUBFR) + LEN_SUBFR) > LEN_SUPERFRAME) ||
+          ((((i * LEN_SUBFR) + LEN_SUBFR) - tp) > LEN_SUPERFRAME))
+        return -1;
       for (k = 0; k < LEN_SUBFR; k++) {
         synth_corr +=
             synth[i * LEN_SUBFR + k] * synth[(i * LEN_SUBFR) - tp + k];
@@ -677,7 +680,6 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
   fac_length = (usac_data->len_subfrm) / 2;
 
   ixheaacd_memset(synth_buf, MAX_PITCH + synth_delay + len_fr);
-  synth = synth_buf + MAX_PITCH + synth_delay;
   ixheaacd_mem_cpy(st->synth_prev, synth_buf, MAX_PITCH + synth_delay);
   ixheaacd_mem_cpy(out_buffer, synth_buf + MAX_PITCH - (LEN_SUBFR),
                    synth_delay + len_fr + (LEN_SUBFR));
@@ -705,9 +707,12 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
     tp = pitch[i];
     if ((i * LEN_SUBFR + MAX_PITCH) < tp) {
       return -1;
-    } else if ((i * LEN_SUBFR + MAX_PITCH - tp) >= 1883) {
+    } else if (((i * LEN_SUBFR + MAX_PITCH - tp) >= 1883) ||
+               (((i * LEN_SUBFR) + LEN_SUBFR) > LEN_SUPERFRAME) ||
+               ((((i * LEN_SUBFR) + LEN_SUBFR) - tp) > LEN_SUPERFRAME)) {
       return -1;
     }
+
     if (pitch_gain[i] > 0.0f) {
       synth_corr = 0.0f, synth_energy = 1e-6f;
       for (k = 0; k < LEN_SUBFR; k++) {
