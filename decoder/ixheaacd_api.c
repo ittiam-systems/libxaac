@@ -1576,7 +1576,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       }
     }
   } else {
-    struct ia_bit_buf_struct temp_bit_buff;
+    struct ia_bit_buf_struct temp_bit_buff = {0};
     ia_adts_header_struct adts;
     struct ia_bit_buf_struct *it_bit_buff;
 

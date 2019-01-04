@@ -526,7 +526,7 @@ static VOID ixheaacd_rvlc_decode_forward(
 
   WORD16 dpcm;
 
-  ia_bit_buf_struct temp_buf;
+  ia_bit_buf_struct temp_buf = {0};
 
   WORD16 factor = ptr_aac_dec_channel_info->global_gain;
   WORD16 position = 0;

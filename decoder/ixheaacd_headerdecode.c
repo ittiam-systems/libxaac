@@ -942,7 +942,7 @@ WORD32 ixheaacd_aac_headerdecode(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, UWORD8 *buffer,
     WORD32 *bytes_consumed,
     const ia_aac_dec_huffman_tables_struct *pstr_huffmann_tables) {
-  struct ia_bit_buf_struct it_bit_buff, *handle_bit_buff;
+  struct ia_bit_buf_struct it_bit_buff = {0}, *handle_bit_buff;
   ia_adif_header_struct adif = {0};
   ia_adts_header_struct adts = {0};
   WORD32 result;

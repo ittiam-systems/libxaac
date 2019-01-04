@@ -298,7 +298,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
       if (config_len != 0) {
         /* updating the config parameters*/
-        ia_bit_buf_struct config_bit_buf;
+        ia_bit_buf_struct config_bit_buf = {0};
 
         config_bit_buf.ptr_bit_buf_base = config;
         config_bit_buf.size = config_len << 3;

@@ -351,7 +351,7 @@ WORD16 ixheaacd_applysbr(ia_handle_sbr_dec_inst_struct self,
   }
 
   for (k = 0; k < num_elements; k++) {
-    struct ia_bit_buf_struct local_bit_buf;
+    struct ia_bit_buf_struct local_bit_buf = {0};
     ia_sbr_element_stream_struct *ptr_bit_str_ele =
         &p_sbr_bit_stream->str_sbr_ele[k];
     ele_channels =
