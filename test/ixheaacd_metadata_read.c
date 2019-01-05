@@ -132,7 +132,11 @@ int get_metadata_dec_info_init(metadata_info meta_info) {
 }
 
 WORD32 get_metadata_dec_exec(metadata_info meta_info, int frame) {
-  return meta_info.ia_mp4_stsz_size[frame];
+  if (frame < (int)meta_info.ia_mp4_stsz_entries) {
+    return meta_info.ia_mp4_stsz_size[frame];
+  } else {
+    return 0;
+  }
 }
 
 int get_movie_time_scale(metadata_info meta_info) {

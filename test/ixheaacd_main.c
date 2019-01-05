@@ -1211,10 +1211,21 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       if (raw_testing) {
         ixheaacd_i_bytes_to_read =
             get_metadata_dec_exec(meta_info, frame_counter);
+
+        if (ixheaacd_i_bytes_to_read <= 0) {
+          err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+                                         IA_API_CMD_INPUT_OVER, 0, NULL);
+
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          return IA_NO_ERROR;
+        }
+
         /* Set number of bytes to be processed */
         err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                        IA_API_CMD_SET_INPUT_BYTES, 0,
                                        &ixheaacd_i_bytes_to_read);
+        init_iteration++;
       } else {
         /* Set number of bytes to be processed */
         err_code = (*p_ia_process_api)(
@@ -1234,6 +1245,10 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     /* Checking for end of initialization */
     err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_INIT,
                                    IA_CMD_TYPE_INIT_DONE_QUERY, &ui_init_done);
+
+    if (init_iteration > 2 && ui_init_done == 0) {
+      frame_counter++;
+    }
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
@@ -1766,9 +1781,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
     }
 
-    if (i_out_bytes) {
-      frame_counter++;
-    }
+    frame_counter++;
 
 #ifdef _DEBUG
     if (frame_counter == 80) frame_counter = frame_counter;
