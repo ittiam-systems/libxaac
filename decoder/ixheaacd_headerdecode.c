@@ -245,9 +245,10 @@ WORD ixheaacd_decode_pce(struct ia_bit_buf_struct *it_bit_buff,
   WORD32 error_code = 0;
 
   if (*ui_pce_found_in_hdr == 1 || *ui_pce_found_in_hdr == 3) {
-    ia_program_config_struct ptr_config_element;
+    ia_program_config_struct ptr_config_element = {0};
     ptr_config_element.alignment_bits = ptr_prog_config->alignment_bits;
-    ixheaacd_read_prog_config_element(&ptr_config_element, it_bit_buff);
+    error_code =
+        ixheaacd_read_prog_config_element(&ptr_config_element, it_bit_buff);
     *ui_pce_found_in_hdr = 3;
   } else {
     error_code =
