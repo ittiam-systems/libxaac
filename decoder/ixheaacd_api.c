@@ -414,6 +414,8 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
           p_obj_exhaacplus_dec->aac_config.ui_coupling_channel = 0;
           p_obj_exhaacplus_dec->aac_config.downmix = 0;
+          p_obj_exhaacplus_dec->aac_config.ui_n_channels = 2;
+          p_obj_exhaacplus_dec->aac_config.i_channel_mask = 3;
 
           {
             ia_aac_dec_tables_struct *pstr_aac_tables =
