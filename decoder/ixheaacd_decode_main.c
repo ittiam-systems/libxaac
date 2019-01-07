@@ -317,10 +317,15 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         /* call codec re-configure*/
         err = ixheaacd_config(
             &config_bit_buf, &(pstr_dec_data->str_frame_data
-                                  .str_audio_specific_config.str_usac_config),
+                                   .str_audio_specific_config.str_usac_config),
             &(pstr_audio_specific_config
                   ->channel_configuration) /*&pstr_audio_specific_config->str_usac_config*/);
         if (err != 0) return -1;
+
+        pstr_dec_data->str_frame_data.str_audio_specific_config
+            .sampling_frequency =
+            pstr_dec_data->str_frame_data.str_audio_specific_config
+                .str_usac_config.usac_sampling_frequency;
 
         delay = ixheaacd_decode_create(
             handle, pstr_dec_data,

@@ -612,6 +612,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
                           &(pstr_audio_specific_config->channel_configuration));
     if (err != 0) return err;
 
+    pstr_audio_specific_config->sampling_frequency =
+        pstr_audio_specific_config->str_usac_config.usac_sampling_frequency;
+
     if (pstr_audio_specific_config->audio_object_type == AOT_USAC) {
       pstr_audio_specific_config->sbr_present_flag = 1;
       pstr_audio_specific_config->ext_audio_object_type = AOT_SBR;
