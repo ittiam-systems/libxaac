@@ -349,6 +349,10 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
 
   patch = 0;
 
+  if ((goal_sb < sb) && (lsb > src_start_band)) {
+    return -1;
+  }
+
   while (((sb - usb) < 0) && (patch < MAX_NUM_PATCHES)) {
     ia_patch_param_struct *ptr_loc_patch_param = &p_str_patch_param[patch];
 
