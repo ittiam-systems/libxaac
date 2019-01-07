@@ -314,21 +314,26 @@ WORD32 ixheaacd_decode_init(
       case ID_USAC_SCE:
       case ID_USAC_LFE:
 
+        if ((chan + 1) > MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         usac_data->seed_value[chan] = 0x3039;
+        chan++;
 
         break;
 
       case ID_USAC_CPE: {
-        WORD32 frame_len_tbl[] = {-1, -1, 32, 32, 64};
+        static const WORD32 frame_len_tbl[MAX_CORE_SBR_FRAME_LEN_IDX + 1] = {
+            -1, -1, 32, 32, 64};
 
+        if ((chan + 2) > MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         usac_data->seed_value[chan] = 0x3039;
         chan++;
 
         usac_data->seed_value[chan] = 0x10932;
+        chan++;
 
         if (stereo_config_index > 0) {
           WORD32 bs_frame_length =
-              frame_len_tbl[ptr_usac_config->core_sbr_framelength_index] - 1;
+              frame_len_tbl[ptr_usac_config->core_sbr_framelength_index];
           WORD32 bs_residual_coding = (stereo_config_index > 1) ? 1 : 0;
 
           ia_usac_dec_mps_config_struct *ptr_usac_mps212_config =
