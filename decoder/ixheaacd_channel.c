@@ -787,10 +787,6 @@ WORD16 ixheaacd_read_spectral_data(
                     ptr_aac_tables->pstr_block_tables->ixheaacd_pow_table_Q13,
                 ptr_scratch);
           }
-
-          else {
-            memset(ptr_spec_coef_out, 0, sizeof(WORD32) * sfb_width);
-          }
         }
         ptr_scratch += sfb_width;
         ptr_spec_coef_out += sfb_width;
@@ -801,7 +797,7 @@ WORD16 ixheaacd_read_spectral_data(
       else
         index = frame_size - swb_offset[max_sfb];
 
-      memset(ptr_spec_coef_out, 0, sizeof(WORD32) * index);
+      if (index < 0) return -1;
 
     } else {
       memset(ptr_spec_coef, 0, sizeof(WORD32) * 1024);
