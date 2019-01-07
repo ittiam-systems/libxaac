@@ -278,7 +278,8 @@ VOID ixheaacd_section_data(ia_usac_data_struct *usac_data,
         ixheaacd_huffman_decode(read_word1, &index, &length, hscf, idx_tab);
 
         bit_pos += length;
-        ixheaacd_aac_read_2bytes(&ptr_read_next, &bit_pos, &read_word);
+        ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                                     g_bs->ptr_bit_buf_end);
         norm_val = index - 60;
 
         if (cb_num > NOISE_HCB) {

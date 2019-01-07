@@ -133,29 +133,6 @@ UWORD32 ixheaacd_aac_read_byte(UWORD8 **ptr_read_next, WORD32 *bit_pos,
   return 1;
 }
 
-UWORD32 ixheaacd_aac_read_2bytes(UWORD8 **ptr_read_next, WORD32 *bit_pos,
-                                 WORD32 *readword) {
-  UWORD8 *v = *ptr_read_next;
-  WORD32 bits_consumed = *bit_pos;
-
-  if ((bits_consumed - 16) >= 0) {
-    *readword = (*readword << 8) | *v;
-    v++;
-    *readword = (*readword << 8) | *v;
-    v++;
-    bits_consumed -= 16;
-
-  } else if ((bits_consumed - 8) >= 0) {
-    *readword = (*readword << 8) | *v;
-    v++;
-    bits_consumed -= 8;
-  }
-
-  *bit_pos = bits_consumed;
-  *ptr_read_next = v;
-  return 1;
-}
-
 UWORD32 ixheaacd_aac_read_byte_corr1(UWORD8 **ptr_read_next,
                                      WORD32 *ptr_bit_pos, WORD32 *readword,
                                      UWORD8 *p_bit_buf_end) {

@@ -247,7 +247,8 @@ VOID ixheaacd_read_scale_factor_data(
             noise_start_value = temp;
             bit_pos += 9;
 
-            ixheaacd_aac_read_2bytes(&ptr_read_next, &bit_pos, &read_word);
+            ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                                         it_bit_buff->ptr_bit_buf_end);
 
             norm_value = noise_start_value - 256;
             ptr_pns_info->pns_active = 1;
