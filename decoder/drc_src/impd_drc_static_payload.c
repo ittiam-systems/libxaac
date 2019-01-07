@@ -2019,6 +2019,8 @@ impd_parse_drc_instructions_uni_drc(
 
   str_drc_instruction_str->drc_set_id = impd_read_bits_buf(it_bit_buff, 6);
   if (it_bit_buff->error) return it_bit_buff->error;
+  if (str_drc_instruction_str->drc_set_id >= DRC_INSTRUCTIONS_COUNT_MAX)
+    return UNEXPECTED_ERROR;
   if (version == 0) {
     str_drc_instruction_str->drc_set_complexity_level =
         DRC_COMPLEXITY_LEVEL_MAX;
