@@ -1377,6 +1377,9 @@ impd_parse_loudness_measure(ia_bit_buf_struct* it_bit_buff,
   if (it_bit_buff->error) return it_bit_buff->error;
 
   loudness_measure->measurement_system = (temp >> 2) & 0xf;
+  if (loudness_measure->measurement_system > MEASUREMENT_SYSTEM_RESERVED_E)
+    return (UNEXPECTED_ERROR);
+  /* Parsed but unused */
   loudness_measure->reliability = temp & 3;
 
   return (0);
