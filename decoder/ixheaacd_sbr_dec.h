@@ -208,7 +208,8 @@ VOID ixheaacd_rescale_x_overlap(
     ia_sbr_dec_struct *ptr_sbr_dec, ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_frame_data,
     ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
-    WORD32 **pp_overlap_buffer_real, FLAG low_pow_flag);
+    WORD32 **pp_overlap_buffer_real, WORD32 **pp_overlap_buffer_imag,
+    FLAG low_pow_flag);
 
 WORD32 ixheaacd_qmf_hbe_data_reinit(
     ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,

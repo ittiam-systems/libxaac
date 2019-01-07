@@ -1280,8 +1280,8 @@ VOID ixheaacd_bi_dir_est_lower_scf_cur_frame(
   conceal_group_max = ptr_rvlc->conceal_max / max_scf_bands;
 
   if (ptr_rvlc->conceal_min == ptr_rvlc->conceal_max) {
-    WORD32 ref_fwd, ref_nrg_fwd, ref_scf_fwd;
-    WORD32 ref_bwd, ref_nrg_bwd, ref_scf_bwd;
+    WORD32 ref_fwd = 0, ref_nrg_fwd = 0, ref_scf_fwd = 0;
+    WORD32 ref_bwd = 0, ref_nrg_bwd = 0, ref_scf_bwd = 0;
 
     bnds = ptr_rvlc->conceal_min;
     ixheaacd_calc_ref_val_fwd(ptr_rvlc, ptr_aac_dec_channel_info, &ref_fwd,

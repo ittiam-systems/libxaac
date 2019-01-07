@@ -573,8 +573,8 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
   WORD save_lb_scale;
   WORD op_delay;
 
-  WORD32 *p_arr_qmf_buf_real[MAX_ENV_COLS + MAX_ENV_COLS];
-  WORD32 **p_arr_qmf_buf_imag = &p_arr_qmf_buf_real[MAX_ENV_COLS];
+  WORD32 *p_arr_qmf_buf_real[MAX_ENV_COLS] = {0};
+  WORD32 *p_arr_qmf_buf_imag[MAX_ENV_COLS] = {0};
   WORD32 *ptr;
   WORD hbe_flag = ptr_header_data->hbe_flag;
 
@@ -640,7 +640,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     if (apply_processing) {
       ixheaacd_rescale_x_overlap(ptr_sbr_dec, ptr_header_data, ptr_frame_data,
                                  ptr_frame_data_prev, p_arr_qmf_buf_real,
-                                 low_pow_flag);
+                                 p_arr_qmf_buf_imag, low_pow_flag);
     }
   }
 
