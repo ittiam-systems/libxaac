@@ -1082,6 +1082,9 @@ WORD32 impd_parse_eq_instructions(
 
   str_eq_instructions->eq_set_id = (temp >> 5) & 0x3F;
 
+  if (str_eq_instructions->eq_set_id >= EQ_INSTRUCTIONS_COUNT_MAX)
+    return UNEXPECTED_ERROR;
+
   str_eq_instructions->eq_set_complexity_level = (temp >> 1) & 0x0F;
 
   dmix_id_present = temp & 0x01;
