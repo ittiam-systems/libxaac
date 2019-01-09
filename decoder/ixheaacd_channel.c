@@ -578,7 +578,8 @@ VOID ixheaacd_channel_pair_process(
     void *self_ptr) {
   WORD32 channel;
   ia_aac_decoder_struct *self = self_ptr;
-  if (aac_spect_data_resil_flag) {
+  if (aac_spect_data_resil_flag &&
+      ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_ER_AAC_ELD))) {
     for (channel = 0; channel < num_ch; channel++) {
       ixheaacd_cblock_inv_quant_spect_data(ptr_aac_dec_channel_info[channel],
                                            ptr_aac_tables);

@@ -1413,6 +1413,8 @@ IA_ERRORCODE ixheaacd_dec_init(
         return IA_NO_ERROR;
       }
 
+      memset(&(p_state_enhaacplus_dec->eld_specific_config), 0,
+             sizeof(ia_eld_specific_config_struct));
       return_val = ixheaacd_aac_headerdecode(
           p_obj_exhaacplus_dec, (UWORD8 *)in_buffer, &header_bytes_consumed,
           aac_persistent_mem->str_aac_decoder.pstr_aac_tables
@@ -1423,6 +1425,9 @@ IA_ERRORCODE ixheaacd_dec_init(
             p_obj_exhaacplus_dec->p_state_aac->str_sbr_config;
         *sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[1] =
             p_obj_exhaacplus_dec->p_state_aac->str_sbr_config;
+      } else {
+        memset(&(p_state_enhaacplus_dec->eld_specific_config), 0,
+               sizeof(ia_eld_specific_config_struct));
       }
 
       if (return_val < 0) {

@@ -496,6 +496,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
   memset(aac_state_struct->ia_audio_specific_config, 0,
          sizeof(ia_audio_specific_config_struct));
 
+  memset(&(aac_state_struct->eld_specific_config), 0,
+         sizeof(ia_eld_specific_config_struct));
+
   pstr_audio_specific_config = aac_state_struct->ia_audio_specific_config;
 
   aac_state_struct->p_config->str_prog_config.alignment_bits =
