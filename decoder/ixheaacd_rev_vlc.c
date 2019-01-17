@@ -99,6 +99,11 @@
 
 #define LEFT_OFFSET 12
 
+#define ixheaacd_bitbuf_checkpoint(it_bit_buf, saved_bit_buf) \
+  (saved_bit_buf) = (it_bit_buf)
+#define ixheaacd_bitbuf_restore(it_bit_buf, saved_bit_buf) \
+  (it_bit_buf) = (saved_bit_buf)
+
 static int ixheaacd_rvlc_decode(short cw, int len, int *found) {
   short indx = 0;
   *found = 0;
@@ -1743,15 +1748,13 @@ IA_ERRORCODE ixheaacd_rvlc_dec(
     ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info,
     ia_bit_buf_struct *it_bit_buff) {
   ia_rvlc_info_struct *ptr_rvlc = &ptr_aac_dec_channel_info->ptr_rvlc_info;
-  WORD32 bit_cnt_offset;
-  UWORD32 save_bit_cnt;
+  ia_bit_buf_struct saved_it_bit_buff;
   IA_ERRORCODE error_code = 0;
   error_code =
       ixheaacd_rvlc_init(ptr_rvlc, ptr_aac_dec_channel_info, it_bit_buff);
   if (error_code) return error_code;
 
-  save_bit_cnt = it_bit_buff->cnt_bits;
-
+  ixheaacd_bitbuf_checkpoint(*it_bit_buff, saved_it_bit_buff);
   if (ptr_rvlc->sf_esc_present)
     ixheaacd_rvlc_decode_escape(
         ptr_rvlc, ptr_aac_dec_channel_info->rvlc_scf_esc_arr, it_bit_buff);
@@ -1765,13 +1768,6 @@ IA_ERRORCODE ixheaacd_rvlc_dec(
   ptr_aac_dec_channel_info->rvlc_intensity_used = ptr_rvlc->intensity_used;
   ptr_aac_dec_channel_info->str_pns_info.pns_active = ptr_rvlc->noise_used;
 
-  bit_cnt_offset = it_bit_buff->cnt_bits - save_bit_cnt;
-  if (bit_cnt_offset) {
-    it_bit_buff->cnt_bits -= bit_cnt_offset;
-    it_bit_buff->ptr_read_next =
-        it_bit_buff->ptr_bit_buf_base +
-        ((it_bit_buff->size - it_bit_buff->cnt_bits) >> 3);
-    it_bit_buff->bit_pos = ((it_bit_buff->size - it_bit_buff->cnt_bits) & 7);
-  }
+  ixheaacd_bitbuf_restore(*it_bit_buff, saved_it_bit_buff);
   return error_code;
 }
