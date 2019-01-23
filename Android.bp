@@ -138,7 +138,9 @@ cc_library_static {
             "signed-integer-overflow",
             "bounds",
         ],
-        cfi: true,
+        // Enable CFI if this becomes a shared library.
+        // cfi: true,
+        blacklist: "libxaac_blacklist.txt",
     },
 
     arch: {
