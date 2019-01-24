@@ -19,7 +19,7 @@
 */
 #include <limits.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_info.h"

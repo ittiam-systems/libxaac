@@ -23,10 +23,10 @@
 #include <math.h>
 #include <assert.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_acelp_com.h"
 
 extern const WORD32 ixheaacd_factorial_7[8];

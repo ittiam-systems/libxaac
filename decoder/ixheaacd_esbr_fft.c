@@ -20,9 +20,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops32.h"
 
 #define PLATFORM_INLINE __inline
 

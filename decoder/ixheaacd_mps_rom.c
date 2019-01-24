@@ -23,7 +23,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 

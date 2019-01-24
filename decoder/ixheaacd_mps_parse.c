@@ -18,7 +18,9 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <math.h>
-#include <ixheaacd_type_def.h>
+#include <assert.h>
+#include <stdio.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 
@@ -28,9 +30,6 @@
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_hybfilter.h"
-
-#include <assert.h>
-#include <stdio.h>
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 

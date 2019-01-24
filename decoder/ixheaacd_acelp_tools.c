@@ -19,12 +19,12 @@
 */
 #include <math.h>
 #include <memory.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 static const FLOAT32 ixheaacd_gamma_table[17] = {
     1.0f,      0.92f,     0.8464f,   0.778688f, 0.716393f, 0.659082f,

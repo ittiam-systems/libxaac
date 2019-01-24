@@ -22,7 +22,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -32,7 +32,7 @@
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_aac_rom.h"
 #include "ixheaacd_common_rom.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
 

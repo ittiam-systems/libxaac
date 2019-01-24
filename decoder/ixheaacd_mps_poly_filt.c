@@ -21,16 +21,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_interface.h>
+#include "ixheaacd_type_def.h"
+#include "ixheaacd_interface.h"
 #include "ixheaacd_mps_polyphase.h"
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32

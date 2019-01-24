@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -45,11 +45,6 @@
 #include "ixheaacd_bit_extract.h"
 
 #include "ixheaacd_func_def.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "ixheaacd_interface.h"
 #include "ixheaacd_info.h"
 

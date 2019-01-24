@@ -19,8 +19,12 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
-#include <ixheaacd_type_def.h>
+#include <assert.h>
+#include <string.h>
+
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -28,9 +32,9 @@
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_common_rom.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
 
@@ -65,11 +69,6 @@
 #include "ixheaacd_mps_hybfilter.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_huff_tab.h"
-
-#include "math.h"
-
-#include <assert.h>
-#include <string.h>
 
 extern const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
 extern const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;

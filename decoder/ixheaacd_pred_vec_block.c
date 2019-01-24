@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_sbr_const.h"
 
 #include "ixheaacd_pvc_dec.h"

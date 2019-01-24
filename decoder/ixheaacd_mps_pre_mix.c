@@ -17,7 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <ixheaacd_type_def.h>
+#include <math.h>
+#include <memory.h>
+
+#include <assert.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_polyphase.h"
@@ -25,15 +29,9 @@
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
-
-#include <math.h>
-#include <memory.h>
-
-#include <assert.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #undef ABS_THR
 #define ABS_THR 1.0e-9f

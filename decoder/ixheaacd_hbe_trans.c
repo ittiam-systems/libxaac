@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -42,7 +42,7 @@
 #include "ixheaacd_sbr_const.h"
 
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_sbr_scale.h"
@@ -61,8 +61,8 @@
 #include "ixheaacd_qmf_poly.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_op.h"
 
 #include "ixheaacd_esbr_rom.h"
 

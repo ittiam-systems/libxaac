@@ -17,7 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <ixheaacd_type_def.h>
+#include <math.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 
@@ -25,7 +26,6 @@
 
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
-#include <math.h>
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 

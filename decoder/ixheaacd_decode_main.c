@@ -19,21 +19,19 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_error_standards.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_defines.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_common_rom.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
-
 #include "ixheaacd_lt_predict.h"
-
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
@@ -45,36 +43,25 @@
 #include "ixheaacd_latmdemux.h"
 #include "ixheaacd_aacdec.h"
 #include "ixheaacd_sbr_common.h"
-
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_dec.h"
-
 #include "ixheaacd_struct_def.h"
-
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
-
 #include "ixheaacd_tns_usac.h"
 #include "ixheaacd_cnst.h"
-
 #include "ixheaacd_acelp_info.h"
-
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_info.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 #include "ixheaacd_main.h"
-
 #include "ixheaacd_arith_dec.h"
-
 #include "ixheaacd_config.h"
 #include "ixheaacd_struct.h"
-
 #include "ixheaacd_create.h"
-
 #include "ixheaacd_dec_main.h"
 
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,

@@ -19,7 +19,7 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"
@@ -40,7 +40,7 @@
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_qmf_dec.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_env_calc.h"
 
 #include "ixheaacd_interface.h"

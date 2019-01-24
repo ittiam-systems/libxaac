@@ -24,7 +24,7 @@
 #include <math.h>
 #include <string.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_tns_usac.h"
@@ -46,8 +46,8 @@
 #include "ixheaacd_windows.h"
 #include "ixheaacd_acelp_com.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #define LSF_GAP_F 50.0f
 #define FREQ_MAX_F 6400.0f
