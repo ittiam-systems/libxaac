@@ -20,6 +20,7 @@
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_error_standards.h"
 
 #include "ixheaacd_constants.h"
 #include <ixheaacd_basic_ops32.h>
@@ -377,9 +378,10 @@ VOID ixheaacd_add_arr(WORD16 *ptr1, WORD16 *ptr2, WORD32 num) {
   }
 }
 
-VOID ixheaacd_calc_noise_floor(ia_sbr_header_data_struct *ptr_header_data,
-                               ia_sbr_frame_info_data_struct *ptr_sbr_data,
-                               ia_sbr_prev_frame_data_struct *ptr_prev_data) {
+IA_ERRORCODE ixheaacd_calc_noise_floor(
+    ia_sbr_header_data_struct *ptr_header_data,
+    ia_sbr_frame_info_data_struct *ptr_sbr_data,
+    ia_sbr_prev_frame_data_struct *ptr_prev_data) {
   WORD32 i;
   WORD32 num_nf_bands;
   WORD32 num_noise_env;
@@ -424,6 +426,8 @@ VOID ixheaacd_calc_noise_floor(ia_sbr_header_data_struct *ptr_header_data,
   ixheaacd_limit_noise_floor_fac(ptr_header_data, ptr_sbr_data);
 
   ixheaacd_drc_offset = num_nf_bands * (num_noise_env - 1);
+  if (ixheaacd_drc_offset < 0 || ixheaacd_drc_offset >= MAX_NUM_NOISE_VALUES)
+    return IA_FATAL_ERROR;
   ptr1 = &ptr_sbr_data->int_noise_floor[ixheaacd_drc_offset];
   ptr2 = ptr_prev_noise_floor;
 
@@ -443,13 +447,16 @@ VOID ixheaacd_calc_noise_floor(ia_sbr_header_data_struct *ptr_header_data,
       *ptr_noise_floor++ = (WORD16)(0x4000 + (noise_floor_exp & MASK_FOR_EXP));
     }
   }
+  return IA_NO_ERROR;
 }
 
-VOID ixheaacd_dec_sbrdata_for_pvc(
+IA_ERRORCODE ixheaacd_dec_sbrdata_for_pvc(
     ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_sbr_data,
     ia_sbr_prev_frame_data_struct *ptr_prev_data) {
-  ixheaacd_calc_noise_floor(ptr_header_data, ptr_sbr_data, ptr_prev_data);
+  WORD32 err = 0;
+  err = ixheaacd_calc_noise_floor(ptr_header_data, ptr_sbr_data, ptr_prev_data);
+  if (err) return err;
 
   if (!ptr_sbr_data->coupling_mode) {
     ptr_sbr_data->num_noise_sfac =
@@ -458,6 +465,7 @@ VOID ixheaacd_dec_sbrdata_for_pvc(
     ixheaacd_dequant_pvc_env_data(ptr_sbr_data->num_noise_sfac,
                                   ptr_sbr_data->flt_noise_floor);
   }
+  return IA_NO_ERROR;
 }
 
 VOID ixheaacd_sbr_env_dequant_coup_fix(
@@ -589,8 +597,10 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
   if (err) return err;
 
-  ixheaacd_calc_noise_floor(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
-                            ptr_prev_data_ch_0);
+  err = ixheaacd_calc_noise_floor(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
+                                  ptr_prev_data_ch_0);
+
+  if (err == (WORD32)IA_FATAL_ERROR) return (WORD32)IA_FATAL_ERROR;
 
   if (!ptr_sbr_data_ch_0->coupling_mode && usac_flag) {
     ptr_sbr_data_ch_0->num_noise_sfac =
@@ -611,8 +621,10 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
     if (err) return err;
 
-    ixheaacd_calc_noise_floor(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
-                              ptr_prev_data_ch_1);
+    err = ixheaacd_calc_noise_floor(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
+                                    ptr_prev_data_ch_1);
+
+    if (err) return err;
 
     if (!ptr_sbr_data_ch_1->coupling_mode && usac_flag) {
       ptr_sbr_data_ch_1->num_noise_sfac =

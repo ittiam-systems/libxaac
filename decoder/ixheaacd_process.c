@@ -97,7 +97,7 @@ VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct,
                                WORD total_elements, WORD ch_fac,
                                WORD32 object_type);
 
-WORD16 ixheaacd_applysbr(
+IA_ERRORCODE ixheaacd_applysbr(
     ia_handle_sbr_dec_inst_struct self,
     ia_aac_dec_sbr_bitstream_struct *p_sbr_bit_stream, WORD16 *core_sample_buf,
     WORD16 *codec_num_channels, FLAG frame_status, FLAG down_samp_flag,
@@ -105,11 +105,12 @@ WORD16 ixheaacd_applysbr(
     WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
     ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag, WORD32 object_type);
 
-WORD16 ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
-                             ia_bit_buf_struct *it_bit_buff,
-                             WORD32 stereo_config_idx, WORD16 num_channels,
-                             WORD32 audio_object_type) {
-  WORD16 err_code = 0;
+IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
+                                   ia_bit_buf_struct *it_bit_buff,
+                                   WORD32 stereo_config_idx,
+                                   WORD16 num_channels,
+                                   WORD32 audio_object_type) {
+  WORD32 err_code = 0;
   ia_aac_dec_sbr_bitstream_struct *esbr_bit_str = &usac_data->esbr_bit_str[0];
   ia_handle_sbr_dec_inst_struct self = usac_data->pstr_esbr_dec;
 

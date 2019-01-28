@@ -1095,8 +1095,6 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
   WORD32 num_decoded_bits;
   const UWORD8 *ptr_cb_dimension_tbl =
       ptr_hcr_info->table_info.ptr_cb_dimension_tbl;
-  const UWORD16 *cb_table;
-  const UWORD32 *idx_table;
 
   WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->ptr_read_next);
   WORD32 read_bits = itt_bit_buff->cnt_bits;
@@ -1107,8 +1105,8 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
            ptr_num_ext_sorted_sect_in_sets[num_ext_sorted_sect_in_sets_idx];
        ext_sort_sec != 0; ext_sort_sec--) {
     codebook = ptr_ext_sorted_cw[ext_sorted_cw_idx];
-    cb_table = (UWORD16 *)(ptr_aac_tables->code_book[codebook]);
-    idx_table = (UWORD32 *)(ptr_aac_tables->index_table[codebook]);
+    if (codebook <= 0) return;
+
     ext_sorted_cw_idx++;
     if (ext_sorted_cw_idx >= (MAX_SFB_HCR + MAX_HCR_SETS)) {
       return;
@@ -1123,6 +1121,8 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
 
     if (codebook <= 4) {
       WORD32 tbl_sign = 0;
+      const UWORD16 *cb_table = (UWORD16 *)(ptr_aac_tables->code_book[codebook]);
+      const UWORD32 *idx_table = (UWORD32 *)(ptr_aac_tables->index_table[codebook]);
 
       if (codebook > 2) {
         tbl_sign = 1;
@@ -1158,6 +1158,8 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
       {
         WORD32 tbl_sign = 0;
         WORD32 huff_mode = 9;
+        const UWORD16 *cb_table = (UWORD16 *)(ptr_aac_tables->code_book[codebook]);
+        const UWORD32 *idx_table = (UWORD32 *)(ptr_aac_tables->index_table[codebook]);
         num_decoded_bits = 0;
 
         if (codebook > 6) {

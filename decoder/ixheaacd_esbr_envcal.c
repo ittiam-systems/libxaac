@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include <ixheaacd_type_def.h>
-
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_sbr_const.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_bitbuffer.h"
@@ -569,6 +569,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
     }
 
     for (i = 0; i < bs_num_env; i++) {
+      if (kk > MAX_NOISE_ENVELOPES) return IA_FATAL_ERROR;
+
       if (p_frame_info->border_vec[i] == p_frame_info->noise_border_vec[kk])
         kk++, next++;
 

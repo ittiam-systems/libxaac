@@ -21,6 +21,7 @@
 #define IXHEAACD_AAC_ROM_H
 
 #define AAC_NF_NO_RANDOM_VAL 512
+#define MAX_CB_SIZE 13
 
 typedef struct {
   WORD32 ixheaacd_pow_table_Q13[129];
@@ -153,8 +154,8 @@ typedef struct {
   WORD16 sfb_long_table[52];
   WORD16 sfb_short_table[16];
 
-  UWORD16 *code_book[13];
-  UWORD32 *index_table[13];
+  UWORD16 *code_book[MAX_CB_SIZE];
+  UWORD32 *index_table[MAX_CB_SIZE];
 
   WORD8 *scale_fac_bands_512[16];
   WORD8 *scale_fac_bands_480[16];

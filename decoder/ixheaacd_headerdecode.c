@@ -19,6 +19,7 @@
 */
 #include <stdlib.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_constants.h"
 #include <ixheaacd_basic_ops32.h>
 #include <ixheaacd_basic_ops16.h>
@@ -1045,6 +1046,8 @@ WORD32 ixheaacd_aac_headerdecode(
             return result;
           } else if (result == -1)
             return -1;
+          else if (result == (WORD32)IA_FATAL_ERROR)
+            return IA_FATAL_ERROR;
           else
             bytes_taken += *bytes_consumed - 1;
           continue;

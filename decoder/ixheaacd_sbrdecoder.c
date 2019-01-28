@@ -238,16 +238,14 @@ WORD32 ixheaacd_prepare_upsamp(ia_sbr_header_data_struct **ptr_header_data,
   return err;
 }
 
-WORD16 ixheaacd_applysbr(ia_handle_sbr_dec_inst_struct self,
-                         ia_aac_dec_sbr_bitstream_struct *p_sbr_bit_stream,
-                         WORD16 *core_sample_buf, WORD16 *codec_num_channels,
-                         FLAG frame_status, FLAG down_samp_flag,
-                         FLAG down_mix_flag,
-                         ia_sbr_scr_struct *sbr_scratch_struct,
-                         WORD32 ps_enable, WORD32 ch_fac, WORD32 slot_element,
-                         ia_bit_buf_struct *it_bit_buff,
-                         ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag,
-                         WORD32 audio_object_type) {
+IA_ERRORCODE ixheaacd_applysbr(
+    ia_handle_sbr_dec_inst_struct self,
+    ia_aac_dec_sbr_bitstream_struct *p_sbr_bit_stream, WORD16 *core_sample_buf,
+    WORD16 *codec_num_channels, FLAG frame_status, FLAG down_samp_flag,
+    FLAG down_mix_flag, ia_sbr_scr_struct *sbr_scratch_struct, WORD32 ps_enable,
+    WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
+    ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag,
+    WORD32 audio_object_type) {
   WORD32 k;
   FLAG prev_ps_flag = 0;
   FLAG ps_flag = 0;
@@ -564,8 +562,10 @@ WORD16 ixheaacd_applysbr(ia_handle_sbr_dec_inst_struct self,
 
   if (ptr_header_data[0]->sync_state == SBR_ACTIVE) {
     if (ptr_frame_data[0]->sbr_mode == PVC_SBR) {
-      ixheaacd_dec_sbrdata_for_pvc(ptr_header_data[0], ptr_frame_data[0],
-                                   pstr_sbr_channel[0]->pstr_prev_frame_data);
+      err = ixheaacd_dec_sbrdata_for_pvc(
+          ptr_header_data[0], ptr_frame_data[0],
+          pstr_sbr_channel[0]->pstr_prev_frame_data);
+      if (err) return err;
     } else if (ptr_frame_data[0]->sbr_mode == ORIG_SBR) {
       err = ixheaacd_dec_sbrdata(
           ptr_header_data[0], ptr_header_data[1], ptr_frame_data[0],

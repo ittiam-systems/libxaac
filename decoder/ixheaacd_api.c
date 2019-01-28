@@ -1460,7 +1460,7 @@ IA_ERRORCODE ixheaacd_dec_init(
                 p_obj_exhaacplus_dec, inbuffer, outbuffer, &out_bytes,
                 frames_done, pcm_size,
                 &p_obj_exhaacplus_dec->p_state_aac->num_of_output_ch);
-            if (error_code == -1) return error_code;
+            if (error_code) return error_code;
             p_obj_exhaacplus_dec->p_state_aac->frame_counter++;
           } else {
             out_bytes = 0;
