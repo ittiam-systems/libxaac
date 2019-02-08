@@ -129,7 +129,7 @@ WORD cblock_decode_huff_symbol(UWORD8 *ptr_read_next, WORD32 bit_pos,
   return tot_bits;
 }
 
-WORD16 ixheaacd_dec_coupling_channel_element(
+IA_ERRORCODE ixheaacd_dec_coupling_channel_element(
     ia_handle_bit_buf_struct bs, ia_aac_decoder_struct *aac_handle,
     WORD32 samp_rate_idx, ia_aac_dec_tables_struct *ptr_aac_tables,
     ixheaacd_misc_tables *common_tables_ptr, WORD *element_index_order,
@@ -152,7 +152,7 @@ WORD16 ixheaacd_dec_coupling_channel_element(
       ptr_aac_tables->pstr_huffmann_tables->huffman_code_book_scl_index;
   WORD16 index, length;
 
-  WORD16 error_status = AAC_DEC_OK;
+  IA_ERRORCODE error_status = IA_NO_ERROR;
 
   element_instance_tag = ixheaacd_read_bits_buf(bs, 4);
   element_index_order[0] = element_instance_tag;
@@ -179,7 +179,9 @@ WORD16 ixheaacd_dec_coupling_channel_element(
     } else
       ind_channel_info->elements_coupled[c] = 0;
   }
-
+  if ((ind_sw_cce_flag == 0) && (num_gain_element_lists > MAX_BS_ELEMENT)) {
+    return IA_FATAL_ERROR;
+  }
   cc_domain = ixheaacd_read_bits_buf(bs, 1);
   gain_element_sign = ixheaacd_read_bits_buf(bs, 1);
   gain_element_scale = ixheaacd_read_bits_buf(bs, 2);
@@ -207,8 +209,7 @@ WORD16 ixheaacd_dec_coupling_channel_element(
     else {
       common_gain_element_present[c] = ixheaacd_read_bits_buf(bs, 1);
       cge = common_gain_element_present[c];
-      error_status =
-          (WORD)((WORD32)IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE);
+      return IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
     }
     if (cge) {
       UWORD8 *ptr_read_next = bs->ptr_read_next;
@@ -244,13 +245,11 @@ WORD16 ixheaacd_dec_coupling_channel_element(
         }
       }
     } else {
-      error_status =
-          (WORD)((WORD32)IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE);
+      return IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
     }
   }
   if (bs->cnt_bits < 0) {
-    error_status = (WORD16)(
-        (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
   }
   return error_status;
 }
