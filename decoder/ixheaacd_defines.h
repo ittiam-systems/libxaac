@@ -60,4 +60,6 @@
 
 typedef struct { WORD32 sampling_frequency; } ia_sampling_rate_info_struct;
 
+#define USAC_MAX_SAMPLE_RATE (96000)
+
 #endif
