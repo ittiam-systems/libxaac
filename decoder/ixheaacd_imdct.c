@@ -254,7 +254,8 @@ WORD8 ixheaacd_cal_fac_data(ia_usac_data_struct *usac_data, WORD32 i_ch,
     i_aq = NULL;
 
   for (k = 0; k < lfac; k++) {
-    if (ABS(fac_data[k + 1]) > itemp) itemp = ABS(fac_data[k + 1]);
+    if (ixheaacd_abs32_sat(fac_data[k + 1]) > itemp)
+      itemp = ixheaacd_abs32_sat(fac_data[k + 1]);
   }
 
   qshift1 = ixheaacd_norm32(itemp);
