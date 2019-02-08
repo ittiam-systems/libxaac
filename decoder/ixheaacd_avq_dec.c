@@ -161,7 +161,9 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
     z[i] = y[i] >> count;
     rem1[i] = y[i] & (m - 1);
   }
-  y[0] += (4 * kv[0] + sum);
+  y[0] = ixheaacd_add32_sat(
+      y[0],
+      ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)4 * (WORD64)kv[0]), sum));
   z[0] = (y[0] - 2) >> count;
   if (m != 0)
     rem1[0] = (y[0] - 2) % m;
