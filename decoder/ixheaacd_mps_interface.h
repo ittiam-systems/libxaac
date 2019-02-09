@@ -20,9 +20,9 @@
 #ifndef IXHEAACD_MPS_INTERFACE_H
 #define IXHEAACD_MPS_INTERFACE_H
 
-VOID ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
-                         WORD32 residual_coding,
-                         ia_usac_dec_mps_config_struct* usac_mps_config);
+WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
+                           WORD32 residual_coding,
+                           ia_usac_dec_mps_config_struct* usac_mps_config);
 
 VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct* self,
                                 WORD32 independency_flag,

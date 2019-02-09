@@ -28,7 +28,6 @@
 #include "impd_drc_selection_process.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
-
 WORD32 impd_signal_peak_level_info(
     ia_drc_config* pstr_drc_config,
     ia_drc_loudness_info_set_struct* pstr_loudness_info,
@@ -717,8 +716,11 @@ WORD32 impd_init_loudness_control(
       loudness_normalization_gain_db[k] = 0.0f;
     }
   }
+  if (k >= MAX_NUM_COMPRESSION_EQ) return UNEXPECTED_ERROR;
   eq_set_id[k] = 0;
+
   loudness[k] = UNDEFINED_LOUDNESS_VALUE;
+
   loudness_normalization_gain_db[k] = 0.0f;
   k++;
 

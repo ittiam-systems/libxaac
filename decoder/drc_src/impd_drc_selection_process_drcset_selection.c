@@ -775,6 +775,9 @@ WORD32 impd_drc_set_preselection(
                   loudness_normalization_gain_db, loudness);
               if (err) return (err);
 
+              if (loudness_info_count > MAX_LOUDNESS_INFO_COUNT)
+                return UNEXPECTED_ERROR;
+
               err = impd_signal_peak_level_info(
                   pstr_drc_config, pstr_loudness_info, str_drc_instruction_str,
                   requested_dwnmix_id[d],
@@ -787,6 +790,7 @@ WORD32 impd_drc_set_preselection(
               for (l = 0; l < loudness_info_count; l++) {
                 WORD32 match_found_flag = 0;
                 WORD32 p;
+                if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
                 selection_candidate_info[k].loudness_norm_db_gain_adjusted =
                     loudness_normalization_gain_db[l];
 
@@ -873,7 +877,6 @@ WORD32 impd_drc_set_preselection(
                      !str_drc_instruction_str
                           ->drc_set_target_loudness_present)) {
                   k++;
-                } else {
                 }
               }
             }
@@ -913,6 +916,7 @@ WORD32 impd_drc_set_preselection(
                     signal_peak_level[p] + loudness_normalization_gain_db[l] -
                         pstr_drc_sel_proc_params_struct->output_peak_level_max);
                 adjustment = min(adjustment, max(0.0f, loudness_deviation_max));
+                if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
                 selection_candidate_info[k].loudness_norm_db_gain_adjusted =
                     loudness_normalization_gain_db[l] - adjustment;
 
@@ -1410,10 +1414,11 @@ WORD32 impd_select_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
   }
 
   while (!selection_candidate_count) {
-    impd_drc_set_preselection(
+    err = impd_drc_set_preselection(
         pstr_drc_sel_proc_params_struct, pstr_drc_config, pstr_loudness_info,
         restrict_to_drc_with_album_loudness, pstr_drc_uni_sel_proc,
         &selection_candidate_count, selection_candidate_info);
+    if (err) return err;
 
     if (selection_candidate_count == 0) {
       if (restrict_to_drc_with_album_loudness == 1) {
