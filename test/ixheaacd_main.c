@@ -1212,6 +1212,9 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         ixheaacd_i_bytes_to_read =
             get_metadata_dec_exec(meta_info, frame_counter);
 
+        if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size)
+          return IA_FATAL_ERROR;
+
         if (ixheaacd_i_bytes_to_read <= 0) {
           err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                          IA_API_CMD_INPUT_OVER, 0, NULL);
@@ -1583,6 +1586,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     if (raw_testing) {
       ixheaacd_i_bytes_to_read =
           get_metadata_dec_exec(meta_info, frame_counter);
+
+      if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size) return IA_FATAL_ERROR;
 
       if (ixheaacd_i_bytes_to_read <= 0) {
         err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
