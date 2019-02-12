@@ -566,13 +566,15 @@ WORD16 ixheaacd_applysbr(ia_handle_sbr_dec_inst_struct self,
       ixheaacd_dec_sbrdata_for_pvc(ptr_header_data[0], ptr_frame_data[0],
                                    pstr_sbr_channel[0]->pstr_prev_frame_data);
     } else if (ptr_frame_data[0]->sbr_mode == ORIG_SBR) {
-      ixheaacd_dec_sbrdata(
+      err = ixheaacd_dec_sbrdata(
           ptr_header_data[0], ptr_header_data[1], ptr_frame_data[0],
           pstr_sbr_channel[0]->pstr_prev_frame_data,
           (stereo || dual_mono) ? ptr_frame_data[1] : NULL,
           (stereo || dual_mono) ? pstr_sbr_channel[1]->pstr_prev_frame_data
                                 : NULL,
           self->pstr_common_tables);
+
+      if (err) return err;
     }
 
     if (ptr_header_data[0]->channel_mode == PS_STEREO &&

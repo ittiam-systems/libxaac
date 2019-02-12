@@ -110,6 +110,12 @@ static int ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
 static int ixheaacd_inverse_smoothing_time_table_q30[] = {16777216, 8388608,
                                                           4194304, 2097152};
 
+static WORD32 bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
+  var = min(var, upper_bound);
+  var = max(var, lower_bound);
+  return var;
+}
+
 static VOID ixheaacd_longmult1(unsigned short a[], unsigned short b,
                                unsigned short d[], int len) {
   int k;
@@ -803,9 +809,16 @@ static VOID ixheaacd_mps_mapindexdata(
   }
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    for (band = band_start; band < band_stop; band++)
+    for (band = band_start; band < band_stop; band++) {
+      if (param_type == CLD) {
+        out_idx_data[ps][band] = bound_check(out_idx_data[ps][band], -15, 15);
+      } else if (param_type == ICC)  // param_type is ICC
+      {
+        out_idx_data[ps][band] = bound_check(out_idx_data[ps][band], 0, 7);
+      }
       out_data[ps][band] =
           ixheaacd_mps_de_quantize(out_idx_data[ps][band], param_type);
+    }
   }
 
   if (ext_frame_flag) {

@@ -183,11 +183,12 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
                               FLOAT32 pv_qmf_buf_imag[][64],
                               WORD32 pitch_in_bins);
 
-VOID ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
-                           FLOAT32 input_real[][64], FLOAT32 input_imag[][64],
-                           FLOAT32 input_real1[][64], FLOAT32 input_imag1[][64],
-                           WORD32 x_over_qmf[MAX_NUM_PATCHES],
-                           FLOAT32 *scratch_buff, FLOAT32 *env_out);
+WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
+                             FLOAT32 input_real[][64], FLOAT32 input_imag[][64],
+                             FLOAT32 input_real1[][64],
+                             FLOAT32 input_imag1[][64],
+                             WORD32 x_over_qmf[MAX_NUM_PATCHES],
+                             FLOAT32 *scratch_buff, FLOAT32 *env_out);
 
 WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
                             FLOAT32 ptr_src_buf_imag[][64],

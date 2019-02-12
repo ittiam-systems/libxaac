@@ -28,7 +28,6 @@
 #include "impd_drc_parser.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
-
 WORD32 impd_parse_loud_eq_instructions(
     ia_bit_buf_struct* it_bit_buff,
     ia_loud_eq_instructions_struct* loud_eq_instructions);
@@ -343,7 +342,7 @@ WORD32 impd_drc_uni_gain_read(ia_bit_buf_struct* it_bit_buff,
 WORD32 impd_parse_uni_drc_gain_ext(
     ia_bit_buf_struct* it_bit_buff,
     ia_uni_drc_gain_ext_struct* uni_drc_gain_ext) {
-  WORD32 i, k;
+  WORD32 k;
   WORD32 bit_size_len, ext_size_bits, bit_size, other_bit;
 
   k = 0;
@@ -351,6 +350,7 @@ WORD32 impd_parse_uni_drc_gain_ext(
       impd_read_bits_buf(it_bit_buff, 4);
   if (it_bit_buff->error) return it_bit_buff->error;
   while (uni_drc_gain_ext->uni_drc_gain_ext_type[k] != UNIDRCGAINEXT_TERM) {
+    if (k >= (EXT_COUNT_MAX - 1)) return UNEXPECTED_ERROR;
     bit_size_len = impd_read_bits_buf(it_bit_buff, 3);
     if (it_bit_buff->error) return it_bit_buff->error;
     ext_size_bits = bit_size_len + 4;
@@ -359,14 +359,9 @@ WORD32 impd_parse_uni_drc_gain_ext(
     if (it_bit_buff->error) return it_bit_buff->error;
     uni_drc_gain_ext->ext_bit_size[k] = bit_size + 1;
 
-    switch (uni_drc_gain_ext->uni_drc_gain_ext_type[k]) {
-      default:
-        for (i = 0; i < uni_drc_gain_ext->ext_bit_size[k]; i++) {
-          other_bit = impd_read_bits_buf(it_bit_buff, 1);
-          if (it_bit_buff->error) return it_bit_buff->error;
-        }
-        break;
-    }
+    other_bit =
+        impd_skip_bits_buf(it_bit_buff, uni_drc_gain_ext->ext_bit_size[k]);
+    if (it_bit_buff->error) return it_bit_buff->error;
     k++;
     uni_drc_gain_ext->uni_drc_gain_ext_type[k] =
         impd_read_bits_buf(it_bit_buff, 4);
@@ -918,7 +913,7 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
                                   ia_eq_coeff_struct* str_eq_coeff) {
   WORD32 err = 0;
   WORD32 eq_gain_cnt, mu, nu, temp;
-  WORD32 subband_gain_len_tbl[7] = {0, 32, 39, 64, 71, 128, 135};
+  static const WORD32 subband_gain_len_tbl[7] = {0, 32, 39, 64, 71, 128, 135};
 
   str_eq_coeff->eq_delay_max_present = impd_read_bits_buf(it_bit_buff, 1);
   if (it_bit_buff->error) return it_bit_buff->error;
@@ -961,15 +956,22 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
     str_eq_coeff->eq_subband_gain_representation = (temp >> 4) & 0x01;
 
     str_eq_coeff->eq_subband_gain_format = temp & 0x0F;
-
-    if (str_eq_coeff->eq_subband_gain_format == GAINFORMAT_UNIFORM) {
+    if ((str_eq_coeff->eq_subband_gain_format > 0) &&
+        (str_eq_coeff->eq_subband_gain_format < GAINFORMAT_UNIFORM)) {
+      str_eq_coeff->eq_subband_gain_count =
+          subband_gain_len_tbl[str_eq_coeff->eq_subband_gain_format];
+    } else {
+      /* Gain format 0 or any value between 7 to 15 is considered as default
+       * case */
       eq_gain_cnt = impd_read_bits_buf(it_bit_buff, 8);
+
       if (it_bit_buff->error) return it_bit_buff->error;
       str_eq_coeff->eq_subband_gain_count = eq_gain_cnt + 1;
 
-    } else
-      str_eq_coeff->eq_subband_gain_count =
-          subband_gain_len_tbl[str_eq_coeff->eq_subband_gain_format];
+      if (str_eq_coeff->eq_subband_gain_count > EQ_SUBBAND_GAIN_COUNT_MAX)
+        return UNEXPECTED_ERROR;
+
+    }
 
     if (str_eq_coeff->eq_subband_gain_representation == 1) {
       err = impd_parse_eq_subband_gain_spline(
@@ -1168,6 +1170,9 @@ WORD32 impd_parse_eq_instructions(
     }
   }
 
+  if (str_eq_instructions->eq_ch_group_count > EQ_CHANNEL_GROUP_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   str_eq_instructions->td_filter_cascade_present =
       impd_read_bits_buf(it_bit_buff, 1);
   if (it_bit_buff->error) return it_bit_buff->error;
@@ -1307,12 +1312,20 @@ WORD32 impd_parse_loud_eq_instructions(
   temp = impd_read_bits_buf(it_bit_buff, 8);
   if (it_bit_buff->error) return it_bit_buff->error;
 
+  /* Parsed but unused */
   loud_eq_instructions->loudness_after_drc = (temp >> 7) & 0x01;
 
+  /* Parsed but unused */
   loud_eq_instructions->loudness_after_eq = (temp >> 6) & 0x01;
 
+  /* Parsed but unused */
   loud_eq_instructions->loud_eq_gain_sequence_count = temp & 0x3F;
 
+  if (loud_eq_instructions->loud_eq_gain_sequence_count >
+      LOUD_EQ_GAIN_SEQUENCE_COUNT_MAX)
+    return UNEXPECTED_ERROR;
+
+  /* Section under for loop, Parsed but unused */
   for (i = 0; i < loud_eq_instructions->loud_eq_gain_sequence_count; i++) {
     temp = impd_read_bits_buf(it_bit_buff, 7);
     if (it_bit_buff->error) return it_bit_buff->error;
