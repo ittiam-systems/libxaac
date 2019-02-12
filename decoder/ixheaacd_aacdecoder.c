@@ -748,15 +748,15 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
   if (ele_type == ID_END &&
       p_state_enhaacplus_dec->bs_format == LOAS_BSFORMAT) {
-    WORD16 tmp;
-    tmp = ((WORD16)latm_element->layer_info[0][0].frame_len_bits) -
+    WORD32 tmp;
+    tmp = ((WORD32)latm_element->layer_info[0][0].frame_len_bits) -
           (it_bit_buff->initial_cnt_bits - it_bit_buff->cnt_bits);
 
     if (tmp > 0) ixheaacd_read_bidirection(it_bit_buff, tmp);
 
     if (latm_element->other_data_present) {
-      tmp = latm_element->other_data_length;
-      ixheaacd_read_bidirection(it_bit_buff, tmp);
+      WORD32 count_bits = (WORD32)latm_element->other_data_length;
+      ixheaacd_read_bidirection(it_bit_buff, count_bits);
     }
   }
 

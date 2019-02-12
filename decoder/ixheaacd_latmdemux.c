@@ -269,6 +269,8 @@ IA_ERRORCODE ixheaacd_latm_stream_mux_config(
           latm_element->other_data_length <<= 8;
           latm_element->other_data_length +=
               ixheaacd_read_bits_buf(it_bit_buff, 8);
+          if (latm_element->other_data_length > (UWORD32)it_bit_buff->cnt_bits)
+            return IA_FATAL_ERROR;
         } while (other_data_len);
       }
     }
