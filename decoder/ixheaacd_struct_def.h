@@ -233,6 +233,7 @@ typedef struct ia_aac_dec_state_struct {
   WORD32 header_length;
   ia_sbr_header_data_struct str_sbr_config;
   jmp_buf xaac_jmp_buf;
+  WORD32 decode_create_done;
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {

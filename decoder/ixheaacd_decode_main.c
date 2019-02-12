@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ixheaacd_type_def.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_env_extr_part.h"
@@ -263,12 +263,14 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
     if (frames_done == 0) {
       WORD32 delay;
-      delay = ixheaacd_decode_create(
-          handle, pstr_dec_data,
-          pstr_dec_data->str_frame_data.scal_out_select + 1);
+      if (aac_dec_handle->decode_create_done == 0) {
+        delay = ixheaacd_decode_create(
+            handle, pstr_dec_data,
+            pstr_dec_data->str_frame_data.scal_out_select + 1);
+        if (delay == -1) return -1;
+      }
       pstr_dec_data->dec_bit_buf.max_size =
           handle->p_mem_info_aac[IA_MEMTYPE_INPUT].ui_size;
-      if (delay == -1) return -1;
       *num_channel_out = pstr_dec_data->str_frame_data.scal_out_num_channels;
       return 0;
     }
@@ -315,6 +317,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         if (suitable_tracks <= 0) return -1;
 
         /* call codec re-configure*/
+        aac_dec_handle->decode_create_done = 0;
         err = ixheaacd_config(
             &config_bit_buf, &(pstr_dec_data->str_frame_data
                                    .str_audio_specific_config.str_usac_config),
@@ -326,7 +329,6 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
             .sampling_frequency =
             pstr_dec_data->str_frame_data.str_audio_specific_config
                 .str_usac_config.usac_sampling_frequency;
-
         delay = ixheaacd_decode_create(
             handle, pstr_dec_data,
             pstr_dec_data->str_frame_data.scal_out_select + 1);
@@ -357,6 +359,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
       }
 
       // temp_read=ixheaacd_show_bits_buf(pstr_dec_data->dec_bit_buf,preroll_frame_offset[access_unit]);
+      if (!aac_dec_handle->decode_create_done) return IA_FATAL_ERROR;
 
       err =
           ixheaacd_usac_process(pstr_dec_data, num_channel_out, aac_dec_handle);

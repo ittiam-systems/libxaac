@@ -540,7 +540,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
                               WORD32 tracks_for_decoder) {
   WORD32 stream;
 
-  WORD32 num_delay_samp = 0;
   WORD32 err = 0;
   ia_frame_data_struct *pstr_frame_data;
   WORD32 stream_count;
@@ -557,6 +556,8 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
 
         err = ixheaacd_dec_data_init(handle, pstr_frame_data,
                                      &(pstr_dec_data->str_usac_data));
+
+        if (err != 0) return err;
 
         switch (pstr_dec_data->str_usac_data.sbr_ratio_idx) {
           case 0:
@@ -576,7 +577,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
             handle->aac_config.ui_sbr_mode = 0;
         }
 
-        if (err != 0) return err;
 
         break;
 
@@ -700,6 +700,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
       }
     }
   }
-
-  return (num_delay_samp);
+  aac_dec_handle->decode_create_done = 1;
+  return 0;
 }
