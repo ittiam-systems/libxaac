@@ -238,7 +238,7 @@ VOID ixheaacd_process_del_cod_env_data(
   }
 }
 
-static PLATFORM_INLINE VOID
+static PLATFORM_INLINE WORD32
 ixheaacd_wrong_timing_compensate(ia_sbr_header_data_struct *ptr_header_data,
                                  ia_sbr_frame_info_data_struct *ptr_sbr_data,
                                  ia_sbr_prev_frame_data_struct *ptr_prev_data,
@@ -270,6 +270,8 @@ ixheaacd_wrong_timing_compensate(ia_sbr_header_data_struct *ptr_header_data,
   p_frame_info->border_vec[0] = start_pos_est;
   p_frame_info->noise_border_vec[0] = start_pos_est;
 
+  if (start_pos_est < 0) return -1;
+
   if (ptr_sbr_data->coupling_mode != COUPLING_BAL) {
     num_env_sf =
         ((p_frame_info->freq_res[0]) ? num_sf_bands[HIGH] : num_sf_bands[LOW]);
@@ -279,6 +281,8 @@ ixheaacd_wrong_timing_compensate(ia_sbr_header_data_struct *ptr_header_data,
           add16_m(ptr_sbr_data->int_env_sf_arr[i], delta_exp);
     }
   }
+
+  return 0;
 }
 
 WORD16 ixheaacd_check_env_data(ia_sbr_header_data_struct *ptr_header_data,
@@ -568,19 +572,22 @@ VOID ixheaacd_sbr_env_dequant_coup(
                   (1 + pow(2, temp_r - pan_offset[1])));
   }
 }
-VOID ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
-                          ia_sbr_header_data_struct *ptr_header_data_ch_1,
-                          ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_0,
-                          ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
-                          ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_1,
-                          ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-                          ixheaacd_misc_tables *ptr_common_tables) {
+WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
+                            ia_sbr_header_data_struct *ptr_header_data_ch_1,
+                            ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_0,
+                            ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
+                            ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_1,
+                            ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
+                            ixheaacd_misc_tables *ptr_common_tables) {
   FLAG error_code;
+  WORD32 err = 0;
   WORD32 usac_flag = ptr_header_data_ch_0->usac_flag;
 
-  ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
-                        ptr_prev_data_ch_0, ptr_prev_data_ch_1,
-                        ptr_common_tables);
+  err = ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
+                              ptr_prev_data_ch_0, ptr_prev_data_ch_1,
+                              ptr_common_tables);
+
+  if (err) return err;
 
   ixheaacd_calc_noise_floor(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                             ptr_prev_data_ch_0);
@@ -598,9 +605,11 @@ VOID ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
   if (ptr_sbr_data_ch_1 != NULL) {
     error_code = ptr_header_data_ch_0->err_flag;
-    ixheaacd_dec_envelope(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
-                          ptr_prev_data_ch_1, ptr_prev_data_ch_0,
-                          ptr_common_tables);
+    err = ixheaacd_dec_envelope(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
+                                ptr_prev_data_ch_1, ptr_prev_data_ch_0,
+                                ptr_common_tables);
+
+    if (err) return err;
 
     ixheaacd_calc_noise_floor(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
                               ptr_prev_data_ch_1);
@@ -618,9 +627,11 @@ VOID ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
     if (!usac_flag) {
       if (!error_code && ptr_header_data_ch_0->err_flag) {
-        ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
-                              ptr_prev_data_ch_0, ptr_prev_data_ch_1,
-                              ptr_common_tables);
+        err = ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
+                                    ptr_prev_data_ch_0, ptr_prev_data_ch_1,
+                                    ptr_common_tables);
+
+        if (err) return err;
       }
     }
 
@@ -631,13 +642,16 @@ VOID ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
       ixheaacd_sbr_env_dequant_coup(ptr_sbr_data_ch_0, ptr_sbr_data_ch_1);
     }
   }
+
+  return 0;
 }
-VOID ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
-                           ia_sbr_frame_info_data_struct *ptr_sbr_data,
-                           ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
-                           ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-                           ixheaacd_misc_tables *pstr_common_tables) {
+WORD32 ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
+                             ia_sbr_frame_info_data_struct *ptr_sbr_data,
+                             ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
+                             ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
+                             ixheaacd_misc_tables *pstr_common_tables) {
   FLAG error_code;
+  WORD32 err;
   WORD16 env_sf_local_arr[MAX_FREQ_COEFFS];
   WORD32 usac_flag = ptr_header_data->usac_flag;
   WORD32 temp_1 =
@@ -664,8 +678,12 @@ VOID ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
     if (ptr_header_data->err_flag_prev && !usac_flag) {
       WORD16 *ptr1, *ptr2;
       WORD32 i;
-      ixheaacd_wrong_timing_compensate(ptr_header_data, ptr_sbr_data,
-                                       ptr_prev_data_ch_0, pstr_common_tables);
+
+      err = ixheaacd_wrong_timing_compensate(ptr_header_data, ptr_sbr_data,
+                                             ptr_prev_data_ch_0,
+                                             pstr_common_tables);
+
+      if (err) return err;
 
       if (ptr_sbr_data->coupling_mode !=
           (WORD16)ptr_prev_data_ch_0->coupling_mode) {
@@ -708,14 +726,19 @@ VOID ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
         memcpy(ptr_prev_data_ch_0->sfb_nrg_prev, env_sf_local_arr,
                sizeof(WORD16) * MAX_FREQ_COEFFS);
 
-        ixheaacd_dec_envelope(ptr_header_data, ptr_sbr_data, ptr_prev_data_ch_0,
-                              ptr_prev_data_ch_1, pstr_common_tables);
-        return;
+        err = ixheaacd_dec_envelope(ptr_header_data, ptr_sbr_data,
+                                    ptr_prev_data_ch_0, ptr_prev_data_ch_1,
+                                    pstr_common_tables);
+
+        if (err) return err;
+        return 0;
       }
     }
   }
   if (!usac_flag)
     ixheaacd_dequant_env_data(ptr_sbr_data, ptr_sbr_data->amp_res);
+
+  return 0;
 }
 
 VOID ixheaacd_adj_timeslot(WORD32 *ptr_buf_real, WORD32 *ptr_buf_imag,
