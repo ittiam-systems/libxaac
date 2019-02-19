@@ -158,6 +158,7 @@ VOID ixheaacd_hbe_repl_spec(WORD32 x_over_qmf[MAX_NUM_PATCHES],
           start_band--;
         }
       }
+      if (!ixheaacd_num_bands) break;
       for (col = 0; col < no_bins; col++) {
         WORD32 i = 0;
         band = target + ixheaacd_num_bands - 1;
