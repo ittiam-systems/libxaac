@@ -41,6 +41,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_module_obj, WORD32 i_cmd, WORD32 i_idx,
 
 VOID ixheaacd_error_handler_init();
 VOID ia_testbench_error_handler_init();
+VOID metadata_mp4_stsz_size_free(metadata_info *meta_info);
 
 extern ia_error_info_struct ixheaacd_ia_testbench_error_info;
 extern ia_error_info_struct ixheaacd_error_info;
@@ -2184,7 +2185,7 @@ int main(WORD32 argc, char *argv[]) {
         if (g_pf_meta) {
           raw_testing = 0;
           fclose(g_pf_meta);
-          memset_metadata(meta_info);
+          metadata_mp4_stsz_size_free(&meta_info);
           g_pf_meta = NULL;
         }
         FileWrapper_Close(g_pf_inp);
@@ -2328,7 +2329,7 @@ int main(WORD32 argc, char *argv[]) {
 
     if (g_pf_meta) {
       fclose(g_pf_meta);
-      memset_metadata(meta_info);
+      metadata_mp4_stsz_size_free(&meta_info);
     }
     FileWrapper_Close(g_pf_inp);
     if (g_pf_interface) {

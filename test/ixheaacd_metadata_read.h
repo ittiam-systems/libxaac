@@ -51,6 +51,4 @@ void update_start_offset_in_samples(metadata_info meta_info, int update);
 
 void update_play_time_in_samples(metadata_info meta_info, int update);
 
-void memset_metadata(metadata_info meta_info);
-
 #endif
