@@ -989,11 +989,11 @@ VOID ixheaacd_equalize_filt_buff_exp(WORD16 *ptr_filt_buf, WORD16 *nrg_gain,
   }
 }
 
-PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *ptr_filt_buf,
-                                              WORD16 *ptr_filt_buf_noise,
-                                              WORD16 *nrg_gain,
-                                              WORD16 *noise_level_mant,
-                                              WORD32 num_sub_bands) {
+static PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *ptr_filt_buf,
+                                                     WORD16 *ptr_filt_buf_noise,
+                                                     WORD16 *nrg_gain,
+                                                     WORD16 *noise_level_mant,
+                                                     WORD32 num_sub_bands) {
   WORD32 k;
   WORD32 temp1, temp2;
 

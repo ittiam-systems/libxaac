@@ -168,7 +168,7 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
   return IA_NO_ERROR;
 }
 
-PLATFORM_INLINE VOID
+static PLATFORM_INLINE VOID
 ixheaacd_init_sbr_tables(ia_sbr_tables_struct *ptr_sbr_tables) {
   ptr_sbr_tables->env_calc_tables_ptr =
       (ia_env_calc_tables_struct *)&ixheaacd_aac_dec_env_calc_tables;

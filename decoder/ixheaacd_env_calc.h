@@ -54,11 +54,11 @@ PLATFORM_INLINE VOID ixheaacd_equalize_filt_buff_exp(WORD16 *ptr_filt_buf,
                                                      WORD16 *nrg_gain_mant,
                                                      WORD32 subbands);
 
-PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *filt_buf_mant,
-                                              WORD16 *ptr_filt_buf_noise,
-                                              WORD16 *nrg_gain_mant,
-                                              WORD16 *noise_level_mant,
-                                              WORD32 num_sub_bands);
+static PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *filt_buf_mant,
+                                                     WORD16 *ptr_filt_buf_noise,
+                                                     WORD16 *nrg_gain_mant,
+                                                     WORD16 *noise_level_mant,
+                                                     WORD32 num_sub_bands);
 
 VOID ixheaacd_noise_level_rescaling(WORD16 *noise_level_mant, WORD32 diff,
                                     WORD32 num_sub_bands,
@@ -179,11 +179,6 @@ VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
                                WORD16 *ptr_noise_floor_mant,
                                WORD16 *ptr_nrg_sine_m,
                                ixheaacd_misc_tables *pstr_common_tables);
-PLATFORM_INLINE VOID ixheaacd_filt_buf_update(WORD16 *ptr_filt_buf,
-                                              WORD16 *ptr_filt_buf_noise,
-                                              WORD16 *nrg_gain,
-                                              WORD16 *noise_level_mant,
-                                              WORD32 num_sub_bands);
 
 PLATFORM_INLINE VOID ixheaacd_equalize_filt_buff_exp(WORD16 *ptr_filt_buf,
                                                      WORD16 *nrg_gain,
