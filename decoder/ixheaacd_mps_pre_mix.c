@@ -681,6 +681,15 @@ VOID ixheaacd_mps_phase_interpolation(
         r_re[ts][pb][1] = (FLOAT32)cos(t);
         r_im[ts][pb][1] = (FLOAT32)sin(t);
         ts++;
+
+        if (ts > 71) {
+          ts = 0;
+          break;
+        }
+        if (pb > 27) {
+          pb = 0;
+          break;
+        }
       }
     }
   }
