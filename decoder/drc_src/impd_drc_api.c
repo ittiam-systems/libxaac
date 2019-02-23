@@ -64,8 +64,41 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc);
 
+#define SUBBAND_BUF_SIZE                                             \
+  NUM_ELE_IN_CPLX_NUM *MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +       \
+      (MAX_SUBBAND_DELAY + MAX_DRC_FRAME_SIZE) * MAX_CHANNEL_COUNT * \
+          sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM
+
 #define NUM_DRC_TABLES 4
-#define SCRATCH_MEM_SIZE 1024 * 256 * 64
+#define SCRATCH_MEM_SIZE                                              \
+  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * \
+   NUM_ELE_IN_CPLX_NUM)
+
+#define PERSIST_MEM_SIZE                                                     \
+  (sizeof(ia_drc_state_struct) + sizeof(ia_drc_bits_dec_struct) +            \
+   sizeof(ia_drc_gain_dec_struct) * 2 +                                      \
+   sizeof(ia_drc_loudness_info_set_struct) + sizeof(ia_drc_gain_struct) +    \
+   sizeof(ia_drc_interface_struct) + sizeof(ia_drc_config) +                 \
+   sizeof(ia_drc_sel_pro_struct) + sizeof(ia_drc_sel_proc_params_struct) +   \
+   sizeof(ia_drc_sel_proc_output_struct) +                                   \
+   sizeof(ia_drc_peak_limiter_struct) + sizeof(ia_drc_peak_limiter_struct) + \
+   sizeof(ia_drc_qmf_filt_struct) + ANALY_BUF_SIZE + SYNTH_BUF_SIZE +        \
+   PEAK_LIM_BUF_SIZE + MAX_BS_BUF_SIZE + /*DRC Config Bitstream*/            \
+   MAX_DRC_CONFG_BUF_SIZE +              /*DRC loudness info Bitstream*/     \
+   MAX_LOUD_INFO_BUF_SIZE +              /*DRC interface Bitstream*/         \
+   MAX_INTERFACE_BUF_SIZE +                                                  \
+   NUM_GAIN_DEC_INSTANCES *                                                  \
+       (SEL_DRC_COUNT * sizeof(ia_interp_buf_struct) * MAX_GAIN_ELE_COUNT +  \
+        sizeof(ia_eq_set_struct) + /*non_interleaved_audio*/                 \
+        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +                              \
+        MAX_DRC_FRAME_SIZE * sizeof(FLOAT32) *                               \
+            MAX_CHANNEL_COUNT +                 /*audio_in_out_buf ptr*/     \
+        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) + /*audio_io_buffer_delayed*/  \
+        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +                              \
+        MAX_DRC_FRAME_SIZE * sizeof(FLOAT32) *                               \
+            MAX_CHANNEL_COUNT + /*subband band buffer ptr*/                  \
+        NUM_ELE_IN_CPLX_NUM * MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +        \
+        SUBBAND_BUF_SIZE + (PARAM_DRC_MAX_BUF_SZ * MAX_CHANNEL_COUNT)))
 
 IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
                             pVOID pv_value) {
@@ -111,8 +144,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
       break;
     }
     case IA_API_CMD_GET_API_SIZE: {
-      *pui_value = sizeof(ia_drc_api_struct) +
-                   (sizeof(ia_drc_state_struct) + 8) + 8080 * 1024;
+      *pui_value = sizeof(ia_drc_api_struct);
 
       break;
     }
@@ -120,7 +152,8 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
       switch (i_idx) {
         case IA_CMD_TYPE_INIT_SET_BUFF_PTR: {
           p_obj_drc->p_state->persistant_ptr =
-              p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX];
+              (UWORD8 *)p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX] +
+              sizeof(ia_drc_state_struct);
           impd_drc_set_struct_pointer(p_obj_drc);
 
           break;
@@ -130,11 +163,6 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           break;
         }
         case IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS: {
-          p_obj_drc->p_state =
-              (ia_drc_state_struct *)((SIZE_T)p_obj_drc + 8000 * 1024);
-          p_obj_drc->p_mem_info =
-              (ia_mem_info_struct *)((SIZE_T)p_obj_drc + 8002 * 1024);
-          p_obj_drc->pp_mem = (pVOID)((SIZE_T)p_obj_drc + 8006 * 1024);
           impd_drc_fill_mem_tables(p_obj_drc);
           break;
         }
@@ -402,9 +430,15 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
       break;
     }
     case IA_API_CMD_GET_MEMTABS_SIZE: {
+      *pui_value =
+          (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) * (NUM_DRC_TABLES);
       break;
     }
     case IA_API_CMD_SET_MEMTABS_PTR: {
+      p_obj_drc->p_mem_info = (ia_mem_info_struct *)(ps_value);
+      p_obj_drc->pp_mem =
+          (pVOID)((SIZE_T)p_obj_drc->p_mem_info +
+                  (NUM_DRC_TABLES * sizeof(*(p_obj_drc->p_mem_info))));
       break;
     }
     case IA_API_CMD_GET_N_MEMTABS: {
@@ -535,8 +569,11 @@ IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc, WORD32 i_cmd,
       p_obj_drc->pp_mem[i_idx] = pv_value;
       pbtemp = p_obj_drc->pp_mem[i_idx];
       sz = p_obj_drc->p_mem_info[i_idx].ui_size;
-
+      if (IA_MEMTYPE_PERSIST == i_idx) {
+        p_obj_drc->p_state = pv_value;
+      }
       memset(pbtemp, 0, sz);
+      break;
     }
     case IA_API_CMD_SET_MEM_PLACEMENT: {
     }
@@ -548,7 +585,8 @@ IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   ia_mem_info_struct *p_mem_info;
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_PERSIST_IDX];
-    p_mem_info->ui_size = 64 * 1024 * 1024;
+    memset(p_mem_info, 0, sizeof(*p_mem_info));
+    p_mem_info->ui_size = PERSIST_MEM_SIZE;
     p_mem_info->ui_alignment = 8;
     p_mem_info->ui_type = IA_MEMTYPE_PERSIST;
     p_mem_info->ui_placement[0] = 0;
@@ -559,6 +597,7 @@ IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   }
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_INPUT_IDX];
+    memset(p_mem_info, 0, sizeof(*p_mem_info));
     p_mem_info->ui_size = p_obj_drc->str_config.frame_size *
                           (p_obj_drc->str_config.pcm_size >> 3) *
                           p_obj_drc->str_config.num_ch_in;
@@ -572,6 +611,7 @@ IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   }
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_OUTPUT_IDX];
+    memset(p_mem_info, 0, sizeof(*p_mem_info));
     p_mem_info->ui_size = p_obj_drc->str_config.frame_size *
                           (p_obj_drc->str_config.pcm_size >> 3) *
                           p_obj_drc->str_config.num_ch_in;
@@ -585,6 +625,7 @@ IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   }
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_SCRATCH_IDX];
+    memset(p_mem_info, 0, sizeof(*p_mem_info));
     p_mem_info->ui_size = SCRATCH_MEM_SIZE;
     p_mem_info->ui_alignment = 8;
     p_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
