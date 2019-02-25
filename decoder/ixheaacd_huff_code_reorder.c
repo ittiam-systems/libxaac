@@ -574,7 +574,7 @@ static VOID ixheaacd_huff_ext_sect_info(ia_hcr_info_struct *ptr_hcr_info) {
   ptr_num_ext_sort_cw_sect[x_srt_sc_cnt] = 0;
 }
 
-static VOID ixheaacd_hcr_prepare_segmentation_grid(
+static UWORD32 ixheaacd_hcr_prepare_segmentation_grid(
     ia_hcr_info_struct *ptr_hcr_info) {
   UWORD16 i, j;
   UWORD16 num_segment = 0;
@@ -630,7 +630,12 @@ static VOID ixheaacd_hcr_prepare_segmentation_grid(
       break;
     }
   }
+
+  if (num_segment == 0) ptr_hcr_info->str_dec_io.err_log |= (ERROR_POS << 9);
+
   ptr_hcr_info->str_segment_info.num_segment = num_segment;
+
+  return (ptr_hcr_info->str_dec_io.err_log);
 }
 
 static PLATFORM_INLINE UWORD16 *ixheaacd_huff_dec_pair_hcr_pcw(
@@ -1442,8 +1447,6 @@ static VOID ixheaacd_decode_hcr_non_pcw(
     ia_bit_buf_struct *itt_bit_buff, ia_hcr_info_struct *ptr_hcr_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 *cw_offset, WORD32 trial,
     WORD32 start) {
-  UWORD16 *cb_table;
-  UWORD32 *idx_table;
   WORD16 codeword_len = 0;
   WORD8 seg_bits_left;
   UWORD8 tot_bits_to_save, code_bits_to_save, extra_code_bits;
@@ -1456,14 +1459,6 @@ static VOID ixheaacd_decode_hcr_non_pcw(
        segment_offset++, *cw_offset += 1) {
     if (p_remaining_bits_in_seg[segment_offset] &&
         !ptr_hcr_info->str_segment_info.is_decoded[*cw_offset]) {
-      cb_table =
-          (UWORD16 *)(ptr_aac_tables
-                          ->code_book[ptr_hcr_info->str_non_pcw_side_info
-                                          .ptr_cb[*cw_offset % num_segment]]);
-      idx_table =
-          (UWORD32 *)(ptr_aac_tables
-                          ->index_table[ptr_hcr_info->str_non_pcw_side_info
-                                            .ptr_cb[*cw_offset % num_segment]]);
       {
         UWORD32 i_qsc;
         WORD8 current_seg_bits = p_remaining_bits_in_seg[segment_offset];
@@ -1550,6 +1545,15 @@ static VOID ixheaacd_decode_hcr_non_pcw(
           if (ptr_hcr_info->str_non_pcw_side_info
                   .ptr_cb[*cw_offset % num_segment] <= 4) {
             WORD32 tbl_sign = 0;
+            const UWORD16 *cb_table =
+                (UWORD16
+                     *)(ptr_aac_tables
+                            ->code_book[ptr_hcr_info->str_non_pcw_side_info
+                                            .ptr_cb[*cw_offset % num_segment]]);
+            const UWORD32 *idx_table =
+                (UWORD32 *)(ptr_aac_tables->index_table
+                                [ptr_hcr_info->str_non_pcw_side_info
+                                     .ptr_cb[*cw_offset % num_segment]]);
 
             if (ptr_hcr_info->str_non_pcw_side_info
                     .ptr_cb[*cw_offset % num_segment] > 2) {
@@ -1571,6 +1575,17 @@ static VOID ixheaacd_decode_hcr_non_pcw(
                        .ptr_cb[*cw_offset % num_segment] < 11) {
             WORD32 tbl_sign = 0;
             WORD32 huff_mode = 9;
+
+            const UWORD16 *cb_table =
+                (UWORD16
+                     *)(ptr_aac_tables
+                            ->code_book[ptr_hcr_info->str_non_pcw_side_info
+                                            .ptr_cb[*cw_offset % num_segment]]);
+            const UWORD32 *idx_table =
+                (UWORD32 *)(ptr_aac_tables->index_table
+                                [ptr_hcr_info->str_non_pcw_side_info
+                                     .ptr_cb[*cw_offset % num_segment]]);
+
             if (ptr_hcr_info->str_non_pcw_side_info
                     .ptr_cb[*cw_offset % num_segment] > 6) {
               if (ptr_hcr_info->str_non_pcw_side_info
@@ -1812,7 +1827,8 @@ UWORD32 ixheaacd_hcr_decoder(
 
   ixheaacd_huff_sort_sect_cb_cwd(ptr_hcr_info);
 
-  ixheaacd_hcr_prepare_segmentation_grid(ptr_hcr_info);
+  if (ixheaacd_hcr_prepare_segmentation_grid(ptr_hcr_info) != 0)
+    return (ptr_hcr_info->str_dec_io.err_log);
 
   ixheaacd_huff_ext_sect_info(ptr_hcr_info);
 
