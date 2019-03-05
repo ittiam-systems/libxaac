@@ -279,8 +279,11 @@ WORD32 ixheaacd_decode_init(
 
   for (i = 0; i < MAX_NUM_CHANNELS; i++) {
     usac_data->str_tddec[i] = &usac_data->arr_str_tddec[i];
-    usac_data->str_tddec[i]->fscale =
-        ((fscale)*usac_data->ccfl) / LEN_SUPERFRAME;
+    if (usac_data->ccfl == 768)
+      usac_data->str_tddec[i]->fscale = pstr_stream_config->sampling_frequency;
+    else
+      usac_data->str_tddec[i]->fscale =
+          ((fscale)*usac_data->ccfl) / LEN_SUPERFRAME;
     usac_data->len_subfrm = usac_data->ccfl / 4;
     usac_data->num_subfrm = (MAX_NUM_SUBFR * usac_data->ccfl) / LEN_SUPERFRAME;
 

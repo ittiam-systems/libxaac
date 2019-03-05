@@ -421,10 +421,6 @@ WORD16 ixheaacd_calc_master_frq_bnd_tbl(
 
       ixheaacd_aac_shellsort(vec_dk0, num_bands0);
 
-      if (vec_dk0[0] == 0) {
-        return -1;
-      }
-
       f_master_tbl[0] = k0;
 
       for (k = 1; k <= num_bands0; k++)

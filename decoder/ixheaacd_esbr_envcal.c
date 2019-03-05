@@ -45,6 +45,8 @@
 
 #include "ixheaacd_esbr_rom.h"
 
+#define ABS(A) fabs(A)
+
 VOID ixheaacd_shellsort(WORD32 *in, WORD32 n) {
   WORD32 i, j, v;
   WORD32 inc = 1;
@@ -610,6 +612,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           c -= (ui - li);
 
           for (k = 0; k < ui - li; k++) {
+            FLOAT64 guard = 1e-17;
             o = (k + li >= ui2) ? o + 1 : o;
             ui2 = frame_data->pstr_sbr_header->pstr_freq_band_data
                       ->freq_band_tbl_noise[o + 1];
@@ -624,16 +627,16 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                   (harmonics[c] &&
                    (i >= trans_env || (*harm_flag_prev)[c + sub_band_start]))
                       ? sqrt(nrg_ref[c] * tmp /
-                             noise_floor[next * num_nf_bands + o])
+                             ABS(noise_floor[next * num_nf_bands + o] + guard))
                       : nrg_tone[c]);
             } else {
               if (noise_absc_flag)
                 nrg_gain[c] = (FLOAT32)sqrt(nrg_ref[c] / (nrg_est[c] + 1));
               else
-                nrg_gain[c] =
-                    (FLOAT32)sqrt(nrg_ref[c] * tmp /
-                                  ((nrg_est[c] + 1) *
-                                   (noise_floor[next * num_nf_bands + o])));
+                nrg_gain[c] = (FLOAT32)sqrt(
+                    nrg_ref[c] * tmp /
+                    ((nrg_est[c] + 1) *
+                     ABS(noise_floor[next * num_nf_bands + o] + guard)));
             }
             noise_level[c] = (FLOAT32)sqrt(nrg_ref[c] * tmp);
             c++;

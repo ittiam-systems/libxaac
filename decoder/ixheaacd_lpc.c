@@ -137,6 +137,19 @@ void ixheaacd_reset_acelp_data_fix(ia_usac_data_struct *usac_data,
     for (i = 0; i < (usac_data->ccfl) / 2 - fac_length; i++) {
       ptr_overlap_buf[(usac_data->ccfl) / 2 + fac_length + i] = 0;
     }
+
+    if (ptr_overlap_buf != NULL) {
+      for (i = 0; i < (usac_data->len_subfrm) / 2 - fac_length; i++) {
+        st->exc_prev[i] = 0.0f;
+      }
+      for (i = 0; i < 2 * fac_length + 1; i++) {
+        st->exc_prev[(usac_data->len_subfrm) / 2 - fac_length + i] =
+            ptr_overlap_buf[i + usac_data->ccfl / 2 - fac_length - 1] /
+            (float)(16384);
+      }
+    } else {
+      ixheaacd_memset(st->exc_prev, 1 + (2 * FAC_LENGTH));
+    }
   }
 
   return;
@@ -155,7 +168,6 @@ VOID ixheaacd_fix2flt_data(ia_usac_data_struct *usac_data,
   }
 
   ixheaacd_memset(st->lp_flt_coeff_a_prev, 2 * (ORDER + 1));
-  ixheaacd_memset(st->exc_prev, 1 + (2 * FAC_LENGTH));
   ixheaacd_memset(st->xcitation_prev, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
   ixheaacd_memset(st->synth_prev, MAX_PITCH + SYNTH_DELAY_LMAX);
   ixheaacd_memset(st->bpf_prev, FILTER_DELAY + LEN_SUBFR);
@@ -421,10 +433,10 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
       memcpy(ptr_scratch, &pstr_td_frame_data->fac_data[0],
              129 * sizeof(WORD32));
 
-      for (i = 0; i < 64; i++) {
+      for (i = 0; i < fac_length / 2; i++) {
         pstr_td_frame_data->fac_data[i] = ptr_scratch[2 * i + 1] << 16;
-        pstr_td_frame_data->fac_data[64 + i] = ptr_scratch[fac_length - 2 * i]
-                                               << 16;
+        pstr_td_frame_data->fac_data[fac_length / 2 + i] =
+            ptr_scratch[fac_length - 2 * i] << 16;
       }
 
       err = ixheaacd_fwd_alias_cancel_tool(usac_data, pstr_td_frame_data,
@@ -707,7 +719,7 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
 
   err = ixheaacd_bass_post_filter(synth, pitch, pitch_gain, signal_out,
                                   (lpd_sbf_len + 2) * LEN_SUBFR + LEN_SUBFR,
-                                  len_fr - (lpd_sbf_len + 2) * LEN_SUBFR,
+                                  len_fr - (lpd_sbf_len + 4) * LEN_SUBFR,
                                   st->bpf_prev);
   if (err != 0) return err;
 

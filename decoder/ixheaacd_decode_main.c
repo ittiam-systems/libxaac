@@ -259,6 +259,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
   }
 
   {
+    WORD32 tot_out_bytes = 0;
     pstr_dec_data = (ia_dec_data_struct *)aac_dec_handle->pstr_dec_data;
 
     if (frames_done == 0) {
@@ -297,6 +298,8 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         config_len = ixheaacd_audio_preroll_parsing(pstr_dec_data, &config[0],
                                                     &preroll_units,
                                                     &preroll_frame_offset[0]);
+        if (config_len < 0) return -1;
+        if (preroll_units > (WORD)MAX_AUDIO_PREROLLS) return -1;
       }
 
       if (config_len != 0) {
@@ -386,25 +389,64 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
       num_samples_out = pstr_dec_data->str_usac_data.output_samples;
 
-      ixheaacd_samples_sat(outbuffer, num_samples_out, pcmsize,
+      ixheaacd_samples_sat((WORD8 *)outbuffer + tot_out_bytes, num_samples_out,
+                           pcmsize,
                            pstr_dec_data->str_usac_data.time_sample_vector,
                            out_bytes, *num_channel_out);
-      pstr_audio_specific_config->str_usac_config.str_usac_dec_config
-          .usac_ext_gain_payload_len =
-          pstr_dec_data->str_frame_data.str_audio_specific_config
-              .str_usac_config.str_usac_dec_config.usac_ext_gain_payload_len;
-      memcpy(pstr_audio_specific_config->str_usac_config.str_usac_dec_config
-                 .usac_ext_gain_payload_buf,
-             pstr_dec_data->str_frame_data.str_audio_specific_config
-                 .str_usac_config.str_usac_dec_config.usac_ext_gain_payload_buf,
-             pstr_dec_data->str_frame_data.str_audio_specific_config
-                     .str_usac_config.str_usac_dec_config
-                     .usac_ext_gain_payload_len *
-                 sizeof(WORD8));
+      {
+        WORD32 preroll_counter =
+            pstr_dec_data->str_frame_data.str_audio_specific_config
+                .str_usac_config.str_usac_dec_config.preroll_counter;
+
+        UWORD8 i;  // for looping index used for payload calculation
+        WORD32 payload_buffer_offeset = 0;
+        WORD32 copy_bytes =
+            pstr_dec_data->str_frame_data.str_audio_specific_config
+                .str_usac_config.str_usac_dec_config
+                .usac_ext_gain_payload_len[preroll_counter] *
+            sizeof(WORD8);
+
+        pstr_audio_specific_config->str_usac_config.str_usac_dec_config
+            .usac_ext_gain_payload_len[preroll_counter] =
+            pstr_dec_data->str_frame_data.str_audio_specific_config
+                .str_usac_config.str_usac_dec_config
+                .usac_ext_gain_payload_len[preroll_counter];
+
+        for (i = 0; i < preroll_counter; i++)
+          payload_buffer_offeset +=
+              pstr_dec_data->str_frame_data.str_audio_specific_config
+                  .str_usac_config.str_usac_dec_config
+                  .usac_ext_gain_payload_len[i] *
+              sizeof(WORD8);
+
+        memcpy(pstr_audio_specific_config->str_usac_config.str_usac_dec_config
+                       .usac_ext_gain_payload_buf +
+                   payload_buffer_offeset,
+               pstr_dec_data->str_frame_data.str_audio_specific_config
+                       .str_usac_config.str_usac_dec_config
+                       .usac_ext_gain_payload_buf +
+                   payload_buffer_offeset,
+               copy_bytes);
+
+        pstr_audio_specific_config->str_usac_config.str_usac_dec_config
+            .preroll_bytes[preroll_counter] = *out_bytes;
+
+        preroll_counter++;
+
+        if (preroll_counter > (MAX_AUDIO_PREROLLS + 1)) return IA_FATAL_ERROR;
+
+        pstr_audio_specific_config->str_usac_config.str_usac_dec_config
+            .usac_ext_gain_payload_len[preroll_counter] = -1;
+
+        pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config
+            .str_usac_dec_config.preroll_counter = preroll_counter;
+      }
 
       access_units++;
       preroll_units--;
+      tot_out_bytes += (*out_bytes);
     } while (preroll_units >= 0);
+    *out_bytes = tot_out_bytes;
   }
 
   return err;

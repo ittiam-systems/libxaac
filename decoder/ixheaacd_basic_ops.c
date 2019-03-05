@@ -605,3 +605,21 @@ VOID ixheaacd_scale_down(WORD32 *dest, WORD32 *src, WORD32 len, WORD8 shift1,
     }
   }
 }
+
+VOID ixheaacd_scale_down_adj(WORD32 *dest, WORD32 *src, WORD32 len,
+                             WORD8 shift1, WORD8 shift2) {
+  WORD32 i;
+  if (shift1 > shift2) {
+    for (i = 0; i < len; i++) {
+      *dest = ((*src >> (shift1 - shift2)) + 11);
+      src++;
+      dest++;
+    }
+  } else {
+    for (i = 0; i < len; i++) {
+      *dest = ((*src << (shift2 - shift1)) + 11);
+      src++;
+      dest++;
+    }
+  }
+}
