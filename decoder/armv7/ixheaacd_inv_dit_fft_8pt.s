@@ -114,7 +114,7 @@ ixheaacd_inv_dit_fft_8pt_armv7:
     QADD            r7, lr, r10
     QSUB            r10, lr, r10
 
-    LDR             r11, =0x00005a82
+    MOVW            r11, #0x00005a82
     STR             r10, [r2, #0x10]
 
     QSUB            r10, r8, r0

@@ -20,8 +20,10 @@ ixheaacd_complex_fft_p2_asm:
     MOV             r0, #0
 
 FIRST_STAGE_R4:
-    LDR             r4, =0x33333333
-    LDR             r5, =0x0F0F0F0F
+    MOVW            r4, #0x3333
+    MOVT            r4, #0x3333
+    MOVW            r5, #0x0F0F
+    MOVT            r5, #0x0F0F
     AND             r6, r4, r0
     AND             r7, r4, r0, LSR #2
     ORR             r4, r7, r6, LSL #2

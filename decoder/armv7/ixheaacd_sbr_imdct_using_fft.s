@@ -282,7 +282,7 @@ RADIX_8_FIRST_LOOP:
     VUZP.16         d28, d29
     VADD.S32        q4, q8, q7
 
-    LDR             r14, =0x5a82
+    MOVW            r14, #0x5a82
 
     VSUB.S32        q11, q8, q7
 

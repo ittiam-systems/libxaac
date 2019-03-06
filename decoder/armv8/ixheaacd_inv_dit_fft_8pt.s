@@ -20,7 +20,7 @@
 .global ixheaacd_inv_dit_fft_8pt_armv8
 ixheaacd_inv_dit_fft_8pt_armv8:
     push_v_regs
-    LDR             w3, =0x5A820000
+    MOV             w3, #0x5A820000
     DUP             v0.2s, w3
     MOV             x5, #8
     ADD             x6, x0, #4
