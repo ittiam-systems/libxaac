@@ -158,30 +158,23 @@ ia_bit_buf_struct *ixheaacd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
 VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,
                                WORD32 ixheaacd_drc_offset) {
   if (ixheaacd_drc_offset != 0) {
-    WORD32 bit_offset;
+    WORD32 byte_offset;
 
     it_bit_buff->cnt_bits = it_bit_buff->cnt_bits - ixheaacd_drc_offset;
+    if (it_bit_buff->cnt_bits < 0) {
+      longjmp(*(it_bit_buff->xaac_jmp_buf),
+              IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+    }
     it_bit_buff->bit_pos = it_bit_buff->bit_pos - ixheaacd_drc_offset;
-    bit_offset = it_bit_buff->bit_pos >> 3;
-    it_bit_buff->bit_pos = it_bit_buff->bit_pos - (bit_offset << 3);
+    byte_offset = it_bit_buff->bit_pos >> 3;
+    it_bit_buff->bit_pos = it_bit_buff->bit_pos - (byte_offset << 3);
 
-    if (bit_offset) {
+    if (byte_offset) {
       UWORD8 *ptr_read_next;
-      WORD32 temp;
 
       ptr_read_next = it_bit_buff->ptr_read_next;
 
-      ptr_read_next = ptr_read_next - (bit_offset);
-
-      temp = it_bit_buff->ptr_bit_buf_end - it_bit_buff->ptr_bit_buf_base + 1;
-
-      if (ptr_read_next > it_bit_buff->ptr_bit_buf_end) {
-        ptr_read_next -= temp;
-      }
-
-      if (ptr_read_next < it_bit_buff->ptr_bit_buf_base) {
-        ptr_read_next += temp;
-      }
+      ptr_read_next = ptr_read_next - (byte_offset);
 
       it_bit_buff->ptr_read_next = ptr_read_next;
     }

@@ -50,7 +50,7 @@ WORD32 ixheaacd_skip_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD bit_pos = it_bit_buff->bit_pos;
 
-  if (it_bit_buff->cnt_bits < no_of_bits)
+  if (it_bit_buff->cnt_bits < no_of_bits || it_bit_buff->cnt_bits < 0)
     longjmp(*(it_bit_buff->xaac_jmp_buf),
             IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   it_bit_buff->cnt_bits -= no_of_bits;
@@ -73,7 +73,8 @@ WORD32 ixheaacd_show_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD bit_pos = it_bit_buff->bit_pos;
 
-  if (it_bit_buff->cnt_bits < no_of_bits) {
+  if (it_bit_buff->cnt_bits < no_of_bits || it_bit_buff->cnt_bits < 0 ||
+      no_of_bits > 25) {
     longjmp(*(it_bit_buff->xaac_jmp_buf),
             IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }
@@ -104,7 +105,8 @@ WORD32 ixheaacd_read_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
     return 0;
   }
 
-  if (it_bit_buff->cnt_bits < no_of_bits) {
+  if (it_bit_buff->cnt_bits < no_of_bits || it_bit_buff->cnt_bits < 0 ||
+      no_of_bits > 25) {
     longjmp(*(it_bit_buff->xaac_jmp_buf),
             IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }
@@ -232,7 +234,7 @@ WORD32 ixheaacd_aac_read_bit_rev(ia_bit_buf_struct *it_bit_buff) {
   UWORD32 temp;
   WORD no_of_bits = 1;
 
-  if (it_bit_buff->cnt_bits < no_of_bits) {
+  if (it_bit_buff->cnt_bits < no_of_bits || it_bit_buff->cnt_bits < 0) {
     longjmp(*(it_bit_buff->xaac_jmp_buf),
             IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }

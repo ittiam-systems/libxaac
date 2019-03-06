@@ -1730,34 +1730,26 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
                                     UWORD16 const *cum_freq, WORD32 cfl) {
   register WORD32 symbol;
   register WORD32 low, high, range, value;
-  register WORD32 cum;
+  register WORD32 cumulative;
   register UWORD16 const *p;
   register UWORD16 const *q;
-
-  WORD32 short_value, i = 16;
-  int shift_value;
-  if (it_bit_buff->cnt_bits < 16) {
-    shift_value = 16 - it_bit_buff->cnt_bits;
-    short_value = ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
-    short_value <<= shift_value;
-  } else {
-    shift_value = 0;
-    short_value = ixheaacd_read_bits_buf(it_bit_buff, 16);
-  }
 
   low = s->low;
   high = s->high;
   value = s->value;
 
   range = high - low + 1;
-  cum = ((((WORD32)(value - low + 1)) << 14) - ((WORD32)1)) / ((WORD32)range);
+  cumulative = ((((WORD32)(value - low + 1)) << 14) - ((WORD32)1)) / ((WORD32)range);
+
+  if (it_bit_buff->cnt_bits == 0)
+    if (cumulative <= 0) return -1;
 
   p = cum_freq - 1;
 
   do {
     q = p + (cfl >> 1);
 
-    if (*q > cum) {
+    if (*q > cumulative) {
       p = q;
       cfl++;
     }
@@ -1786,12 +1778,14 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
     low += low;
     high += high + 1;
 
-    i--;
-    value = (value << 1) | ((short_value >> i) & 1);
+    if (it_bit_buff->cnt_bits > 0)
+      value = (value << 1) | ixheaacd_read_bits_buf(it_bit_buff, 1);
+    else
+      value = (value << 1);
+
     bit_count++;
   }
 
-  ixheaacd_read_bidirection(it_bit_buff, -(i - shift_value));
   s->low = low;
   s->high = high;
   s->value = value;
@@ -1847,10 +1841,6 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       if (esc_nb > 7) {
         esc_nb = 7;
       }
-      if (esc_nb < 0) {
-        esc_nb = 0;
-        return -1;
-      }
     }
 
     if (m == 0) {
@@ -1891,8 +1881,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
 
   if (bit_count > 0) {
     bit_count_5 = bit_count >> 5;
-    for (i = 0; i < bit_count_5; i++) ixheaacd_read_bits_buf(it_bit_buff, 32);
-    ixheaacd_read_bits_buf(it_bit_buff, bit_count & 31);
+    bit_count_5 = (bit_count_5 * 32) + (bit_count & 31);
+    ixheaacd_skip_bits_buf(it_bit_buff, bit_count_5);
   }
 
   for (i = 0; i < pres_n; i++) {
