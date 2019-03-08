@@ -1277,7 +1277,7 @@ VOID ixheaacd_enery_calc_persfb(WORD32 **anal_buf_real, WORD32 **anal_buf_imag,
             WORD16 temp;
             temp = ixheaacd_extract16l(ixheaacd_shr32_dir(*ptr, pre_shift1));
             ptr += 64;
-            accu_line = ixheaacd_mac16x16in32(accu_line, temp, temp);
+            accu_line = ixheaacd_mac16x16in32_sat(accu_line, temp, temp);
           }
         }
         accumulate =
@@ -1518,7 +1518,7 @@ VOID ixheaacd_harm_idx_zerotwolp_dec(WORD32 *ptr_real_buf, WORD16 *ptr_gain_buf,
       sine_level = (ptr_sine_level_buf[2 * k] << 16);
 
       if (sine_level == 0) {
-        *ptr_real_buf++ = ixheaacd_mac16x16in32_shl(
+        *ptr_real_buf++ = ixheaacd_mac16x16in32_shl_sat(
             signal_real, ixheaacd_extract16h(ptr_rand_ph[k]),
             noise_level_mant[2 * k]);
       } else if (harm_index == 0)
@@ -1579,7 +1579,7 @@ VOID ixheaacd_harm_idx_onethreelp(
     tone_count++;
   } else {
     if (!noise_absc_flag) {
-      signal_real = ixheaacd_mac16x16in32_shl(
+      signal_real = ixheaacd_mac16x16in32_shl_sat(
           signal_real, ixheaacd_extract16h(ptr_rand_ph[k]), *noise_level_mant);
     }
   }
@@ -1625,7 +1625,7 @@ VOID ixheaacd_harm_idx_onethreelp(
     sine_level_next = (ptr_sine_level_buf[2 * (k + 1)]);
 
     if ((!noise_absc_flag) && (sine_level == 0)) {
-      signal_real = ixheaacd_mac16x16in32_shl(
+      signal_real = ixheaacd_mac16x16in32_shl_sat(
           signal_real, ixheaacd_extract16h(ptr_rand_ph[k]), *noise_level_mant);
     }
     noise_level_mant += 2;
@@ -1660,7 +1660,7 @@ VOID ixheaacd_harm_idx_onethreelp(
       tone_count++;
     } else {
       if (!noise_absc_flag) {
-        signal_real = ixheaacd_mac16x16in32_shl(
+        signal_real = ixheaacd_mac16x16in32_shl_sat(
             signal_real, ixheaacd_extract16h(ptr_rand_ph[k]),
             *noise_level_mant);
       }
@@ -1738,9 +1738,9 @@ VOID ixheaacd_harm_idx_zerotwo(FLAG noise_absc_flag, WORD16 num_sub_bands,
         WORD32 random = *ptr_rand_ph;
         WORD16 noise = smoothed_noise[0];
 
-        *ptr_real_buf = ixheaacd_mac16x16in32_shl(
+        *ptr_real_buf = ixheaacd_mac16x16in32_shl_sat(
             signal_real, ixheaacd_extract16h(random), noise);
-        *ptr_imag = ixheaacd_mac16x16in32_shl(
+        *ptr_imag = ixheaacd_mac16x16in32_shl_sat(
             sig_imag, ixheaacd_extract16l(random), noise);
       } else {
         *ptr_real_buf = signal_real;
@@ -1811,9 +1811,9 @@ VOID ixheaacd_harm_idx_onethree(FLAG noise_absc_flag, WORD16 num_sub_bands,
         WORD32 random = *ptr_rand_ph;
         WORD16 noise = smoothed_noise[0];
 
-        *ptr_real_buf = ixheaacd_mac16x16in32_shl(
+        *ptr_real_buf = ixheaacd_mac16x16in32_shl_sat(
             signal_real, ixheaacd_extract16h(random), noise);
-        *ptr_imag = ixheaacd_mac16x16in32_shl(
+        *ptr_imag = ixheaacd_mac16x16in32_shl_sat(
             sig_imag, ixheaacd_extract16l(random), noise);
       } else {
         *ptr_real_buf = signal_real;

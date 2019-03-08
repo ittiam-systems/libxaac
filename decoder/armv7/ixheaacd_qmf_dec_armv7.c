@@ -50,7 +50,7 @@
 #include "ixheaacd_audioobjtypes.h"
 
 #define mult16x16_16(a, b) ixheaacd_mult16((a), (b))
-#define mac16x16(a, b, c) ixheaacd_mac16x16in32((a), (b), (c))
+#define mac16x16(a, b, c) ixheaacd_mac16x16in32_sat((a), (b), (c))
 #define mpy_32x16(a, b) fixmuldiv2_32x16b((a), (b))
 #define mpy_16x16(a, b) ixheaacd_mult16x16in32((a), (b))
 #define mpy_32x32(a, b) ixheaacd_mult32((a), (b))

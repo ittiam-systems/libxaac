@@ -374,13 +374,13 @@ static PLATFORM_INLINE WORD32 div32(WORD32 a, WORD32 b, WORD *q_format) {
   return quotient;
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32(WORD32 a, WORD16 b,
-                                                    WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32_sat(WORD32 a, WORD16 b,
+                                                        WORD16 c) {
   WORD32 acc;
 
   acc = ixheaacd_mult16x16in32(b, c);
 
-  acc = ixheaacd_add32(a, acc);
+  acc = ixheaacd_add32_sat(a, acc);
 
   return acc;
 }
