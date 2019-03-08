@@ -17,6 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+#include <string.h>
 #include "ixheaacd_sbr_common.h"
 #include <ixheaacd_type_def.h>
 #include <assert.h>
@@ -289,7 +290,8 @@ WORD32 ixheaacd_read_bit(ia_bit_buf_struct *it_bit_buff, WORD32 no_of_bits) {
     return 0;
   }
 
-  ret_val = ixheaacd_aac_showbits_32(ptr_read_next);
+  ret_val =
+      ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->bit_count, NULL);
   it_bit_buff->byte_ptr += (no_of_bits >> 3);
 
   if (it_bit_buff->valid_bits != 8) {

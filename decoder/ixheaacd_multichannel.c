@@ -213,7 +213,8 @@ WORD16 ixheaacd_dec_coupling_channel_element(
     if (cge) {
       UWORD8 *ptr_read_next = bs->ptr_read_next;
       WORD32 bit_pos = 7 - bs->bit_pos;
-      WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
+      WORD32 read_word =
+          ixheaacd_aac_showbits_32(bs->ptr_read_next, bs->cnt_bits, NULL);
       UWORD32 read_word1;
 
       read_word1 = read_word << bit_pos;

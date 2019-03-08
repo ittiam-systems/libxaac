@@ -739,7 +739,10 @@ static PLATFORM_INLINE WORD16 ixheaacd_huff_dec_pair_hcr_non_pcw(
   WORD16 index, length;
   WORD32 y, z;
   WORD32 read_word1;
-  WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr);
+  WORD32 read_word;
+
+  read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr,
+                                       itt_bit_buff->bit_count, NULL);
 
   ixheaacd_huffman_decode(read_word, &index, &length, code_book_tbl, idx_table);
   read_word1 = read_word << length;
@@ -1078,6 +1081,7 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
   UWORD16 cur_ext_sort_cw_sec;
   UWORD8 codebook;
   UWORD8 dimension;
+  WORD32 increment;
 
   WORD32 num_ext_sorted_cw_in_sect_idx =
       ptr_hcr_info->sect_info.num_ext_sorted_cw_in_sect_idx;
@@ -1101,10 +1105,11 @@ static VOID ixheaacd_decode_pcw(ia_bit_buf_struct *itt_bit_buff,
   const UWORD8 *ptr_cb_dimension_tbl =
       ptr_hcr_info->table_info.ptr_cb_dimension_tbl;
 
-  WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->ptr_read_next);
+  WORD32 read_word = ixheaacd_aac_showbits_32(
+      itt_bit_buff->ptr_read_next, itt_bit_buff->cnt_bits, &increment);
   WORD32 read_bits = itt_bit_buff->cnt_bits;
 
-  itt_bit_buff->ptr_read_next += 4;
+  itt_bit_buff->ptr_read_next += increment;
 
   for (ext_sort_sec =
            ptr_num_ext_sorted_sect_in_sets[num_ext_sorted_sect_in_sets_idx];
@@ -1279,7 +1284,10 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_quad_hcr_non_pcw(
     const UWORD16 *code_book_tbl, WORD32 tbl_sign, const UWORD32 *idx_table) {
   WORD16 index, length;
   WORD16 cw_len;
-  WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr);
+  WORD32 read_word;
+
+  read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr,
+                                       itt_bit_buff->bit_count, NULL);
   ixheaacd_huffman_decode(read_word, &index, &length, code_book_tbl, idx_table);
   cw_len = length;
   if (tbl_sign) {
@@ -1350,9 +1358,14 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
   WORD16 index;
   WORD32 length;
 
-  WORD32 read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr);
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(itt_bit_buff->byte_ptr,
+                                       itt_bit_buff->bit_count, &increment);
+
   UWORD8 *ptr_read_next = itt_bit_buff->byte_ptr;
-  ptr_read_next += 4;
+  ptr_read_next += increment;
 
   ixheaacd_huff_sfb_table(read_word, &index, &length, code_book_tbl, idx_table);
   cw_len = length;
