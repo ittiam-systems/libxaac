@@ -89,6 +89,7 @@ static WORD32 impd_match_downmix(WORD32 downmix_id, WORD32 dec_downmix_id) {
 }
 
 IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
+  memset(p_obj_drc, 0, sizeof(*p_obj_drc));
   p_obj_drc->str_config.bitstream_file_format = 0;
   p_obj_drc->str_config.dec_type = 0;
   p_obj_drc->str_config.sub_band_domain_mode = 0;
