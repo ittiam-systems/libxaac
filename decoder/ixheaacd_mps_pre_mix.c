@@ -58,12 +58,10 @@ extern const WORD32 ixheaacd_c_l_table_Q31[31];
 extern const WORD32 ixheaacd_sin_table_Q31[8][31];
 extern const WORD32 ixheaacd_cos_table_Q31[8][31];
 extern const WORD32 ixheaacd_atan_table_Q28[16][8][31];
-extern WORD32 ixheaacd_ipd_de_quant_table_q28[16];
+extern const WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880
-
-extern WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880

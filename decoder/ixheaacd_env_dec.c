@@ -58,7 +58,7 @@ static VOID ixheaacd_dequant_esbr_env_data(FLOAT32 *ptr_env_sf,
                                            WORD32 num_noise_fac, WORD32 amp_res,
                                            FLOAT32 *ptr_noise_floor) {
   WORD32 i;
-  FLOAT32 array[2] = {0.5f, 1.0f};
+  static const FLOAT32 array[2] = {0.5f, 1.0f};
   FLOAT32 a_flt = array[amp_res];
 
   for (i = 0; i < num_env_sf; i++) {
@@ -328,7 +328,7 @@ VOID ixheaacd_dequant_env_data(ia_sbr_frame_info_data_struct *ptr_sbr_data,
   WORD32 exponent;
   WORD32 exp_add = (7 + NRG_EXP_OFFSET);
   WORD16 *ptr_env_sf = ptr_sbr_data->int_env_sf_arr;
-  WORD32 mant_arr[2] = {0x4000, 0x5a80};
+  static const WORD32 mant_arr[2] = {0x4000, 0x5a80};
 
   amp_res_1 = (1 - amp_res);
 
@@ -552,8 +552,8 @@ VOID ixheaacd_sbr_env_dequant_coup(
 
   WORD32 i;
   FLOAT32 temp_l, temp_r;
-  FLOAT32 pan_offset[2] = {24.0f, 12.0f};
-  FLOAT32 a_arr[2] = {0.5f, 1.0f};
+  static const FLOAT32 pan_offset[2] = {24.0f, 12.0f};
+  static const FLOAT32 a_arr[2] = {0.5f, 1.0f};
 
   FLOAT32 a = a_arr[amp_res];
 

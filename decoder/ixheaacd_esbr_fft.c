@@ -35,7 +35,7 @@
     (j) = _ >> (m);                                         \
   } while (0)
 
-extern FLOAT32 ixheaacd_twiddle_table_fft_float[514];
+extern const FLOAT32 ixheaacd_twiddle_table_fft_float[514];
 const FLOAT32 ixheaacd_twidle_tbl_48[64];
 const FLOAT32 ixheaacd_twidle_tbl_24[32];
 

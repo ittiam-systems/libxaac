@@ -67,13 +67,13 @@
 #define max(a, b) ((a > b) ? (a) : (b))
 #define min(a, b) ((a < b) ? (a) : (b))
 
-static FLOAT32 ixheaacd_bp[BP_SIZE] = {
+static const FLOAT32 ixheaacd_bp[BP_SIZE] = {
     0.0000f, 0.0005f, 0.0092f, 0.0587f, 0.2580f, 0.7392f, 0.9791f,
     0.9993f, 1.0000f, 1.0000f, 1.0000f, 1.0000f, 0.9999f, 0.9984f,
     0.9908f, 0.9639f, 0.8952f, 0.7711f, 0.6127f, 0.4609f, 0.3391f,
     0.2493f, 0.1848f, 0.1387f, 0.1053f};
 
-static FLOAT32 ixheaacd_gf[BP_SIZE] = {
+static const FLOAT32 ixheaacd_gf[BP_SIZE] = {
     0.f,         0.f,         0.f,         0.f,         0.f,
     0.f,         1e-008f,     8.1e-007f,   3.61e-006f,  8.41e-006f,
     1.6e-005f,   2.704e-005f, 3.969e-005f, 5.625e-005f, 7.396e-005f,

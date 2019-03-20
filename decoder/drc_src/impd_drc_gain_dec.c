@@ -34,7 +34,7 @@
 #include "impd_drc_eq.h"
 #include "impd_drc_gain_decoder.h"
 
-extern ia_cicp_sigmoid_characteristic_param_struct
+extern const ia_cicp_sigmoid_characteristic_param_struct
     pstr_cicp_sigmoid_characteristic_param[];
 
 WORD32 impd_gain_db_to_lin(ia_interp_params_struct* interp_params_str,

@@ -218,7 +218,8 @@ static VOID ixheaacd_d_acelp_decode_1p_n1(WORD32 index, WORD32 N,
   return;
 }
 
-VOID ixheaacd_acelp_decode_pulses_per_track(WORD32 cb_index[], WORD16 code_bits,
+VOID ixheaacd_acelp_decode_pulses_per_track(WORD32 cb_index[],
+                                            const WORD16 code_bits,
                                             FLOAT32 code_vec[]) {
   WORD32 track_idx, index, ixheaacd_drc_offset, pos[6], i;
   memset(code_vec, 0, 64 * sizeof(FLOAT32));
@@ -358,7 +359,7 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   WORD32 pitch_fr1;
   WORD32 pitch_max;
   WORD32 subfr_nb = 0;
-  WORD16 num_codebits_table[8] = {20, 28, 36, 44, 52, 64, 12, 16};
+  static const WORD16 num_codebits_table[8] = {20, 28, 36, 44, 52, 64, 12, 16};
   FLOAT32 x[FAC_LENGTH], xn2[2 * FAC_LENGTH + 16];
   WORD32 int_x[FAC_LENGTH];
   WORD32 TTT;

@@ -741,7 +741,7 @@ WORD32 impd_init_loudness_control(
       WORD32 requested_measurement_system = MEASUREMENT_SYSTEM_BS_1770_4;
       WORD32 requested_preprocessing = 0;
 
-      WORD32* system_bonus = measurement_system_default_tbl;
+      const WORD32* system_bonus = measurement_system_default_tbl;
 
       WORD32 match_measure;
       FLOAT32 method_val = 0;

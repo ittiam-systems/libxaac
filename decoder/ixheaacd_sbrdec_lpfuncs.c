@@ -73,11 +73,12 @@
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
-static FLOAT32 ixheaacd_new_bw_table[4][4] = {{0.00f, 0.60f, 0.90f, 0.98f},
-                                              {0.60f, 0.75f, 0.90f, 0.98f},
-                                              {0.00f, 0.75f, 0.90f, 0.98f},
-                                              {0.00f, 0.75f, 0.90f, 0.98f}};
-static WORD32 ixheaacd_inew_bw_table[4][4] = {
+static const FLOAT32 ixheaacd_new_bw_table[4][4] = {
+    {0.00f, 0.60f, 0.90f, 0.98f},
+    {0.60f, 0.75f, 0.90f, 0.98f},
+    {0.00f, 0.75f, 0.90f, 0.98f},
+    {0.00f, 0.75f, 0.90f, 0.98f}};
+static const WORD32 ixheaacd_inew_bw_table[4][4] = {
     {0x00000000, 0x4ccccccd, 0x73333333, 0x7d70a3d7},
     {0x4ccccccd, 0x60000000, 0x73333333, 0x7d70a3d7},
     {0x00000000, 0x60000000, 0x73333333, 0x7d70a3d7},
@@ -110,8 +111,8 @@ WORD32 ixheaacd_derive_lim_band_tbl(
 
   WORD16 sub_band_start = f_low_tbl[0];
   WORD16 sub_band_end = f_low_tbl[num_low_bnd];
-  WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666, (WORD16)0x4000,
-                              (WORD16)0x6000};
+  static const WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666,
+                                           (WORD16)0x4000, (WORD16)0x6000};
 
   if (limiter_bands == 0) {
     f_lim_tbl[0] = 0;

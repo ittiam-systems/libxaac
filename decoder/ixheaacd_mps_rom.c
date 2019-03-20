@@ -34,7 +34,7 @@
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_huff_tab.h"
 
-ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes = {
+const ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes = {
     {{{{-1, 1},   {-2, 2},   {-3, 3},    {-4, 4},    {-5, 5},    {-6, 6},
        {-7, 7},   {-8, 8},   {-9, 9},    {-10, 10},  {-11, 11},  {-12, 12},
        {-13, 13}, {15, 14},  {-14, 16},  {-15, 17},  {-16, 18},  {-17, 19},
@@ -375,7 +375,7 @@ ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes = {
         {-23, 93},   {-7, 94},     {-147, -148}, {-116, -131}, {-25, 95},
         {-40, 0},    {0, 0},       {0, 0},       {0, 0}}}}}};
 
-ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes = {
+const ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes = {
     {{{{-1, 1}, {-2, 2}, {-3, 3}, {-4, 4}, {-5, 5}, {-6, 6}, {-7, -8}}},
      {{{-1, 1}, {-2, 2}, {-3, 3}, {-4, 4}, {-5, 5}, {-6, 6}, {-7, -8}}},
      {{{-1, 1}, {-2, 2}, {-3, 3}, {-4, 4}, {-5, 5}, {-6, 6}, {-7, -8}}}},
@@ -586,7 +586,7 @@ ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes = {
         {0, 0},     {0, 0},      {0, 0},      {0, 0},     {0, 0},
         {0, 0},     {0, 0},      {0, 0}}}}}};
 
-ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes = {
+const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes = {
     {{{-1, 1}, {-8, 2}, {-2, 3}, {5, 4}, {-7, 6}, {-3, -5}, {-4, -6}}},
     {{{{-1, 1}, {-8, 2}, {-2, 3}, {5, 4}, {-3, -7}, {-6, 6}, {-4, -5}}},
      {{{-1, 1}, {-2, 2}, {-8, 3}, {-3, 4}, {-7, 5}, {-4, 6}, {-5, -6}}},
@@ -790,7 +790,7 @@ ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes = {
         {0, 0},    {0, 0},       {0, 0},     {0, 0},     {0, 0},    {0, 0},
         {0, 0},    {0, 0},       {0, 0}}}}}};
 
-ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes = {
+const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes = {
     {{2, 1},     {4, 3},     {6, 5},     {8, 7},    {10, 9},    {12, 11},
      {14, 13},   {-8, 15},   {-9, 16},   {-10, 17}, {-18, 18},  {-17, -19},
      {-16, 19},  {-11, -20}, {-15, -21}, {-7, 20},  {-22, 21},  {-12, -14},
@@ -803,7 +803,7 @@ ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes = {
      {-5, 18},  {-4, -19}, {-3, 19},   {-1, 20},  {-2, -20},
      {22, 21},  {-21, 23}, {-22, -26}, {-23, 24}, {-24, -25}}};
 
-ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes = {
+const ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes = {
     {{2, 1},     {4, 3},     {6, 5},     {8, 7},    {10, 9},    {12, 11},
      {14, 13},   {-8, 15},   {-9, 16},   {-10, 17}, {-18, 18},  {-17, -19},
      {-16, 19},  {-11, -20}, {-15, -21}, {-7, 20},  {-22, 21},  {-12, -14},
@@ -816,10 +816,10 @@ ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes = {
      {-5, 18},  {-4, -19}, {-3, 19},   {-1, 20},  {-2, -20},
      {22, 21},  {-21, 23}, {-22, -26}, {-23, 24}, {-24, -25}}};
 
-ia_huff_lav_nodes_struct ixheaacd_huff_lav_idx_nodes = {
+const ia_huff_lav_nodes_struct ixheaacd_huff_lav_idx_nodes = {
     {{-1, 1}, {-2, 2}, {-3, -4}}};
 
-ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes = {
+const ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes = {
     {{2, 1},    {4, 3},     {6, 5},     {-33, 7},  {-17, 8},  {-49, 9},
      {-34, 10}, {12, 11},   {-18, -35}, {-50, 13}, {15, 14},  {-40, 16},
      {-36, 17}, {-19, 18},  {-1, -37},  {-51, 19}, {21, 20},  {-38, -65},
@@ -4762,7 +4762,7 @@ const WORD32
         0x0070c8a4, 0xffeff6cb, 0x006b47fa, 0xfff0065d, 0x0065fde5, 0xffefc9b9,
         0x006090c3, 0xffed978a, 0x005b5370, 0xffede50e};
 
-WORD32 ixheaacd_mps_pre_re[64] = {
+const WORD32 ixheaacd_mps_pre_re[64] = {
     0x01fff621, 0x01ffa72e, 0x01ff0956, 0x01fe1caf, 0x01fce15f, 0x01fb5797,
     0x01f97f92, 0x01f7599a, 0x01f4e603, 0x01f2252f, 0x01ef178a, 0x01ebbd8c,
     0x01e817ba, 0x01e426a4, 0x01dfeae6, 0x01db6526, 0x01d69617, 0x01d17e77,
@@ -4775,7 +4775,7 @@ WORD32 ixheaacd_mps_pre_re[64] = {
     0x00764d3e, 0x006a0a7f, 0x005db766, 0x005155d9, 0x0044e7c1, 0x00386f0a,
     0x002bed9e, 0x001f656d, 0x0012d864, 0x00064873};
 
-WORD32 ixheaacd_mps_pre_im[64] = {
+const WORD32 ixheaacd_mps_pre_im[64] = {
     0x00064874, 0x0012d865, 0x001f656e, 0x002beda0, 0x00386f0b, 0x0044e7c3,
     0x005155da, 0x005db767, 0x006a0a80, 0x00764d3f, 0x00827dc0, 0x008e9a22,
     0x009aa086, 0x00a68f12, 0x00b263ef, 0x00be1d49, 0x00c9b953, 0x00d53641,
@@ -4788,7 +4788,7 @@ WORD32 ixheaacd_mps_pre_im[64] = {
     0x01f2252f, 0x01f4e603, 0x01f7599a, 0x01f97f92, 0x01fb5797, 0x01fce15f,
     0x01fe1caf, 0x01ff0956, 0x01ffa72f, 0x01fff621};
 
-WORD32 ixheaacd_mps_post_re[128] = {
+const WORD32 ixheaacd_mps_post_re[128] = {
     0x7fffffff, 0x7ff62182, 0x7fd8878d, 0x7fa736b3, 0x7f62368e, 0x7f0991c2,
     0x7e9d55fa, 0x7e1d93e8, 0x7d8a5f3d, 0x7ce3ceae, 0x7c29fbea, 0x7b5d0399,
     0x7a7d0555, 0x798a23ab, 0x7884840c, 0x776c4ed3, 0x7641af33, 0x7504d33b,
@@ -4812,7 +4812,7 @@ WORD32 ixheaacd_mps_post_re[128] = {
     0x8275a09e, 0x81e26bf8, 0x8162a9ea, 0x80f66e27, 0x809dc95f, 0x8058c93f,
     0x8027786a, 0x8009de7a};
 
-WORD32 ixheaacd_mps_post_im[128] = {
+const WORD32 ixheaacd_mps_post_im[128] = {
     0x00000000, 0x03242ac0, 0x0647d97f, 0x096a904d, 0x0c8bd363, 0x0fab2732,
     0x12c81077, 0x15e2144e, 0x18f8b847, 0x1c0b8277, 0x1f19f989, 0x2223a4d4,
     0x25280c6e, 0x2826b93a, 0x2b1f34fe, 0x2e110a76, 0x30fbc563, 0x33def29e,
@@ -4836,15 +4836,15 @@ WORD32 ixheaacd_mps_post_im[128] = {
     0x18f8b78f, 0x15e21395, 0x12c80fbd, 0x0fab2678, 0x0c8bd2a9, 0x096a8f92,
     0x0647d8c3, 0x03242a04};
 
-WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER] = {
+const WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER] = {
     8011005,   24378459,  48821601, 78019304, 106140545, 126634002, 134217728,
     126634002, 106140545, 78019304, 48821601, 24378459,  8011805};
 
-WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER] = {
+const WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER] = {
     0,         20395592, 0,         -78309485, 0,        328528819, 536870911,
     328528819, 0,        -78309485, 0,         20395592, 0};
 
-WORD32 ixheaacd_cosine[8][13] = {
+const WORD32 ixheaacd_cosine[8][13] = {
     {
         -759250175, -410903263, -46, 410903167, 759250111, 992008063,
         1073741823, 992008063, 759250111, 410903167, -46, -410903263,
@@ -4883,7 +4883,7 @@ WORD32 ixheaacd_cosine[8][13] = {
     {-759249407, -410902399, 704, 410903679, 759250367, 992008191, 1073741823,
      992008191, 759250367, 410903679, 704, -410902399, -759249407}};
 
-WORD32 ixheaacd_sine[8][13] = {
+const WORD32 ixheaacd_sine[8][13] = {
     {
         759250047, 992008063, 1073741823, 992008127, 759250111, 410903231, 0,
         -410903231, -759250111, -992008127, -1073741823, -992008063, -759250047,
@@ -4915,7 +4915,7 @@ WORD32 ixheaacd_sine[8][13] = {
     {-759250879, -992008447, -1073741823, -992007871, -759249855, -410903039, 0,
      410903039, 759249855, 992007871, 1073741823, 992008447, 759250879}};
 
-WORD32 ixheaacd_cosine2[2][13] = {
+const WORD32 ixheaacd_cosine2[2][13] = {
     {
         1073741823, 1073741823, 1073741823, 1073741823, 1073741823, 1073741823,
         1073741823, 1073741823, 1073741823, 1073741823, 1073741823, 1073741823,

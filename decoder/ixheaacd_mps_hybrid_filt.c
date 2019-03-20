@@ -31,11 +31,11 @@
 
 #include "ixheaacd_mps_hybfilter.h"
 
-extern WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
-extern WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
-extern WORD32 ixheaacd_cosine[8][13];
-extern WORD32 ixheaacd_sine[8][13];
-extern WORD32 ixheaacd_cosine2[2][13];
+extern const WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
+extern const WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
+extern const WORD32 ixheaacd_cosine[8][13];
+extern const WORD32 ixheaacd_sine[8][13];
+extern const WORD32 ixheaacd_cosine2[2][13];
 
 static WORD32 ixheaacd_mps_mult32_local(WORD32 a, WORD32 b, WORD16 shift) {
   WORD64 temp;
@@ -47,7 +47,7 @@ static WORD32 ixheaacd_mps_mult32_local(WORD32 a, WORD32 b, WORD16 shift) {
 
 static VOID ixheaacd_mps_hyb_filt_type1(
     ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[8][MAX_TIME_SLOTS],
-    WORD32 num_samples, WORD32 *filt_coeff)
+    WORD32 num_samples, const WORD32 *filt_coeff)
 
 {
   WORD32 i, n, q;
@@ -107,7 +107,7 @@ static VOID ixheaacd_mps_hyb_filt_type1(
 
 static VOID ixheaacd_mps_hyb_filt_type2(
     ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[2][MAX_TIME_SLOTS],
-    WORD32 num_samples, WORD32 *filt_coeff)
+    WORD32 num_samples, const WORD32 *filt_coeff)
 
 {
   WORD32 i, n, q;

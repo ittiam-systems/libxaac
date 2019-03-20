@@ -224,11 +224,11 @@ const WORD16 ixheaacd_sfb_8_960[] = {
 const WORD16 ixheaacd_sfb_8_120[] = {4,  8,  12, 16, 20, 24,  28, 36,
                                      44, 52, 60, 72, 88, 108, 120};
 
-WORD32 ixheaacd_sampling_boundaries[(1 << LEN_SAMP_IDX)] = {
+const WORD32 ixheaacd_sampling_boundaries[(1 << LEN_SAMP_IDX)] = {
     92017, 75132, 55426, 46009, 37566, 27713, 23004, 18783,
     13856, 11502, 9391,  0,     0,     0,     0,     0};
 
-ia_usac_samp_rate_info ixheaacd_samp_rate_info[(1 << LEN_SAMP_IDX)] = {
+const ia_usac_samp_rate_info ixheaacd_samp_rate_info[(1 << LEN_SAMP_IDX)] = {
 
     {96000, 41, ixheaacd_sfb_96_1024, 12, ixheaacd_sfb_96_128, 40,
      ixheaacd_sfb_96_960, 12, ixheaacd_sfb_96_120, 37, ixheaacd_sfb_96_768, 12,
@@ -3606,7 +3606,7 @@ const FLOAT64 ixheaacd_power_10_table[28] = {
     5.179474679231, 5.623413251903, 6.105402296585, 6.628703161826,
     7.196856730012, 7.813707376518, 8.483428982441, 9.210553176895};
 
-float ixheaacd_dico_lsf_abs_8b_flt[16 * 256] = {
+const FLOAT32 ixheaacd_dico_lsf_abs_8b_flt[16 * 256] = {
     377.3749f,  688.0079f,  1147.3799f, 1461.0438f, 1786.7794f, 2143.6711f,
     2522.1946f, 2889.7402f, 3263.6023f, 3628.4624f, 4005.4351f, 4379.4170f,
     4783.9556f, 5157.1753f, 5555.1797f, 5926.6816f, 601.5123f,  1066.8242f,

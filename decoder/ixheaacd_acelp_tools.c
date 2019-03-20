@@ -26,7 +26,7 @@
 #include <ixheaacd_basic_ops32.h>
 #include <ixheaacd_basic_ops40.h>
 
-static FLOAT32 ixheaacd_gamma_table[17] = {
+static const FLOAT32 ixheaacd_gamma_table[17] = {
     1.0f,      0.92f,     0.8464f,   0.778688f, 0.716393f, 0.659082f,
     0.606355f, 0.557847f, 0.513219f, 0.472161f, 0.434389f, 0.399637f,
     0.367666f, 0.338253f, 0.311193f, 0.286298f, 0.263394f};

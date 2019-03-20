@@ -38,40 +38,48 @@
 
 #include "ixheaacd_constants.h"
 
-static WORD32 ixheaacd_decorr_delay[] = {11, 10, 5, 2};
+static const WORD32 ixheaacd_decorr_delay[] = {11, 10, 5, 2};
 
-static WORD32 ixheaacd_qmf_split_freq_0[] = {3, 15, 24, 65};
-static WORD32 ixheaacd_qmf_split_freq_1[] = {3, 50, 65, 65};
-static WORD32 ixheaacd_qmf_split_freq_2[] = {0, 15, 65, 65};
+static const WORD32 ixheaacd_qmf_split_freq_0[] = {3, 15, 24, 65};
+static const WORD32 ixheaacd_qmf_split_freq_1[] = {3, 50, 65, 65};
+static const WORD32 ixheaacd_qmf_split_freq_2[] = {0, 15, 65, 65};
 
-static FLOAT32 ixheaacd_lattice_coeff_0_filt_den_coeff[DECORR_FILT_0_ORD + 1] =
-    {1.000000f, -0.314818f, -0.256828f, -0.173641f, -0.115077f, 0.000599f,
-     0.033343f, 0.122672f,  -0.356362f, 0.128058f,  0.089800f};
-static FLOAT32 ixheaacd_lattice_coeff_0_filt_num_coeff[DECORR_FILT_0_ORD + 1] =
-    {0.089800f,  0.128058f,  -0.356362f, 0.122672f,  0.033343f, 0.000599f,
-     -0.115077f, -0.173641f, -0.256828f, -0.314818f, 1.000000f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_0_filt_den_coeff[DECORR_FILT_0_ORD + 1] = {
+        1.000000f, -0.314818f, -0.256828f, -0.173641f, -0.115077f, 0.000599f,
+        0.033343f, 0.122672f,  -0.356362f, 0.128058f,  0.089800f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_0_filt_num_coeff[DECORR_FILT_0_ORD + 1] = {
+        0.089800f,  0.128058f,  -0.356362f, 0.122672f,  0.033343f, 0.000599f,
+        -0.115077f, -0.173641f, -0.256828f, -0.314818f, 1.000000f};
 
-static FLOAT32 ixheaacd_lattice_coeff_1_filt_den_coeff[DECORR_FILT_1_ORD + 1] =
-    {1.000000f, -0.287137f, -0.088940f, 0.123204f, -0.126111f,
-     0.064218f, 0.045768f,  -0.016264f, -0.122100f};
-static FLOAT32 ixheaacd_lattice_coeff_1_filt_num_coeff[DECORR_FILT_1_ORD + 1] =
-    {-0.122100f, -0.016264f, 0.045768f,  0.064218f, -0.126111f,
-     0.123204f,  -0.088940f, -0.287137f, 1.000000f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_1_filt_den_coeff[DECORR_FILT_1_ORD + 1] = {
+        1.000000f, -0.287137f, -0.088940f, 0.123204f, -0.126111f,
+        0.064218f, 0.045768f,  -0.016264f, -0.122100f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_1_filt_num_coeff[DECORR_FILT_1_ORD + 1] = {
+        -0.122100f, -0.016264f, 0.045768f,  0.064218f, -0.126111f,
+        0.123204f,  -0.088940f, -0.287137f, 1.000000f};
 
-static FLOAT32 ixheaacd_lattice_coeff_2_filt_den_coeff[DECORR_FILT_2_ORD + 1] =
-    {1.000000f, 0.129403f, -0.032633f, 0.035700f};
-static FLOAT32 ixheaacd_lattice_coeff_2_filt_num_coeff[DECORR_FILT_2_ORD + 1] =
-    {0.035700f, -0.032633f, 0.129403f, 1.000000f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_2_filt_den_coeff[DECORR_FILT_2_ORD + 1] = {
+        1.000000f, 0.129403f, -0.032633f, 0.035700f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_2_filt_num_coeff[DECORR_FILT_2_ORD + 1] = {
+        0.035700f, -0.032633f, 0.129403f, 1.000000f};
 
-static FLOAT32 ixheaacd_lattice_coeff_3_filt_den_coeff[DECORR_FILT_3_ORD + 1] =
-    {1.000000f, 0.034742f, -0.013000f};
-static FLOAT32 ixheaacd_lattice_coeff_3_filt_num_coeff[DECORR_FILT_3_ORD + 1] =
-    {-0.013000f, 0.034742f, 1.000000f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_3_filt_den_coeff[DECORR_FILT_3_ORD + 1] = {
+        1.000000f, 0.034742f, -0.013000f};
+static const FLOAT32
+    ixheaacd_lattice_coeff_3_filt_num_coeff[DECORR_FILT_3_ORD + 1] = {
+        -0.013000f, 0.034742f, 1.000000f};
 
-extern WORD32
+extern const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_28_map[MAX_HYBRID_BANDS_MPS];
 
-static WORD32 ixheaacd_hybrid_to_qmf_map[MAX_HYBRID_BANDS_MPS] = {
+static const WORD32 ixheaacd_hybrid_to_qmf_map[MAX_HYBRID_BANDS_MPS] = {
     0,  0,  0,  0,  0,  0,  1,  1,  2,  2,  3,  4,  5,  6,  7,  8,  9,  10,
     11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
     29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
@@ -188,7 +196,7 @@ static VOID ixheaacd_mps_decor_energy_adjustment(
 void ixheaacd_mps_decor_init(ia_mps_decor_struct_handle self, WORD32 subbands,
                              WORD32 decor_config) {
   WORD32 i, reverb_band;
-  WORD32 *splitfreq;
+  const WORD32 *splitfreq;
 
   switch (decor_config) {
     case 0:

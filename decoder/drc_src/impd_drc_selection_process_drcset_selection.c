@@ -31,7 +31,7 @@
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
 
-static WORD32 effect_types_request_table[] = {
+static const WORD32 effect_types_request_table[] = {
     EFFECT_BIT_NIGHT,    EFFECT_BIT_NOISY,   EFFECT_BIT_LIMITED,
     EFFECT_BIT_LOWLEVEL, EFFECT_BIT_DIALOG,  EFFECT_BIT_GENERAL_COMPR,
     EFFECT_BIT_EXPAND,   EFFECT_BIT_ARTISTIC};
@@ -673,9 +673,9 @@ WORD32 impd_match_drc_characteristic(
   WORD32 k, err;
   WORD32 match_found_flag = 0;
 
-  WORD32* drc_characteristic_order =
+  const WORD32* drc_characteristic_order =
       drc_characteristic_order_default[requested_drc_characteristic - 1];
-  WORD32 drc_characteristic_order_count =
+  const WORD32 drc_characteristic_order_count =
       sizeof(drc_characteristic_order_default[requested_drc_characteristic]) /
       sizeof(WORD32);
   k = 0;

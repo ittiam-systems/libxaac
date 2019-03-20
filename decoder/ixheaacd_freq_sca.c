@@ -49,13 +49,13 @@
 #include "ixheaacd_freq_sca.h"
 #include "ixheaacd_intrinsics.h"
 
-WORD32 ixheaacd_samp_rate_table[12] = {92017, 75132, 55426, 46009,
-                                       37566, 27713, 23004, 18783,
-                                       13856, 11502, 9391,  16428320};
+const WORD32 ixheaacd_samp_rate_table[12] = {92017, 75132, 55426, 46009,
+                                             37566, 27713, 23004, 18783,
+                                             13856, 11502, 9391,  16428320};
 
-WORD32 ixheaacd_v_offset_40[16] = {3 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1,
-                                   2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1,
-                                   2 + 1, 2 + 1, 1 + 1, 0};
+const WORD32 ixheaacd_v_offset_40[16] = {
+    3 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1,
+    2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 2 + 1, 1 + 1, 0};
 
 static WORD32 ixheaacd_int_div(WORD32 num, WORD32 den) {
   if (den != 0) {

@@ -27,22 +27,11 @@
 #include "ixheaacd_info.h"
 #include "ixheaacd_bitbuffer.h"
 
-WORD32 ixheaacd_qsort_cmp(const VOID *va, const VOID *vb) {
-  const ia_huff_code_word_struct *huff1, *huff2;
-
-  huff1 = (ia_huff_code_word_struct *)va;
-  huff2 = (ia_huff_code_word_struct *)vb;
-  if (huff1->len < huff2->len) return -1;
-  if ((huff1->len == huff2->len) && (huff1->code_word < huff2->code_word))
-    return -1;
-  return 1;
-}
-
 VOID ixheaacd_hufftab(ia_huff_code_book_struct *ptr_huff_code_book,
-                      ia_huff_code_word_struct *ptr_huff_code_word,
-                      WORD16 *code_book_tbl, WORD32 *index, WORD32 dim,
-                      WORD32 lav, WORD32 lav_incr_esc, WORD32 sign_code_book,
-                      UWORD8 max_code_word_len) {
+                      const ia_huff_code_word_struct *ptr_huff_code_word,
+                      const WORD16 *code_book_tbl, const WORD32 *index,
+                      WORD32 dim, WORD32 lav, WORD32 lav_incr_esc,
+                      WORD32 sign_code_book, UWORD8 max_code_word_len) {
   WORD32 i, num;
 
   if (!sign_code_book) {
@@ -64,14 +53,11 @@ VOID ixheaacd_hufftab(ia_huff_code_book_struct *ptr_huff_code_book,
   ptr_huff_code_book->code_book_tbl = code_book_tbl;
   ptr_huff_code_book->idx_tbl = index;
   ptr_huff_code_book->max_code_word_len = max_code_word_len;
-
-  qsort(ptr_huff_code_word, num, sizeof(ia_huff_code_word_struct),
-        ixheaacd_qsort_cmp);
 }
 
-WORD32 ixheaacd_huff_codeword(ia_huff_code_word_struct *ptr_huff_code_word,
-                              UWORD16 data_present,
-                              ia_bit_buf_struct *it_bit_buff)
+WORD32 ixheaacd_huff_codeword(
+    const ia_huff_code_word_struct *ptr_huff_code_word, UWORD16 data_present,
+    ia_bit_buf_struct *it_bit_buff)
 
 {
   WORD32 i, j;

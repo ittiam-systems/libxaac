@@ -36,79 +36,81 @@
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-static int ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
+static const int ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
 
-static int
+static const int
     ixheaacd_hybrid_band_71_to_processing_band_4_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
 
-static int
+static const int
     ixheaacd_hybrid_band_71_to_processing_band_5_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-static int
+static const int
     ixheaacd_hybrid_band_71_to_processing_band_7_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5,
         5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6};
 
-static int
+static const int
     ixheaacd_hybrid_band_71_to_processing_band_10_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8,
         8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
         9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9};
 
-static int
+static const int
     ixheaacd_hybrid_band_71_to_processing_band_14_map[MAX_HYBRID_BANDS_MPS] = {
         0,  0,  0,  0,  1,  1,  2,  3,  4,  4,  5,  6,  6,  7,  7,  8,  8,  8,
         9,  9,  9,  10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12,
         12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
         13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13};
 
-int ixheaacd_hybrid_band_71_to_processing_band_20_map[MAX_HYBRID_BANDS_MPS] = {
-    1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 14,
-    15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18,
-    18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19,
-    19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19};
+const int
+    ixheaacd_hybrid_band_71_to_processing_band_20_map[MAX_HYBRID_BANDS_MPS] = {
+        1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 14,
+        15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18,
+        18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19,
+        19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19};
 
-int ixheaacd_hybrid_band_71_to_processing_band_28_map[MAX_HYBRID_BANDS_MPS] = {
-    1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
-    16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23,
-    23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26,
-    26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27};
+const int
+    ixheaacd_hybrid_band_71_to_processing_band_28_map[MAX_HYBRID_BANDS_MPS] = {
+        1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+        16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23,
+        23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26,
+        26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27};
 
-static float ixheaacd_mps_clip_gain_table[] = {1.000000f, 1.189207f, 1.414213f,
-                                               1.681792f, 2.000000f, 2.378414f,
-                                               2.828427f, 4.000000f};
+static const float ixheaacd_mps_clip_gain_table[] = {
+    1.000000f, 1.189207f, 1.414213f, 1.681792f,
+    2.000000f, 2.378414f, 2.828427f, 4.000000f};
 
-static int ixheaacd_mps_stride_table[] = {1, 2, 5, 28};
+static const int ixheaacd_mps_stride_table[] = {1, 2, 5, 28};
 
-static float ixheaacd_cld_de_quant_table[] = {
+static const float ixheaacd_cld_de_quant_table[] = {
     -150.0, -45.0, -40.0, -35.0, -30.0, -25.0, -22.0, -19.0,
     -16.0,  -13.0, -10.0, -8.0,  -6.0,  -4.0,  -2.0,  0.0,
     2.0,    4.0,   6.0,   8.0,   10.0,  13.0,  16.0,  19.0,
     22.0,   25.0,  30.0,  35.0,  40.0,  45.0,  150.0};
 
-static float ixheaacd_icc_de_quant_table[] = {
+static const float ixheaacd_icc_de_quant_table[] = {
     1.0000f, 0.9370f, 0.84118f, 0.60092f, 0.36764f, 0.0f, -0.5890f, -0.9900f};
 
-float ixheaacd_ipd_de_quant_table[] = {
+const float ixheaacd_ipd_de_quant_table[] = {
     0.f,          0.392699082f, 0.785398163f, 1.178097245f,
     1.570796327f, 1.963495408f, 2.35619449f,  2.748893572f,
     3.141592654f, 3.534291735f, 3.926990817f, 4.319689899f,
     4.71238898f,  5.105088062f, 5.497787144f, 5.890486225f};
-int ixheaacd_ipd_de_quant_table_q28[] = {
+const int ixheaacd_ipd_de_quant_table_q28[] = {
     0,          105414360,  210828720,  316243072, 421657440,  527071776,
     632486144,  737900480,  843314880,  948729216, 1054143552, 1159557888,
     1264972288, 1370386688, 1475800960, 1581215360};
-static int ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
+static const int ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
 
-static int ixheaacd_inverse_smoothing_time_table_q30[] = {16777216, 8388608,
-                                                          4194304, 2097152};
+static const int ixheaacd_inverse_smoothing_time_table_q30[] = {
+    16777216, 8388608, 4194304, 2097152};
 
 static WORD32 bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
   var = min(var, upper_bound);
@@ -499,12 +501,12 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
     UWORD64 c_64;
     unsigned short b;
     unsigned short r[1];
-    unsigned short table_64[] = {6,  11, 16, 20, 23, 27, 30, 33, 35, 38, 40,
-                                 42, 44, 46, 48, 49, 51, 52, 53, 55, 56, 57,
-                                 58, 58, 59, 60, 60, 60, 61, 61, 61, 61};
-    unsigned short table_32[] = {5,  9,  13, 16, 18, 20, 22, 24,
-                                 25, 26, 27, 28, 29, 29, 30, 30};
-    unsigned short *tab = NULL;
+    static const unsigned short table_64[] = {
+        6,  11, 16, 20, 23, 27, 30, 33, 35, 38, 40, 42, 44, 46, 48, 49,
+        51, 52, 53, 55, 56, 57, 58, 58, 59, 60, 60, 60, 61, 61, 61, 61};
+    static const unsigned short table_32[] = {5,  9,  13, 16, 18, 20, 22, 24,
+                                              25, 26, 27, 28, 29, 29, 30, 30};
+    unsigned const short *tab = NULL;
     int k;
     unsigned short h;
     WORD32 nbits_tr_slots = 0;

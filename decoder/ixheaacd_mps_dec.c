@@ -71,13 +71,13 @@
 #include <assert.h>
 #include <string.h>
 
-extern ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
-extern ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;
-extern ia_huff_lav_nodes_struct ixheaacd_huff_lav_idx_nodes;
-extern ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes;
-extern ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes;
-extern ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes;
-extern ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes;
+extern const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
+extern const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;
+extern const ia_huff_lav_nodes_struct ixheaacd_huff_lav_idx_nodes;
+extern const ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes;
+extern const ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes;
+extern const ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes;
+extern const ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes;
 
 WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
                            WORD32 residual_coding,
@@ -152,11 +152,11 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
   return 0;
 }
 
-static FLOAT32 ixheaacd_tsd_mul_re[] = {
+static const FLOAT32 ixheaacd_tsd_mul_re[] = {
     1.0f,  0.707106781186548f,  0.0f, -0.707106781186548f,
     -1.0f, -0.707106781186548f, 0.0f, 0.707106781186548f};
 
-static FLOAT32 ixheaacd_tsd_mul_im[] = {
+static const FLOAT32 ixheaacd_tsd_mul_im[] = {
     0.0f, 0.707106781186548f,  1.0f,  0.707106781186548f,
     0.0f, -0.707106781186548f, -1.0f, -0.707106781186548f};
 

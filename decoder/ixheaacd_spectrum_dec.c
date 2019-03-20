@@ -91,8 +91,9 @@ VOID ixheaacd_read_tns_u(ia_sfb_info_struct *ptr_sfb_info,
   WORD16 *sp, tmp, s_mask, n_mask;
   ia_tns_filter_struct *tns_filt;
   ia_tns_info_struct *pstr_tns_info;
-  static WORD16 sgn_mask[] = {0x2, 0x4, 0x8};
-  static WORD16 neg_mask[] = {(WORD16)0xfffc, (WORD16)0xfff8, (WORD16)0xfff0};
+  static const WORD16 sgn_mask[] = {0x2, 0x4, 0x8};
+  static const WORD16 neg_mask[] = {(WORD16)0xfffc, (WORD16)0xfff8,
+                                    (WORD16)0xfff0};
 
   WORD16 n_filt_bits;
   WORD16 start_band_bits;

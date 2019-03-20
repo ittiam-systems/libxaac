@@ -115,7 +115,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32_shift25(WORD32 a,
   return (result);
 }
 
-static WORD32 ixheaacd_drc_pow_tbl_2_q29[] = {
+static const WORD32 ixheaacd_drc_pow_tbl_2_q29[] = {
     536870912,  537242967,  537615991,  537988562,  538361391,  538734479,
     539108539,  539482144,  539856009,  540230847,  540605230,  540979873,
     541354776,  541730654,  542106077,  542481760,  542858421,  543234626,
@@ -284,7 +284,7 @@ static WORD32 ixheaacd_drc_pow_tbl_2_q29[] = {
     1066324778, 1067063748, 1067804642, 1068544637, 1069285146, 1070027582,
     1070769118, 1071511168, 1072253732, 1072998229};
 
-static WORD32 ixheaacd_drc_pow_tbl_1_2_q29[] = {
+static const WORD32 ixheaacd_drc_pow_tbl_1_2_q29[] = {
     536870912, 536499115, 536126866, 535755584, 535384559, 535013791, 534642573,
     534272319, 533902321, 533531874, 533162389, 532793160, 532424187, 532054765,
     531686303, 531318096, 530949443, 530581746, 530214304, 529847117, 529479484,
@@ -878,7 +878,7 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
   WORD32 drc_band, spec_pos, start_pos, end_pos;
   WORD32 low_hi, drc_norm, drc_freq_fac;
   WORD32 drc_fac, div_val, mod_val, ret_val, offset_value;
-  WORD32 *table;
+  const WORD32 *table;
   ixheaac_drc_data_struct *pstr_drc_data;
   WORD32 num_qmf_sub_sample = (frame_size >> 5);
   WORD32 num_qmf_sub_sample_by_2 = (frame_size >> 6);

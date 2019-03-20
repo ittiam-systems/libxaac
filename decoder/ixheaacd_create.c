@@ -99,19 +99,19 @@
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_interface.h"
 
-extern ia_huff_code_word_struct ixheaacd_huff_book_scl[];
+extern const ia_huff_code_word_struct ixheaacd_huff_book_scl[];
 
-extern WORD32 ixheaacd_book_scl_index[];
-extern WORD16 ixheaacd_book_scl_code_book[];
+extern const WORD32 ixheaacd_book_scl_index[];
+extern const WORD16 ixheaacd_book_scl_code_book[];
 
-extern ia_usac_samp_rate_info ixheaacd_samp_rate_info[];
+extern const ia_usac_samp_rate_info ixheaacd_samp_rate_info[];
 extern const WORD32 ixheaacd_sampling_boundaries[(1 << LEN_SAMP_IDX)];
 
 const WORD32 ixheaacd_sampl_freq_idx_table[17] = {
     96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000,
     12000, 11025, 8000,  7350,  -1,    -1,    -1,    -1};
 
-static VOID ixheaacd_info_init(ia_usac_samp_rate_info *ptr_samp_info,
+static VOID ixheaacd_info_init(const ia_usac_samp_rate_info *ptr_samp_info,
                                WORD32 block_size_samples,
                                ia_sfb_info_struct *pstr_sfb_info_long,
                                ia_sfb_info_struct *pstr_sfb_info_short,

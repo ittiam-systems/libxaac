@@ -57,7 +57,7 @@ extern const FLOAT32 lsf_init[ORDER];
 
 extern const FLOAT32 ixheaacd_fir_lp_filt[1 + FILTER_DELAY];
 
-WORD32 ixheaacd_pow_10_i_by_128[128] = {
+const WORD32 ixheaacd_pow_10_i_by_128[128] = {
     16384,     17788,     19312,     20968,     22765,     24716,     26835,
     29135,     31632,     34343,     37287,     40483,     43953,     47720,
     51810,     56251,     61072,     66307,     71990,     78161,     84860,

@@ -49,10 +49,10 @@
 
 #define ARITH_ESCAPE 16
 
-UWORD16 ixheaacd_ari_cf_r[3][4] = {
+static const UWORD16 ixheaacd_ari_cf_r[3][4] = {
     {12571, 10569, 3696, 0}, {12661, 5700, 3751, 0}, {10827, 6884, 2929, 0}};
 
-static UWORD16 ixheaacd_ari_lookup_m[742] = {
+static const UWORD16 ixheaacd_ari_lookup_m[742] = {
     0x01, 0x34, 0x0D, 0x13, 0x12, 0x25, 0x00, 0x3A, 0x05, 0x00, 0x21, 0x13,
     0x1F, 0x1A, 0x1D, 0x36, 0x24, 0x2B, 0x1B, 0x33, 0x37, 0x29, 0x1D, 0x33,
     0x37, 0x33, 0x37, 0x33, 0x37, 0x33, 0x2C, 0x00, 0x21, 0x13, 0x25, 0x2A,
@@ -116,7 +116,7 @@ static UWORD16 ixheaacd_ari_lookup_m[742] = {
     0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17,
     0x27, 0x17, 0x27, 0x17, 0x27, 0x15, 0x27, 0x27, 0x15, 0x27};
 
-static UWORD32 ixheaacd_ari_hash_m[742] = {
+static const UWORD32 ixheaacd_ari_hash_m[742] = {
     0x00000104UL >> 8, 0x0000030AUL >> 8, 0x00000510UL >> 8, 0x00000716UL >> 8,
     0x00000A1FUL >> 8, 0x00000F2EUL >> 8, 0x00011100UL >> 8, 0x00111103UL >> 8,
     0x00111306UL >> 8, 0x00111436UL >> 8, 0x00111623UL >> 8, 0x00111929UL >> 8,
@@ -304,7 +304,7 @@ static UWORD32 ixheaacd_ari_hash_m[742] = {
     0x06000F27UL >> 8, 0x069FFF17UL >> 8, 0x06FFFF17UL >> 8, 0x08110017UL >> 8,
     0x08EFFF15UL >> 8, 0xFFFFFF00UL >> 8};
 
-static UWORD8 ixheaacd_ari_hash_m_1[742] = {
+static const UWORD8 ixheaacd_ari_hash_m_1[742] = {
     (UWORD8)0x04, (UWORD8)0x0A, (UWORD8)0x10, (UWORD8)0x16, (UWORD8)0x1F,
     (UWORD8)0x2E, (UWORD8)0x00, (UWORD8)0x03, (UWORD8)0x06, (UWORD8)0x36,
     (UWORD8)0x23, (UWORD8)0x29, (UWORD8)0x2E, (UWORD8)0x1B, (UWORD8)0x35,
@@ -455,7 +455,7 @@ static UWORD8 ixheaacd_ari_hash_m_1[742] = {
     (UWORD8)0x2F, (UWORD8)0x27, (UWORD8)0x17, (UWORD8)0x17, (UWORD8)0x17,
     (UWORD8)0x15, (UWORD8)0x00};
 
-UWORD16 ixheaacd_ari_cf_m[64][17] = {
+static const UWORD16 ixheaacd_ari_cf_m[64][17] = {
     {708, 706, 579, 569, 568, 567, 479, 469, 297, 138, 97, 91, 72, 52, 38, 34,
      0},
     {7619, 6917, 6519, 6412, 5514, 5003, 4683, 4563, 3907, 3297, 3125, 3060,
@@ -1625,8 +1625,8 @@ const WORD32 ixheaacd_pow_table_Q13[1025] = {0,
                                              84441795,
                                              84551870};
 
-static WORD32 ixheaacd_esc_nb_offset[8] = {0,      131072, 262144, 393216,
-                                           524288, 655360, 786432, 917504};
+static const WORD32 ixheaacd_esc_nb_offset[8] = {
+    0, 131072, 262144, 393216, 524288, 655360, 786432, 917504};
 
 static void ixheaacd_arith_map_context(WORD32 pres_n, WORD32 prev_n,
                                        WORD8 *c_prev, WORD8 *c,

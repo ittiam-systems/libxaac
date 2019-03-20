@@ -38,7 +38,7 @@
 #define GES_ALPHA (0.99637864f)
 #define GES_BETA (0.9643691f)
 
-extern WORD32
+extern const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_20_map[MAX_HYBRID_BANDS_MPS];
 
 VOID ixheaacd_mps_env_init(ia_mps_dec_state_struct *self) {
