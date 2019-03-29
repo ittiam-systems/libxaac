@@ -318,10 +318,7 @@ WORD32 ixheaacd_get_element_index_tag(
           it_bit_buff, &p_obj_enhaacplus_dec->aac_config.ui_pce_found_in_hdr,
           &p_obj_enhaacplus_dec->aac_config.str_prog_config);
       if (error_code != 0) {
-        if (it_bit_buff->cnt_bits < 0) {
-          return (WORD16)(
-              (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
-        }
+        if (error_code < 0) return error_code;
         return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
       }
     }
