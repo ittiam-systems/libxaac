@@ -452,7 +452,9 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
     case IA_API_CMD_EXECUTE: {
       switch (i_idx) {
         case IA_CMD_TYPE_DO_EXECUTE: {
-          if (p_obj_drc->str_config.dec_type == DEC_TYPE_TD) {
+          if (!p_obj_drc->p_state->ui_init_done) {
+            error_code = IA_FATAL_ERROR;
+          } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_TD) {
             error_code = impd_process_time_domain(p_obj_drc);
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_QMF64) {
             error_code = impd_init_process_audio_main_qmf(p_obj_drc);
