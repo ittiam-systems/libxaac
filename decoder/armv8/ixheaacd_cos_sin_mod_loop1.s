@@ -45,7 +45,7 @@ ixheaacd_cos_sin_mod_loop1:
     SUB             x5, x5, #8
     ASR             x6, x1, #2
 
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.8h, w19
 LOOP1:
 //first part
@@ -83,7 +83,7 @@ LOOP1:
     ADD             x3, x3, #8
     ADD             x7, x3, #248
     ST2             {v2.s, v3.s}[2], [x7]
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.8h, w19
 //second part
     ld1             {v0.h}[0] , [x2]
@@ -120,7 +120,7 @@ LOOP1:
     ADD             x7, x5, #256
     ST2             {v2.s, v3.s}[2], [x7]
     SUB             x5, x5, #8
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.8h, w19
 //Third part
     ld1             {v0.h}[0] , [x2]
@@ -156,7 +156,7 @@ LOOP1:
     ADD             x3, x3, #8
     ADD             x7, x3, #248
     ST2             {v2.s, v3.s}[2], [x7]
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.8h, w19
 //Fourth part
     ld1             {v0.h}[0] , [x2]
@@ -195,7 +195,7 @@ LOOP1:
     SUBS            x6, x6, #1
     ST2             {v2.s, v3.s}[2], [x7]
     SUB             x5, x5, #8
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.8h, w19
     BGT             LOOP1
     //VPOP {D8-D11}

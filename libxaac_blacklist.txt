@@ -108,5 +108,6 @@ fun:ixheaacd_mdct_480_ld
 fun:ixheaacd_mps_synt_calc
 fun:ixheaacd_read_spectral_data
 fun:ixheaacd_tns_apply
-
-
+fun:ixheaacd_cplx_synt_qmffilt
+fun:ixheaacd_sbr_qmfsyn64_winadd
+fun:ixheaacd_filt_8_ch

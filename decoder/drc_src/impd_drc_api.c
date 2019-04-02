@@ -435,6 +435,9 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
       break;
     }
     case IA_API_CMD_SET_MEMTABS_PTR: {
+      if (ps_value == NULL) return IA_DRC_DEC_API_FATAL_MEM_ALLOC;
+      memset(ps_value, 0,
+             (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) * (NUM_DRC_TABLES));
       p_obj_drc->p_mem_info = (ia_mem_info_struct *)(ps_value);
       p_obj_drc->pp_mem =
           (pVOID)((SIZE_T)p_obj_drc->p_mem_info +
@@ -560,8 +563,6 @@ IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc, WORD32 i_cmd,
       break;
     }
     case IA_API_CMD_SET_MEM_PTR: {
-      pWORD8 pbtemp;
-      UWORD32 sz;
       if (pv_value == 0) {
         return (-1);
       }
@@ -569,12 +570,10 @@ IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc, WORD32 i_cmd,
         return (-1);
       }
       p_obj_drc->pp_mem[i_idx] = pv_value;
-      pbtemp = p_obj_drc->pp_mem[i_idx];
-      sz = p_obj_drc->p_mem_info[i_idx].ui_size;
+      memset(p_obj_drc->pp_mem[i_idx], 0, p_obj_drc->p_mem_info[i_idx].ui_size);
       if (IA_MEMTYPE_PERSIST == i_idx) {
         p_obj_drc->p_state = pv_value;
       }
-      memset(pbtemp, 0, sz);
       break;
     }
     case IA_API_CMD_SET_MEM_PLACEMENT: {

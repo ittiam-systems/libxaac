@@ -32,7 +32,7 @@ ixheaacd_post_twiddle_armv7:
 ARM_PROLOGUE:
 
     CMP             R3, #0x400
-    LDR             R6, =7500
+    MOVW            R6, #7500
     ADD             R2, R2, R6
     BLT             NEXT
     MOV             R4, #50
@@ -43,8 +43,8 @@ ARM_PROLOGUE:
     B               NEXT1
 
 NEXT:
-    LDR             R4, =0x192
-    LDR             R5, =0xfe6e
+    MOVW            R4, #0x192
+    MOVW            R5, #0xfe6e
     MOV             R6, #32
     VDUP.16         D10, R4
 

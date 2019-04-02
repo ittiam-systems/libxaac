@@ -63,7 +63,7 @@ LOOP1:
     LDR             R4, [SP, #124]
     MOV             R0, R1
     MOV             R1, R3
-    ldr             R5, =0x41FC
+    MOVW            R5, #0x41FC
     ADD             R2, R4, R5
     ADD             R3, R4, #0xB8
 

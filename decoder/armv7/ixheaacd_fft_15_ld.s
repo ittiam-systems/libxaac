@@ -1,12 +1,5 @@
 
 
-.equ C53_VAL    , -11904
-.equ SINMU_VAL  , 28378
-.equ C51_52VAL  , 0x79BC9D84
-.equ C54_55VAL  , 0x478EB000
-.equ FFTOP_OFFSET   , -1536
-.equ FFTOP_OFFSET1  , 256
-
 .text
 .p2align 2
 .global ixheaacd_fft_15_ld_armv7
@@ -34,7 +27,8 @@ LOOP_FFT5:
 
     ADD             r1, r4, r10         @ r1 = buf1a[2] + buf1a[8]
     SUB             r4, r4, r10         @ r4 = buf1a[2] - buf1a[8]@
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r12, r6, r8         @ r3 = buf1a[4] + buf1a[6]
     SUB             r8, r6, r8          @ r2 = buf1a[4] - buf1a[6]
 
@@ -44,7 +38,8 @@ LOOP_FFT5:
     ADD             r2, r2, r1          @ temp1 = inp[0] + r1@
     SMULWB          r1, r1, r10         @ mult32_shl(r1, C55)
     ADD             r1, r2, r1, lsl #2  @ r1 = temp1 + ((mult32_shl(r1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r2, [lr], #4        @ *buf2++ = temp1@
 
     SUB             r12, r1, r6, LSL #1 @ r3 = r1 - t@
@@ -57,7 +52,8 @@ LOOP_FFT5:
     MOV             r2, r2, LSL #1
 
     SMULWB          r4, r4, r10         @ mult32_shl(r4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r4, r2, r4, LSL #2  @ r4 = t + (mult32_shl(r4, C52) << 1)@
 
     SMULWB          r8, r8, r10         @ mult32_shl(r2, C53)
@@ -65,7 +61,8 @@ LOOP_FFT5:
 
     ADD             r6, r5, r11         @ s1 = buf1a[3] + buf1a[9]
     SUB             r8, r5, r11         @ s4 = buf1a[3] - buf1a[9]
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r5, r7, r9          @ s3 = buf1a[5] + buf1a[7]@
     SUB             r7, r7, r9          @ s2 = buf1a[5] + buf1a[7]@
 
@@ -76,7 +73,8 @@ LOOP_FFT5:
     ADD             r3, r3, r6          @ temp2 = buf1a[1] + s1
     SMULWB          r6, r6, r10         @ mult32_shl(s1, C55)
     ADD             r6, r3, r6, lsl #2  @ s1 = temp1 + ((mult32_shl(s1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r3, [lr], #4        @ *buf2++ = temp2@
 
     SUB             r5, r6, r9, LSL #1  @ s3 = s1 - t@
@@ -90,7 +88,8 @@ LOOP_FFT5:
 
 
     SMULWB          r8, r8, r10         @ mult32_shl(s4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r8, r11, r8, LSL #2 @ s4 = t + (mult32_shl(s4, C52) << 1)@
 
     SMULWB          r7, r7, r10         @ mult32_shl(s2, C53)
@@ -108,7 +107,8 @@ LOOP_FFT5:
     STMIA           lr!, {r3, r9-r12}   @
 
     MOV             r12, #384           @
-    LDR             r1, = FFTOP_OFFSET  @
+    MOVW            r1, #0xFA00
+    MOVT            r1, #0xFFFF
 
     STMIA           lr!, {r4-r6}        @
 
@@ -126,7 +126,8 @@ LOOP_FFT5:
 
     ADD             r1, r4, r10         @ r1 = buf1a[2] + buf1a[8]
     SUB             r4, r4, r10         @ r4 = buf1a[2] - buf1a[8]@
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r12, r6, r8         @ r3 = buf1a[4] + buf1a[6]
     SUB             r8, r6, r8          @ r2 = buf1a[4] - buf1a[6]
 
@@ -136,7 +137,8 @@ LOOP_FFT5:
     ADD             r2, r2, r1          @ temp1 = inp[0] + r1@
     SMULWB          r1, r1, r10         @ mult32_shl(r1, C55)
     ADD             r1, r2, r1, lsl #2  @ r1 = temp1 + ((mult32_shl(r1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r2, [lr], #4        @ *buf2++ = temp1@
 
     SUB             r12, r1, r6, LSL #1 @ r3 = r1 - t@
@@ -149,7 +151,8 @@ LOOP_FFT5:
 
 
     SMULWB          r4, r4, r10         @ mult32_shl(r4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r4, r2, r4, LSL #2  @ r4 = t + (mult32_shl(r4, C52) << 1)@
 
     SMULWB          r8, r8, r10         @ mult32_shl(r2, C53)
@@ -157,7 +160,8 @@ LOOP_FFT5:
 
     ADD             r6, r5, r11         @ s1 = buf1a[3] + buf1a[9]
     SUB             r8, r5, r11         @ s4 = buf1a[3] - buf1a[9]
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r5, r7, r9          @ s3 = buf1a[5] + buf1a[7]@
     SUB             r7, r7, r9          @ s2 = buf1a[5] + buf1a[7]@
 
@@ -168,7 +172,8 @@ LOOP_FFT5:
     ADD             r3, r3, r6          @ temp2 = buf1a[1] + s1
     SMULWB          r6, r6, r10         @ mult32_shl(s1, C55)
     ADD             r6, r3, r6, lsl #2  @ s1 = temp1 + ((mult32_shl(s1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r3, [lr], #4        @ *buf2++ = temp2@
 
 
@@ -181,7 +186,8 @@ LOOP_FFT5:
     MOV             r11, r11, LSL #1
 
     SMULWB          r8, r8, r10         @mult32_shl(s4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r8, r11, r8, LSL #2 @s4 = t + (mult32_shl(s4, C52) << 1)@
 
     SMULWB          r7, r7, r10         @mult32_shl(s2, C53)
@@ -195,7 +201,8 @@ LOOP_FFT5:
     SUB             r4, r5, r4          @buf2[7] = s3 - r4
     SUB             r5, r1, r7          @buf2[8] = r1 - s2
     ADD             r6, r6, r2          @buf2[9] = s1 + r2
-    LDR             r1, = FFTOP_OFFSET  @
+    MOVW            r1, #0xFA00
+    MOVT            r1, #0xFFFF
 
     STMIA           lr!, {r3, r9-r12}
     MOV             r12, #384           @
@@ -215,7 +222,8 @@ LOOP_FFT5:
 
     ADD             r1, r4, r10         @ r1 = buf1a[2] + buf1a[8]
     SUB             r4, r4, r10         @ r4 = buf1a[2] - buf1a[8]@
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r12, r6, r8         @ r3 = buf1a[4] + buf1a[6]
     SUB             r8, r6, r8          @ r2 = buf1a[4] - buf1a[6]
 
@@ -225,7 +233,8 @@ LOOP_FFT5:
     ADD             r2, r2, r1          @ temp1 = inp[0] + r1@
     SMULWB          r1, r1, r10         @ mult32_shl(r1, C55)
     ADD             r1, r2, r1, lsl #2  @ r1 = temp1 + ((mult32_shl(r1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r2, [lr], #4        @ *buf2++ = temp1@
 
     SUB             r12, r1, r6, LSL #1 @ r3 = r1 - t@
@@ -237,7 +246,8 @@ LOOP_FFT5:
     MOV             r2, r2, LSL #1
 
     SMULWB          r4, r4, r10         @ mult32_shl(r4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r4, r2, r4, LSL #2  @ r4 = t + (mult32_shl(r4, C52) << 1)@
 
     SMULWB          r8, r8, r10         @ mult32_shl(r2, C53)
@@ -245,7 +255,8 @@ LOOP_FFT5:
 
     ADD             r6, r5, r11         @ s1 = buf1a[3] + buf1a[9]
     SUB             r8, r5, r11         @ s4 = buf1a[3] - buf1a[9]
-    LDR             r10, = C54_55VAL
+    MOVW            r10, #0xB000
+    MOVT            r10, #0x478E
     ADD             r5, r7, r9          @ s3 = buf1a[5] + buf1a[7]@
     SUB             r7, r7, r9          @ s2 = buf1a[5] + buf1a[7]@
 
@@ -255,7 +266,8 @@ LOOP_FFT5:
     ADD             r3, r3, r6          @ temp2 = buf1a[1] + s1
     SMULWB          r6, r6, r10         @ mult32_shl(s1, C55)
     ADD             r6, r3, r6, lsl #2  @ s1 = temp1 + ((mult32_shl(s1, C55)) << 1)@
-    LDR             r10, = C51_52VAL    @
+    MOVW            r10, #0x9D84
+    MOVT            r10, #0x79BC
     STR             r3, [lr], #4        @ *buf2++ = temp2@
 
     SUB             r5, r6, r9, LSL #1  @ s3 = s1 - t@
@@ -267,7 +279,8 @@ LOOP_FFT5:
     MOV             r11, r11, LSL #1
 
     SMULWB          r8, r8, r10         @mult32_shl(s4, C52)
-    LDR             r10, = C53_VAL
+    MOVW            r10, #0xD180
+    MOVT            r10, #0xFFFF
     ADD             r8, r11, r8, LSL #2 @s4 = t + (mult32_shl(s4, C52) << 1)@
 
 
@@ -287,7 +300,7 @@ LOOP_FFT5:
     STMIA           lr!, {r4-r6}        @
 
     SUB             lr, lr, #120        @
-    LDR             r12, = SINMU_VAL    @
+    MOVW            r12, # 28378        @
     LDMFD           r13!, {r10, r11}    @
 
 

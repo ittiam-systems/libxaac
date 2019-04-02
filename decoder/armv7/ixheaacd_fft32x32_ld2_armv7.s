@@ -198,9 +198,12 @@ ixheaacd_fft32x32_ld2_armv7:
 
 
     @Load twiddle factors
-    LDR             r11, =2310960706    @0x89BE7642
-    LDR             r12, =3473158396    @0xCF0430FC
-    LDR             r14, =2776455811    @0xA57D5A83
+    MOVW            r11, 0X7642
+    MOVT            r11, 0X89BE
+    MOVW            r12, 0X30FC
+    MOVT            r12, 0XCF04
+    MOVW            r14, 0X5A83
+    MOVT            r14, 0XA57D
 
     @Second Butterfly
     LDR             r2, [r0, #32]       @mul_0qr = inp_0qr = x[8]

@@ -37,7 +37,7 @@ ixheaacd_post_twid_overlap_add_armv7:
     ADD             R6, R6, R9
     SUB             R6, R6, #4
 
-    LDR             R8, =7500
+    MOVW            R8, #7500
     ADD             R2, R2, R8
 
 

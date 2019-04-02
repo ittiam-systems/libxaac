@@ -65,7 +65,7 @@ ixheaacd_post_twid_overlap_add_armv8:
     ADD             x6, x6, x9
     SUB             x6, x6, #4
 
-    LDR             w8, =7500
+    MOV             w8, #7500
     sxtw            x8, w8
     ADD             x2, x2, x8
 
@@ -185,9 +185,9 @@ ARM_PROLOGUE:
     BGE             NEXT2
     CMN             x8, #1
 NEXT2:
-    LDR             x20, =0x80000000
+    MOV             x20, #0x80000000
     csel            x7, x20, x7, LT
-    LDR             x20, =0x7fffffff
+    MOV             x20, #0x7fffffff
     csel            x7, x20, x7, GT
     LSL             x20, x7, x11
     csel            x7, x20, x7, EQ
@@ -200,9 +200,9 @@ NEXT2:
     BGE             NEXT3
     CMN             x8, #1
 NEXT3:
-    LDR             x20, =0x80000000
+    MOV             x20, #0x80000000
     csel            x12, x20, x12, LT
-    LDR             x20, =0x7fffffff
+    MOV             x20, #0x7fffffff
     csel            x12, x20, x12, GT
     LSL             x20, x12, x11
     csel            x12, x20, x12, EQ

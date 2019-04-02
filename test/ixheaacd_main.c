@@ -924,7 +924,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   /* Allocate memory for API */
   g_pv_arr_alloc_memory[g_w_malloc_count] = malloc(pui_api_size + 4);
-  memset(g_pv_arr_alloc_memory[g_w_malloc_count], 0, pui_api_size);
   if (g_pv_arr_alloc_memory[g_w_malloc_count] == NULL) {
     _IA_HANDLE_ERROR(&ixheaacd_ia_testbench_error_info,
                      (pWORD8) "API struct alloc", err_code);

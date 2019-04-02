@@ -266,19 +266,19 @@ ixheaacd_fft32x32_ld2_armv8:
 
     //Load twiddle factors
 //    LDR w11,  =2310960706            //0x89BE7642
-    LDR             w11, =0x7642
+    MOV             w11, #0x7642
     sxth            w11, w11
-    LDR             w21, =0x89BE
+    MOV             w21, #0x89BE
     sxth            w21, w21
 //    LDR w12,  =3473158396            //0xCF0430FC
-    LDR             w12, =0x30FC
+    MOV             w12, #0x30FC
     sxth            w12, w12
-    LDR             w22, =0xCF04
+    MOV             w22, #0xCF04
     sxth            w22, w22
 //    LDR w14,  =2776455811            //0xA57D5A83
-    LDR             w14, =0x5A83
+    MOV             w14, #0x5A83
     sxth            w14, w14
-    LDR             w24, =0xA57D
+    MOV             w24, #0xA57D
     sxth            w24, w24
 
     //Second Butterfly

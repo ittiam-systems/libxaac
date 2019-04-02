@@ -150,9 +150,6 @@ IA_ERRORCODE ixheaacd_dec_mem_api(
                 sizeof(ia_audio_specific_config_struct) + (8300));
       p_obj_exhaacplus_dec->p_state_aac = pv_value;
 
-      memset(p_obj_exhaacplus_dec->p_state_aac, 0,
-             sizeof(ia_aac_dec_state_struct));
-
       p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data = p_temp;
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
           p_temp + sizeof(ia_dec_data_struct);
@@ -781,10 +778,14 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
     case IA_API_CMD_GET_MEMTABS_SIZE: {
       *pui_value = (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) *
-                   (IA_ENHAACPDEC_NUM_MEMTABS + IA_MPS_DEC_NUM_MEMTABS);
+                   (IA_ENHAACPDEC_NUM_MEMTABS);
       break;
     }
     case IA_API_CMD_SET_MEMTABS_PTR: {
+      if (pv_value == NULL) return IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC;
+      memset(pv_value, 0, (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) *
+                              (IA_ENHAACPDEC_NUM_MEMTABS));
+
       p_obj_exhaacplus_dec->p_mem_info_aac = pv_value;
       p_obj_exhaacplus_dec->pp_mem_aac =
           (pVOID *)((WORD8 *)pv_value +
