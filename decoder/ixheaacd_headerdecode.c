@@ -154,21 +154,18 @@ WORD32 ixheaacd_read_prog_config_element(
     struct ia_bit_buf_struct *it_bit_buff) {
   WORD32 i, tmp;
   WORD count = 0, num_ch = 0;
-  WORD32 object_type;
 
   tmp = ixheaacd_read_bits_buf(it_bit_buff, 6);
 
   ptr_config_element->element_instance_tag = (tmp >> 2);
   ptr_config_element->object_type = tmp & 0x3;
 
-  object_type = 0;
-
   if ((ptr_config_element->object_type + 1) != 2
 
       && (ptr_config_element->object_type + 1) != 4
 
       ) {
-    object_type = IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+    return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
   }
 
   ptr_config_element->samp_freq_index = ixheaacd_read_bits_buf(it_bit_buff, 4);
@@ -237,7 +234,7 @@ WORD32 ixheaacd_read_prog_config_element(
 
   ixheaacd_skip_bits(it_bit_buff, 8, tmp);
 
-  return object_type;
+  return 0;
 }
 
 WORD ixheaacd_decode_pce(struct ia_bit_buf_struct *it_bit_buff,
