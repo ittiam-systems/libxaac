@@ -5,9 +5,10 @@
 ixheaacd_sbr_qmfanal32_winadds_eld:
 
     STMFD           sp!, {R4-R12, R14}
-    LDR             R5, [SP, #44]       @filterStates
-    LDR             R6, [SP, #48]       @timeIn
-    LDR             R7, [SP, #52]       @stride
+    VPUSH           {D8 - D15}
+    LDR             R5, [SP, #108]      @filterStates
+    LDR             R6, [SP, #112]      @timeIn
+    LDR             R7, [SP, #116]      @stride
 
     MOV             R9, R7, LSL #1
 
@@ -42,7 +43,7 @@ LOOP:
 
     BPL             LOOP
 
-    LDR             R4, [SP, #40]       @winAdd
+    LDR             R4, [SP, #104]      @winAdd
 
     MOV             R5, #8
     VLD1.16         D0, [R0]!           @tmpQ1[n +   0] load and incremented R0 by 8
@@ -241,5 +242,5 @@ LOOP_1:
     VMLAL.S16       Q15, D18, D19
 
     VST1.32         {Q15}, [R11]!
-
+    VPOP            {D8 - D15}
     LDMFD           sp!, {R4-R12, R15}
