@@ -436,40 +436,22 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
           0, fac_length * sizeof(WORD32));
     }
 
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      for (i = 0; i < 3 * len_subfrm; i++)
-        st->fd_synth[ORDER - len_subfrm + i] = (FLOAT32)(
-            (FLOAT32)usac_data
-                ->overlap_data_ptr[usac_data->present_chan][i - len_subfrm] /
-            16384.0);
-      num_samples = min(3 * len_subfrm, MAX_PITCH + synth_delay);
-    } else {
-      for (i = 0; i < 2 * len_subfrm; i++)
-        st->fd_synth[ORDER + i] = (FLOAT32)(
-            (FLOAT32)usac_data->overlap_data_ptr[usac_data->present_chan][i] /
-            16384.0);
-      num_samples = min(2 * len_subfrm, MAX_PITCH + synth_delay);
-    }
+    for (i = 0; i < 2 * len_subfrm; i++)
+      st->fd_synth[ORDER + i] = (FLOAT32)(
+          (FLOAT32)usac_data->overlap_data_ptr[usac_data->present_chan][i] /
+          16384.0);
+    num_samples = min(2 * len_subfrm, MAX_PITCH + synth_delay);
+
     ixheaacd_mem_cpy(st->fd_synth + ORDER, synth - 2 * len_subfrm,
                      2 * len_subfrm);
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER - len_subfrm,
-                                     PREEMPH_FILT_FAC, 3 * len_subfrm, mem);
-    } else {
-      ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER, PREEMPH_FILT_FAC,
-                                     2 * len_subfrm, mem);
-    }
 
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      ixheaacd_memset(tmp - len_subfrm, ORDER);
-      ixheaacd_mem_cpy(st->fd_synth + ORDER - len_subfrm,
-                       tmp - len_subfrm + ORDER, 3 * len_subfrm);
-      tmp_start = -len_subfrm;
-    } else {
-      ixheaacd_memset(tmp, ORDER);
-      ixheaacd_mem_cpy(st->fd_synth + ORDER, tmp + ORDER, 2 * len_subfrm);
-      tmp_start = 0;
-    }
+    ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER, PREEMPH_FILT_FAC,
+                                   2 * len_subfrm, mem);
+
+    ixheaacd_memset(tmp, ORDER);
+    ixheaacd_mem_cpy(st->fd_synth + ORDER, tmp + ORDER, 2 * len_subfrm);
+    tmp_start = 0;
+
     ixheaacd_memset(ptr_tmp - len_subfrm, 3 * len_subfrm);
     memset(st->fd_synth, 0, ORDER * sizeof(WORD32));
     length = (2 * len_subfrm - tmp_start) / LEN_SUBFR;
@@ -480,8 +462,6 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
 
     if (mod[0] != 0 && (len_subfrm == LEN_FRAME || mod[1] != 0)) {
       num_samples = min(len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
-    } else if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      num_samples = min(3 * len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
     } else {
       num_samples = min(2 * len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
     }
