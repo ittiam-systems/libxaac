@@ -760,16 +760,6 @@ WORD32 ixheaacd_aacdec_decodeframe(
     }
   }
 
-  if (p_obj_exhaacplus_dec->aac_config.ui_drc_enable) {
-    for (ch = 0; ch < num_ch; ch++) {
-      pstr_drc_dec->is_longblock[*ch_idx + ch] =
-          (aac_dec_handle->pstr_aac_dec_ch_info[ch]
-               ->str_ics_info.window_sequence == EIGHT_SHORT_SEQUENCE)
-              ? 0
-              : 1;
-    }
-  }
-
   if (object_type == AOT_ER_AAC_LD) {
     for (ch = 0; ch < channel; ch++) {
       aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag =
