@@ -41,7 +41,6 @@
 #include "impd_drc_selection_process.h"
 #include "impd_drc_api_struct_def.h"
 #include "impd_drc_peak_limiter.h"
-#include "impd_drc_host_params.h"
 
 #define PARAMETRIC_DRC_DELAY_MAX_DEFAULT 4096
 #define EQ_DELAY_MAX_DEFAULT 256
@@ -90,7 +89,7 @@ static WORD32 impd_match_downmix(WORD32 downmix_id, WORD32 dec_downmix_id) {
 
 IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
   memset(p_obj_drc, 0, sizeof(*p_obj_drc));
-  p_obj_drc->str_config.bitstream_file_format = 0;
+  p_obj_drc->str_config.bitstream_file_format = 1;
   p_obj_drc->str_config.dec_type = 0;
   p_obj_drc->str_config.sub_band_domain_mode = 0;
   p_obj_drc->str_config.sub_band_count = 0;
@@ -102,10 +101,11 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
   p_obj_drc->str_config.control_parameter_index = -1;
   p_obj_drc->str_config.peak_limiter = 0;
   p_obj_drc->str_config.delay_mode = 0;
-  p_obj_drc->str_config.interface_bitstream_present = 0;
+  p_obj_drc->str_config.interface_bitstream_present = 1;
   p_obj_drc->str_config.gain_delay_samples = 0;
   p_obj_drc->str_config.absorb_delay_on = 1;
   p_obj_drc->str_config.subband_domain_io_flag = 0;
+  p_obj_drc->str_bit_handler.gain_stream_flag = 1;
   p_obj_drc->str_config.constant_delay_on = 0;
   p_obj_drc->str_config.audio_delay_samples = 0;
   p_obj_drc->str_config.effect_type = 0;
@@ -401,98 +401,51 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
                                     p_obj_drc->str_payload.pstr_gain_dec[i]);
   }
 
-  if (p_obj_drc->str_config.interface_bitstream_present) {
-    err_code = impd_drc_dec_interface_add_effect_type(
-        p_obj_drc->str_payload.pstr_drc_interface,
-        p_obj_drc->str_config.effect_type,
-        p_obj_drc->str_config.target_loudness,
-        p_obj_drc->str_config.loud_norm_flag);
+  err_code = impd_drc_dec_interface_add_effect_type(
+      p_obj_drc->str_payload.pstr_drc_interface,
+      p_obj_drc->str_config.effect_type, p_obj_drc->str_config.target_loudness,
+      p_obj_drc->str_config.loud_norm_flag);
 
-    if (err_code != IA_NO_ERROR) return err_code;
+  if (err_code != IA_NO_ERROR) return err_code;
 
-    err_code = impd_drc_uni_selction_proc_init(
-        p_obj_drc->str_payload.pstr_selection_proc, 0,
-        p_obj_drc->str_payload.pstr_drc_interface,
-        p_obj_drc->str_config.sub_band_domain_mode);
-    if (err_code != IA_NO_ERROR) return err_code;
+  err_code = impd_drc_uni_selction_proc_init(
+      p_obj_drc->str_payload.pstr_selection_proc, 0,
+      p_obj_drc->str_payload.pstr_drc_interface,
+      p_obj_drc->str_config.sub_band_domain_mode);
+  if (err_code != IA_NO_ERROR) return err_code;
 
-    if (p_obj_drc->str_payload.pstr_drc_interface
-            ->loudness_norm_parameter_interface_flag &&
-        p_obj_drc->str_payload.pstr_drc_interface->loudness_norm_param_interface
-            .peak_limiter) {
-      p_obj_drc->str_config.peak_limiter = 1;
-    }
-  } else {
-    err_code = impd_set_default_params_selection_process(
-        p_obj_drc->str_payload.pstr_drc_sel_proc_params);
-    if (err_code != IA_NO_ERROR) return err_code;
-    err_code =
-        impd_set_custom_params(p_obj_drc->str_config.control_parameter_index,
-                               p_obj_drc->str_payload.pstr_drc_sel_proc_params);
-    if (err_code != IA_NO_ERROR) return err_code;
-    err_code = impd_eval_custom_params_selection_process(
-        p_obj_drc->str_payload.pstr_drc_sel_proc_params);
-    if (err_code != IA_NO_ERROR) return err_code;
-    err_code = impd_drc_uni_selction_proc_init(
-        p_obj_drc->str_payload.pstr_selection_proc,
-        p_obj_drc->str_payload.pstr_drc_sel_proc_params, 0,
-        p_obj_drc->str_config.sub_band_domain_mode);
-    if (err_code != IA_NO_ERROR) return err_code;
-
-    if (p_obj_drc->str_payload.pstr_drc_sel_proc_params->peak_limiter) {
-      p_obj_drc->str_config.peak_limiter = 1;
-    }
+  if (p_obj_drc->str_payload.pstr_drc_interface
+          ->loudness_norm_parameter_interface_flag &&
+      p_obj_drc->str_payload.pstr_drc_interface->loudness_norm_param_interface
+          .peak_limiter) {
+    p_obj_drc->str_config.peak_limiter = 1;
   }
+
   p_obj_drc->str_payload.pstr_loudness_info->loudness_info_album_count = 0;
   p_obj_drc->str_payload.pstr_loudness_info->loudness_info_count = 0;
   p_obj_drc->str_payload.pstr_loudness_info->loudness_info_set_ext_present = 0;
   p_obj_drc->p_state->ui_exe_done = 0;
 
-  if (p_obj_drc->str_config.bitstream_file_format ==
-      BITSTREAM_FILE_FORMAT_SPLIT) {
-    err_code = impd_process_drc_bitstream_dec_config(
-        p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
-        p_obj_drc->str_payload.pstr_drc_config,
-        &p_obj_drc->str_bit_handler.bitstream_drc_config[0],
-        p_obj_drc->str_bit_handler.num_bytes_bs_drc_config);
+  err_code = impd_process_drc_bitstream_dec_config(
+      p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
+      p_obj_drc->str_payload.pstr_drc_config,
+      &p_obj_drc->str_bit_handler.bitstream_drc_config[0],
+      p_obj_drc->str_bit_handler.num_bytes_bs_drc_config);
 
-    if (err_code == 1) {
-      memset(p_obj_drc->str_payload.pstr_drc_config, 0, sizeof(ia_drc_config));
-      err_code = impd_drc_set_default_bitstream_config(
-          p_obj_drc->str_payload.pstr_drc_config);
-      p_obj_drc->str_payload.pstr_drc_config->channel_layout
-          .base_channel_count = p_obj_drc->str_config.num_ch_in;
-    }
-
-    if (err_code != IA_NO_ERROR) return err_code;
-    err_code = impd_process_drc_bitstream_dec_loudness_info_set(
-        p_obj_drc->pstr_bit_buf, p_obj_drc->str_payload.pstr_loudness_info,
-        &p_obj_drc->str_bit_handler.bitstream_loudness_info[0],
-        p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info);
-    if (err_code != IA_NO_ERROR) return err_code;
-
-  } else {
-    err_code = impd_process_drc_bitstream_dec(
-        p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
-        p_obj_drc->str_payload.pstr_drc_config,
-        p_obj_drc->str_payload.pstr_loudness_info,
-        &p_obj_drc->str_bit_handler
-             .it_bit_buf[p_obj_drc->str_bit_handler.byte_index_bs],
-        p_obj_drc->str_bit_handler.num_bytes_bs,
-        p_obj_drc->str_bit_handler.num_bits_offset_bs,
-        &p_obj_drc->str_bit_handler.num_bits_read_bs);
-
-    if (err_code > PROC_COMPLETE) return -1;
-
-    p_obj_drc->str_bit_handler.num_bytes_read_bs =
-        (p_obj_drc->str_bit_handler.num_bits_read_bs >> 3);
-    p_obj_drc->str_bit_handler.num_bits_offset_bs =
-        (p_obj_drc->str_bit_handler.num_bits_read_bs & 7);
-    p_obj_drc->str_bit_handler.byte_index_bs +=
-        p_obj_drc->str_bit_handler.num_bytes_read_bs;
-    p_obj_drc->str_bit_handler.num_bytes_bs -=
-        p_obj_drc->str_bit_handler.num_bytes_read_bs;
+  if (err_code == 1) {
+    memset(p_obj_drc->str_payload.pstr_drc_config, 0, sizeof(ia_drc_config));
+    err_code = impd_drc_set_default_bitstream_config(
+        p_obj_drc->str_payload.pstr_drc_config);
+    p_obj_drc->str_payload.pstr_drc_config->channel_layout.base_channel_count =
+        p_obj_drc->str_config.num_ch_in;
   }
+
+  if (err_code != IA_NO_ERROR) return err_code;
+  err_code = impd_process_drc_bitstream_dec_loudness_info_set(
+      p_obj_drc->pstr_bit_buf, p_obj_drc->str_payload.pstr_loudness_info,
+      &p_obj_drc->str_bit_handler.bitstream_loudness_info[0],
+      p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info);
+  if (err_code != IA_NO_ERROR) return err_code;
 
   err_code = impd_drc_uni_sel_proc_process(
       p_obj_drc->str_payload.pstr_selection_proc,
