@@ -129,7 +129,6 @@ impd_drc_uni_sel_proc_process(
       pstr_drc_uni_sel_proc->loudness_info_set_flag ||
       pstr_drc_uni_sel_proc->sel_proc_request_flag) {
     WORD32 repeat_selection = 1;
-    WORD32 loop_cnt = 0;
 
     err = impd_manage_drc_complexity(pstr_drc_uni_sel_proc, pstr_drc_config);
     if (err) return (err);
@@ -214,11 +213,6 @@ impd_drc_uni_sel_proc_process(
       err = impd_manage_complexity(pstr_drc_uni_sel_proc, pstr_drc_config,
                                    &repeat_selection);
       if (err) return (err);
-
-      loop_cnt++;
-      if (loop_cnt > 100) {
-        return (UNEXPECTED_ERROR);
-      }
     }
 
     pstr_drc_uni_sel_proc->sel_proc_request_flag = 0;

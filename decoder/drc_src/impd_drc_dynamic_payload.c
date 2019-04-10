@@ -574,6 +574,11 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
 
     drc_instructions_uni_drc_v1_count = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (drc_config->drc_instructions_uni_drc_count +
+            drc_instructions_uni_drc_v1_count >
+        DRC_INSTRUCTIONS_COUNT_MAX)
+      return (UNEXPECTED_ERROR);
+
     for (i = 0; i < drc_instructions_uni_drc_v1_count; i++) {
       err = impd_parse_drc_instructions_uni_drc(
           it_bit_buff, version, drc_config,
@@ -591,9 +596,6 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   if (str_drc_config_ext->loud_eq_instructions_flag == 1) {
     str_drc_config_ext->loud_eq_instructions_count =
         impd_read_bits_buf(it_bit_buff, 4);
-    if (str_drc_config_ext->loud_eq_instructions_count >
-        LOUD_EQ_INSTRUCTIONS_COUNT_MAX)
-      return UNEXPECTED_ERROR;
 
     if (it_bit_buff->error) return it_bit_buff->error;
     if (str_drc_config_ext->loud_eq_instructions_count >
