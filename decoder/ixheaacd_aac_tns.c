@@ -387,11 +387,15 @@ VOID ixheaacd_tns_ar_filter_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   WORD32 acc;
 
   if ((order & 3) != 0) {
-    for (i = order + 1; i < ((WORD32)(order & 0xfffffffc) + 4); i++) {
+    for (i = order + 1; i < ((WORD32)(order & (~3)) + 4); i++) {
       lpc[i] = 0;
     }
-    lpc[i] = 0;
-    order = ((order & 0xfffffffc) + 4);
+    if (i < (MAX_ORDER + 1)) {
+      lpc[i] = 0;
+      order = ((order & (~3)) + 4);
+    } else {
+      order = MAX_ORDER;
+    }
   }
 
   for (i = 0; i < order; i++) {
