@@ -2210,6 +2210,12 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
     WORD32 frames_done = p_obj_exhaacplus_dec->p_state_aac->frame_counter;
 
+    ia_dec_data_struct *pstr_dec_data =
+        (ia_dec_data_struct *)(p_obj_exhaacplus_dec->p_state_aac
+                                   ->pstr_dec_data);
+
+    if (pstr_dec_data->str_usac_data.down_samp_sbr != 0) return IA_FATAL_ERROR;
+
     if (p_obj_exhaacplus_dec->p_state_aac->ui_input_over == 0) {
       error_code = ixheaacd_dec_main(
           p_obj_exhaacplus_dec, inbuffer, outbuffer, &out_bytes, frames_done,
