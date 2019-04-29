@@ -500,6 +500,7 @@ IA_ERRORCODE ixheaacd_applysbr(
     if (err || (ptr_header_data[k]->sync_state == SBR_NOT_INITIALIZED)) {
       WORD32 lr1 = ps_enable ? 2 : num_channels;
       ixheaacd_prepare_upsamp(ptr_header_data, pstr_sbr_channel, lr1);
+      if (err) return err;
     }
 
     if (frame_status && (ptr_header_data[k]->sync_state == SBR_ACTIVE)) {
