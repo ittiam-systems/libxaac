@@ -207,12 +207,14 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
     }
 
     for (i = 0; i < bs_num_env; i++) {
+      if (kk > MAX_NOISE_ENVELOPES) return IA_FATAL_ERROR;
       if (p_frame_info->border_vec[i] == p_frame_info->noise_border_vec[kk])
         kk++, next++;
 
       start_pos = p_frame_info->border_vec[i];
       end_pos = p_frame_info->border_vec[i + 1];
-
+      if ((start_pos < 0) || (end_pos > MAX_FREQ_COEFFS_SBR))
+        return IA_FATAL_ERROR;
       for (t = start_pos; t < end_pos; t++) {
         band_loop_end = num_sf_bands[p_frame_info->freq_res[i]];
 
@@ -224,6 +226,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
 
           for (k = 0; k < ui - li; k++) {
             o = (k + li >= ui2) ? o + 1 : o;
+            if (o >= MAX_NOISE_COEFFS) return IA_FATAL_ERROR;
             ui2 = freq_band_table_noise[o + 1];
 
             frame_data->qmapped_pvc[c][t] =
@@ -238,12 +241,14 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
     next = -1;
 
     for (i = 0; i < bs_num_env; i++) {
+      if (kk > MAX_NOISE_ENVELOPES) return IA_FATAL_ERROR;
       if (p_frame_info->border_vec[i] == p_frame_info->noise_border_vec[kk])
         kk++, next++;
 
       start_pos = pvc_frame_info->border_vec[i];
       end_pos = pvc_frame_info->border_vec[i + 1];
-
+      if ((start_pos < 0) || (end_pos > MAX_FREQ_COEFFS_SBR))
+        return IA_FATAL_ERROR;
       for (t = start_pos; t < end_pos; t++) {
         for (c = 0; c < 64; c++) {
           env_tmp[c][t] = env_out[64 * t + c];
@@ -301,6 +306,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
 
           for (k = 0; k < ui - li; k++) {
             o = (k + li >= ui2) ? o + 1 : o;
+            if (o >= MAX_NOISE_COEFFS) return IA_FATAL_ERROR;
             ui2 = freq_band_table_noise[o + 1];
             nrg_est_pvc[c][t] = (!int_mode) ? nrg : nrg_est_pvc[c][t];
             nrg_tone_pvc[c][t] = 0.0f;
@@ -419,6 +425,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
 
           for (k = 0; k < ui - li; k++) {
             o = (k + li >= ui2) ? o + 1 : o;
+            if (o >= MAX_NOISE_COEFFS) return IA_FATAL_ERROR;
             ui2 = freq_band_table_noise[o + 1];
             nrg_est_pvc[c][t] = (!int_mode) ? nrg : nrg_est_pvc[c][t];
             nrg_tone_pvc[c][t] = 0.0f;
@@ -612,6 +619,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           for (k = 0; k < ui - li; k++) {
             FLOAT64 guard = 1e-17;
             o = (k + li >= ui2) ? o + 1 : o;
+            if (o >= MAX_NOISE_COEFFS) return IA_FATAL_ERROR;
             ui2 = frame_data->pstr_sbr_header->pstr_freq_band_data
                       ->freq_band_tbl_noise[o + 1];
             nrg_ref[c] = sfb_nrg[m];
