@@ -73,6 +73,10 @@ WORD32 ixheaacd_show_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD bit_pos = it_bit_buff->bit_pos;
 
+  if (no_of_bits == 0) {
+    return 0;
+  }
+
   if (it_bit_buff->cnt_bits < no_of_bits || it_bit_buff->cnt_bits < 0 ||
       no_of_bits > 25) {
     longjmp(*(it_bit_buff->xaac_jmp_buf),
@@ -82,13 +86,19 @@ WORD32 ixheaacd_show_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
   ret_val = (UWORD32)*ptr_read_next;
 
   bit_pos -= no_of_bits;
-  while (bit_pos < 0) {
+  while (bit_pos < -1) {
     bit_pos += 8;
     ptr_read_next++;
 
     ret_val <<= 8;
 
     ret_val |= (UWORD32)*ptr_read_next;
+  }
+
+  if (bit_pos == -1) {
+    bit_pos += 8;
+    ret_val <<= 8;
+    ptr_read_next++;
   }
 
   ret_val = ret_val << ((31 - no_of_bits) - bit_pos) >> (32 - no_of_bits);
@@ -115,25 +125,19 @@ WORD32 ixheaacd_read_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits) {
   ret_val = (UWORD32)*ptr_read_next;
 
   bit_pos -= no_of_bits;
-  if (0 == it_bit_buff->cnt_bits) {
-    while (bit_pos < -1) {
-      bit_pos += 8;
-      ptr_read_next++;
-      ret_val <<= 8;
-      ret_val |= (UWORD32)*ptr_read_next;
-    }
+  while (bit_pos < -1) {
+    bit_pos += 8;
+    ptr_read_next++;
+
+    ret_val <<= 8;
+
+    ret_val |= (UWORD32)*ptr_read_next;
+  }
+
+  if (bit_pos == -1) {
     bit_pos += 8;
     ret_val <<= 8;
     ptr_read_next++;
-  } else {
-    while (bit_pos < 0) {
-      bit_pos += 8;
-      ptr_read_next++;
-
-      ret_val <<= 8;
-
-      ret_val |= (UWORD32)*ptr_read_next;
-    }
   }
 
   ret_val = ret_val << ((31 - no_of_bits) - bit_pos) >> (32 - no_of_bits);
