@@ -19,6 +19,7 @@
 */
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "impd_type_def.h"
 #include "impd_error_standards.h"
 
@@ -111,19 +112,7 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
   p_obj_drc->str_config.effect_type = 0;
   p_obj_drc->str_config.target_loudness = -24;
   p_obj_drc->str_config.loud_norm_flag = 0;
-  p_obj_drc->str_bit_handler.byte_index_bs = 0;
-  p_obj_drc->str_bit_handler.num_bytes_bs = 0;
-  p_obj_drc->str_bit_handler.num_bits_offset_bs = 0;
-  p_obj_drc->str_bit_handler.num_bits_read_bs = 0;
-  p_obj_drc->str_bit_handler.cpy_over = 0;
-  p_obj_drc->str_bit_handler.num_bytes_bs_drc_config = 0;
-  p_obj_drc->str_bit_handler.cpy_over_ic = 0;
-  p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info = 0;
-  p_obj_drc->str_bit_handler.cpy_over_il = 0;
-  p_obj_drc->str_bit_handler.num_bytes_bs_unidrc_interface = 0;
-  p_obj_drc->str_bit_handler.num_bits_read_bs_unidrc_interface = 0;
-  p_obj_drc->str_bit_handler.cpy_over_in = 0;
-  p_obj_drc->str_bit_handler.gain_stream_flag = 0;
+  memset(&p_obj_drc->str_bit_handler, 0, sizeof(p_obj_drc->str_bit_handler));
 
   return IA_NO_ERROR;
 }

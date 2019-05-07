@@ -73,10 +73,9 @@ VOID ixheaacd_mps_synt_pre_twiddle_dec(WORD32 *ptr_in, WORD32 *table_re,
   for (k = 0; k < 2 * resolution; k += 2) {
     tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k >> 1]),
                              ixheaacd_mult32(ptr_in[k + 1], table_im[k >> 1]));
-
-    ptr_in[k + 1] =
-        ixheaacd_add32_sat(ixheaacd_mult32(-ptr_in[k], table_im[k >> 1]),
-                           ixheaacd_mult32(ptr_in[k + 1], table_re[k >> 1]));
+    ptr_in[k + 1] = ixheaacd_add32_sat(
+        ixheaacd_mult32(ixheaacd_negate32_sat(ptr_in[k]), table_im[k >> 1]),
+        ixheaacd_mult32(ptr_in[k + 1], table_re[k >> 1]));
 
     ptr_in[k] = tmp;
   }
