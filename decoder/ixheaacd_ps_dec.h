@@ -110,8 +110,8 @@ typedef struct {
   ia_hybrid_struct str_hybrid;
 } ia_ps_dec_struct;
 
-WORD32 ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
-                             VOID *sbr_persistent_mem, WORD32 *ptr_overlap_buf);
+VOID ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
+                           VOID *sbr_persistent_mem, WORD32 *ptr_overlap_buf);
 
 VOID ixheaacd_decorr_filter1_dec(ia_ps_dec_struct *ptr_ps_dec,
                                  ia_ps_tables_struct *ps_tables_ptr,

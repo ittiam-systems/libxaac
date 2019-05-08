@@ -58,7 +58,7 @@
 #define LONG_BLOCK_SECT_LEN 5
 #define SHORT_BLOCK_SECT_LEN 3
 
-WORD16 ixheaacd_read_section_data(
+IA_ERRORCODE ixheaacd_read_section_data(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     WORD32 aac_spect_data_resil_flag, WORD32 aac_sect_data_resil_flag,

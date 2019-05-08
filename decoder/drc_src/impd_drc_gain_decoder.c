@@ -50,7 +50,7 @@ IA_ERRORCODE impd_init_drc_decode(
 
   if (err_code != IA_NO_ERROR) return (err_code);
 
-  impd_init_parametric_drc(
+  err_code = impd_init_parametric_drc(
       p_drc_gain_dec_structs->ia_drc_params_struct.drc_frame_size, sample_rate,
       sub_band_domain_mode, &p_drc_gain_dec_structs->parametricdrc_params);
 
@@ -309,15 +309,15 @@ IA_ERRORCODE impd_drc_process_time_domain(
     for (ch = 0; ch < p_drc_gain_dec_structs->eq_set->audio_num_chan; ch++) {
       audio_channel = audio_in_out_buf[ch];
 
-      impd_process_eq_set_time_domain(
+      err_code = impd_process_eq_set_time_domain(
           p_drc_gain_dec_structs->eq_set, ch, audio_channel, audio_channel,
           p_drc_gain_dec_structs->ia_drc_params_struct.drc_frame_size);
+      if (err_code) return (err_code);
     }
   }
 
-  err_code = impd_store_audio_io_buffer_time(
-      audio_in_out_buf, &p_drc_gain_dec_structs->audio_in_out_buf);
-  if (err_code != IA_NO_ERROR) return (err_code);
+  impd_store_audio_io_buffer_time(audio_in_out_buf,
+                                  &p_drc_gain_dec_structs->audio_in_out_buf);
 
   if (pstr_drc_config->apply_drc) {
     for (sel_drc_index = 0;
@@ -332,9 +332,9 @@ IA_ERRORCODE impd_drc_process_time_domain(
     }
 
     if (p_drc_gain_dec_structs->ia_drc_params_struct.drc_set_counter == 0) {
-      err_code = impd_retrieve_audio_io_buffer_time(
+      impd_retrieve_audio_io_buffer_time(
           audio_in_out_buf, &p_drc_gain_dec_structs->audio_in_out_buf);
-      if (err_code) return (err_code);
+
     } else {
       for (sel_drc_index = 0;
            sel_drc_index <
@@ -357,7 +357,7 @@ IA_ERRORCODE impd_drc_process_time_domain(
             &p_drc_gain_dec_structs->ia_filter_banks_struct, passThru);
         if (err_code != IA_NO_ERROR) return (err_code);
 
-        err_code = impd_apply_gains_and_add(
+        impd_apply_gains_and_add(
             str_drc_instruction_str,
             p_drc_gain_dec_structs->ia_drc_params_struct
                 .sel_drc_array[sel_drc_index]
@@ -368,14 +368,11 @@ IA_ERRORCODE impd_drc_process_time_domain(
             p_drc_gain_dec_structs->shape_filter_block,
             p_drc_gain_dec_structs->audio_band_buffer.non_interleaved_audio,
             audio_in_out_buf, 1);
-        if (err_code != IA_NO_ERROR) return (err_code);
       }
     }
   }
 
-  err_code = impd_advance_audio_io_buffer_time(
-      &p_drc_gain_dec_structs->audio_in_out_buf);
-  if (err_code != IA_NO_ERROR) return (err_code);
+  impd_advance_audio_io_buffer_time(&p_drc_gain_dec_structs->audio_in_out_buf);
 
   return err_code;
 }

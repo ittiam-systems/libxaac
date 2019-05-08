@@ -147,7 +147,7 @@ void ixheaacd_usac_cplx_save_prev(ia_sfb_info_struct *info, WORD32 *l_spec,
          sizeof(WORD32) * info->bins_per_sbk);
 }
 
-static WORD32 ixheaacd_cplx_pred_data(
+static VOID ixheaacd_cplx_pred_data(
     ia_usac_data_struct *usac_data,
     ia_usac_tmp_core_coder_struct *pstr_core_coder, WORD32 num_window_groups,
     ia_bit_buf_struct *it_bit_buff) {
@@ -251,7 +251,7 @@ static WORD32 ixheaacd_cplx_pred_data(
     }
   }
 
-  return 1;
+  return;
 }
 
 static WORD32 ixheaacd_read_ms_mask(
@@ -409,15 +409,13 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
       *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 }
 
-static WORD32 ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
-                                       const WORD32 *dmx_re_prev,
-                                       WORD32 *dmx_im,
-                                       ia_sfb_info_struct *pstr_sfb_info,
-                                       WORD32 window, const WORD32 w_shape,
-                                       const WORD32 prev_w_shape) {
+static VOID ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
+                                     const WORD32 *dmx_re_prev, WORD32 *dmx_im,
+                                     ia_sfb_info_struct *pstr_sfb_info,
+                                     WORD32 window, const WORD32 w_shape,
+                                     const WORD32 prev_w_shape) {
   WORD32 i;
   const WORD16 *mdst_fcoeff_curr, *mdst_fcoeff_prev;
-  WORD32 err = 0;
 
   switch (window) {
     case ONLY_LONG_SEQUENCE:
@@ -461,10 +459,10 @@ static WORD32 ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
     dmx_re += pstr_sfb_info->bins_per_sbk;
     dmx_im += pstr_sfb_info->bins_per_sbk;
   }
-  return err;
+  return;
 }
 
-static WORD32 ixheaacd_cplx_pred_upmixing(
+static VOID ixheaacd_cplx_pred_upmixing(
     ia_usac_data_struct *usac_data, WORD32 *l_spec, WORD32 *r_spec,
     ia_usac_tmp_core_coder_struct *pstr_core_coder, WORD32 chn) {
   ia_sfb_info_struct *pstr_sfb_info = usac_data->pstr_sfb_info[chn];
@@ -473,9 +471,8 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
 
   WORD32 grp, sfb, grp_len, i = 0, k;
   WORD32 *dmx_re_prev = usac_data->dmx_re_prev;
-  const WORD32(*alpha_q_re)[SFB_NUM_MAX] = usac_data->alpha_q_re;
-  const WORD32(*alpha_q_im)[SFB_NUM_MAX] = usac_data->alpha_q_im;
-  WORD32 err = 0;
+  WORD32(*alpha_q_re)[SFB_NUM_MAX] = usac_data->alpha_q_re;
+  WORD32(*alpha_q_im)[SFB_NUM_MAX] = usac_data->alpha_q_im;
 
   UWORD8(*cplx_pred_used)[SFB_NUM_MAX] = usac_data->cplx_pred_used;
 
@@ -510,11 +507,10 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
   if (pstr_core_coder->complex_coef) {
     WORD32 *p_dmx_re_prev =
         pstr_core_coder->use_prev_frame ? dmx_re_prev : NULL;
-    err = ixheaacd_estimate_dmx_im(dmx_re, p_dmx_re_prev, dmx_im, pstr_sfb_info,
-                                   usac_data->window_sequence[chn],
-                                   usac_data->window_shape[chn],
-                                   usac_data->window_shape_prev[chn]);
-    if (err == -1) return err;
+    ixheaacd_estimate_dmx_im(dmx_re, p_dmx_re_prev, dmx_im, pstr_sfb_info,
+                             usac_data->window_sequence[chn],
+                             usac_data->window_shape[chn],
+                             usac_data->window_shape_prev[chn]);
 
     for (grp = 0, i = 0; grp < pstr_sfb_info->num_groups; grp++) {
       for (grp_len = 0; grp_len < pstr_sfb_info->group_len[grp]; grp_len++) {
@@ -567,7 +563,7 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
     }
   }
 
-  return err;
+  return;
 }
 
 static VOID ixheaacd_cplx_prev_mdct_dmx(ia_sfb_info_struct *pstr_sfb_info,
@@ -864,10 +860,9 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   if (nr_core_coder_channels == 2 && pstr_core_coder->core_mode[0] == 0 &&
       pstr_core_coder->core_mode[1] == 0) {
     if (pstr_core_coder->ms_mask_present[0] == 3) {
-      err_code = ixheaacd_cplx_pred_upmixing(
-          usac_data, usac_data->coef_fix[left], usac_data->coef_fix[right],
-          pstr_core_coder, left);
-      if (err_code == -1) return err_code;
+      ixheaacd_cplx_pred_upmixing(usac_data, usac_data->coef_fix[left],
+                                  usac_data->coef_fix[right], pstr_core_coder,
+                                  left);
 
     } else if (pstr_core_coder->ms_mask_present[0] > 0) {
       ixheaacd_ms_stereo(

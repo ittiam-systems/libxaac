@@ -65,14 +65,14 @@ VOID ixheaacd_read_scale_factor_data(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 object_type);
 
-WORD16 ixheaacd_read_spectral_data(
+IA_ERRORCODE ixheaacd_read_spectral_data(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
     WORD32 frame_size, WORD32 object_type, WORD32 aac_spect_data_resil_flag,
     WORD32 aac_sf_data_resil_flag);
 
-WORD16 ixheaacd_read_section_data(
+IA_ERRORCODE ixheaacd_read_section_data(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     WORD32 aac_spect_data_resil_flag, WORD32 aac_sect_data_resil_flag,
