@@ -179,12 +179,11 @@ impd_parametric_ffwd_type_drc_process(FLOAT32* audio_in_out_buf[],
                                           pstr_parametric_ffwd_type_drc_params,
                                       ia_spline_nodes_struct* str_spline_nodes);
 
-WORD32
-impd_parametric_lim_type_drc_process(FLOAT32* audio_in_out_buf[],
-                                     FLOAT32 loudness_normalization_gain_db,
-                                     ia_parametric_drc_type_lim_params_struct*
-                                         pstr_parametric_lim_type_drc_params,
-                                     FLOAT32* lpcm_gains);
+VOID impd_parametric_lim_type_drc_process(
+    FLOAT32* audio_in_out_buf[], FLOAT32 loudness_normalization_gain_db,
+    ia_parametric_drc_type_lim_params_struct*
+        pstr_parametric_lim_type_drc_params,
+    FLOAT32* lpcm_gains);
 
 #ifdef __cplusplus
 }

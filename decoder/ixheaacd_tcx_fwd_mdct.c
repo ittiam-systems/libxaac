@@ -113,7 +113,7 @@ VOID ixheaacd_lsp_to_lp_conversion(FLOAT32 *lsp, FLOAT32 *lp_flt_coff_a) {
   return;
 }
 
-VOID ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
+WORD32 ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
   FLOAT32 data_r[LEN_SUPERFRAME * 2];
   FLOAT32 data_i[LEN_SUPERFRAME * 2];
   FLOAT64 avg_fac;
@@ -125,6 +125,7 @@ VOID ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
   FLOAT32 ftemp = 0;
   FLOAT32 tmp, qfac;
   WORD32 i, size_n;
+  WORD32 err = 0;
 
   size_n = 2 * lg;
   avg_fac = PI / (FLOAT32)(size_n);
@@ -152,7 +153,8 @@ VOID ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
     idata_i[i] = (WORD32)(data_i[i] * ((WORD64)1 << qshift));
   }
 
-  ixheaacd_complex_fft(idata_r, idata_i, size_n, -1, &preshift);
+  err = ixheaacd_complex_fft(idata_r, idata_i, size_n, -1, &preshift);
+  if (err) return err;
 
   qfac = 1.0f / ((FLOAT32)((WORD64)1 << (qshift - preshift)));
 
@@ -166,7 +168,7 @@ VOID ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
         (FLOAT32)(1.0f / sqrt(data_r[i] * data_r[i] + data_i[i] * data_i[i]));
   }
 
-  return;
+  return err;
 }
 
 VOID ixheaacd_noise_shaping(FLOAT32 r[], WORD32 lg, WORD32 M, FLOAT32 g1[],

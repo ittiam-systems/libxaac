@@ -47,8 +47,8 @@ extern const FLOAT32 ixheaacd__sine_window256[256];
 
 WORD32 ixheaacd_calc_window(WORD32 **win, WORD32 len, WORD32 wfun_select);
 
-void ixheaacd_acelp_imdct(WORD32 *imdct_in, WORD32 npoints, WORD8 *qshift,
-                          WORD32 *scratch);
+WORD32 ixheaacd_acelp_imdct(WORD32 *imdct_in, WORD32 npoints, WORD8 *qshift,
+                            WORD32 *scratch);
 
 typedef struct {
   WORD32 lfac;

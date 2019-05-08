@@ -28,7 +28,7 @@
 #include "impd_drc_selection_process.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
-WORD32 impd_signal_peak_level_info(
+VOID impd_signal_peak_level_info(
     ia_drc_config* pstr_drc_config,
     ia_drc_loudness_info_set_struct* pstr_loudness_info,
     ia_drc_instructions_struct* str_drc_instruction_str,
@@ -329,7 +329,7 @@ WORD32 impd_signal_peak_level_info(
   } else {
     *peak_info_count = pre_lim_count;
   }
-  return (0);
+  return;
 }
 
 WORD32
@@ -460,8 +460,8 @@ WORD32 impd_loudness_peak_to_average_info(
   return (0);
 }
 
-WORD32 impd_overall_loudness_present(ia_loudness_info_struct* loudness_info,
-                                     WORD32* loudness_info_present) {
+VOID impd_overall_loudness_present(ia_loudness_info_struct* loudness_info,
+                                   WORD32* loudness_info_present) {
   WORD32 m;
 
   *loudness_info_present = 0;
@@ -473,7 +473,7 @@ WORD32 impd_overall_loudness_present(ia_loudness_info_struct* loudness_info,
       *loudness_info_present = 1;
     }
   }
-  return (0);
+  return;
 }
 
 WORD32 impd_check_loud_info(WORD32 loudness_info_count,
@@ -481,14 +481,14 @@ WORD32 impd_check_loud_info(WORD32 loudness_info_count,
                             WORD32 requested_dwnmix_id,
                             WORD32 drc_set_id_requested, WORD32* info_count,
                             ia_loudness_info_struct* loudness_info_matching[]) {
-  WORD32 n, err;
+  WORD32 n;
   WORD32 loudness_info_present;
   for (n = 0; n < loudness_info_count; n++) {
     if (requested_dwnmix_id == loudness_info[n].downmix_id) {
       if (drc_set_id_requested == loudness_info[n].drc_set_id) {
-        err = impd_overall_loudness_present(&(loudness_info[n]),
-                                            &loudness_info_present);
-        if (err) return (err);
+        impd_overall_loudness_present(&(loudness_info[n]),
+                                      &loudness_info_present);
+
         if (loudness_info_present) {
           loudness_info_matching[*info_count] = &(loudness_info[n]);
           (*info_count)++;

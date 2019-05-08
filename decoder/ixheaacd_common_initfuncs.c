@@ -146,12 +146,12 @@ ia_bit_buf_struct *ixheaacd_create_bit_buf(ia_bit_buf_struct *it_bit_buff,
   return it_bit_buff;
 }
 
-ia_bit_buf_struct *ixheaacd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
-                                                UWORD8 *ptr_bit_buf_base,
-                                                WORD32 bit_buf_size) {
+VOID ixheaacd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
+                                  UWORD8 *ptr_bit_buf_base,
+                                  WORD32 bit_buf_size) {
   ixheaacd_create_bit_buf(it_bit_buff, ptr_bit_buf_base, bit_buf_size);
   it_bit_buff->cnt_bits = (bit_buf_size << 3);
-  return (it_bit_buff);
+  return;
 }
 
 VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,

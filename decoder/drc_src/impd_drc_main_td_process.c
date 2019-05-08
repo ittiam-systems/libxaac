@@ -224,11 +224,8 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
       }
     }
 
-    err_code =
-        impd_limiter_process(p_obj_drc->str_payload.pstr_peak_limiter,
-                             output_buffer, p_obj_drc->str_config.frame_size);
-
-    if (err_code != IA_NO_ERROR) return err_code;
+    impd_limiter_process(p_obj_drc->str_payload.pstr_peak_limiter,
+                         output_buffer, p_obj_drc->str_config.frame_size);
 
     for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
       for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {

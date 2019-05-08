@@ -316,7 +316,7 @@ WORD32 ixheaacd_find_syncword(ia_adts_header_struct *adts,
 WORD32 ixheaacd_adtsframe(ia_adts_header_struct *adts,
                           struct ia_bit_buf_struct *it_bit_buff) {
   WORD32 tmp;
-
+  IA_ERRORCODE err = IA_NO_ERROR;
   WORD32 crc_reg;
   ia_adts_crc_info_struct *ptr_adts_crc_info = it_bit_buff->pstr_adts_crc_info;
   ptr_adts_crc_info->crc_active = 1;
@@ -324,7 +324,8 @@ WORD32 ixheaacd_adtsframe(ia_adts_header_struct *adts,
   ixheaacd_read_bidirection(it_bit_buff, -12);
   crc_reg = ixheaacd_adts_crc_start_reg(ptr_adts_crc_info, it_bit_buff,
                                         CRC_ADTS_HEADER_LEN);
-  ixheaacd_find_syncword(adts, it_bit_buff);
+  err = ixheaacd_find_syncword(adts, it_bit_buff);
+  if (err) return err;
 
   tmp = ixheaacd_read_bits_buf(it_bit_buff, 10);
 
@@ -1003,9 +1004,11 @@ WORD32 ixheaacd_aac_headerdecode(
             (header_len - bytes_taken)) {
           ia_adts_header_struct adts_loc = {0};
 
-          handle_bit_buff = ixheaacd_create_init_bit_buf(
+          ixheaacd_create_init_bit_buf(
               &it_bit_buff, (UWORD8 *)(buffer + adts.aac_frame_length),
               (WORD16)(header_len - bytes_taken - adts.aac_frame_length));
+
+          handle_bit_buff = &it_bit_buff;
 
           adts_loc.sync_word =
               (WORD16)ixheaacd_read_bits_buf(handle_bit_buff, 12);

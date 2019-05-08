@@ -135,16 +135,15 @@ VOID impd_all_pass_cascade_process(
     ia_all_pass_cascade_struct* str_all_pass_cascade, WORD32 c, WORD32 size,
     FLOAT32* audio_in);
 
-WORD32
-impd_shape_filt_block_init(
+VOID impd_shape_filt_block_init(
     ia_shape_filter_block_params_struct* pstr_shape_filter_block_params,
     shape_filter_block* shape_filter_block);
 
-WORD32
-impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
-                            shape_filter_block* shape_filter_block);
+VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
+                                 shape_filter_block* shape_filter_block);
 
-WORD32 impd_shape_filt_block_time_process(
-    shape_filter_block* shape_filter_block, FLOAT32* drc_gain,
-    const WORD32 channel, FLOAT32* audio_in, WORD32 start, WORD32 end);
+VOID impd_shape_filt_block_time_process(shape_filter_block* shape_filter_block,
+                                        FLOAT32* drc_gain, const WORD32 channel,
+                                        FLOAT32* audio_in, WORD32 start,
+                                        WORD32 end);
 #endif

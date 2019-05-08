@@ -59,9 +59,8 @@ WORD32 impd_drc_uni_selction_proc_init(
       pstr_drc_uni_sel_proc->eq_set_id_valid_flag[i] = 0;
     }
   }
-  err = impd_drc_sel_proc_init_interface_params(pstr_drc_uni_sel_proc,
-                                                pstr_drc_interface);
-  if (err) return (err);
+  impd_drc_sel_proc_init_interface_params(pstr_drc_uni_sel_proc,
+                                          pstr_drc_interface);
 
   pstr_drc_uni_sel_proc->subband_domain_mode = subband_domain_mode;
 
@@ -950,9 +949,10 @@ WORD32 impd_manage_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
     } else {
       complexityPerCoeff = 2.0f;
     }
-    impd_find_downmix(pstr_drc_config,
-                      uni_drc_sel_proc_output->active_downmix_id,
-                      &dwnmix_instructions);
+    err = impd_find_downmix(pstr_drc_config,
+                            uni_drc_sel_proc_output->active_downmix_id,
+                            &dwnmix_instructions);
+    if (err) return (err);
     if (dwnmix_instructions->downmix_coefficients_present == 1) {
       for (i = 0; i < uni_drc_sel_proc_output->base_channel_count; i++) {
         for (j = 0; j < uni_drc_sel_proc_output->target_channel_count; j++) {

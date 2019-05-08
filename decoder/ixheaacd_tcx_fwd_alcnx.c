@@ -235,10 +235,12 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
   ixheaacd_low_fq_deemphasis(x, lg, alfd_gains);
 
   ixheaacd_lpc_coeff_wt_apply(lp_flt_coff_a + (ORDER + 1), i_ap);
-  ixheaacd_lpc_to_td(i_ap, ORDER, gain1, usac_data->len_subfrm / 4);
+  err = ixheaacd_lpc_to_td(i_ap, ORDER, gain1, usac_data->len_subfrm / 4);
+  if (err) return err;
 
   ixheaacd_lpc_coeff_wt_apply(lp_flt_coff_a + (2 * (ORDER + 1)), i_ap);
-  ixheaacd_lpc_to_td(i_ap, ORDER, gain2, usac_data->len_subfrm / 4);
+  err = ixheaacd_lpc_to_td(i_ap, ORDER, gain2, usac_data->len_subfrm / 4);
+  if (err) return err;
 
   energy = 0.01f;
   for (i = 0; i < lg; i++) energy += x[i] * x[i];

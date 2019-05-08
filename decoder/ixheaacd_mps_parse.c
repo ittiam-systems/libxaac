@@ -23,13 +23,12 @@
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
-
 #include "ixheaacd_mps_polyphase.h"
-
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_hybfilter.h"
+#include "ixheaacd_error_standards.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -241,7 +240,7 @@ static int ixheaacd_mps_getstridemap(int freq_res_stride, int band_start,
   return data_bands;
 }
 
-static VOID ixheaacd_mps_ecdata_decoding(
+static IA_ERRORCODE ixheaacd_mps_ecdata_decoding(
     ia_mps_dec_state_struct *self, ia_handle_bit_buf_struct bitstream,
     int data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS], int datatype) {
   int i, j, pb, set_index, bs_data_pair, data_bands, old_quant_coarse_xxx;
@@ -251,6 +250,7 @@ static VOID ixheaacd_mps_ecdata_decoding(
   int *lastdata = NULL;
   ia_mps_data_struct *frame_xxx_data = NULL;
   int default_val = 0;
+  IA_ERRORCODE err = IA_NO_ERROR;
 
   ia_mps_bs_frame *frame = &(self->bs_frame);
 
@@ -316,10 +316,11 @@ static VOID ixheaacd_mps_ecdata_decoding(
           lastdata[pb] = lastdata[strides[pb]];
         }
 
-        ixheaacd_mps_ecdatapairdec(
+        err = ixheaacd_mps_ecdatapairdec(
             bitstream, data, lastdata, datatype, set_index, data_bands,
             bs_data_pair, frame_xxx_data->bs_quant_coarse_xxx[set_index],
             frame->independency_flag && (i == 0));
+        if (err) return err;
 
         for (pb = 0; pb < data_bands; pb++) {
           for (j = strides[pb]; j < strides[pb + 1]; j++) {
@@ -347,11 +348,12 @@ static VOID ixheaacd_mps_ecdata_decoding(
       }
     }
   }
+  return err;
 }
 
-VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
-                                int usac_independency_flag,
-                                ia_handle_bit_buf_struct bitstream) {
+IA_ERRORCODE ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
+                                        int usac_independency_flag,
+                                        ia_handle_bit_buf_struct bitstream) {
   int i, bs_frame_type, data_bands, bs_temp_shape_enable, num_of_temp_shape_ch;
   int ps, pg, ts, pb;
   int env_shape_data[MAX_TIME_SLOTS];
@@ -359,8 +361,9 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
   int bits_param_slot = 0;
 
   ia_mps_bs_frame *frame = &(self->bs_frame);
+  IA_ERRORCODE err = IA_NO_ERROR;
 
-  if (self->parse_nxt_frame == 0) return;
+  if (self->parse_nxt_frame == 0) return IA_NO_ERROR;
 
   self->num_parameter_sets_prev = self->num_parameter_sets;
 
@@ -391,8 +394,11 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
     frame->independency_flag = 1;
   }
 
-  ixheaacd_mps_ecdata_decoding(self, bitstream, frame->cmp_cld_idx, CLD);
-  ixheaacd_mps_ecdata_decoding(self, bitstream, frame->cmp_icc_idx, ICC);
+  err = ixheaacd_mps_ecdata_decoding(self, bitstream, frame->cmp_cld_idx, CLD);
+  if (err) return err;
+
+  err = ixheaacd_mps_ecdata_decoding(self, bitstream, frame->cmp_icc_idx, ICC);
+  if (err) return err;
 
   if (self->config->bs_phase_coding) {
     self->bs_phase_mode = ixheaacd_read_bits_buf(bitstream, 1);
@@ -409,7 +415,9 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
       self->opd_smoothing_mode = 0;
     } else {
       self->opd_smoothing_mode = ixheaacd_read_bits_buf(bitstream, 1);
-      ixheaacd_mps_ecdata_decoding(self, bitstream, frame->ipd_idx_data, IPD);
+      err = ixheaacd_mps_ecdata_decoding(self, bitstream, frame->ipd_idx_data,
+                                         IPD);
+      if (err) return err;
     }
   }
 
@@ -599,6 +607,7 @@ VOID ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
   }
 
   self->parse_nxt_frame = 0;
+  return err;
 }
 
 static VOID ixheaacd_mps_createmapping(int map[MAX_PARAMETER_BANDS + 1],
