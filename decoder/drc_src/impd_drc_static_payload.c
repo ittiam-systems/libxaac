@@ -695,6 +695,8 @@ WORD32 impd_parse_loud_info_set_ext_eq(
 
   offset = loudness_info_set->loudness_info_album_count;
   loudness_info_set->loudness_info_album_count += loudness_info_v1_album_cnt;
+  if ((offset + loudness_info_v1_album_cnt) > LOUDNESS_INFO_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   for (i = 0; i < loudness_info_v1_album_cnt; i++) {
     err = impd_parse_loudness_info(
         it_bit_buff, version,
@@ -703,6 +705,8 @@ WORD32 impd_parse_loud_info_set_ext_eq(
   }
   offset = loudness_info_set->loudness_info_count;
   loudness_info_set->loudness_info_count += loudness_info_v1_cnt;
+  if (offset + loudness_info_v1_cnt > LOUDNESS_INFO_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   for (i = 0; i < loudness_info_v1_cnt; i++) {
     err = impd_parse_loudness_info(
         it_bit_buff, version, &loudness_info_set->loudness_info[i + offset]);
@@ -775,6 +779,7 @@ impd_parse_dwnmix_instructions(
           dmix_coeff = impd_read_bits_buf(it_bit_buff, 4);
           if (it_bit_buff->error) return it_bit_buff->error;
 
+          if (k >= DOWNMIX_COEFF_COUNT_MAX) return (UNEXPECTED_ERROR);
           if (ia_drc_params_struct->lfe_channel_map[j]) {
             dwnmix_instructions->downmix_coefficient[k] =
                 (FLOAT32)pow(10.0f, 0.05f * dwnmix_coeff_lfe[dmix_coeff]);
@@ -792,10 +797,12 @@ impd_parse_dwnmix_instructions(
       bs_dmix_offset = impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
       k = 0;
+
       for (i = 0; i < dwnmix_instructions->target_channel_count; i++) {
         for (j = 0; j < channel_layout->base_channel_count; j++) {
           dmix_coeff_v1 = impd_read_bits_buf(it_bit_buff, 5);
           if (it_bit_buff->error) return it_bit_buff->error;
+          if (k >= DOWNMIX_COEFF_COUNT_MAX) return (UNEXPECTED_ERROR);
           dwnmix_instructions->downmix_coefficient[k] =
               dwnmix_coeff_v1[dmix_coeff_v1];
           k++;
@@ -1152,6 +1159,9 @@ impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
   drc_config->drc_coefficients_drc_count = (temp >> 6) & 7;
   drc_config->drc_instructions_uni_drc_count = temp & 0x3f;
 
+  if (drc_config->drc_instructions_uni_drc_count > DRC_INSTRUCTIONS_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
+
   err = impd_parse_ch_layout(it_bit_buff, ia_drc_params_struct,
                              &drc_config->channel_layout);
   if (err) return (err);
@@ -1280,6 +1290,9 @@ impd_parse_loudness_info_set(
 
   offset = loudness_info_set->loudness_info_album_count;
   loudness_info_set->loudness_info_album_count += loudness_info_album_count;
+  if ((offset + loudness_info_set->loudness_info_album_count) >
+      LOUDNESS_INFO_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   for (i = 0; i < loudness_info_set->loudness_info_album_count; i++) {
     err = impd_parse_loudness_info(
         it_bit_buff, version,
@@ -1289,6 +1302,9 @@ impd_parse_loudness_info_set(
 
   offset = loudness_info_set->loudness_info_count;
   loudness_info_set->loudness_info_count += loudness_info_count;
+  if ((offset + loudness_info_set->loudness_info_count) >
+      LOUDNESS_INFO_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   for (i = 0; i < loudness_info_set->loudness_info_count; i++) {
     err = impd_parse_loudness_info(
         it_bit_buff, version, &(loudness_info_set->loudness_info[i + offset]));
@@ -1500,6 +1516,8 @@ impd_parse_gain_set_params(ia_bit_buf_struct* it_bit_buff, WORD32 version,
     gain_set_params->band_count = impd_read_bits_buf(it_bit_buff, 4);
     if (it_bit_buff->error) return it_bit_buff->error;
 
+    if (gain_set_params->band_count > BAND_COUNT_MAX) return (UNEXPECTED_ERROR);
+
     if (gain_set_params->band_count > 1) {
       gain_set_params->drc_band_type = impd_read_bits_buf(it_bit_buff, 1);
       if (it_bit_buff->error) return it_bit_buff->error;
@@ -1647,6 +1665,10 @@ impd_drc_parse_coeff(
     str_p_loc_drc_coefficients_uni_drc->gain_set_count =
         impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
+
+    if (str_p_loc_drc_coefficients_uni_drc->gain_set_count > GAIN_SET_COUNT_MAX)
+      return (UNEXPECTED_ERROR);
+
     str_p_loc_drc_coefficients_uni_drc->gain_set_count_plus =
         str_p_loc_drc_coefficients_uni_drc->gain_set_count;
     for (i = 0; i < str_p_loc_drc_coefficients_uni_drc->gain_set_count; i++) {
@@ -1748,6 +1770,9 @@ impd_drc_parse_coeff(
       str_p_loc_drc_coefficients_uni_drc->shape_num_filter =
           impd_read_bits_buf(it_bit_buff, 4);
       if (it_bit_buff->error) return it_bit_buff->error;
+      if (str_p_loc_drc_coefficients_uni_drc->shape_num_filter >
+          SHAPE_FILTER_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
       for (i = 1; i <= str_p_loc_drc_coefficients_uni_drc->shape_num_filter;
            i++) {
         pstr_shape_filter_block_params =
@@ -1810,7 +1835,15 @@ impd_drc_parse_coeff(
 
     str_p_loc_drc_coefficients_uni_drc->gain_sequence_count =
         (temp >> 6) & 0x3f;
+
+    if (str_p_loc_drc_coefficients_uni_drc->gain_sequence_count >
+        SEQUENCE_COUNT_MAX)
+      return UNEXPECTED_ERROR;
+
     str_p_loc_drc_coefficients_uni_drc->gain_set_count = temp & 0x3f;
+
+    if (str_p_loc_drc_coefficients_uni_drc->gain_set_count > GAIN_SET_COUNT_MAX)
+      return (UNEXPECTED_ERROR);
 
     str_p_loc_drc_coefficients_uni_drc->gain_set_count_plus =
         str_p_loc_drc_coefficients_uni_drc->gain_set_count;
@@ -2098,6 +2131,7 @@ impd_parse_drc_instructions_uni_drc(
 
   ch_cnt = drc_config->channel_layout.base_channel_count;
 
+  if (ch_cnt > MAX_CHANNEL_COUNT) return (UNEXPECTED_ERROR);
   for (c = 0; c < MAX_CHANNEL_COUNT; c++) {
     unique_idx[c] = -10;
     unique_scaling[c] = -10.0f;
@@ -2128,17 +2162,13 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_parameters_cnt += 1;
+        if ((c + repeat_parameters_cnt) > MAX_CHANNEL_COUNT)
+          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_parameters_cnt; k++) {
           str_drc_instruction_str->gain_set_index[c] =
               str_drc_instruction_str->gain_set_index[c - 1];
-          str_drc_instruction_str->str_ducking_modifiers_for_channel[c]
-              .ducking_scaling_flag =
-              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1]
-                  .ducking_scaling_flag;
-          str_drc_instruction_str->str_ducking_modifiers_for_channel[c]
-              .ducking_scaling =
-              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1]
-                  .ducking_scaling;
+          str_drc_instruction_str->str_ducking_modifiers_for_channel[c] =
+              str_drc_instruction_str->str_ducking_modifiers_for_channel[c - 1];
           c++;
         }
       }
@@ -2209,6 +2239,9 @@ impd_parse_drc_instructions_uni_drc(
       str_drc_instruction_str->num_drc_ch_groups = g;
     }
 
+    if (str_drc_instruction_str->num_drc_ch_groups >
+        min(CHANNEL_GROUP_COUNT_MAX, MAX_CHANNEL_COUNT))
+      return UNEXPECTED_ERROR;
     for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups; g++) {
       WORD32 set =
           (str_drc_instruction_str->drc_set_effect & EFFECT_BIT_DUCK_OTHER)
@@ -2250,6 +2283,7 @@ impd_parse_drc_instructions_uni_drc(
       ch_cnt = 1;
     }
 
+    if (ch_cnt > MAX_CHANNEL_COUNT) return (UNEXPECTED_ERROR);
     c = 0;
     while (c < ch_cnt) {
       WORD32 bs_gain_set_idx;
@@ -2269,6 +2303,8 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_gain_set_idx_cnt += 1;
+        if ((c + repeat_gain_set_idx_cnt) > MAX_CHANNEL_COUNT)
+          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_gain_set_idx_cnt; k++) {
           str_drc_instruction_str->gain_set_index[c] = bs_gain_set_idx - 1;
           c++;
@@ -2311,6 +2347,10 @@ impd_parse_drc_instructions_uni_drc(
     }
 
     str_drc_instruction_str->num_drc_ch_groups = g;
+
+    if (str_drc_instruction_str->num_drc_ch_groups >
+        min(CHANNEL_GROUP_COUNT_MAX, MAX_CHANNEL_COUNT))
+      return UNEXPECTED_ERROR;
     for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups; g++) {
       WORD32 set, band_count;
 

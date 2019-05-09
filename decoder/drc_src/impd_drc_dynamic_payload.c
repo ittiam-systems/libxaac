@@ -123,7 +123,7 @@ WORD32 impd_dec_gains(ia_bit_buf_struct* it_bit_buff, WORD32 no_nodes,
 WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
                        WORD32 gain_interpolation_type,
                        ia_node_struct* str_node) {
-  WORD32 k, e, m, bit;
+  WORD32 k, e, bit;
   WORD32 code;
   WORD32 code_found;
   FLOAT32 slope_value = 0;
@@ -141,6 +141,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
     end_marker = impd_read_bits_buf(it_bit_buff, 1);
     if (it_bit_buff->error) return it_bit_buff->error;
   }
+  if (k > NODE_COUNT_MAX) return UNEXPECTED_ERROR;
   *no_nodes = k;
 
   if (gain_interpolation_type == GAIN_INTERPOLATION_TYPE_SPLINE) {
@@ -150,7 +151,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
       code_found = 0;
       e = 0;
       while ((e < no_slope_code_entries) && (!code_found)) {
-        for (m = 0; m < ptr_slope_code_table[e].size - num_bits_read; m++) {
+        while (num_bits_read < ptr_slope_code_table[e].size) {
           bit = impd_read_bits_buf(it_bit_buff, 1);
           if (it_bit_buff->error) return it_bit_buff->error;
           code = (code << 1) + bit;
@@ -163,6 +164,7 @@ WORD32 impd_dec_slopes(ia_bit_buf_struct* it_bit_buff, WORD32* no_nodes,
             break;
           }
           e++;
+          if (e >= no_slope_code_entries) return UNEXPECTED_ERROR;
         }
       }
       str_node[k].slope = slope_value;
@@ -536,6 +538,9 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   if (dwnmix_instructions_v1_flag == 1) {
     dwnmix_instructions_v1_count = impd_read_bits_buf(it_bit_buff, 7);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if ((dwnmix_instructions_v1_count + drc_config->dwnmix_instructions_count) >
+        DOWNMIX_INSTRUCTION_COUNT_MAX)
+      return UNEXPECTED_ERROR;
     for (i = 0; i < dwnmix_instructions_v1_count; i++) {
       err = impd_parse_dwnmix_instructions(
           it_bit_buff, version, ia_drc_params_struct,
@@ -591,6 +596,9 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
       return UNEXPECTED_ERROR;
 
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (str_drc_config_ext->loud_eq_instructions_count >
+        LOUD_EQ_INSTRUCTIONS_COUNT_MAX)
+      return UNEXPECTED_ERROR;
     for (i = 0; i < str_drc_config_ext->loud_eq_instructions_count; i++) {
       err = impd_parse_loud_eq_instructions(
           it_bit_buff, &str_drc_config_ext->loud_eq_instructions[i]);
@@ -939,6 +947,8 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
 
   str_eq_coeff->unique_td_filter_element_count =
       impd_read_bits_buf(it_bit_buff, 6);
+  if (str_eq_coeff->unique_td_filter_element_count > FILTER_ELEMENT_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   if (it_bit_buff->error) return it_bit_buff->error;
 
   err = impd_parse_unique_td_filt_ele(
@@ -948,6 +958,9 @@ WORD32 impd_parse_eq_coefficients(ia_bit_buf_struct* it_bit_buff,
 
   str_eq_coeff->unique_eq_subband_gains_count =
       impd_read_bits_buf(it_bit_buff, 6);
+  if (str_eq_coeff->unique_eq_subband_gains_count >
+      UNIQUE_SUBBAND_GAIN_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   if (it_bit_buff->error) return it_bit_buff->error;
 
   if (str_eq_coeff->unique_eq_subband_gains_count > 0) {
@@ -1078,6 +1091,9 @@ WORD32 impd_parse_eq_instructions(
       additional_dmix_id_cnt = impd_read_bits_buf(it_bit_buff, 7);
       if (it_bit_buff->error) return it_bit_buff->error;
 
+      if (additional_dmix_id_cnt >= DOWNMIX_ID_COUNT_MAX)
+        return UNEXPECTED_ERROR;
+
       for (i = 1; i < additional_dmix_id_cnt + 1; i++) {
         str_eq_instructions->downmix_id[i] = impd_read_bits_buf(it_bit_buff, 7);
         if (it_bit_buff->error) return it_bit_buff->error;
@@ -1099,6 +1115,8 @@ WORD32 impd_parse_eq_instructions(
   if (additional_drc_set_id_present) {
     additional_drc_set_id_cnt = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (additional_drc_set_id_cnt >= DRC_SET_ID_COUNT_MAX)
+      return UNEXPECTED_ERROR;
 
     for (i = 1; i < additional_drc_set_id_cnt + 1; i++) {
       str_eq_instructions->drc_set_id[i] = impd_read_bits_buf(it_bit_buff, 6);
@@ -1241,7 +1259,8 @@ WORD32 impd_parse_loud_eq_instructions(
     if (additional_dmix_id_present) {
       additional_dmix_id_cnt = impd_read_bits_buf(it_bit_buff, 7);
       if (it_bit_buff->error) return it_bit_buff->error;
-
+      if (additional_dmix_id_cnt >= DOWNMIX_ID_COUNT_MAX)
+        return UNEXPECTED_ERROR;
       for (i = 1; i < additional_dmix_id_cnt + 1; i++) {
         loud_eq_instructions->downmix_id[i] =
             impd_read_bits_buf(it_bit_buff, 7);
@@ -1268,6 +1287,8 @@ WORD32 impd_parse_loud_eq_instructions(
     if (additional_drc_set_id_present) {
       additional_drc_set_id_cnt = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
+      if ((additional_drc_set_id_cnt >= DRC_SET_ID_COUNT_MAX))
+        return UNEXPECTED_ERROR;
 
       for (i = 1; i < additional_drc_set_id_cnt + 1; i++) {
         loud_eq_instructions->drc_set_id[i] =

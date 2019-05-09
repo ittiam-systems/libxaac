@@ -19,7 +19,7 @@
 */
 #ifndef IXHEAACD_ENV_EXTR_H
 #define IXHEAACD_ENV_EXTR_H
-
+#include "ixheaacd_error_standards.h"
 #define ENV_EXP_FRACT 0
 
 #define EXP_BITS 6
@@ -170,12 +170,11 @@ VOID ixheaacd_huffman_decode(WORD32 it_bit_buff, WORD16 *h_index, WORD16 *len,
                              const UWORD16 *input_table,
                              const UWORD32 *idx_table);
 
-VOID ixheaacd_createlimiterbands(WORD32 lim_table[4][12 + 1],
-                                 WORD32 gate_mode[4], WORD16 *freq_band_tbl,
-                                 WORD32 ixheaacd_num_bands,
-                                 WORD32 x_over_qmf[MAX_NUM_PATCHES],
-                                 WORD32 b_patching_mode, WORD32 upsamp_4_flag,
-                                 struct ixheaacd_lpp_trans_patch *patch_param);
+IA_ERRORCODE ixheaacd_createlimiterbands(
+    WORD32 lim_table[4][12 + 1], WORD32 gate_mode[4], WORD16 *freq_band_tbl,
+    WORD32 ixheaacd_num_bands, WORD32 x_over_qmf[MAX_NUM_PATCHES],
+    WORD32 b_patching_mode, WORD32 upsamp_4_flag,
+    struct ixheaacd_lpp_trans_patch *patch_param);
 
 VOID ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
                               FLOAT32 *qmf_real, FLOAT32 *qmf_imag,
