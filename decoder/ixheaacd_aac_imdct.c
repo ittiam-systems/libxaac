@@ -2008,14 +2008,14 @@ VOID ixheaacd_fft32x32_ld_dec(ia_aac_dec_imdct_tables_struct *imdct_tables_ptr,
       x_h2_0 = x[h2];
       x_h2_1 = x[h2 + 1];
 
-      xh0_0 = x_0 + x_l1_0;
-      xh1_0 = x_1 + x_l1_1;
-      xl0_0 = x_0 - x_l1_0;
-      xl1_0 = x_1 - x_l1_1;
-      xh20_0 = x_h2_0 + x_l2_0;
-      xh21_0 = x_h2_1 + x_l2_1;
-      xl20_0 = x_h2_0 - x_l2_0;
-      xl21_0 = x_h2_1 - x_l2_1;
+      xh0_0 = ixheaacd_add32_sat(x_0, x_l1_0);
+      xh1_0 = ixheaacd_add32_sat(x_1, x_l1_1);
+      xl0_0 = ixheaacd_sub32_sat(x_0, x_l1_0);
+      xl1_0 = ixheaacd_sub32_sat(x_1, x_l1_1);
+      xh20_0 = ixheaacd_add32_sat(x_h2_0, x_l2_0);
+      xh21_0 = ixheaacd_add32_sat(x_h2_1, x_l2_1);
+      xl20_0 = ixheaacd_sub32_sat(x_h2_0, x_l2_0);
+      xl21_0 = ixheaacd_sub32_sat(x_h2_1, x_l2_1);
 
       x0 = x;
       x2 = x0;
@@ -2026,14 +2026,14 @@ VOID ixheaacd_fft32x32_ld_dec(ia_aac_dec_imdct_tables_struct *imdct_tables_ptr,
       if (!predj) x += fft_jmp;
       if (!predj) j = 0;
 
-      x0[0] = xh0_0 + xh20_0;
-      x0[1] = xh1_0 + xh21_0;
-      xt0_0 = xh0_0 - xh20_0;
-      yt0_0 = xh1_0 - xh21_0;
-      xt1_0 = xl0_0 + xl21_0;
-      yt2_0 = xl1_0 + xl20_0;
-      xt2_0 = xl0_0 - xl21_0;
-      yt1_0 = xl1_0 - xl20_0;
+      x0[0] = ixheaacd_add32_sat(xh0_0, xh20_0);
+      x0[1] = ixheaacd_add32_sat(xh1_0, xh21_0);
+      xt0_0 = ixheaacd_sub32_sat(xh0_0, xh20_0);
+      yt0_0 = ixheaacd_sub32_sat(xh1_0, xh21_0);
+      xt1_0 = ixheaacd_add32_sat(xl0_0, xl21_0);
+      yt2_0 = ixheaacd_add32_sat(xl1_0, xl20_0);
+      xt2_0 = ixheaacd_sub32_sat(xl0_0, xl21_0);
+      yt1_0 = ixheaacd_sub32_sat(xl1_0, xl20_0);
 
       x2[h2] =
           MPYHIRC(si10, yt1_0) + MPYHIRC(co10, xt1_0) +
@@ -2095,33 +2095,33 @@ VOID ixheaacd_fft32x32_ld_dec(ia_aac_dec_imdct_tables_struct *imdct_tables_ptr,
     x_7 = x0[7];
     x0 += 8;
 
-    xh0_0 = x_0 + x_4;
-    xh1_0 = x_1 + x_5;
-    xl0_0 = x_0 - x_4;
-    xl1_0 = x_1 - x_5;
-    xh0_1 = x_2 + x_6;
-    xh1_1 = x_3 + x_7;
-    xl0_1 = x_2 - x_6;
-    xl1_1 = x_3 - x_7;
+    xh0_0 = ixheaacd_add32_sat(x_0, x_4);
+    xh1_0 = ixheaacd_add32_sat(x_1, x_5);
+    xl0_0 = ixheaacd_sub32_sat(x_0, x_4);
+    xl1_0 = ixheaacd_sub32_sat(x_1, x_5);
+    xh0_1 = ixheaacd_add32_sat(x_2, x_6);
+    xh1_1 = ixheaacd_add32_sat(x_3, x_7);
+    xl0_1 = ixheaacd_sub32_sat(x_2, x_6);
+    xl1_1 = ixheaacd_sub32_sat(x_3, x_7);
 
-    n00 = xh0_0 + xh0_1;
-    n01 = xh1_0 + xh1_1;
-    n10 = xl0_0 + xl1_1;
-    n11 = xl1_0 - xl0_1;
-    n20 = xh0_0 - xh0_1;
-    n21 = xh1_0 - xh1_1;
-    n30 = xl0_0 - xl1_1;
-    n31 = xl1_0 + xl0_1;
+    n00 = ixheaacd_add32_sat(xh0_0, xh0_1);
+    n01 = ixheaacd_add32_sat(xh1_0, xh1_1);
+    n10 = ixheaacd_add32_sat(xl0_0, xl1_1);
+    n11 = ixheaacd_sub32_sat(xl1_0, xl0_1);
+    n20 = ixheaacd_sub32_sat(xh0_0, xh0_1);
+    n21 = ixheaacd_sub32_sat(xh1_0, xh1_1);
+    n30 = ixheaacd_sub32_sat(xl0_0, xl1_1);
+    n31 = ixheaacd_add32_sat(xl1_0, xl0_1);
 
     if (radix == 2) {
-      n00 = x_0 + x_2;
-      n01 = x_1 + x_3;
-      n20 = x_0 - x_2;
-      n21 = x_1 - x_3;
-      n10 = x_4 + x_6;
-      n11 = x_5 + x_7;
-      n30 = x_4 - x_6;
-      n31 = x_5 - x_7;
+      n00 = ixheaacd_add32_sat(x_0, x_2);
+      n01 = ixheaacd_add32_sat(x_1, x_3);
+      n20 = ixheaacd_sub32_sat(x_0, x_2);
+      n21 = ixheaacd_sub32_sat(x_1, x_3);
+      n10 = ixheaacd_add32_sat(x_4, x_6);
+      n11 = ixheaacd_add32_sat(x_5, x_7);
+      n30 = ixheaacd_sub32_sat(x_4, x_6);
+      n31 = ixheaacd_sub32_sat(x_5, x_7);
     }
 
     y0[2 * h2] = n00;
@@ -2143,33 +2143,33 @@ VOID ixheaacd_fft32x32_ld_dec(ia_aac_dec_imdct_tables_struct *imdct_tables_ptr,
     x_f = x2[7];
     x2 += 8;
 
-    xh0_2 = x_8 + x_c;
-    xh1_2 = x_9 + x_d;
-    xl0_2 = x_8 - x_c;
-    xl1_2 = x_9 - x_d;
-    xh0_3 = x_a + x_e;
-    xh1_3 = x_b + x_f;
-    xl0_3 = x_a - x_e;
-    xl1_3 = x_b - x_f;
+    xh0_2 = ixheaacd_add32_sat(x_8, x_c);
+    xh1_2 = ixheaacd_add32_sat(x_9, x_d);
+    xl0_2 = ixheaacd_sub32_sat(x_8, x_c);
+    xl1_2 = ixheaacd_sub32_sat(x_9, x_d);
+    xh0_3 = ixheaacd_add32_sat(x_a, x_e);
+    xh1_3 = ixheaacd_add32_sat(x_b, x_f);
+    xl0_3 = ixheaacd_sub32_sat(x_a, x_e);
+    xl1_3 = ixheaacd_sub32_sat(x_b, x_f);
 
-    n02 = xh0_2 + xh0_3;
-    n03 = xh1_2 + xh1_3;
-    n12 = xl0_2 + xl1_3;
-    n13 = xl1_2 - xl0_3;
-    n22 = xh0_2 - xh0_3;
-    n23 = xh1_2 - xh1_3;
-    n32 = xl0_2 - xl1_3;
-    n33 = xl1_2 + xl0_3;
+    n02 = ixheaacd_add32_sat(xh0_2, xh0_3);
+    n03 = ixheaacd_add32_sat(xh1_2, xh1_3);
+    n12 = ixheaacd_add32_sat(xl0_2, xl1_3);
+    n13 = ixheaacd_sub32_sat(xl1_2, xl0_3);
+    n22 = ixheaacd_sub32_sat(xh0_2, xh0_3);
+    n23 = ixheaacd_sub32_sat(xh1_2, xh1_3);
+    n32 = ixheaacd_sub32_sat(xl0_2, xl1_3);
+    n33 = ixheaacd_add32_sat(xl1_2, xl0_3);
 
     if (radix == 2) {
-      n02 = x_8 + x_a;
-      n03 = x_9 + x_b;
-      n22 = x_8 - x_a;
-      n23 = x_9 - x_b;
-      n12 = x_c + x_e;
-      n13 = x_d + x_f;
-      n32 = x_c - x_e;
-      n33 = x_d - x_f;
+      n02 = ixheaacd_add32_sat(x_8, x_a);
+      n03 = ixheaacd_add32_sat(x_9, x_b);
+      n22 = ixheaacd_sub32_sat(x_8, x_a);
+      n23 = ixheaacd_sub32_sat(x_9, x_b);
+      n12 = ixheaacd_add32_sat(x_c, x_e);
+      n13 = ixheaacd_add32_sat(x_d, x_f);
+      n32 = ixheaacd_sub32_sat(x_c, x_e);
+      n33 = ixheaacd_sub32_sat(x_d, x_f);
     }
 
     y0[2 * h2 + 2] = n02;
