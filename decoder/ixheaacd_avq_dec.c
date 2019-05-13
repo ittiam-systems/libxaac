@@ -50,11 +50,12 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
   sum = 0;
   for (i = 0; i < 8; i++) {
     if (x[i] < 0) {
-      y[i] = -2 * (((WORD32)(1 - x[i])) >> 1);
+      y[i] = ixheaacd_negate32_sat(
+          ixheaacd_shl32_sat((ixheaacd_sub32_sat(1, x[i]) >> 1), 1));
     } else {
-      y[i] = 2 * (((WORD32)(1 + x[i])) >> 1);
+      y[i] = ixheaacd_shl32_sat((ixheaacd_add32_sat(1, x[i]) >> 1), 1);
     }
-    sum += y[i];
+    sum = ixheaacd_add32_sat(sum, y[i]);
 
     if (x[i] % 2 != 0) {
       if (x[i] < 0) {
@@ -89,7 +90,7 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
       y[j] -= 2;
       rem_temp[j] = ixheaacd_add32_sat(rem_temp[j], (2 << count));
     } else {
-      y[j] += 2;
+      y[j] = ixheaacd_add32_sat(y[j], 2);
       rem_temp[j] = ixheaacd_sub32_sat(rem_temp[j], (2 << count));
     }
   }
@@ -114,7 +115,7 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
         rem2[i] = ixheaacd_sub32_sat(rem2[i], (1 << count));
       }
     } else {
-      x1[i] = x[i] - 1;
+      x1[i] = ixheaacd_sub32_sat(x[i], 1);
     }
   }
 
@@ -164,11 +165,11 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
   y[0] = ixheaacd_add32_sat(
       y[0],
       ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)4 * (WORD64)kv[0]), sum));
-  z[0] = (y[0] - 2) >> count;
+  z[0] = (ixheaacd_sub32_sat(y[0], 2)) >> count;
   if (m != 0)
-    rem1[0] = (y[0] - 2) % m;
+    rem1[0] = (ixheaacd_sub32_sat(y[0], 2)) % m;
   else
-    rem1[0] = (y[0] - 2);
+    rem1[0] = ixheaacd_sub32_sat(y[0], 2);
 
   memcpy(rem2, rem1, 8 * sizeof(WORD32));
 
