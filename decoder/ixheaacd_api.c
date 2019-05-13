@@ -2034,6 +2034,13 @@ IA_ERRORCODE ixheaacd_dec_init(
           p_state_enhaacplus_dec->str_sbr_dec_info[i]->xaac_jmp_buf =
               &(p_state_enhaacplus_dec->xaac_jmp_buf);
         }
+        if (sbr_present_flag &&
+            ((p_obj_exhaacplus_dec->p_state_aac->audio_object_type ==
+              AOT_AAC_LC) ||
+             (p_obj_exhaacplus_dec->p_state_aac->audio_object_type ==
+              AOT_SBR) ||
+             (p_obj_exhaacplus_dec->p_state_aac->audio_object_type == AOT_PS)))
+          p_obj_exhaacplus_dec->aac_config.flag_to_stereo = 1;
 
         i++;
       }
