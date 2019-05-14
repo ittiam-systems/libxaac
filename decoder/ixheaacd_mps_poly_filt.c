@@ -88,9 +88,9 @@ VOID ixheaacd_mps_synt_post_twiddle_dec(WORD32 *ptr_in, WORD32 *table_re,
     tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k]),
                              ixheaacd_mult32(ptr_in[k + 1], table_im[k]));
 
-    ptr_in[k + 1] =
-        ixheaacd_add32_sat(ixheaacd_mult32(-ptr_in[k], table_im[k]),
-                           ixheaacd_mult32(ptr_in[k + 1], table_re[k]));
+    ptr_in[k + 1] = ixheaacd_add32_sat(
+        ixheaacd_mult32(ixheaacd_negate32_sat(ptr_in[k]), table_im[k]),
+        ixheaacd_mult32(ptr_in[k + 1], table_re[k]));
 
     ptr_in[k] = tmp;
   }
