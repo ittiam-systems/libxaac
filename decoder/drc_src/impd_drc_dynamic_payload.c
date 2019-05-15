@@ -646,6 +646,8 @@ WORD32 impd_parse_filt_block(ia_bit_buf_struct* it_bit_buff,
       if (it_bit_buff->error) return it_bit_buff->error;
 
       str_filter_element->filt_ele_idx = (temp & 0x7E) >> 1;
+      if (str_filter_element->filt_ele_idx >= FILTER_ELEMENT_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
       str_filter_element->filt_ele_gain_flag = temp & 1;
       ;
 
@@ -1029,10 +1031,17 @@ WORD32 impd_parser_td_filter_cascade(
     str_filter_block_refs->filter_block_count =
         impd_read_bits_buf(it_bit_buff, 4);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (str_filter_block_refs->filter_block_count > EQ_FILTER_BLOCK_COUNT_MAX) {
+      return (UNEXPECTED_ERROR);
+    }
+
     for (ii = 0; ii < str_filter_block_refs->filter_block_count; ii++) {
       str_filter_block_refs->filter_block_index[ii] =
           impd_read_bits_buf(it_bit_buff, 7);
       if (it_bit_buff->error) return it_bit_buff->error;
+      if (str_filter_block_refs->filter_block_index[ii] >=
+          FILTER_BLOCK_COUNT_MAX)
+        return (UNEXPECTED_ERROR);
     }
     str_filter_block_refs++;
   }
