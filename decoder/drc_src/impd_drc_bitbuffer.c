@@ -165,51 +165,6 @@ WORD32 impd_init_drc_bitstream_dec(ia_drc_bits_dec_struct* p_drc_bs_dec_struct,
   return err_code;
 }
 
-WORD32 impd_process_drc_bitstream_dec(
-    ia_drc_bits_dec_struct* p_drc_bs_dec_struct, ia_bit_buf_struct* it_bit_buff,
-    ia_drc_config* pstr_drc_config,
-    ia_drc_loudness_info_set_struct* pstr_loudness_info,
-    UWORD8* bitstream_config, WORD32 num_bytes, WORD32 num_bits_offset,
-    WORD32* num_bits_read) {
-  WORD32 err_code = 0;
-
-  WORD32 loudness_info_set_present, drc_config_present, dummy;
-
-  if (bitstream_config == NULL) {
-    *num_bits_read = 0;
-  } else {
-    it_bit_buff =
-        impd_create_init_bit_buf(it_bit_buff, bitstream_config, num_bytes);
-
-    dummy = impd_read_bits_buf(it_bit_buff, num_bits_offset);
-    if (it_bit_buff->error) return it_bit_buff->error;
-
-    loudness_info_set_present = impd_read_bits_buf(it_bit_buff, 1);
-    if (it_bit_buff->error) return it_bit_buff->error;
-
-    if (loudness_info_set_present) {
-      drc_config_present = impd_read_bits_buf(it_bit_buff, 1);
-      if (it_bit_buff->error) return it_bit_buff->error;
-
-      if (drc_config_present) {
-        err_code = impd_parse_drc_config(
-            it_bit_buff, &p_drc_bs_dec_struct->ia_drc_params_struct,
-            pstr_drc_config);
-
-        if (err_code) return (err_code);
-      }
-
-      err_code = impd_parse_loudness_info_set(it_bit_buff, pstr_loudness_info);
-
-      if (err_code) return (err_code);
-    }
-
-    *num_bits_read = it_bit_buff->size - it_bit_buff->cnt_bits;
-  }
-
-  return err_code;
-}
-
 WORD32 impd_process_drc_bitstream_dec_config(
     ia_drc_bits_dec_struct* p_drc_bs_dec_struct, ia_bit_buf_struct* it_bit_buff,
     ia_drc_config* pstr_drc_config, UWORD8* bitstream_config,

@@ -111,29 +111,16 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
       (p_obj_drc->str_bit_handler.num_bits_read_bs & 7);
   p_obj_drc->str_bit_handler.byte_index_bs +=
       p_obj_drc->str_bit_handler.num_bytes_read_bs;
-  if (p_obj_drc->str_bit_handler.gain_stream_flag ==
-      0)  // ITTIAM: Flag for applying gain frame by frame
-  {
-    p_obj_drc->str_bit_handler.num_bytes_bs -=
-        p_obj_drc->str_bit_handler.num_bytes_read_bs;
-  }
 
-  if (p_obj_drc->str_config.bitstream_file_format ==
-      BITSTREAM_FILE_FORMAT_SPLIT) {
-    if (p_obj_drc->str_bit_handler.num_bits_offset_bs != 0) {
-      p_obj_drc->str_bit_handler.num_bits_read_bs =
-          p_obj_drc->str_bit_handler.num_bits_read_bs + 8 -
-          p_obj_drc->str_bit_handler.num_bits_offset_bs;
-      p_obj_drc->str_bit_handler.num_bytes_read_bs =
-          p_obj_drc->str_bit_handler.num_bytes_read_bs + 1;
-      p_obj_drc->str_bit_handler.num_bits_offset_bs = 0;
-      p_obj_drc->str_bit_handler.byte_index_bs =
-          p_obj_drc->str_bit_handler.byte_index_bs + 1;
-      if (p_obj_drc->str_bit_handler.gain_stream_flag == 0) {
-        p_obj_drc->str_bit_handler.num_bytes_bs =
-            p_obj_drc->str_bit_handler.num_bytes_bs - 1;
-      }
-    }
+  if (p_obj_drc->str_bit_handler.num_bits_offset_bs != 0) {
+    p_obj_drc->str_bit_handler.num_bits_read_bs =
+        p_obj_drc->str_bit_handler.num_bits_read_bs + 8 -
+        p_obj_drc->str_bit_handler.num_bits_offset_bs;
+    p_obj_drc->str_bit_handler.num_bytes_read_bs =
+        p_obj_drc->str_bit_handler.num_bytes_read_bs + 1;
+    p_obj_drc->str_bit_handler.num_bits_offset_bs = 0;
+    p_obj_drc->str_bit_handler.byte_index_bs =
+        p_obj_drc->str_bit_handler.byte_index_bs + 1;
   }
 
   num_sample_to_process =
@@ -294,32 +281,5 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
                                          p_obj_drc->str_config.num_ch_out *
                                          (p_obj_drc->str_config.pcm_size >> 3);
   }
-
-  if (last_frame == 0) {
-    if (p_obj_drc->str_config.bitstream_file_format !=
-        BITSTREAM_FILE_FORMAT_SPLIT) {
-      err_code = impd_process_drc_bitstream_dec(
-          p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
-          p_obj_drc->str_payload.pstr_drc_config,
-          p_obj_drc->str_payload.pstr_loudness_info,
-          &p_obj_drc->str_bit_handler
-               .it_bit_buf[p_obj_drc->str_bit_handler.byte_index_bs],
-          p_obj_drc->str_bit_handler.num_bytes_bs,
-          p_obj_drc->str_bit_handler.num_bits_offset_bs,
-          &p_obj_drc->str_bit_handler.num_bits_read_bs);
-
-      if (err_code > PROC_COMPLETE) return -1;
-
-      p_obj_drc->str_bit_handler.num_bytes_read_bs =
-          (p_obj_drc->str_bit_handler.num_bits_read_bs >> 3);
-      p_obj_drc->str_bit_handler.num_bits_offset_bs =
-          (p_obj_drc->str_bit_handler.num_bits_read_bs & 7);
-      p_obj_drc->str_bit_handler.byte_index_bs +=
-          p_obj_drc->str_bit_handler.num_bytes_read_bs;
-      p_obj_drc->str_bit_handler.num_bytes_bs -=
-          p_obj_drc->str_bit_handler.num_bytes_read_bs;
-    }
-  }
-
   return err_code;
 }

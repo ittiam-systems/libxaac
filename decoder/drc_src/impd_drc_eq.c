@@ -1257,26 +1257,6 @@ VOID impd_pole_zero_filt_process(ia_pole_zero_filt_struct* pstr_pole_zero_filt,
   return;
 }
 
-VOID impd_subband_filter_process(ia_subband_filt_struct* pstr_subband_filt,
-                                 FLOAT32* ptr_audio_real_buff,
-                                 FLOAT32* ptr_audio_imag_buff) {
-  WORD32 i, j;
-  WORD32 eq_frame_size_subband = pstr_subband_filt->eq_frame_size_subband;
-  WORD32 coeff_count = pstr_subband_filt->coeff_count;
-
-  FLOAT32* ptr_subband_coeff = pstr_subband_filt->subband_coeff;
-
-  for (i = 0; i < eq_frame_size_subband; i++) {
-    for (j = 0; j < coeff_count; j++) {
-      ptr_audio_real_buff[j] *= ptr_subband_coeff[j];
-      ptr_audio_imag_buff[j] *= ptr_subband_coeff[j];
-    }
-    ptr_audio_real_buff += coeff_count;
-    ptr_audio_imag_buff += coeff_count;
-  }
-  return;
-}
-
 VOID impd_phase_align_filt_process(
     ia_ph_alignment_filt_struct* ph_alignment_filt, WORD32 channel,
     FLOAT32* ptr_audio_out) {
@@ -1368,23 +1348,3 @@ WORD32 impd_process_eq_set_time_domain(ia_eq_set_struct* pstr_eq_set,
   return 0;
 }
 
-WORD32 impd_process_eq_set_subband_domain(ia_eq_set_struct* pstr_eq_set,
-                                          WORD32 channel,
-                                          FLOAT32* ptr_audio_real_buff,
-                                          FLOAT32* ptr_audio_imag_buff) {
-  WORD32 g;
-
-  if (pstr_eq_set != NULL) {
-    g = pstr_eq_set->eq_ch_group_of_channel[channel];
-    if (g >= 0) {
-      if (pstr_eq_set->domain == 0) {
-        return (-1);
-      } else {
-        impd_subband_filter_process(&pstr_eq_set->subband_filt[g],
-                                    &ptr_audio_real_buff[0],
-                                    &ptr_audio_imag_buff[0]);
-      }
-    }
-  }
-  return (0);
-}
