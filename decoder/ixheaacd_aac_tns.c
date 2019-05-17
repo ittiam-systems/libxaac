@@ -349,7 +349,7 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32(y, ixheaacd_shl32_sat(acc1, 1));
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc1, 1));
       state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
