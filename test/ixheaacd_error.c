@@ -33,11 +33,17 @@
  */
 /*****************************************************************************/
 /* Non Fatal Errors */
-pWORD8 ixheaacd_ppb_api_non_fatal[] = {
-    (pWORD8) "No Error", (pWORD8) "API Command not supported",
-    (pWORD8) "API Command type not supported"};
+pWORD8 ixheaacd_ppb_api_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "No Error",
+    (pWORD8) "API Command not supported",
+    (pWORD8) "API Command type not supported",
+    (pWORD8) "DRC Unexpected Error",
+    (pWORD8) "DRC Param Error",
+    (pWORD8) "DRC External Error",
+    (pWORD8) "DRC Errorhandling",
+    (pWORD8) "DRC Bitstream Error"};
 /* Fatal Errors */
-pWORD8 ixheaacd_ppb_api_fatal[] = {
+pWORD8 ixheaacd_ppb_api_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Memory Table Index",
     (pWORD8) "Invalid Library ID String Index",
     (pWORD8) "NULL Pointer: Memory Allocation Error",
@@ -50,7 +56,7 @@ pWORD8 ixheaacd_ppb_api_fatal[] = {
  */
 /*****************************************************************************/
 /* Non Fatal Errors */
-pWORD8 ixheaacd_ppb_config_non_fatal[] = {
+pWORD8 ixheaacd_ppb_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Output PCM WORD Size. Setting to default, 16 ",
     (pWORD8) "Invalid Down-mix flag option. Setting to default, 0 ",
     (pWORD8) "Invalid 8 khz output flag option. Setting to default, 0 ",
@@ -78,20 +84,20 @@ pWORD8 ixheaacd_ppb_config_non_fatal[] = {
     (pWORD8) "Invalid constant delay mode",
     (pWORD8) "Invalid effect type"};
 /* Fatal Errors */
-pWORD8 ixheaacd_ppb_config_fatal[] = {
+pWORD8 ixheaacd_ppb_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Sample rate specified for RAW decoding"};
 /*****************************************************************************/
 /* Class 2: Initialization Errors
  */
 /*****************************************************************************/
 /* Non Fatal Errors */
-pWORD8 ixheaacd_ppb_init_non_fatal[] = {
+pWORD8 ixheaacd_ppb_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8)"Both 16 kHz and 8 kHz output config set. Giving 16 kHz output",
     (pWORD8)"Output sampling frequency is 8 kHz, 16 kHz output disabled ",
     (pWORD8)"Header not found at the beginning of input data continuing syncing"
 };
 /* Fatal Errors */
-pWORD8 ixheaacd_ppb_init_fatal[] = {
+pWORD8 ixheaacd_ppb_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "AAC Decoder initialization failed",
     (pWORD8) "End of input reached during initialization",
     (pWORD8) "No. of channels in stream greater than max channels defined",
@@ -101,7 +107,7 @@ pWORD8 ixheaacd_ppb_init_fatal[] = {
  */
 /*****************************************************************************/
 /* Non Fatal Errors */
-pWORD8 ixheaacd_ppb_exe_non_fatal[] = {
+pWORD8 ixheaacd_ppb_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8)"ADTS syncronization is lost. Re-syncing",
     (pWORD8)"Though SBR was present in previous frame, not present in current frame (SBR turned off)",
     (pWORD8)"SBR was not present in previous frame, but it is present in current frame (SBR turned on)",
@@ -117,10 +123,10 @@ pWORD8 ixheaacd_ppb_exe_non_fatal[] = {
     (pWORD8)"The base sampling frequency has changed in ADTS header",
     (pWORD8)"Pulse Data exceeds the permitted boundary",
     (pWORD8)"Invalid code ixheaacd_book number in ia_huffman_data_type decoding",
-//  (pWORD8)"The base sampling frequency has changed in ADTS header"
+//    (pWORD8)"The base sampling frequency has changed in ADTS header"
 };
 /* Fatal Errors */
-pWORD8 ixheaacd_ppb_exe_fatal[] = {
+pWORD8 ixheaacd_ppb_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Channel coupling not supported",
     (pWORD8) "TNS data range is errorneous", (pWORD8) "Invalid LOAS header",
     (pWORD8) "Invalid ER profile", (pWORD8) "Invalid DRC data"};
@@ -202,7 +208,7 @@ VOID ixheaacd_error_handler_init() {
 /*****************************************************************************/
 /* Non Fatal Errors */
 /* Fatal Errors */
-pWORD8 ixheaacd_ppb_ia_testbench_mem_file_man_fatal[] = {
+pWORD8 ixheaacd_ppb_ia_testbench_mem_file_man_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Memory Allocation Error", (pWORD8) "File Open Failed"};
 
 /*****************************************************************************/
@@ -317,10 +323,15 @@ IA_ERRORCODE ixheaacd_error_handler(ia_error_info_struct *p_mod_err_info,
     if (pb_context != NULL) {
       printf("%s: ", pb_context);
     }
-    if (err_sub_code != 2047)
+    if (err_sub_code >= IA_MAX_ERROR_SUB_CODE ||
+        p_mod_err_info->ppppb_error_msg_pointers[is_fatal][err_class]
+                                                [err_sub_code] == NULL) {
+      printf("error unlisted");
+    } else {
       printf("%s\n",
              p_mod_err_info
                  ->ppppb_error_msg_pointers[is_fatal][err_class][err_sub_code]);
+    }
   }
   return IA_NO_ERROR;
 }
