@@ -363,7 +363,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           if (err_code < 0) return err_code;
         }
 
-        if (stereo_config_index > 0) {
+        if (stereo_config_index > 0 && pstr_usac_data->sbr_ratio_idx > 0) {
           FLOAT32 **ptr_inp[2 * 2];
           WORD32 ch;
 
