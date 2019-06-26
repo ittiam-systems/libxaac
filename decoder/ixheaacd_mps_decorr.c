@@ -35,7 +35,7 @@
 
 #include "ixheaacd_mps_decor.h"
 #include "ixheaacd_mps_hybfilter.h"
-
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_constants.h"
 
 static const WORD32 ixheaacd_decorr_delay[] = {11, 10, 5, 2};
@@ -193,8 +193,8 @@ static VOID ixheaacd_mps_decor_energy_adjustment(
   }
 }
 
-void ixheaacd_mps_decor_init(ia_mps_decor_struct_handle self, WORD32 subbands,
-                             WORD32 decor_config) {
+IA_ERRORCODE ixheaacd_mps_decor_init(ia_mps_decor_struct_handle self,
+                                     WORD32 subbands, WORD32 decor_config) {
   WORD32 i, reverb_band;
   const WORD32 *splitfreq;
 
@@ -209,7 +209,7 @@ void ixheaacd_mps_decor_init(ia_mps_decor_struct_handle self, WORD32 subbands,
       splitfreq = ixheaacd_qmf_split_freq_2;
       break;
     default:
-      return;
+      return IA_FATAL_ERROR;
   }
 
   self->num_bins = subbands;
@@ -226,7 +226,7 @@ void ixheaacd_mps_decor_init(ia_mps_decor_struct_handle self, WORD32 subbands,
 
   self->decor_nrg_smooth.num_bins = self->num_bins;
 
-  return;
+  return IA_NO_ERROR;
 }
 
 VOID ixheaacd_mps_decor_apply(
