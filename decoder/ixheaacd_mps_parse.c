@@ -243,8 +243,7 @@ static int ixheaacd_mps_getstridemap(int freq_res_stride, int band_start,
 static VOID ixheaacd_mps_ecdata_decoding(
     ia_mps_dec_state_struct *self, ia_handle_bit_buf_struct bitstream,
     int data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS], int datatype) {
-  int i, j, pb, data_set, set_index, bs_data_pair, data_bands,
-      old_quant_coarse_xxx;
+  int i, j, pb, set_index, bs_data_pair, data_bands, old_quant_coarse_xxx;
   int strides[MAX_PARAMETER_BANDS + 1] = {0};
   int band_stop = 0;
 
@@ -272,13 +271,8 @@ static VOID ixheaacd_mps_ecdata_decoding(
     band_stop = self->bs_param_bands;
   }
 
-  data_set = 0;
   for (i = 0; i < self->num_parameter_sets; i++) {
     frame_xxx_data->bs_xxx_data_mode[i] = ixheaacd_read_bits_buf(bitstream, 2);
-
-    if (frame_xxx_data->bs_xxx_data_mode[i] == 3) {
-      data_set++;
-    }
   }
 
   set_index = 0;
@@ -674,7 +668,6 @@ static float ixheaacd_mps_de_quantize(int value, int param_type) {
       return ixheaacd_icc_de_quant_table[value];
 
     case IPD:
-      assert((value % 16) < 16);
       return ixheaacd_ipd_de_quant_table[(value & 15)];
 
     default:
@@ -689,7 +682,7 @@ static WORD32 ixheaacd_mps_mapindexdata(
     int out_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int cmp_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int idx_prev[MAX_PARAMETER_BANDS], int param_type) {
-  int interpolate_local[MAX_PARAMETER_SETS_MPS];
+  int interpolate_local[MAX_PARAMETER_SETS_MPS] = {0};
   int map[MAX_PARAMETER_BANDS + 1];
 
   int set_index, i, band, parm_slot;
@@ -990,7 +983,7 @@ WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
 }
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
-  self->time_slots = self->frame_length + 1;
+  self->time_slots = self->frame_length;
   self->frame_len = self->time_slots * self->qmf_band_count;
   self->bs_param_bands = ixheaacd_freq_res_table[self->config->bs_freq_res];
 

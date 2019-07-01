@@ -24,12 +24,15 @@
 #include <assert.h>
 #include <string.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_constants.h"
+#include <ixheaacd_basic_ops32.h>
+#include <ixheaacd_basic_ops40.h>
 #include "ixheaacd_acelp_com.h"
 
 extern const WORD32 ixheaacd_factorial_7[8];
 extern const WORD32 ixheaacd_iso_code_index_table[LEN_ABS_LEADER];
-extern const UWORD8 ixheaacd_iso_code_data_table[LEN_ABS_LEADER];
-extern const UWORD32 ixheaacd_signed_leader_is[LEN_ABS_LEADER];
+extern const UWORD8 ixheaacd_iso_code_data_table[LEN_SIGN_LEADER];
+extern const UWORD32 ixheaacd_signed_leader_is[LEN_SIGN_LEADER];
 extern const WORD32 ixheaacd_iso_code_num_table[],
     ixheaacd_pos_abs_leaders_a3[], ixheaacd_pos_abs_leaders_a4[];
 extern const UWORD8 ixheaacd_absolute_leader_tab_da[][8];
@@ -55,9 +58,10 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
 
     if (x[i] % 2 != 0) {
       if (x[i] < 0) {
-        rem_temp[i] = -(rem_temp[i] - (1 << count));
+        rem_temp[i] = ixheaacd_negate32_sat(
+            ixheaacd_sub32_sat(rem_temp[i], (1 << count)));
       } else {
-        rem_temp[i] = rem_temp[i] - (1 << count);
+        rem_temp[i] = ixheaacd_sub32_sat(rem_temp[i], (1 << count));
       }
     }
   }
@@ -83,10 +87,10 @@ static VOID ixheaacd_nearest_neighbor_2d(WORD32 x[], WORD32 y[], WORD32 count,
 
     if (e[j] < 0) {
       y[j] -= 2;
-      rem_temp[j] = rem_temp[j] + (2 << count);
+      rem_temp[j] = ixheaacd_add32_sat(rem_temp[j], (2 << count));
     } else {
       y[j] += 2;
-      rem_temp[j] = rem_temp[j] - (2 << count);
+      rem_temp[j] = ixheaacd_sub32_sat(rem_temp[j], (2 << count));
     }
   }
 
@@ -98,7 +102,7 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
                              WORD32 *rem2) {
   WORD32 i, y0[8], y1[8];
   WORD32 x1[8], tmp;
-  WORD64 e0, e1;
+  WORD32 e0, e1;
 
   ixheaacd_nearest_neighbor_2d(x, y0, count, rem1);
   for (i = 0; i < 8; i++) {
@@ -107,7 +111,7 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
         x1[i] = x[i] - 1;
       } else {
         x1[i] = 0;
-        rem2[i] = rem2[i] - (1 << count);
+        rem2[i] = ixheaacd_sub32_sat(rem2[i], (1 << count));
       }
     } else {
       x1[i] = x[i] - 1;
@@ -123,9 +127,9 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
   e0 = e1 = 0;
   for (i = 0; i < 8; i++) {
     tmp = rem1[i];
-    e0 += (WORD64)tmp * tmp;
+    e0 = ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)tmp * (WORD64)tmp), e0);
     tmp = rem2[i];
-    e1 += (WORD64)tmp * tmp;
+    e1 = ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)tmp * (WORD64)tmp), e1);
   }
 
   if (e0 < e1) {
@@ -151,13 +155,15 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
   rem1[7] = y[7] & (m - 1);
   sum = 0;
   for (i = 6; i >= 1; i--) {
-    tmp = 2 * kv[i];
-    sum += tmp;
-    y[i] += tmp;
+    tmp = ixheaacd_shl32_sat(kv[i], 1);
+    sum = ixheaacd_add32_sat(sum, tmp);
+    y[i] = ixheaacd_add32_sat(y[i], tmp);
     z[i] = y[i] >> count;
     rem1[i] = y[i] & (m - 1);
   }
-  y[0] += (4 * kv[0] + sum);
+  y[0] = ixheaacd_add32_sat(
+      y[0],
+      ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)4 * (WORD64)kv[0]), sum));
   z[0] = (y[0] - 2) >> count;
   if (m != 0)
     rem1[0] = (y[0] - 2) % m;
@@ -171,7 +177,7 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
   ptr1 = y;
   ptr2 = v;
   for (i = 0; i < 8; i++) {
-    *ptr1++ -= m * *ptr2++;
+    *ptr1++ -= ixheaacd_sat64_32((WORD64)m * (WORD64)*ptr2++);
   }
 }
 
@@ -275,24 +281,29 @@ static VOID ixheaacd_gosset_decode_base_index(WORD32 n, UWORD32 code_book_ind,
 
 VOID ixheaacd_rotated_gosset_mtx_dec(WORD32 qn, WORD32 code_book_idx,
                                      WORD32 *kv, WORD32 *b) {
-  WORD32 i, m, c[8];
-  WORD32 count = 0;
-
   if (qn <= 4) {
     ixheaacd_gosset_decode_base_index(qn, code_book_idx, b);
   } else {
-    m = 1;
+    WORD32 i, m, c[8];
+    WORD32 count = 0;
     while (qn > 4) {
-      m *= 2;
       count++;
       qn -= 2;
     }
+
+    if (count >= 31)
+      m = MAX_32;
+    else
+      m = 1 << count;
 
     ixheaacd_gosset_decode_base_index(qn, code_book_idx, b);
 
     ixheaacd_voronoi_idx_dec(kv, m, c, count);
 
-    for (i = 0; i < 8; i++) b[i] = m * b[i] + c[i];
+    for (i = 0; i < 8; i++) {
+      b[i] =
+          ixheaacd_add32_sat(ixheaacd_sat64_32((WORD64)m * (WORD64)b[i]), c[i]);
+    }
   }
   return;
 }

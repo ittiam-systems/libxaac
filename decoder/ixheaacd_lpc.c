@@ -436,40 +436,22 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
           0, fac_length * sizeof(WORD32));
     }
 
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      for (i = 0; i < 3 * len_subfrm; i++)
-        st->fd_synth[ORDER - len_subfrm + i] = (FLOAT32)(
-            (FLOAT32)usac_data
-                ->overlap_data_ptr[usac_data->present_chan][i - len_subfrm] /
-            16384.0);
-      num_samples = min(3 * len_subfrm, MAX_PITCH + synth_delay);
-    } else {
-      for (i = 0; i < 2 * len_subfrm; i++)
-        st->fd_synth[ORDER + i] = (FLOAT32)(
-            (FLOAT32)usac_data->overlap_data_ptr[usac_data->present_chan][i] /
-            16384.0);
-      num_samples = min(2 * len_subfrm, MAX_PITCH + synth_delay);
-    }
+    for (i = 0; i < 2 * len_subfrm; i++)
+      st->fd_synth[ORDER + i] = (FLOAT32)(
+          (FLOAT32)usac_data->overlap_data_ptr[usac_data->present_chan][i] /
+          16384.0);
+    num_samples = min(2 * len_subfrm, MAX_PITCH + synth_delay);
+
     ixheaacd_mem_cpy(st->fd_synth + ORDER, synth - 2 * len_subfrm,
                      2 * len_subfrm);
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER - len_subfrm,
-                                     PREEMPH_FILT_FAC, 3 * len_subfrm, mem);
-    } else {
-      ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER, PREEMPH_FILT_FAC,
-                                     2 * len_subfrm, mem);
-    }
 
-    if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      ixheaacd_memset(tmp - len_subfrm, ORDER);
-      ixheaacd_mem_cpy(st->fd_synth + ORDER - len_subfrm,
-                       tmp - len_subfrm + ORDER, 3 * len_subfrm);
-      tmp_start = -len_subfrm;
-    } else {
-      ixheaacd_memset(tmp, ORDER);
-      ixheaacd_mem_cpy(st->fd_synth + ORDER, tmp + ORDER, 2 * len_subfrm);
-      tmp_start = 0;
-    }
+    ixheaacd_preemphsis_tool_float(st->fd_synth + ORDER, PREEMPH_FILT_FAC,
+                                   2 * len_subfrm, mem);
+
+    ixheaacd_memset(tmp, ORDER);
+    ixheaacd_mem_cpy(st->fd_synth + ORDER, tmp + ORDER, 2 * len_subfrm);
+    tmp_start = 0;
+
     ixheaacd_memset(ptr_tmp - len_subfrm, 3 * len_subfrm);
     memset(st->fd_synth, 0, ORDER * sizeof(WORD32));
     length = (2 * len_subfrm - tmp_start) / LEN_SUBFR;
@@ -480,8 +462,6 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
 
     if (mod[0] != 0 && (len_subfrm == LEN_FRAME || mod[1] != 0)) {
       num_samples = min(len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
-    } else if (mod[0] == 0 && len_subfrm != LEN_FRAME) {
-      num_samples = min(3 * len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
     } else {
       num_samples = min(2 * len_subfrm, MAX_PITCH + INTER_LP_FIL_ORDER + 1);
     }
@@ -592,6 +572,9 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
     gain = pitch_gain[i];
     if (gain > 0.0f) {
       synth_corr = 0.0f, synth_energy = 1e-6f;
+      if ((((i * LEN_SUBFR) + LEN_SUBFR) > LEN_SUPERFRAME) ||
+          ((((i * LEN_SUBFR) + LEN_SUBFR) - tp) > LEN_SUPERFRAME))
+        return -1;
       for (k = 0; k < LEN_SUBFR; k++) {
         synth_corr +=
             synth[i * LEN_SUBFR + k] * synth[(i * LEN_SUBFR) - tp + k];
@@ -677,7 +660,6 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
   fac_length = (usac_data->len_subfrm) / 2;
 
   ixheaacd_memset(synth_buf, MAX_PITCH + synth_delay + len_fr);
-  synth = synth_buf + MAX_PITCH + synth_delay;
   ixheaacd_mem_cpy(st->synth_prev, synth_buf, MAX_PITCH + synth_delay);
   ixheaacd_mem_cpy(out_buffer, synth_buf + MAX_PITCH - (LEN_SUBFR),
                    synth_delay + len_fr + (LEN_SUBFR));
@@ -705,9 +687,12 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
     tp = pitch[i];
     if ((i * LEN_SUBFR + MAX_PITCH) < tp) {
       return -1;
-    } else if ((i * LEN_SUBFR + MAX_PITCH - tp) >= 1883) {
+    } else if (((i * LEN_SUBFR + MAX_PITCH - tp) >= 1883) ||
+               (((i * LEN_SUBFR) + LEN_SUBFR) > LEN_SUPERFRAME) ||
+               ((((i * LEN_SUBFR) + LEN_SUBFR) - tp) > LEN_SUPERFRAME)) {
       return -1;
     }
+
     if (pitch_gain[i] > 0.0f) {
       synth_corr = 0.0f, synth_energy = 1e-6f;
       for (k = 0; k < LEN_SUBFR; k++) {

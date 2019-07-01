@@ -742,7 +742,7 @@ DE_COR_NEXT1:
     MOV             r7, r13
     LDR             r3, [r0, #0x020]
     LDR             r4, [r0, #0x028]
-    LDR             r12, =0x620a
+    MOVW            r12, #0x620a
     LDR             r6, [r0, #0x024]
     STR             r0, [r13, #-4]!
     STR             r5, [r13, #-4]!

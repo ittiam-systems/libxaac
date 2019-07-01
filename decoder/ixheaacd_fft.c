@@ -24,6 +24,7 @@
 #include "ixheaacd_interface.h"
 #include "ixheaacd_constants.h"
 #include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32 ixheaacd_twiddle_table_fft_32x32[514];
@@ -42,33 +43,24 @@ extern const WORD8 ixheaacd_mps_dig_rev[16];
     (j) = _ >> (m);                                         \
   } while (0)
 
-static PLATFORM_INLINE WORD32 ixheaacd_mult32(WORD32 a, WORD32 b) {
+static PLATFORM_INLINE WORD32 ixheaacd_mult32_sat(WORD32 a, WORD32 b) {
   WORD32 result;
   WORD64 temp_result;
 
   temp_result = (WORD64)a * (WORD64)b;
-  result = (WORD32)(temp_result >> 31);
+  result = ixheaacd_sat64_32(temp_result >> 31);
 
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mac32(WORD32 a, WORD32 b, WORD32 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_mac32_sat(WORD32 a, WORD32 b, WORD32 c) {
   WORD32 result;
 
-  result = a + ixheaacd_mult32(b, c);
+  result = ixheaacd_add32_sat(a, ixheaacd_mult32_sat(b, c));
 
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mult32_shl(WORD32 a, WORD32 b) {
-  WORD32 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)a * (WORD64)b;
-  result = (WORD32)(temp_result >> 32);
-
-  return (result << 1);
-}
 
 VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
                                      WORD32 *fin_im, WORD32 nlength) {
@@ -105,23 +97,23 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
     x3r = *inp;
     x3i = *(inp + 1);
 
-    x0r = x0r + x2r;
-    x0i = x0i + x2i;
-    x2r = x0r - (x2r << 1);
-    x2i = x0i - (x2i << 1);
-    x1r = x1r + x3r;
-    x1i = x1i + x3i;
-    x3r = x1r - (x3r << 1);
-    x3i = x1i - (x3i << 1);
+    x0r = ixheaacd_add32_sat(x0r, x2r);
+    x0i = ixheaacd_add32_sat(x0i, x2i);
+    x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+    x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+    x1r = ixheaacd_add32_sat(x1r, x3r);
+    x1i = ixheaacd_add32_sat(x1i, x3i);
+    x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+    x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-    x0r = x0r + x1r;
-    x0i = x0i + x1i;
-    x1r = x0r - (x1r << 1);
-    x1i = x0i - (x1i << 1);
-    x2r = x2r + x3i;
-    x2i = x2i - x3r;
-    x3i = x2r - (x3i << 1);
-    x3r = x2i + (x3r << 1);
+    x0r = ixheaacd_add32_sat(x0r, x1r);
+    x0i = ixheaacd_add32_sat(x0i, x1i);
+    x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+    x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+    x2r = ixheaacd_add32_sat(x2r, x3i);
+    x2i = ixheaacd_sub32_sat(x2i, x3r);
+    x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+    x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
     *ptr_y++ = x0r;
     *ptr_y++ = x0i;
@@ -159,23 +151,23 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
       x3i = (*(data + 1));
       data -= 3 * (del << 1);
 
-      x0r = x0r + x2r;
-      x0i = x0i + x2i;
-      x2r = x0r - (x2r << 1);
-      x2i = x0i - (x2i << 1);
-      x1r = x1r + x3r;
-      x1i = x1i + x3i;
-      x3r = x1r - (x3r << 1);
-      x3i = x1i - (x3i << 1);
+      x0r = ixheaacd_add32_sat(x0r, x2r);
+      x0i = ixheaacd_add32_sat(x0i, x2i);
+      x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+      x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+      x1r = ixheaacd_add32_sat(x1r, x3r);
+      x1i = ixheaacd_add32_sat(x1i, x3i);
+      x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+      x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-      x0r = x0r + x1r;
-      x0i = x0i + x1i;
-      x1r = x0r - (x1r << 1);
-      x1i = x0i - (x1i << 1);
-      x2r = x2r + x3i;
-      x2i = x2i - x3r;
-      x3i = x2r - (x3i << 1);
-      x3r = x2i + (x3r << 1);
+      x0r = ixheaacd_add32_sat(x0r, x1r);
+      x0i = ixheaacd_add32_sat(x0i, x1i);
+      x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+      x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+      x2r = ixheaacd_add32_sat(x2r, x3i);
+      x2i = ixheaacd_sub32_sat(x2i, x3r);
+      x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+      x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
       *data = x0r;
       *(data + 1) = x0i;
@@ -228,38 +220,41 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
         x3i = *(data + 1);
         data -= 3 * (del << 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
-        tmp = (ixheaacd_mult32(x2r, w2l) - ixheaacd_mult32(x2i, w2h));
-        x2i = ixheaacd_mac32(ixheaacd_mult32(x2r, w2h), x2i, w2l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                 ixheaacd_mult32_sat(x2i, w2h));
+        x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
         x2r = tmp;
 
-        tmp = (ixheaacd_mult32(x3r, w3l) - ixheaacd_mult32(x3i, w3h));
-        x3i = ixheaacd_mac32(ixheaacd_mult32(x3r, w3h), x3i, w3l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                 ixheaacd_mult32_sat(x3i, w3h));
+        x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
         x3r = tmp;
 
         x0r = (*data);
         x0i = (*(data + 1));
 
-        x0r = x0r + (x2r);
-        x0i = x0i + (x2i);
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i + x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i - (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_add32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-        x0r = x0r + (x1r);
-        x0i = x0i + (x1i);
-        x1r = x0r - (x1r << 1);
-        x1i = x0i - (x1i << 1);
-        x2r = x2r + (x3i);
-        x2i = x2i - (x3r);
-        x3i = x2r - (x3i << 1);
-        x3r = x2i + (x3r << 1);
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+        x2r = ixheaacd_add32_sat(x2r, x3i);
+        x2i = ixheaacd_sub32_sat(x2i, x3r);
+        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -306,38 +301,42 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
         x3i = *(data + 1);
         data -= 3 * (del << 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
-        tmp = (ixheaacd_mult32(x2r, w2l) - ixheaacd_mult32(x2i, w2h));
-        x2i = ixheaacd_mac32(ixheaacd_mult32(x2r, w2h), x2i, w2l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                 ixheaacd_mult32_sat(x2i, w2h));
+        x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
         x2r = tmp;
 
-        tmp = (ixheaacd_mult32(x3r, w3h) + ixheaacd_mult32(x3i, w3l));
-        x3i = -ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                 ixheaacd_mult32_sat(x3i, w3l));
+        x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                 ixheaacd_mult32_sat(x3r, w3l));
         x3r = tmp;
 
         x0r = (*data);
         x0i = (*(data + 1));
 
-        x0r = x0r + (x2r);
-        x0i = x0i + (x2i);
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i + x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i - (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_add32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-        x0r = x0r + (x1r);
-        x0i = x0i + (x1i);
-        x1r = x0r - (x1r << 1);
-        x1i = x0i - (x1i << 1);
-        x2r = x2r + (x3i);
-        x2i = x2i - (x3r);
-        x3i = x2r - (x3i << 1);
-        x3r = x2i + (x3r << 1);
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+        x2r = ixheaacd_add32_sat(x2r, x3i);
+        x2i = ixheaacd_sub32_sat(x2i, x3r);
+        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -384,38 +383,43 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
         x3i = *(data + 1);
         data -= 3 * (del << 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
-        tmp = (ixheaacd_mult32(x2r, w2h) + ixheaacd_mult32(x2i, w2l));
-        x2i = -ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                 ixheaacd_mult32_sat(x2i, w2l));
+        x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
+                                 ixheaacd_mult32_sat(x2r, w2l));
         x2r = tmp;
 
-        tmp = (ixheaacd_mult32(x3r, w3h) + ixheaacd_mult32(x3i, w3l));
-        x3i = -ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                 ixheaacd_mult32_sat(x3i, w3l));
+        x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                 ixheaacd_mult32_sat(x3r, w3l));
         x3r = tmp;
 
         x0r = (*data);
         x0i = (*(data + 1));
 
-        x0r = x0r + (x2r);
-        x0i = x0i + (x2i);
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i + x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i - (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_add32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-        x0r = x0r + (x1r);
-        x0i = x0i + (x1i);
-        x1r = x0r - (x1r << 1);
-        x1i = x0i - (x1i << 1);
-        x2r = x2r + (x3i);
-        x2i = x2i - (x3r);
-        x3i = x2r - (x3i << 1);
-        x3r = x2i + (x3r << 1);
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+        x2r = ixheaacd_add32_sat(x2r, x3i);
+        x2i = ixheaacd_sub32_sat(x2i, x3r);
+        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -462,38 +466,42 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
         x3i = *(data + 1);
         data -= 3 * (del << 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
-        tmp = (ixheaacd_mult32(x2r, w2h) + ixheaacd_mult32(x2i, w2l));
-        x2i = -ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                 ixheaacd_mult32_sat(x2i, w2l));
+        x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
+                                 ixheaacd_mult32_sat(x2r, w2l));
         x2r = tmp;
 
-        tmp = (-ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h));
-        x3i = ixheaacd_mac32(ixheaacd_mult32(x3r, w3h), x3i, w3l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                 ixheaacd_mult32_sat(x3r, w3l));
+        x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
         x3r = tmp;
 
         x0r = (*data);
         x0i = (*(data + 1));
 
-        x0r = x0r + (x2r);
-        x0i = x0i + (x2i);
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i - x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i + (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_sub32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_add32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-        x0r = x0r + (x1r);
-        x0i = x0i + (x1i);
-        x1r = x0r - (x1r << 1);
-        x1i = x0i - (x1i << 1);
-        x2r = x2r + (x3i);
-        x2i = x2i - (x3r);
-        x3i = x2r - (x3i << 1);
-        x3r = x2i + (x3r << 1);
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+        x2r = ixheaacd_add32_sat(x2r, x3i);
+        x2i = ixheaacd_sub32_sat(x2i, x3r);
+        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -591,23 +599,23 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
       x3r = *inp;
       x3i = *(inp + 1);
 
-      x0r = x0r + x2r;
-      x0i = x0i + x2i;
-      x2r = x0r - (x2r << 1);
-      x2i = x0i - (x2i << 1);
-      x1r = x1r + x3r;
-      x1i = x1i + x3i;
-      x3r = x1r - (x3r << 1);
-      x3i = x1i - (x3i << 1);
+      x0r = ixheaacd_add32_sat(x0r, x2r);
+      x0i = ixheaacd_add32_sat(x0i, x2i);
+      x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+      x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+      x1r = ixheaacd_add32_sat(x1r, x3r);
+      x1i = ixheaacd_add32_sat(x1i, x3i);
+      x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+      x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-      x0r = x0r + x1r;
-      x0i = x0i + x1i;
-      x1r = x0r - (x1r << 1);
-      x1i = x0i - (x1i << 1);
-      x2r = x2r + x3i;
-      x2i = x2i - x3r;
-      x3i = x2r - (x3i << 1);
-      x3r = x2i + (x3r << 1);
+      x0r = ixheaacd_add32_sat(x0r, x1r);
+      x0i = ixheaacd_add32_sat(x0i, x1i);
+      x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+      x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+      x2r = ixheaacd_add32_sat(x2r, x3i);
+      x2i = ixheaacd_sub32_sat(x2i, x3r);
+      x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+      x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
       *ptr_y++ = x0r;
       *ptr_y++ = x0i;
@@ -645,23 +653,23 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x3i = (*(data + 1));
         data -= 3 * (del << 1);
 
-        x0r = x0r + x2r;
-        x0i = x0i + x2i;
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i + x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i - (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_add32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-        x0r = x0r + x1r;
-        x0i = x0i + x1i;
-        x1r = x0r - (x1r << 1);
-        x1i = x0i - (x1i << 1);
-        x2r = x2r + x3i;
-        x2i = x2i - x3r;
-        x3i = x2r - (x3i << 1);
-        x3r = x2i + (x3r << 1);
+        x0r = ixheaacd_add32_sat(x0r, x1r);
+        x0i = ixheaacd_add32_sat(x0i, x1i);
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+        x2r = ixheaacd_add32_sat(x2r, x3i);
+        x2i = ixheaacd_sub32_sat(x2i, x3r);
+        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -714,38 +722,41 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2l) - ixheaacd_mult32(x2i, w2h));
-          x2i = ixheaacd_mac32(ixheaacd_mult32(x2r, w2h), x2i, w2l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
+          x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3l) - ixheaacd_mult32(x3i, w3h));
-          x3i = ixheaacd_mac32(ixheaacd_mult32(x3r, w3h), x3i, w3l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                   ixheaacd_mult32_sat(x3i, w3h));
+          x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r + (x3i);
-          x2i = x2i - (x3r);
-          x3i = x2r - (x3i << 1);
-          x3r = x2i + (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_add32_sat(x2r, x3i);
+          x2i = ixheaacd_sub32_sat(x2i, x3r);
+          x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -791,38 +802,42 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2l) - ixheaacd_mult32(x2i, w2h));
-          x2i = ixheaacd_mac32(ixheaacd_mult32(x2r, w2h), x2i, w2l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
+          x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3h) + ixheaacd_mult32(x3i, w3l));
-          x3i = -ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                   ixheaacd_mult32_sat(x3i, w3l));
+          x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                   ixheaacd_mult32_sat(x3r, w3l));
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r + (x3i);
-          x2i = x2i - (x3r);
-          x3i = x2r - (x3i << 1);
-          x3r = x2i + (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_add32_sat(x2r, x3i);
+          x2i = ixheaacd_sub32_sat(x2i, x3r);
+          x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -869,38 +884,43 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2h) + ixheaacd_mult32(x2i, w2l));
-          x2i = -ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                   ixheaacd_mult32_sat(x2i, w2l));
+          x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
+                                   ixheaacd_mult32_sat(x2r, w2l));
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3h) + ixheaacd_mult32(x3i, w3l));
-          x3i = -ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                   ixheaacd_mult32_sat(x3i, w3l));
+          x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                   ixheaacd_mult32_sat(x3r, w3l));
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r + (x3i);
-          x2i = x2i - (x3r);
-          x3i = x2r - (x3i << 1);
-          x3r = x2i + (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_add32_sat(x2r, x3i);
+          x2i = ixheaacd_sub32_sat(x2i, x3r);
+          x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -947,38 +967,42 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2h) + ixheaacd_mult32(x2i, w2l));
-          x2i = -ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                   ixheaacd_mult32_sat(x2i, w2l));
+          x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
+                                   ixheaacd_mult32_sat(x2r, w2l));
           x2r = tmp;
 
-          tmp = (-ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h));
-          x3i = ixheaacd_mac32(ixheaacd_mult32(x3r, w3h), x3i, w3l);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
+                                   ixheaacd_mult32_sat(x3r, w3l));
+          x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i - x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i + (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_sub32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_add32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r + (x3i);
-          x2i = x2i - (x3r);
-          x3i = x2r - (x3i << 1);
-          x3r = x2i + (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_add32_sat(x2r, x3i);
+          x2i = ixheaacd_sub32_sat(x2i, x3r);
+          x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -1021,8 +1045,9 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x1r = *ptr_y;
         x1i = *(ptr_y + 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) - ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
         *ptr_y = (x0r) / 2 - (x1r) / 2;
@@ -1047,8 +1072,10 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x1r = *ptr_y;
         x1i = *(ptr_y + 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1h) + ixheaacd_mult32(x1i, w1l));
-        x1i = -ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1h),
+                                 ixheaacd_mult32_sat(x1i, w1l));
+        x1i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1i, w1h),
+                                 ixheaacd_mult32_sat(x1r, w1l));
         x1r = tmp;
 
         *ptr_y = (x0r) / 2 - (x1r) / 2;
@@ -1091,23 +1118,23 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
       x3r = *inp;
       x3i = *(inp + 1);
 
-      x0r = x0r + x2r;
-      x0i = x0i + x2i;
-      x2r = x0r - (x2r << 1);
-      x2i = x0i - (x2i << 1);
-      x1r = x1r + x3r;
-      x1i = x1i + x3i;
-      x3r = x1r - (x3r << 1);
-      x3i = x1i - (x3i << 1);
+      x0r = ixheaacd_add32_sat(x0r, x2r);
+      x0i = ixheaacd_add32_sat(x0i, x2i);
+      x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+      x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+      x1r = ixheaacd_add32_sat(x1r, x3r);
+      x1i = ixheaacd_add32_sat(x1i, x3i);
+      x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+      x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-      x0r = x0r + x1r;
-      x0i = x0i + x1i;
-      x1r = x0r - (x1r << 1);
-      x1i = x0i - (x1i << 1);
-      x2r = x2r - x3i;
-      x2i = x2i + x3r;
-      x3i = x2r + (x3i << 1);
-      x3r = x2i - (x3r << 1);
+      x0r = ixheaacd_add32_sat(x0r, x1r);
+      x0i = ixheaacd_add32_sat(x0i, x1i);
+      x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+      x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+      x2r = ixheaacd_sub32_sat(x2r, x3i);
+      x2i = ixheaacd_add32_sat(x2i, x3r);
+      x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+      x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
       *ptr_y++ = x0r;
       *ptr_y++ = x0i;
@@ -1145,23 +1172,23 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x3i = (*(data + 1));
         data -= 3 * (del << 1);
 
-        x0r = x0r + x2r;
-        x0i = x0i + x2i;
-        x2r = x0r - (x2r << 1);
-        x2i = x0i - (x2i << 1);
-        x1r = x1r + x3r;
-        x1i = x1i + x3i;
-        x3r = x1r - (x3r << 1);
-        x3i = x1i - (x3i << 1);
+        x0r = ixheaacd_add32_sat(x0r, x2r);
+        x0i = ixheaacd_add32_sat(x0i, x2i);
+        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+        x1r = ixheaacd_add32_sat(x1r, x3r);
+        x1i = ixheaacd_add32_sat(x1i, x3i);
+        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
         x0r = ixheaacd_add32_sat(x0r, x1r);
         x0i = ixheaacd_add32_sat(x0i, x1i);
-        x1r = ixheaacd_sub32_sat(x0r, (x1r << 1));
-        x1i = ixheaacd_sub32_sat(x0i, (x1i << 1));
+        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
         x2r = ixheaacd_sub32_sat(x2r, x3i);
         x2i = ixheaacd_add32_sat(x2i, x3r);
-        x3i = ixheaacd_add32_sat(x2r, (x3i << 1));
-        x3r = ixheaacd_sub32_sat(x2i, (x3r << 1));
+        x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+        x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
         *data = x0r;
         *(data + 1) = x0i;
@@ -1214,38 +1241,41 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(-ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h));
-          x2i = ixheaacd_mac32(-ixheaacd_mult32(x2r, w2h), x2i, w2l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
+          x2i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h));
-          x3i = ixheaacd_mac32(-ixheaacd_mult32(x3r, w3h), x3i, w3l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                   ixheaacd_mult32_sat(x3i, w3h));
+          x3i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r - (x3i);
-          x2i = x2i + (x3r);
-          x3i = x2r + (x3i << 1);
-          x3r = x2i - (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_sub32_sat(x2r, x3i);
+          x2i = ixheaacd_add32_sat(x2i, x3r);
+          x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -1292,38 +1322,42 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(-ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h));
-          x2i = ixheaacd_mac32(-ixheaacd_mult32(x2r, w2h), x2i, w2l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
+          x2i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3h) - ixheaacd_mult32(x3i, w3l));
-          x3i = ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                   ixheaacd_mult32_sat(x3i, w3l));
+          x3i = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                   ixheaacd_mult32_sat(x3i, w3h));
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r - (x3i);
-          x2i = x2i + (x3r);
-          x3i = x2r + (x3i << 1);
-          x3r = x2i - (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_sub32_sat(x2r, x3i);
+          x2i = ixheaacd_add32_sat(x2i, x3r);
+          x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -1370,38 +1404,43 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(-ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2h) - ixheaacd_mult32(x2i, w2l));
-          x2i = ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                   ixheaacd_mult32_sat(x2i, w2l));
+          x2i = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
           x2r = tmp;
 
-          tmp = (ixheaacd_mult32(x3r, w3h) - ixheaacd_mult32(x3i, w3l));
-          x3i = ixheaacd_mult32(x3r, w3l) + ixheaacd_mult32(x3i, w3h);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3r, w3h),
+                                   ixheaacd_mult32_sat(x3i, w3l));
+          x3i = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                   ixheaacd_mult32_sat(x3i, w3h));
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i + x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i - (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_add32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r - (x3i);
-          x2i = x2i + (x3r);
-          x3i = x2r + (x3i << 1);
-          x3r = x2i - (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_sub32_sat(x2r, x3i);
+          x2i = ixheaacd_add32_sat(x2i, x3r);
+          x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -1448,38 +1487,42 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
           x3i = *(data + 1);
           data -= 3 * (del << 1);
 
-          tmp = (ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h));
-          x1i = ixheaacd_mac32(-ixheaacd_mult32(x1r, w1h), x1i, w1l);
+          tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                   ixheaacd_mult32_sat(x1i, w1h));
+          x1i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
           x1r = tmp;
 
-          tmp = (ixheaacd_mult32(x2r, w2h) - ixheaacd_mult32(x2i, w2l));
-          x2i = ixheaacd_mult32(x2r, w2l) + ixheaacd_mult32(x2i, w2h);
+          tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2h),
+                                   ixheaacd_mult32_sat(x2i, w2l));
+          x2i = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2l),
+                                   ixheaacd_mult32_sat(x2i, w2h));
           x2r = tmp;
 
-          tmp = (-ixheaacd_mult32(x3r, w3l) - ixheaacd_mult32(x3i, w3h));
-          x3i = ixheaacd_mac32(-ixheaacd_mult32(x3r, w3h), x3i, w3l);
+          tmp = -ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3l),
+                                    ixheaacd_mult32_sat(x3i, w3h));
+          x3i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
           x3r = tmp;
 
           x0r = (*data);
           x0i = (*(data + 1));
 
-          x0r = x0r + (x2r);
-          x0i = x0i + (x2i);
-          x2r = x0r - (x2r << 1);
-          x2i = x0i - (x2i << 1);
-          x1r = x1r + x3r;
-          x1i = x1i - x3i;
-          x3r = x1r - (x3r << 1);
-          x3i = x1i + (x3i << 1);
+          x0r = ixheaacd_add32_sat(x0r, x2r);
+          x0i = ixheaacd_add32_sat(x0i, x2i);
+          x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
+          x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
+          x1r = ixheaacd_add32_sat(x1r, x3r);
+          x1i = ixheaacd_sub32_sat(x1i, x3i);
+          x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
+          x3i = ixheaacd_add32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
 
-          x0r = x0r + (x1r);
-          x0i = x0i + (x1i);
-          x1r = x0r - (x1r << 1);
-          x1i = x0i - (x1i << 1);
-          x2r = x2r - (x3i);
-          x2i = x2i + (x3r);
-          x3i = x2r + (x3i << 1);
-          x3r = x2i - (x3r << 1);
+          x0r = ixheaacd_add32_sat(x0r, x1r);
+          x0i = ixheaacd_add32_sat(x0i, x1i);
+          x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
+          x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
+          x2r = ixheaacd_sub32_sat(x2r, x3i);
+          x2i = ixheaacd_add32_sat(x2i, x3r);
+          x3i = ixheaacd_add32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
+          x3r = ixheaacd_sub32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
 
           *data = x0r;
           *(data + 1) = x0i;
@@ -1522,8 +1565,9 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x1r = *ptr_y;
         x1i = *(ptr_y + 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h));
-        x1i = ixheaacd_mac32(-ixheaacd_mult32(x1r, w1h), x1i, w1l);
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
+        x1i = ixheaacd_mac32_sat(-ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
         x1r = tmp;
 
         *ptr_y = (x0r) / 2 - (x1r) / 2;
@@ -1548,8 +1592,10 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         x1r = *ptr_y;
         x1i = *(ptr_y + 1);
 
-        tmp = (ixheaacd_mult32(x1r, w1h) - ixheaacd_mult32(x1i, w1l));
-        x1i = ixheaacd_mult32(x1r, w1l) + ixheaacd_mult32(x1i, w1h);
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1h),
+                                 ixheaacd_mult32_sat(x1i, w1l));
+        x1i = ixheaacd_add32_sat(ixheaacd_mult32_sat(x1r, w1l),
+                                 ixheaacd_mult32_sat(x1i, w1h));
         x1r = tmp;
 
         *ptr_y = (x0r) / 2 - (x1r) / 2;
@@ -1669,31 +1715,31 @@ VOID ixheaacd_complex_fft_p3(WORD32 *xr, WORD32 *xi, WORD32 nlength,
 
     if (fft_mode < 0) {
       for (i = 0; i < nlength; i += 3) {
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 1], (*w1i)));
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1i)));
         ptr_x[2 * i + 1] =
-            ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i], (*w1i)),
-                               ixheaacd_mult32(ptr_x[2 * i + 1], (*w1r)));
+            ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1i)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1r)));
         ptr_x[2 * i] = tmp;
 
         w1r++;
         w1i++;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i + 2], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 3], (*w1i)));
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 2], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 3], (*w1i)));
         ptr_x[2 * i + 3] =
-            ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i + 2], (*w1i)),
-                               ixheaacd_mult32(ptr_x[2 * i + 3], (*w1r)));
+            ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 2], (*w1i)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i + 3], (*w1r)));
         ptr_x[2 * i + 2] = tmp;
 
         w1r++;
         w1i++;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i + 4], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 5], (*w1i)));
+        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 4], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 5], (*w1i)));
         ptr_x[2 * i + 5] =
-            ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i + 4], (*w1i)),
-                               ixheaacd_mult32(ptr_x[2 * i + 5], (*w1r)));
+            ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 4], (*w1i)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i + 5], (*w1r)));
         ptr_x[2 * i + 4] = tmp;
 
         w1r += 3 * (128 / mpass - 1) + 1;
@@ -1703,31 +1749,31 @@ VOID ixheaacd_complex_fft_p3(WORD32 *xr, WORD32 *xi, WORD32 nlength,
 
     else {
       for (i = 0; i < nlength; i += 3) {
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 1], (*w1i)));
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1i)));
         ptr_x[2 * i + 1] =
-            ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i + 1], (*w1r)),
-                               ixheaacd_mult32(ptr_x[2 * i], (*w1i)));
+            ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1r)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i], (*w1i)));
         ptr_x[2 * i] = tmp;
 
         w1r++;
         w1i++;
 
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i + 2], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 3], (*w1i)));
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 2], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 3], (*w1i)));
         ptr_x[2 * i + 3] =
-            ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i + 3], (*w1r)),
-                               ixheaacd_mult32(ptr_x[2 * i + 2], (*w1i)));
+            ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 3], (*w1r)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i + 2], (*w1i)));
         ptr_x[2 * i + 2] = tmp;
 
         w1r++;
         w1i++;
 
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_x[2 * i + 4], (*w1r)),
-                                 ixheaacd_mult32(ptr_x[2 * i + 5], (*w1i)));
+        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 4], (*w1r)),
+                                 ixheaacd_mult32_sat(ptr_x[2 * i + 5], (*w1i)));
         ptr_x[2 * i + 5] =
-            ixheaacd_sub32_sat(ixheaacd_mult32(ptr_x[2 * i + 5], (*w1r)),
-                               ixheaacd_mult32(ptr_x[2 * i + 4], (*w1i)));
+            ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 5], (*w1r)),
+                               ixheaacd_mult32_sat(ptr_x[2 * i + 4], (*w1i)));
         ptr_x[2 * i + 4] = tmp;
 
         w1r += 3 * (128 / mpass - 1) + 1;

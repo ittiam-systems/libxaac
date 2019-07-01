@@ -1662,17 +1662,7 @@ static void ixheaacd_arith_map_context(WORD32 pres_n, WORD32 prev_n,
 
 VOID ixheaacd_copy_to_bitbuff(ia_bit_buf_struct *it_bit_buff_src,
                               ia_bit_buf_struct *it_bit_buff_dst) {
-  it_bit_buff_dst->ptr_bit_buf_base = it_bit_buff_src->ptr_bit_buf_base;
-  it_bit_buff_dst->ptr_bit_buf_end = it_bit_buff_src->ptr_bit_buf_end;
-
-  it_bit_buff_dst->ptr_read_next = it_bit_buff_src->ptr_read_next;
-
-  it_bit_buff_dst->bit_pos = it_bit_buff_src->bit_pos;
-  it_bit_buff_dst->cnt_bits = it_bit_buff_src->cnt_bits;
-
-  it_bit_buff_dst->size = it_bit_buff_src->size;
-
-  it_bit_buff_dst->max_size = it_bit_buff_src->max_size;
+  *it_bit_buff_dst = *it_bit_buff_src;
 }
 
 static WORD32 ixheaacd_arith_get_context(WORD8 *c_prev, WORD8 *c_pres,
@@ -1699,7 +1689,13 @@ static WORD32 ixheaacd_arith_first_symbol(ia_bit_buf_struct *it_bit_buff,
   WORD32 bit_count = 16;
 
   val = 0;
-  val = ixheaacd_read_bits_buf(it_bit_buff, 16);
+  if (it_bit_buff->cnt_bits < 16) {
+    WORD32 shift_value = 16 - it_bit_buff->cnt_bits;
+    val = ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+    val <<= shift_value;
+  } else {
+    val = ixheaacd_read_bits_buf(it_bit_buff, 16);
+  }
 
   s->low = 0;
   s->high = 65535;
@@ -1737,6 +1733,17 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
   register WORD32 cum;
   register UWORD16 const *p;
   register UWORD16 const *q;
+
+  WORD32 short_value, i = 16;
+  int shift_value;
+  if (it_bit_buff->cnt_bits < 16) {
+    shift_value = 16 - it_bit_buff->cnt_bits;
+    short_value = ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+    short_value <<= shift_value;
+  } else {
+    shift_value = 0;
+    short_value = ixheaacd_read_bits_buf(it_bit_buff, 16);
+  }
 
   low = s->low;
   high = s->high;
@@ -1779,10 +1786,12 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
     low += low;
     high += high + 1;
 
-    value = (value << 1) | ixheaacd_read_bits_buf(it_bit_buff, 1);
+    i--;
+    value = (value << 1) | ((short_value >> i) & 1);
     bit_count++;
   }
 
+  ixheaacd_read_bidirection(it_bit_buff, -(i - shift_value));
   s->low = low;
   s->high = high;
   s->value = value;
@@ -1800,7 +1809,7 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
   WORD32 i, j, lev, pki, esc_nb;
   WORD32 m;
   WORD32 c = 0;
-  struct ia_bit_buf_struct it_bit_buff_temp;
+  struct ia_bit_buf_struct it_bit_buff_temp = {0};
   WORD32 bit_count = 0;
   WORD32 s1;
   WORD32 temp;

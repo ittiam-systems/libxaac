@@ -64,7 +64,7 @@ typedef struct {
   VOID *extra_scr_1k[2];
 } ia_sbr_scr_struct;
 
-WORD16 ixheaacd_applysbr(
+IA_ERRORCODE ixheaacd_applysbr(
     ia_handle_sbr_dec_inst_struct self,
     ia_aac_dec_sbr_bitstream_struct *p_sbr_bit_stream, WORD16 *core_sample_buf,
     WORD16 *codec_num_channels, FLAG frame_status, FLAG down_samp_flag,

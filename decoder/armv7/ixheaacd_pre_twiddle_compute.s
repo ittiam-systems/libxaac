@@ -28,7 +28,7 @@ ixheaacd_pretwiddle_compute_armv7:
     STMFD           sp!, {R4-R12}
     VPUSH           {d8 - d15}
 
-    LDR             R8, =7500
+    MOVW            R8, #7500
     ADD             R3, R3, R8
     LDR             R4, [sp, #100]
     LDR             R5, [sp, #104]

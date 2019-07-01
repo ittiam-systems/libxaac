@@ -373,9 +373,9 @@ ia_aac_decoder_struct *ixheaacd_aac_decoder_init(
     WORD32 sampling_rate = p_state_enhaacplus_dec->sampling_rate;
 
     i = 0;
-    while (sampling_rate != ((pstr_huffmann_tables->str_sample_rate_info[i]
-                                  .sampling_frequency)) &&
-           (i < num_entries)) {
+    while ((i < num_entries) &&
+           sampling_rate != ((pstr_huffmann_tables->str_sample_rate_info[i]
+                                  .sampling_frequency))) {
       i++;
     }
     if (i == 12) {

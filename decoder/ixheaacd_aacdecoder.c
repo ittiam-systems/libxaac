@@ -510,7 +510,12 @@ WORD32 ixheaacd_aacdec_decodeframe(
                 goto _ia_handle_error;
               }
               aac_dec_handle->frame_status = 0;
-              error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+              if (error_code > 0) {
+                error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+                return error_code;
+              } else {
+                return error_code;
+              }
             }
           }
 
@@ -743,25 +748,15 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
   if (ele_type == ID_END &&
       p_state_enhaacplus_dec->bs_format == LOAS_BSFORMAT) {
-    WORD16 tmp;
-    tmp = ((WORD16)latm_element->layer_info[0][0].frame_len_bits) -
+    WORD32 tmp;
+    tmp = ((WORD32)latm_element->layer_info[0][0].frame_len_bits) -
           (it_bit_buff->initial_cnt_bits - it_bit_buff->cnt_bits);
 
     if (tmp > 0) ixheaacd_read_bidirection(it_bit_buff, tmp);
 
     if (latm_element->other_data_present) {
-      tmp = latm_element->other_data_length;
-      ixheaacd_read_bidirection(it_bit_buff, tmp);
-    }
-  }
-
-  if (p_obj_exhaacplus_dec->aac_config.ui_drc_enable) {
-    for (ch = 0; ch < num_ch; ch++) {
-      pstr_drc_dec->is_longblock[*ch_idx + ch] =
-          (aac_dec_handle->pstr_aac_dec_ch_info[ch]
-               ->str_ics_info.window_sequence == EIGHT_SHORT_SEQUENCE)
-              ? 0
-              : 1;
+      WORD32 count_bits = (WORD32)latm_element->other_data_length;
+      ixheaacd_read_bidirection(it_bit_buff, count_bits);
     }
   }
 

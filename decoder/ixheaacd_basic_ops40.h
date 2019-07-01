@@ -345,6 +345,18 @@ static PLATFORM_INLINE WORD64 ixheaacd_add64_sat(WORD64 a, WORD64 b) {
   return (result);
 }
 
+static PLATFORM_INLINE WORD32 ixheaacd_sat64_32(WORD64 a) {
+  WORD32 result;
+  if (a >= MAX_32) {
+    result = MAX_32;
+  } else if (a <= MIN_32) {
+    result = MIN_32;
+  } else
+    result = (WORD32)a;
+
+  return (result);
+}
+
 static PLATFORM_INLINE WORD64 ixheaacd_add64(WORD64 a, WORD64 b) {
   WORD64 result;
   result = a + b;

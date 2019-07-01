@@ -47,6 +47,7 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_sbr_payload.h"
 #include "ixheaacd_audioobjtypes.h"
+#include "ixheaacd_error_codes.h"
 
 #define SBR_EXTENSION_MPEG SBR_EXTENSION
 
@@ -151,12 +152,13 @@ FLAG ixheaacd_check_for_sbr_payload(
     } else {
       ixheaacd_read_bits_buf(it_bit_buff, 4);
 
+      if (it_bit_buff->cnt_bits < ((count - 1) << 3)) {
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      }
       it_bit_buff->ptr_read_next += count - 1;
       it_bit_buff->cnt_bits -= ((count - 1) << 3);
 
-      if (it_bit_buff->ptr_read_next > it_bit_buff->ptr_bit_buf_end) {
-        it_bit_buff->ptr_read_next = it_bit_buff->ptr_bit_buf_base;
-      }
     }
   }
   if (it_bit_buff->cnt_bits < 0) ret = -1;

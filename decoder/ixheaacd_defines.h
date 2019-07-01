@@ -28,6 +28,7 @@
 #define MAX_BINS_LONG 1024
 #define MAX_BINS_SHORT 128
 #define MAX_SCALE_FACTOR_BANDS_SHORT 16
+#define MAX_SCALE_FACTOR_BANDS_LONG (52)
 
 #define ZERO_HCB 0
 
@@ -58,5 +59,7 @@
 #define SIZE16 16 * SIZE01
 
 typedef struct { WORD32 sampling_frequency; } ia_sampling_rate_info_struct;
+
+#define USAC_MAX_SAMPLE_RATE (96000)
 
 #endif

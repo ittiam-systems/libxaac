@@ -353,38 +353,42 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[1], filter[1]);
   sum = ixheaacd_mac32x32in64(sum, in[0], filter[2]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[3], 4);
-  *out += (WORD32)((sum * factor_even) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   sum = ixheaacd_mult32x32in64(in[1], filter[0]);
   sum = ixheaacd_mac32x32in64(sum, in[0], filter[1]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[2], 5);
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
   out++;
 
   sum = ixheaacd_mult32x32in64(in[0], filter[0]);
   sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[1], 6);
-
-  *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
-
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 3], filter);
-    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_odd) >> 15));
+    *out = ixheaacd_add32_sat(
+        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
     sum = 0;
     sum = ixheaacd_mac32x32in64_7(sum, &in[i - 2], filter);
-    *out = ixheaacd_add32_sat(*out, (WORD32)((sum * factor_even) >> 15));
+    *out = ixheaacd_add32_sat(
+        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
     out++;
   }
   i = length - 3;
   sum = 0;
   sum = ixheaacd_mac32x32in64_n(sum, &in[i - 3], filter, 6);
   sum = ixheaacd_mac32x32in64(sum, in[i + 2], filter[6]);
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 
   out++;
   i = length - 2;
@@ -393,7 +397,8 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[i + 1], filter[5]);
   sum = ixheaacd_mac32x32in64(sum, in[i], filter[6]);
 
-  *out += (WORD32)((sum * factor_even) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   i = length - 1;
@@ -403,7 +408,8 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   sum = ixheaacd_mac32x32in64(sum, in[i - 1], filter[5]);
   sum = ixheaacd_mac32x32in64(sum, in[i - 2], filter[6]);
 
-  *out += (WORD32)((sum * factor_odd) >> 15);
+  *out = ixheaacd_add32_sat(
+      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 }
 
 static WORD32 ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
@@ -520,15 +526,17 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
           alpha_q_im_temp = alpha_q_im[grp][sfb] * 1677722;
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
-              WORD32 mid_side = r_spec[i] -
-                                (WORD32)((WORD64)ixheaacd_mult32x32in64(
-                                             alpha_q_re_temp, l_spec[i]) >>
-                                         24) -
-                                (WORD32)((WORD64)ixheaacd_mult32x32in64(
-                                             alpha_q_im_temp, dmx_im[i]) >>
-                                         24);
-              r_spec[i] = (factor)*ixheaacd_sub32_sat(l_spec[i], mid_side);
-              l_spec[i] = l_spec[i] + mid_side;
+              WORD32 mid_side = ixheaacd_sub32_sat(
+                  ixheaacd_sub32_sat(r_spec[i],
+                                     (WORD32)((WORD64)ixheaacd_mult32x32in64(
+                                                  alpha_q_re_temp, l_spec[i]) >>
+                                              24)),
+                  (WORD32)((WORD64)ixheaacd_mult32x32in64(alpha_q_im_temp,
+                                                          dmx_im[i]) >>
+                           24));
+              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
+              l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
 
           } else {
@@ -549,7 +557,8 @@ static WORD32 ixheaacd_cplx_pred_upmixing(
                                           alpha_q_re_temp, l_spec[i]) >>
                                       24));
 
-              r_spec[i] = (factor) * (ixheaacd_sub32_sat(l_spec[i], mid_side));
+              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
               l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
 
@@ -633,13 +642,13 @@ WORD32 ixheaacd_ics_info(ia_usac_data_struct *usac_data, WORD32 chn,
 }
 
 WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
-                                WORD32 elem_idx, WORD32 *chan_offset,
+                                WORD32 elem_idx, WORD32 chan_offset,
                                 ia_bit_buf_struct *it_bit_buff,
                                 WORD32 nr_core_coder_channels) {
   WORD32 err_code = 0;
   WORD32 k = 0, ch = 0, chn, left = 0, right = 0;
 
-  ia_usac_tmp_core_coder_struct str_tmp_core_coder;
+  ia_usac_tmp_core_coder_struct str_tmp_core_coder = {0};
   ia_usac_tmp_core_coder_struct *pstr_core_coder = &str_tmp_core_coder;
   ia_td_frame_data_struct td_frame;
 
@@ -660,8 +669,8 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
     pstr_core_coder->common_window = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
     if (pstr_core_coder->common_window) {
-      left = *chan_offset;
-      right = *chan_offset + 1;
+      left = chan_offset;
+      right = chan_offset + 1;
 
       err_code =
           ixheaacd_ics_info(usac_data, left, &pstr_core_coder->max_sfb[left],
@@ -698,8 +707,8 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
       pstr_core_coder->ms_mask_present[0] =
           ixheaacd_read_ms_mask(usac_data, pstr_core_coder, it_bit_buff, left);
     } else {
-      left = *chan_offset;
-      right = *chan_offset + 1;
+      left = chan_offset;
+      right = chan_offset + 1;
 
       pstr_core_coder->ms_mask_present[0] = 0;
       pstr_core_coder->ms_mask_present[1] = 0;
@@ -768,12 +777,12 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   } else {
     pstr_core_coder->common_window = 0;
     pstr_core_coder->common_tw = 0;
-    left = *chan_offset;
-    right = *chan_offset;
-    if (nr_core_coder_channels == 2) right = *chan_offset + 1;
+    left = chan_offset;
+    right = chan_offset;
+    if (nr_core_coder_channels == 2) right = chan_offset + 1;
   }
 
-  for (ch = 0, chn = *chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
+  for (ch = 0, chn = chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
     if (pstr_core_coder->core_mode[ch] == 1) {
       err_code =
           ixheaacd_tw_buff_update(usac_data, chn, usac_data->str_tddec[chn]);
@@ -847,9 +856,10 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   if (pstr_core_coder->tns_on_lr == 0 && (id != ID_USAC_LFE)) {
     for (ch = 0, chn = left; chn <= right; ch++, chn++) {
       if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-        ixheaacd_tns_apply(
+        err_code = ixheaacd_tns_apply(
             usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
             usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+        if (err_code) return err_code;
       }
     }
   }
@@ -873,9 +883,10 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
     if (pstr_core_coder->tns_on_lr) {
       for (ch = 0, chn = left; chn <= right; ch++, chn++) {
         if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-          ixheaacd_tns_apply(
+          err_code = ixheaacd_tns_apply(
               usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
               usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+          if (err_code) return err_code;
         }
       }
     }

@@ -349,6 +349,10 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
 
   patch = 0;
 
+  if ((goal_sb < sb) && (lsb > src_start_band)) {
+    return -1;
+  }
+
   while (((sb - usb) < 0) && (patch < MAX_NUM_PATCHES)) {
     ia_patch_param_struct *ptr_loc_patch_param = &p_str_patch_param[patch];
 
@@ -427,12 +431,12 @@ VOID ixheaacd_rescale_x_overlap(
     ia_sbr_dec_struct *ptr_sbr_dec, ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_frame_data,
     ia_sbr_prev_frame_data_struct *ptr_frame_data_prev,
-    WORD32 **pp_overlap_buffer_real, FLAG low_pow_flag) {
+    WORD32 **pp_overlap_buffer_real, WORD32 **pp_overlap_buffer_imag,
+    FLAG low_pow_flag) {
   WORD32 k, l;
   WORD32 start_band, end_band;
   WORD32 target_lsb, target_usb;
   WORD32 source_scale, target_scale, delta_scale, reserve;
-  WORD32 **pp_overlap_buffer_imag = &pp_overlap_buffer_real[MAX_ENV_COLS];
 
   WORD32 old_lsb = ptr_frame_data_prev->max_qmf_subband_aac;
   WORD32 start_slot =
@@ -954,7 +958,9 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   ia_auto_corr_ele_struct str_auto_corr;
 
   WORD16 *ptr_invf_band_tbl =
-      &ptr_header_data->pstr_freq_band_data->freq_band_tbl_noise[1];
+      &ptr_header_data->pstr_freq_band_data
+           ->freq_band_tbl_noise[1];  // offest 1 used as base address of
+                                      // ptr_invf_band_tbl
   WORD32 num_if_bands = ptr_header_data->pstr_freq_band_data->num_nf_bands;
   WORD32 sub_band_start = ptr_header_data->pstr_freq_band_data->sub_band_start;
   WORD16 *f_master_tbl = ptr_header_data->pstr_freq_band_data->f_master_tbl;
@@ -1116,8 +1122,12 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
       for (k2 = sb; k2 < sb + num_bands_in_patch; k2++) {
         k = k2 - patch_stride;
         bw_index = 0;
-        while (k2 >= ptr_invf_band_tbl[bw_index]) bw_index++;
+        while (k2 >= ptr_invf_band_tbl[bw_index]) {
+          bw_index++;
+          if (bw_index >= MAX_NOISE_COEFFS) return -1;
+        }
 
+        if (bw_index >= MAX_NUM_PATCHES) return -1;
         bw = bw_array[bw_index];
 
         a0r = bw * alpha_real[k][0];
@@ -1161,6 +1171,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
     FLOAT32 alpha_real[2], alpha_imag[2];
 
     bw_index = 0, patch = 1;
+    if (NULL == ptr_ph_vocod_buf_real || NULL == ptr_ph_vocod_buf_imag)
+      return -1;
 
     for (k2 = sub_band_start; k2 < f_master_tbl[num_mf_bands]; k2++) {
       ixheaacd_esbr_calc_co_variance(&str_auto_corr, &ptr_ph_vocod_buf_real[0],
@@ -1206,8 +1218,12 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
         alpha_imag[1] = 0.0f;
       }
 
-      while (k2 >= ptr_invf_band_tbl[bw_index]) bw_index++;
+      while (k2 >= ptr_invf_band_tbl[bw_index]) {
+        bw_index++;
+        if (bw_index >= MAX_NOISE_COEFFS) return -1;
+      }
 
+      if (bw_index >= MAX_NUM_PATCHES) return -1;
       bw = bw_array[bw_index];
 
       a0r = bw * alpha_real[0];

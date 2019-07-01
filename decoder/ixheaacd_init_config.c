@@ -62,6 +62,7 @@
 #include "ixheaacd_info.h"
 #include "ixheaacd_struct.h"
 #include "ixheaacd_constants.h"
+#include "ixheaacd_error_standards.h"
 
 #include "ixheaacd_error_codes.h"
 
@@ -499,14 +500,30 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
   pstr_usac_conf->usac_sampling_frequency_index =
       ixheaacd_read_bits_buf(it_bit_buff, 5);
 
-  if (pstr_usac_conf->usac_sampling_frequency_index == 0x1f)
+  if (pstr_usac_conf->usac_sampling_frequency_index == 0x1f) {
     pstr_usac_conf->usac_sampling_frequency =
         ixheaacd_read_bits_buf(it_bit_buff, 24);
+
+    if (pstr_usac_conf->usac_sampling_frequency > USAC_MAX_SAMPLE_RATE) {
+      return IA_FATAL_ERROR;
+    }
+
+  } else {
+    static const WORD32 sampling_rate_tbl[] = {
+        96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050,
+        16000, 12000, 11025, 8000,  7350,  0,     0,     57600,
+        51200, 40000, 38400, 34150, 28800, 25600, 20000, 19200,
+        17075, 14400, 12800, 9600,  0,     0,     0};
+
+    pstr_usac_conf->usac_sampling_frequency =
+        sampling_rate_tbl[pstr_usac_conf->usac_sampling_frequency_index];
+  }
 
   pstr_usac_conf->core_sbr_framelength_index =
       ixheaacd_read_bits_buf(it_bit_buff, 3);
 
-  if (pstr_usac_conf->core_sbr_framelength_index > 4) return -1;
+  if (pstr_usac_conf->core_sbr_framelength_index > MAX_CORE_SBR_FRAME_LEN_IDX)
+    return -1;
 
   pstr_usac_conf->channel_configuration_index =
       ixheaacd_read_bits_buf(it_bit_buff, 5);

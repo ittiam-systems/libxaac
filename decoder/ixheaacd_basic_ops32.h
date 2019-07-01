@@ -65,19 +65,13 @@ static PLATFORM_INLINE WORD32 ixheaacd_shr32(WORD32 a, WORD b) {
 }
 
 static PLATFORM_INLINE WORD32 ixheaacd_shl32_sat(WORD32 a, WORD b) {
-  WORD32 out_val = a;
-  for (; b > 0; b--) {
-    if (a > (WORD32)0X3fffffffL) {
-      out_val = MAX_32;
-      break;
-    } else if (a < (WORD32)0xc0000000L) {
-      out_val = MIN_32;
-      break;
-    }
-
-    a = ixheaacd_shl32(a, 1);
-    out_val = a;
-  }
+  WORD32 out_val;
+  if (a > (MAX_32 >> b))
+    out_val = MAX_32;
+  else if (a < (MIN_32 >> b))
+    out_val = MIN_32;
+  else
+    out_val = a << b;
   return (out_val);
 }
 
@@ -380,13 +374,13 @@ static PLATFORM_INLINE WORD32 div32(WORD32 a, WORD32 b, WORD *q_format) {
   return quotient;
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32(WORD32 a, WORD16 b,
-                                                    WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32_sat(WORD32 a, WORD16 b,
+                                                        WORD16 c) {
   WORD32 acc;
 
   acc = ixheaacd_mult16x16in32(b, c);
 
-  acc = ixheaacd_add32(a, acc);
+  acc = ixheaacd_add32_sat(a, acc);
 
   return acc;
 }

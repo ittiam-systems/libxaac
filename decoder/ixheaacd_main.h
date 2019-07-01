@@ -180,9 +180,10 @@ typedef struct ia_usac_data_main_struct {
 
 } ia_usac_data_struct;
 
-VOID ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
-                        WORD32 nbands, ia_sfb_info_struct *pstr_sfb_info,
-                        ia_tns_frame_info_struct *pstr_tns);
+IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
+                                WORD32 nbands,
+                                ia_sfb_info_struct *pstr_sfb_info,
+                                ia_tns_frame_info_struct *pstr_tns);
 
 WORD32 ixheaacd_calc_max_spectral_line_dec(WORD32 *ptr_tmp, WORD32 size);
 

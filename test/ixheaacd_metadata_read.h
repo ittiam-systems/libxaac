@@ -37,8 +37,6 @@ typedef struct {
 
 } metadata_info;
 
-void metadata_info_init(metadata_info *meta_info);
-
 int ixheaacd_read_metadata_info(FILE *fp, metadata_info *meta_info);
 
 int get_metadata_dec_info_init(metadata_info meta_info);
@@ -52,7 +50,5 @@ int get_play_time_in_samples(metadata_info meta_info);
 void update_start_offset_in_samples(metadata_info meta_info, int update);
 
 void update_play_time_in_samples(metadata_info meta_info, int update);
-
-void memset_metadata(metadata_info meta_info);
 
 #endif

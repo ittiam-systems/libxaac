@@ -24,7 +24,6 @@
 #endif
 
 #define EQ_CHANNEL_COUNT_MAX 8
-#define EQ_AUDIO_DELAY_MAX 1024
 #define EQ_FIR_FILTER_SIZE_MAX 128
 #define EQ_SUBBAND_COUNT_MAX 256
 #define EQ_INTERMEDIATE_2ND_ORDER_PARAMS_COUNT_MAX 32
@@ -37,6 +36,10 @@
 #define EQ_FILTER_DOMAIN_NONE 0
 #define EQ_FILTER_DOMAIN_TIME (1 << 0)
 #define EQ_FILTER_DOMAIN_SUBBAND (1 << 1)
+
+#define EQ_REAL_ZERO_CNT 63    /*Max Value of a 6 bit number*/
+#define EQ_GENERIC_ZERO_CNT 63 /*Max Value of a 6 bit number*/
+#define EQ_AUDIO_DELAY_MAX (EQ_REAL_ZERO_CNT + (EQ_GENERIC_ZERO_CNT * 2))
 
 #ifdef __cplusplus
 extern "C" {

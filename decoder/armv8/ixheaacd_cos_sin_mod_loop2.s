@@ -45,7 +45,7 @@ ixheaacd_cos_sin_mod_loop2:
     ADD             x11, x10, x2, LSL #3
     SUB             x11, x11, #4
     MOV             x8, #-4
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.4s, w19
     DUP             V1.4s, w19
 
@@ -164,7 +164,7 @@ LOOP1:
     ST1             {v12.s}[2], [x11], x8
     ST1             {v16.s}[2], [x10], #4
 
-    LDR             w19, =0
+    MOV             w19, #0
     DUP             V0.4s, w19
     DUP             V1.4s, w19
     // second part

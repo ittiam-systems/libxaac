@@ -48,7 +48,7 @@
 #include "ixheaacd_audioobjtypes.h"
 
 #define mult16x16_16(a, b) ixheaacd_mult16((a), (b))
-#define mac16x16(a, b, c) ixheaacd_mac16x16in32((a), (b), (c))
+#define mac16x16(a, b, c) ixheaacd_mac16x16in32_sat((a), (b), (c))
 #define mpy_32x16(a, b) fixmuldiv2_32x16b((a), (b))
 #define mpy_16x16(a, b) ixheaacd_mult16x16in32((a), (b))
 #define mpy_32x32(a, b) ixheaacd_mult32((a), (b))
@@ -99,9 +99,13 @@ VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
 
     twid_im = *twidle_fwd;
     twidle_fwd += 3;
-    *p_out++ = mac32x16in32_dual(temp1[0], twid_re, temp1[1], twid_im);
-    *p_out++ = msu32x16in32_dual(temp1[0], twid_im, temp1[1], twid_re);
+
+    *p_out++ = ixheaacd_mult32x16in32(temp1[0], twid_re) +
+               ixheaacd_mult32x16in32(temp1[1], twid_im);
+    *p_out++ = -ixheaacd_mult32x16in32(temp1[1], twid_re) +
+               ixheaacd_mult32x16in32(temp1[0], twid_im);
   }
+
   twid_re = *twidle_fwd++;
 
   twid_im = *twidle_fwd;
@@ -114,11 +118,14 @@ VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
 
   temp1[0] = temp1[1];
 
-  temp2[2] = mac32x16in32_dual(temp1[0], twid_re, temp1[1], twid_im);
-  temp2[3] = msu32x16in32_dual(temp1[0], twid_im, temp1[1], twid_re);
+  temp2[2] = ixheaacd_mult32x16in32(temp1[0], twid_re) +
+             ixheaacd_mult32x16in32(temp1[1], twid_im);
+  temp2[3] = -ixheaacd_mult32x16in32(temp1[1], twid_re) +
+             ixheaacd_mult32x16in32(temp1[0], twid_im);
 
   ptr_forward = output;
   ptr_reverse = &output[DCT3_LEN - 1];
+
   temp2[0] = *ptr_forward++;
   temp2[1] = *ptr_forward--;
 
@@ -152,8 +159,11 @@ VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
 
     temp1[2] = temp2[1] + temp2[3];
     temp1[3] = (temp2[1] - temp2[3]);
-    temp1[4] = mac32x16in32_dual(temp1[0], twid_re, temp1[2], twid_im);
-    temp1[5] = msu32x16in32_dual(temp1[0], twid_im, temp1[2], twid_re);
+
+    temp1[4] = ixheaacd_mult32x16in32(temp1[0], twid_re) +
+               ixheaacd_mult32x16in32(temp1[2], twid_im);
+    temp1[5] = -ixheaacd_mult32x16in32(temp1[2], twid_re) +
+               ixheaacd_mult32x16in32(temp1[0], twid_im);
 
     temp1[1] >>= 1;
     temp1[3] >>= 1;
@@ -169,7 +179,7 @@ VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
   temp2[3] = *ptr_reverse--;
   temp2[2] = *ptr_reverse++;
 
-  twid_re = *twidle_rev;
+  twid_re = -*twidle_rev;
   twidle_rev -= 2;
   twid_im = *twidle_fwd;
   twidle_fwd += 2;
@@ -180,8 +190,10 @@ VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
   temp1[2] = temp2[1] + temp2[3];
   temp1[3] = (temp2[1] - temp2[3]);
 
-  temp1[4] = -mac32x16in32_dual(temp1[0], twid_re, temp1[2], twid_im);
-  temp1[5] = msu32x16in32_dual(temp1[0], twid_im, temp1[2], twid_re);
+  temp1[4] = ixheaacd_mult32x16in32(temp1[0], twid_re) -
+             ixheaacd_mult32x16in32(temp1[2], twid_im);
+  temp1[5] = ixheaacd_mult32x16in32(temp1[2], twid_re) +
+             ixheaacd_mult32x16in32(temp1[0], twid_im);
 
   temp1[1] >>= 1;
   temp1[3] >>= 1;
