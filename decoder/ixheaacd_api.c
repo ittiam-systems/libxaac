@@ -1222,7 +1222,7 @@ IA_ERRORCODE ixheaacd_fill_aac_mem_tables(
   {
     p_mem_info_aac =
         &p_obj_exhaacplus_dec->p_mem_info_aac[IA_ENHAACPLUS_DEC_OUTPUT_IDX];
-    p_mem_info_aac->ui_size = num_channels * IA_ENHAACPLUS_DEC_OUT_BUF_SIZE;
+    p_mem_info_aac->ui_size = IA_ENHAACPLUS_DEC_OUT_BUF_SIZE;
     p_mem_info_aac->ui_alignment = 8;
     p_mem_info_aac->ui_type = IA_MEMTYPE_OUTPUT;
   }
