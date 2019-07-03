@@ -433,7 +433,8 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
 
   memcpy(ptr2, ptr1, sizeof(WORD16) * (num_nf_bands));
 
-  if (ptr_sbr_data->coupling_mode != COUPLING_BAL) {
+  if ((ptr_sbr_data->coupling_mode != COUPLING_BAL) ||
+      (ptr_header_data->usac_flag)) {
     WORD32 noise_floor_exp, tot_nf_bands;
 
     tot_nf_bands = (num_nf_bands * num_noise_env);
@@ -648,6 +649,9 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
     }
 
     if (ptr_sbr_data_ch_0->coupling_mode) {
+      ptr_sbr_data_ch_0->num_noise_sfac =
+          ptr_header_data_ch_1->pstr_freq_band_data->num_nf_bands *
+          ptr_sbr_data_ch_1->str_frame_info_details.num_noise_env;
       ixheaacd_sbr_env_dequant_coup_fix(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                                         ptr_sbr_data_ch_1, ptr_common_tables);
 

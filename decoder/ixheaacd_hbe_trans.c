@@ -576,7 +576,7 @@ VOID ixheaacd_hbe_xprod_proc_4(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
   max_n1 = max_n2 = max_trans_fac = 0;
 
   for (tr = 1; tr < 4; tr++) {
-    temp_fac = (2.0f * qmf_band_idx + 1 - tr * p) * 0.25;
+    temp_fac = (2.0 * qmf_band_idx + 1 - tr * p) * 0.25;
     n1 = ((WORD32)(temp_fac)) << 1;
     n2 = ((WORD32)(temp_fac + p)) << 1;
 
@@ -1083,7 +1083,7 @@ VOID ixheaacd_hbe_post_anal_xprod2(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     WORD32 n1, n2;
     FLOAT64 temp_fac;
     FLOAT32 mag_cmplx_gain = 1.666666667f;
-    temp_fac = (2.0f * qmf_band_idx + 1 - p) * 0.5;
+    temp_fac = (2.0 * qmf_band_idx + 1 - p) * 0.5;
     n1 = ((WORD32)(temp_fac)) << 1;
     n2 = ((WORD32)(temp_fac + p)) << 1;
 

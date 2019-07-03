@@ -701,6 +701,20 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
       if (i_idx >= 0 && i_idx <= 8) {
         *pui_value = pvalue[i_idx];
+      } else if (IA_ENHAACPLUS_DEC_CONFIG_GET_NUM_PRE_ROLL_FRAMES == i_idx) {
+        WORD32 *ptri_value = (WORD32 *)pv_value;
+        ia_audio_specific_config_struct *ptr_audio_specific_config =
+            ((ia_audio_specific_config_struct *)
+                 p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+
+        for (i = 0; i < MAX_AUDIO_PREROLLS + 1; i++) {
+          if (ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+                  .preroll_bytes[i] == 0) {
+            break;
+          }
+        }
+
+        *ptri_value = i;
       } else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
@@ -762,15 +776,29 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
                  p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
-        *ptri_value = ptr_audio_specific_config->str_usac_config
-                          .str_usac_dec_config.usac_ext_gain_payload_len;
+        WORD32 preroll_counter = ptr_audio_specific_config->str_usac_config
+                                     .str_usac_dec_config.preroll_counter;
+        *ptri_value =
+            ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+                .usac_ext_gain_payload_len[preroll_counter];
       } else if (IA_ENHAACPLUS_DEC_CONFIG_GAIN_PAYLOAD_BUF == i_idx) {
+        WORD32 payload_buffer_offeset = 0;
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
                  p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+        WORD32 preroll_counter = ptr_audio_specific_config->str_usac_config
+                                     .str_usac_dec_config.preroll_counter;
+        for (i = 0; i < (UWORD32)preroll_counter; i++)
+          payload_buffer_offeset +=
+              ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+                  .usac_ext_gain_payload_len[i] *
+              sizeof(WORD8);
         *pp_value = ptr_audio_specific_config->str_usac_config
-                        .str_usac_dec_config.usac_ext_gain_payload_buf;
-      } else {
+                        .str_usac_dec_config.usac_ext_gain_payload_buf +
+                    payload_buffer_offeset;
+      }
+
+      else {
         return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
       break;
@@ -840,7 +868,24 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       break;
     }
     case IA_API_CMD_GET_OUTPUT_BYTES: {
-      *pui_value = p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes;
+      if (p_obj_exhaacplus_dec->p_state_aac->audio_object_type == AOT_USAC) {
+        ia_audio_specific_config_struct *ptr_audio_specific_config =
+            ((ia_audio_specific_config_struct *)
+                 p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+
+        WORD32 preroll_counter = ptr_audio_specific_config->str_usac_config
+                                     .str_usac_dec_config.preroll_counter;
+
+        *pui_value = ptr_audio_specific_config->str_usac_config
+                         .str_usac_dec_config.preroll_bytes[preroll_counter];
+
+        preroll_counter++;
+
+        ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+            .preroll_counter = preroll_counter;
+      } else {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes;
+      }
       break;
     }
     case IA_API_CMD_INPUT_OVER: {
@@ -2217,6 +2262,30 @@ IA_ERRORCODE ixheaacd_dec_execute(
     if (pstr_dec_data->str_usac_data.down_samp_sbr != 0) return IA_FATAL_ERROR;
 
     if (p_obj_exhaacplus_dec->p_state_aac->ui_input_over == 0) {
+      ia_audio_specific_config_struct *ptr_audio_specific_config =
+          ((ia_audio_specific_config_struct *)
+               p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+
+      ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+          .preroll_counter = 0;
+      {
+        WORD32 iii = 0;
+        for (iii = 0; iii < (MAX_AUDIO_PREROLLS + 1); iii++) {
+          ((ia_dec_data_struct *)(p_obj_exhaacplus_dec->p_state_aac
+                                      ->pstr_dec_data))
+              ->str_frame_data.str_audio_specific_config.str_usac_config
+              .str_usac_dec_config.usac_ext_gain_payload_len[iii] = 0;
+          ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+              .usac_ext_gain_payload_len[iii] =
+              0;  // reinitilize the payload len buff
+          ptr_audio_specific_config->str_usac_config.str_usac_dec_config
+              .preroll_bytes[iii] = 0;
+        }
+      }
+
+      ((ia_dec_data_struct *)(p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data))
+          ->str_frame_data.str_audio_specific_config.str_usac_config
+          .str_usac_dec_config.preroll_counter = 0;
       error_code = ixheaacd_dec_main(
           p_obj_exhaacplus_dec, inbuffer, outbuffer, &out_bytes, frames_done,
           pcm_size, &p_obj_exhaacplus_dec->p_state_aac->num_of_output_ch);

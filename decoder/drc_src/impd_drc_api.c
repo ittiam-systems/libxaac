@@ -282,8 +282,13 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
 
         case IA_DRC_DEC_CONFIG_PARAM_PCM_WDSZ: {
-          if ((*pus_value != 16) && (*pus_value != 32)) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PCM_SIZE;
+          switch (*pus_value) {
+            case 16:
+            case 24:
+            case 32:
+              break;
+            default:
+              return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PCM_SIZE;
           }
 
           p_obj_drc->str_config.pcm_size = *pus_value;

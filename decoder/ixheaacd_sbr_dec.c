@@ -653,11 +653,14 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
     if (hbe_flag) {
-      codec_x_delay = 32;
+      codec_x_delay = ESBR_HBE_DELAY_OFFSET;
     }
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       codec_x_delay = 2 * codec_x_delay;
     }
+    /* fixed decoder delay for bitstreams with SBR 4:1 and stereoConfigIndex 3
+     */
+    if (mps_sbr_flag) op_delay = MPS_SBR_DELAY;
 
     if (hbe_flag || mps_sbr_flag) {
       core_syn_ch_index = num_anal_bands;

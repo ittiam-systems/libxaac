@@ -488,8 +488,8 @@ static WORD32 ixheaacd_fd_imdct_long(ia_usac_data_struct *usac_data,
         -p_in_ibuffer[i] >> (shiftp - shift_olap);
   }
 
-  ixheaacd_scale_down(p_out_ibuffer, p_out_ibuffer, ixheaacd_drc_offset->n_long,
-                      output_q, 15);
+  ixheaacd_scale_down_adj(p_out_ibuffer, p_out_ibuffer,
+                          ixheaacd_drc_offset->n_long, output_q, 15);
 
   if (td_frame_prev) {
     qfac = 1.0f / (FLOAT32)(1 << 15);

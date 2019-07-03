@@ -170,9 +170,10 @@ impd_drc_uni_sel_proc_process(
       for (i = SUB_DRC_COUNT - 1; i >= 0; i--) {
         WORD32 drc_instructions_index =
             pstr_drc_uni_sel_proc->drc_instructions_index[i];
+        ia_drc_instructions_struct* str_drc_instruction_str;
         if (drc_instructions_index < 0) continue;
 
-        ia_drc_instructions_struct* str_drc_instruction_str =
+        str_drc_instruction_str =
             &(pstr_drc_uni_sel_proc->drc_config
                   .str_drc_instruction_str[drc_instructions_index]);
 

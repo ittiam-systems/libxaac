@@ -173,7 +173,7 @@ static WORD32 ixheaacd_read_ext_element(
   UWORD32 usac_ext_element_present;
   UWORD32 usac_ext_element_use_dft_length;
   UWORD32 pay_load_length, tmp;
-  UWORD32 i;
+  WORD32 i;
   usac_ext_element_present = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
   if (usac_ext_element_present) {
@@ -197,12 +197,22 @@ static WORD32 ixheaacd_read_ext_element(
         tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
 
       if (pstr_usac_dec_config->usac_ext_ele_payload_present[elem_idx]) {
-        for (i = 0; i < pay_load_length; i++) {
-          pstr_usac_dec_config->usac_ext_gain_payload_buf
-              [i + pstr_usac_dec_config->usac_ext_gain_payload_len] =
+        WORD32 preroll_counter = pstr_usac_dec_config->preroll_counter;
+        int payload_buffer_offeset = 0;
+        for (i = 0; i < preroll_counter; i++)
+          payload_buffer_offeset +=
+              pstr_usac_dec_config->usac_ext_gain_payload_len[i] *
+              sizeof(WORD8);
+        if ((pay_load_length + payload_buffer_offeset) >
+            (MAX_AUDIO_PREROLLS * 768))
+          return IA_FATAL_ERROR;
+        for (i = 0; i < ((WORD32)pay_load_length); i++) {
+          pstr_usac_dec_config
+              ->usac_ext_gain_payload_buf[i + payload_buffer_offeset] =
               ixheaacd_read_bits_buf(it_bit_buff, 8);
         }
-        pstr_usac_dec_config->usac_ext_gain_payload_len += pay_load_length;
+        pstr_usac_dec_config->usac_ext_gain_payload_len[preroll_counter] +=
+            pay_load_length;
       } else {
         if (it_bit_buff->cnt_bits < (WORD32)(pay_load_length << 3)) {
           longjmp(*(it_bit_buff->xaac_jmp_buf),
@@ -295,7 +305,6 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
   WORD32 num_ch_out = 0;
   WORD32 num_elements = pstr_usac_dec_config->num_elements;
 
-  pstr_usac_dec_config->usac_ext_gain_payload_len = 0;
   pstr_usac_data->usac_independency_flg =
       ixheaacd_read_bits_buf(it_bit_buff, 1);
 
