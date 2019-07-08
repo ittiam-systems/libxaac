@@ -606,7 +606,7 @@ WORD32 ixheaacd_derive_noise_freq_bnd_tbl(
   kx = pstr_freq_band_data->freq_band_table[HIGH][0];
 
   if (ptr_header_data->noise_bands == 0) {
-    pstr_freq_band_data->num_nf_bands = 1;
+    temp = 1;
   } else {
     temp = pstr_common_tables->log_dual_is_table[k2] -
            pstr_common_tables->log_dual_is_table[kx];
@@ -616,13 +616,12 @@ WORD32 ixheaacd_derive_noise_freq_bnd_tbl(
     if (temp == 0) {
       temp = 1;
     }
-    pstr_freq_band_data->num_nf_bands = temp;
   }
-  pstr_freq_band_data->num_if_bands = pstr_freq_band_data->num_nf_bands;
-
-  if (pstr_freq_band_data->num_nf_bands > MAX_NOISE_COEFFS) {
+  if (temp > MAX_NOISE_COEFFS) {
     return -1;
   }
+  pstr_freq_band_data->num_nf_bands = temp;
+  pstr_freq_band_data->num_if_bands = pstr_freq_band_data->num_nf_bands;
   {
     WORD16 i_k, k;
     WORD16 num, den;

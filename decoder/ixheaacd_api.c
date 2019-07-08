@@ -834,12 +834,15 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       switch (i_idx) {
         case IA_CMD_TYPE_DO_EXECUTE: {
           WORD32 err_code = 0;
-          if (!p_obj_exhaacplus_dec->p_state_aac->ui_init_done) {
+          if (!p_obj_exhaacplus_dec->p_state_aac->ui_init_done ||
+              p_obj_exhaacplus_dec->p_state_aac->fatal_err_present) {
             err_code = IA_FATAL_ERROR;
           } else {
             err_code = ixheaacd_dec_execute(p_obj_exhaacplus_dec);
           }
           if (err_code != IA_NO_ERROR) {
+            if (err_code < 0)
+              p_obj_exhaacplus_dec->p_state_aac->fatal_err_present = 1;
             p_obj_exhaacplus_dec->p_state_aac->i_bytes_consumed =
                 p_obj_exhaacplus_dec->p_state_aac->ui_in_bytes;
           }
