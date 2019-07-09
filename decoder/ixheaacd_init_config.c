@@ -393,7 +393,7 @@ WORD32 ixheaacd_decoder_config(
             ixheaacd_read_bits_buf(it_bit_buff, 1);
         pstr_usac_element_config->noise_filling =
             ixheaacd_read_bits_buf(it_bit_buff, 1);
-
+        pstr_usac_element_config->stereo_config_index = 0;
         if (sbr_ratio_index > 0)
           ixheaacd_sbr_config(it_bit_buff,
                               &(pstr_usac_element_config->str_usac_sbr_config));
@@ -412,6 +412,7 @@ WORD32 ixheaacd_decoder_config(
 
         pstr_usac_element_config->tw_mdct = 0;
         pstr_usac_element_config->noise_filling = 0;
+        pstr_usac_element_config->stereo_config_index = 0;
         break;
 
       case ID_USAC_EXT:
