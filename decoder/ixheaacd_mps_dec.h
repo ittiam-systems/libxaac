@@ -107,7 +107,7 @@ typedef struct ia_mps_decor_struct {
 
 typedef struct ia_mps_hybrid_filt_struct {
   ia_cmplx_flt_struct hf_buffer[MAX_NUM_QMF_BANDS_MPS][BUFFER_LEN_HF_MPS];
-  ia_cmplx_w32_struct lf_buffer[QMF_BANDS_TO_HYBRID][BUFFER_LEN_LF_MPS];
+  ia_cmplx_flt_struct lf_buffer[QMF_BANDS_TO_HYBRID][BUFFER_LEN_LF_MPS];
 } ia_mps_hybrid_filt_struct;
 
 typedef struct ia_mps_data_struct {
