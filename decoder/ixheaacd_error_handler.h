@@ -40,6 +40,8 @@
 #define IA_ERROR_CLASS_E 0xE
 #define IA_ERROR_CLASS_F 0xF
 
+#define IA_MAX_ERROR_SUB_CODE 28
+
 typedef struct {
   pWORD8 pb_module_name;
   pWORD8 ppb_class_names[16];
