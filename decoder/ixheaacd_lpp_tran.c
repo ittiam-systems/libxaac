@@ -1091,9 +1091,11 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
         continue;
       }
 
-      while (high_band >=
-             hf_generator->pstr_settings->bw_borders[bw_index[patch]]) {
-        bw_index[patch] = (bw_index[patch] + 1);
+      while ((bw_index[patch] < MAX_NUM_PATCHES - 1) &&
+             (bw_index[patch] < MAX_NUM_NOISE_VALUES) &&
+             (high_band >=
+              hf_generator->pstr_settings->bw_borders[bw_index[patch]])) {
+        bw_index[patch]++;
       }
 
       bw = ixheaacd_extract16h(bw_array[bw_index[patch]]);
