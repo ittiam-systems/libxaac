@@ -122,7 +122,7 @@ VOID ixheaacd_voronoi_search(WORD32 x[], WORD32 y[], WORD32 count, WORD32 *rem1,
   ixheaacd_nearest_neighbor_2d(x1, y1, count, rem2);
 
   for (i = 0; i < 8; i++) {
-    y1[i] += 1;
+    y1[i] = ixheaacd_add32_sat(y1[i], 1);
   }
 
   e0 = e1 = 0;
@@ -178,7 +178,9 @@ VOID ixheaacd_voronoi_idx_dec(WORD32 *kv, WORD32 m, WORD32 *y, WORD32 count) {
   ptr1 = y;
   ptr2 = v;
   for (i = 0; i < 8; i++) {
-    *ptr1++ -= ixheaacd_sat64_32((WORD64)m * (WORD64)*ptr2++);
+    *ptr1 = ixheaacd_sub32_sat(*ptr1,
+                               ixheaacd_sat64_32((WORD64)m * (WORD64)*ptr2++));
+    ptr1++;
   }
 }
 
