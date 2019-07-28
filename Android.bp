@@ -2,9 +2,6 @@ cc_library_static {
     name: "libxaacdec",
 
     vendor_available: true,
-    vndk: {
-        enabled: true,
-    },
 
     cflags: [
         "-O3"
