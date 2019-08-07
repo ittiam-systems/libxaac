@@ -631,12 +631,12 @@ WORD32 ixheaacd_mps_upmix_interp(
 }
 
 static FLOAT32 ixheaacd_mps_angle_interpolation(FLOAT32 angle1, FLOAT32 angle2,
-                                                FLOAT32 alpha) {
+                                                FLOAT32 alpha, FLOAT32 *step) {
   while (angle2 - angle1 > (FLOAT32)P_PI)
     angle1 = angle1 + 2.0f * (FLOAT32)P_PI;
   while (angle1 - angle2 > (FLOAT32)P_PI)
     angle2 = angle2 + 2.0f * (FLOAT32)P_PI;
-
+  *step = angle2 - angle1;
   return (1 - alpha) * angle1 + alpha * angle2;
 }
 
@@ -647,37 +647,46 @@ VOID ixheaacd_mps_phase_interpolation(
     FLOAT32 r_re[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][2],
     FLOAT32 r_im[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][2],
     ia_mps_dec_state_struct *self) {
-  WORD32 ts, ps, pb;
-  WORD32 i;
+  WORD32 i, ts, ps, pb;
+  FLOAT32 step_l, step_r, alpha, tl, tr;
   for (pb = 0; pb < self->bs_param_bands; pb++) {
     ps = 0;
     ts = 0;
+    alpha = (FLOAT32)self->inv_param_slot_diff[ps];
+    tl = ixheaacd_mps_angle_interpolation(pl_prev[pb], pl[ps][pb], alpha,
+                                          &step_l);
+    tr = ixheaacd_mps_angle_interpolation(pr_prev[pb], pr[ps][pb], alpha,
+                                          &step_r);
+    step_l *= alpha;
+    step_r *= alpha;
+
     for (i = 1; i <= self->param_slot_diff[ps]; i++) {
-      FLOAT32 alpha = (FLOAT32)i * self->inv_param_slot_diff[ps];
-      FLOAT32 t;
+      r_re[ts][pb][0] = (FLOAT32)cos(tl);
+      r_im[ts][pb][0] = (FLOAT32)sin(tl);
+      tl += step_l;
 
-      t = ixheaacd_mps_angle_interpolation(pl_prev[pb], pl[ps][pb], alpha);
-      r_re[ts][pb][0] = (FLOAT32)cos(t);
-      r_im[ts][pb][0] = (FLOAT32)sin(t);
-
-      t = ixheaacd_mps_angle_interpolation(pr_prev[pb], pr[ps][pb], alpha);
-      r_re[ts][pb][1] = (FLOAT32)cos(t);
-      r_im[ts][pb][1] = (FLOAT32)sin(t);
+      r_re[ts][pb][1] = (FLOAT32)cos(tr);
+      r_im[ts][pb][1] = (FLOAT32)sin(tr);
+      tr += step_r;
       ts++;
     }
 
     for (ps = 1; ps < self->num_parameter_sets; ps++) {
+      FLOAT32 alpha = self->inv_param_slot_diff[ps];
+      tl = ixheaacd_mps_angle_interpolation(pl[ps - 1][pb], pl[ps][pb], alpha,
+                                            &step_l);
+      tr = ixheaacd_mps_angle_interpolation(pr[ps - 1][pb], pr[ps][pb], alpha,
+                                            &step_r);
+      step_l *= alpha;
+      step_r *= alpha;
       for (i = 1; i <= self->param_slot_diff[ps]; i++) {
-        FLOAT32 alpha = (FLOAT32)i * self->inv_param_slot_diff[ps];
-        FLOAT32 t;
+        r_re[ts][pb][0] = (FLOAT32)cos(tl);
+        r_im[ts][pb][0] = (FLOAT32)sin(tl);
+        tl += step_l;
 
-        t = ixheaacd_mps_angle_interpolation(pl[ps - 1][pb], pl[ps][pb], alpha);
-        r_re[ts][pb][0] = (FLOAT32)cos(t);
-        r_im[ts][pb][0] = (FLOAT32)sin(t);
-
-        t = ixheaacd_mps_angle_interpolation(pr[ps - 1][pb], pr[ps][pb], alpha);
-        r_re[ts][pb][1] = (FLOAT32)cos(t);
-        r_im[ts][pb][1] = (FLOAT32)sin(t);
+        r_re[ts][pb][1] = (FLOAT32)cos(tr);
+        r_im[ts][pb][1] = (FLOAT32)sin(tr);
+        tr += step_r;
         ts++;
 
         if (ts > 71) {
