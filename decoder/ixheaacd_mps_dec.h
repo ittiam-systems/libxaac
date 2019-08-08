@@ -374,10 +374,11 @@ VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
 WORD32 ixheaacd_mps_upmix_interp(
     WORD32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                    [MAX_M_INPUT],
-    WORD32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                   [MAX_M_INPUT],
+    FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
     WORD32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
-    WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self);
+    WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self,
+    WORD32 q_fac, WORD32 bs_high_rate_mode);
 
 VOID ixheaacd_mps_phase_interpolation(
     FLOAT32 pl[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
