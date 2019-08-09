@@ -134,9 +134,9 @@ VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, WORD32 *out,
 VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
   WORD32 k, l, ts, ch;
   WORD64 acc;
-  WORD32 ptr_in[128];
-  WORD32 fin_re[128];
-  WORD32 fin_im[128];
+  WORD32 ptr_in[128] = {0};
+  WORD32 fin_re[128] = {0};
+  WORD32 fin_im[128] = {0};
   FLOAT32 temp;
   WORD32 *state, *tmp_state, *out;
   const WORD32 *filt_coeff;
@@ -152,18 +152,19 @@ VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
 
     for (ts = 0; ts < self->time_slots; ts++) {
       ixheaacd_float_to_int32(&self->qmf_out_dir[ch][ts][0].re, ptr_in, 10,
-                              resolution * 2);
+                              self->synth_count * 2);
 
       filt_coeff = ixheaacd_mps_polyphase_filter_coeff_fix;
 
       state -= (2 * resolution);
       (*ixheaacd_mps_synt_pre_twiddle)(ptr_in, ixheaacd_mps_pre_re,
-                                       ixheaacd_mps_pre_im, resolution);
+                                       ixheaacd_mps_pre_im, self->synth_count);
 
       (*ixheaacd_mps_complex_fft_64)(ptr_in, fin_re, fin_im, resolution);
 
       (*ixheaacd_mps_synt_post_twiddle)(ptr_in, ixheaacd_mps_post_re,
-                                        ixheaacd_mps_post_im, resolution);
+                                        ixheaacd_mps_post_im,
+                                        self->synth_count);
 
       (*ixheaacd_mps_complex_fft_64)(ptr_in, &fin_re[1], &fin_im[1],
                                      resolution);

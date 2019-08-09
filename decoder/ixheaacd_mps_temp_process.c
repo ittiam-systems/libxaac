@@ -182,7 +182,7 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
       no_scaling = !self->temp_shape_enable_ch_stp[ch];
 
     if (no_scaling == 1) {
-      for (n = 0; n < self->hyb_band_count; n++) {
+      for (n = 0; n < self->hyb_band_count_max; n++) {
         self->hyb_dir_out[ch][ts][n].re += self->hyb_diff_out[ch][ts][n].re;
         self->hyb_dir_out[ch][ts][n].im += self->hyb_diff_out[ch][ts][n].im;
       }
@@ -202,7 +202,7 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
         self->hyb_dir_out[ch][ts][n].im +=
             (self->hyb_diff_out[ch][ts][n].im * temp);
       }
-      for (; n < self->hyb_band_count; n++) {
+      for (; n < self->hyb_band_count_max; n++) {
         temp = (FLOAT32)(scale[ch]);
         self->hyb_dir_out[ch][ts][n].re +=
             (self->hyb_diff_out[ch][ts][n].re * temp);
@@ -216,6 +216,8 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
 WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
   WORD32 ch, ts, hyb;
   WORD32 err = 0;
+  ia_sbr_frame_info_data_struct* ptr_frame_data =
+      (ia_sbr_frame_info_data_struct*)self->p_sbr_frame[0];
 
   for (ch = 0; ch < self->out_ch_count; ch++) {
     for (ts = 0; ts < self->time_slots; ts++) {
@@ -237,6 +239,13 @@ WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
                                     self->p_sbr_dec[ch], self->p_sbr_frame[ch],
                                     self->p_sbr_header[ch]);
     if (err) return err;
+  }
+
+  if (ptr_frame_data->mps_sbr_flag) {
+    self->synth_count =
+        ptr_frame_data->pstr_sbr_header->pstr_freq_band_data->sub_band_end;
+  } else {
+    self->synth_count = self->band_count[0];
   }
 
   ixheaacd_mps_synt_calc(self);

@@ -67,6 +67,7 @@ typedef struct {
   ia_sbr_scale_fact_struct str_sbr_scale_fact;
 
   WORD32 max_samp_val;
+  WORD32 band_count;
   ia_esbr_hbe_txposer_struct *p_hbe_txposer;
 
   FLOAT32 core_sample_buf[2624];

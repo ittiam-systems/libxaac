@@ -381,7 +381,7 @@ WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self) {
         self->v[row][ts][qs].im = sum_imag;
       }
     }
-    for (qs = 2; qs < self->hyb_band_count; qs++) {
+    for (qs = 2; qs < self->hyb_band_count[0]; qs++) {
       WORD32 sign = 1;
       WORD32 indx = self->hyb_band_to_processing_band_table[qs];
       for (row = 0; row < (self->dir_sig_count + self->decor_sig_count);
@@ -469,7 +469,7 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
   }
 
   for (ts = 0; ts < self->time_slots; ts++) {
-    for (qs = 0; qs < self->hyb_band_count; qs++) {
+    for (qs = 0; qs < self->hyb_band_count_max; qs++) {
       WORD32 indx = self->hyb_band_to_processing_band_table[qs];
       for (row = 0; row < self->out_ch_count; row++) {
         FLOAT32 sum_re_dir = 0;
@@ -521,7 +521,7 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
           self->hyb_diff_out[row][ts][qs].im = sum_im_diff;
         }
       }
-      for (qs = 2; qs < self->hyb_band_count; qs++) {
+      for (qs = 2; qs < self->hyb_band_count_max; qs++) {
         WORD32 indx = self->hyb_band_to_processing_band_table[qs];
         for (row = 0; row < self->out_ch_count; row++) {
           FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;

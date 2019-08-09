@@ -67,7 +67,7 @@ static VOID ixheaacd_mps_est_normalized_envelope(ia_mps_dec_state_struct *self,
     case DIR_DIFF_IN:
       ch_offset = 0;
       for (ii = 0; ii < self->time_slots; ii++) {
-        for (jj = 0; jj < self->hyb_band_count; jj++) {
+        for (jj = 0; jj < self->hyb_band_count_max; jj++) {
           slot_energy[ii]
                      [ixheaacd_hybrid_band_71_to_processing_band_20_map[jj]] +=
               ((self->hyb_dir_out[ch][ii][jj].re +
@@ -84,7 +84,7 @@ static VOID ixheaacd_mps_est_normalized_envelope(ia_mps_dec_state_struct *self,
     case DOWNMIX_IN:
       ch_offset = self->out_ch_count;
       for (ii = 0; ii < self->time_slots; ii++) {
-        for (jj = 0; jj < self->hyb_band_count; jj++) {
+        for (jj = 0; jj < self->hyb_band_count_max; jj++) {
           slot_energy[ii]
                      [ixheaacd_hybrid_band_71_to_processing_band_20_map[jj]] +=
               self->hyb_in[ch][ii][jj].re * self->hyb_in[ch][ii][jj].re +
@@ -168,7 +168,7 @@ VOID ixheaacd_mps_time_env_shaping(ia_mps_dec_state_struct *self) {
         amp_direct = 0;
         amp_diff = 0;
 
-        for (jj = band_start; jj < self->hyb_band_count; jj++) {
+        for (jj = band_start; jj < self->hyb_band_count_max; jj++) {
           amp_direct += self->hyb_dir_out[ch][time_slot][jj].re *
                             self->hyb_dir_out[ch][time_slot][jj].re +
                         self->hyb_dir_out[ch][time_slot][jj].im *
@@ -184,7 +184,7 @@ VOID ixheaacd_mps_time_env_shaping(ia_mps_dec_state_struct *self) {
 
         ratio = min(max((gain + amp_ratio * (gain - 1)), 1 / LAMDA), LAMDA);
 
-        for (jj = band_start; jj < self->hyb_band_count; jj++) {
+        for (jj = band_start; jj < self->hyb_band_count_max; jj++) {
           self->hyb_dir_out[ch][time_slot][jj].re *= ratio;
           self->hyb_dir_out[ch][time_slot][jj].im *= ratio;
         }
