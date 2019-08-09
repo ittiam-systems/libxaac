@@ -543,6 +543,7 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
         audio_object_type);
 
     ptr_header_data[i]->status = 1;
+    ptr_sbr_dec[i]->band_count = 64;
 
     if (err) {
       return NULL;

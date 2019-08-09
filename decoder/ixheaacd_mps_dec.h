@@ -189,7 +189,6 @@ typedef struct ia_mps_dec_state_struct {
 
   WORD32 time_slots;
   WORD32 present_time_slot;
-  WORD32 frame_len;
 
   WORD32 temp_shape_enable_ch_stp[2];
   WORD32 temp_shape_enable_ch_ges[2];
@@ -197,9 +196,11 @@ typedef struct ia_mps_dec_state_struct {
   FLOAT32 env_shape_data[2][MAX_TIME_SLOTS];
 
   WORD8 parse_nxt_frame;
-
+  WORD32 band_count[MAX_M1_INPUT];
+  WORD32 synth_count;
   WORD32 qmf_band_count;
-  WORD32 hyb_band_count;
+  WORD32 hyb_band_count[MAX_M1_INPUT];
+  WORD32 hyb_band_count_max;
   const WORD32 *hyb_band_to_processing_band_table;
 
   WORD32 res_ch_count;
@@ -341,10 +342,6 @@ VOID ixheaacd_mps_init_pre_and_post_matrix(ia_mps_dec_state_struct *self);
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self);
 WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
 WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
-
-VOID ixheaacd_mps_config(ia_mps_dec_state_struct *self, WORD32 frame_len,
-                         WORD32 residual_coding,
-                         ia_usac_dec_mps_config_struct *mps212_config);
 
 WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
 

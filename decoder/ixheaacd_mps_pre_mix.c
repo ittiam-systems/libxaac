@@ -381,8 +381,9 @@ WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self) {
         self->v[row][ts][qs].im = sum_imag;
       }
     }
-    for (qs = 2; qs < self->hyb_band_count; qs++) {
-      WORD32 sign = 1;
+
+    for (qs = 2; qs < self->hyb_band_count[0]; qs++) {
+	  WORD32 sign = 1;
       WORD32 indx = self->hyb_band_to_processing_band_table[qs];
       for (row = 0; row < (self->dir_sig_count + self->decor_sig_count);
            row++) {
@@ -469,7 +470,7 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
   }
 
   for (ts = 0; ts < self->time_slots; ts++) {
-    for (qs = 0; qs < self->hyb_band_count; qs++) {
+    for (qs = 0; qs < self->hyb_band_count_max; qs++) {
       WORD32 indx = self->hyb_band_to_processing_band_table[qs];
       for (row = 0; row < self->out_ch_count; row++) {
         FLOAT32 sum_re_dir = 0;
@@ -496,24 +497,48 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
   }
 
   if (complex_m2) {
-    for (ts = 0; ts < self->time_slots; ts++) {
-      for (qs = 0; qs < 2; qs++) {
-        WORD32 indx = self->hyb_band_to_processing_band_table[qs];
-        for (row = 0; row < self->out_ch_count; row++) {
-          FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
-          FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
-          FLOAT32 sum_re_diff = self->hyb_diff_out[row][ts][qs].re;
-          FLOAT32 sum_im_diff = self->hyb_diff_out[row][ts][qs].im;
-          for (col = 0; col < (self->dir_sig_count + self->decor_sig_count);
-               col++) {
-            sum_re_dir += self->w_dir[col][ts][qs].im *
-                          self->r_out_im_in_m2[ts][indx][row][col];
-            sum_im_dir -= self->w_dir[col][ts][qs].re *
-                          self->r_out_im_in_m2[ts][indx][row][col];
-            sum_re_diff += self->w_diff[col][ts][qs].im *
-                           self->r_out_diff_im_in_m2[ts][indx][row][col];
-            sum_im_diff -= self->w_diff[col][ts][qs].re *
-                           self->r_out_diff_im_in_m2[ts][indx][row][col];
+    if (phase_interpolation) {
+      for (ts = 0; ts < self->time_slots; ts++) {
+        for (qs = 0; qs < 2; qs++) {
+          WORD32 indx = self->hyb_band_to_processing_band_table[qs];
+          for (row = 0; row < self->out_ch_count; row++) {
+            FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
+            FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
+            for (col = 0; col < num_col_iters; col++) {
+              sum_re_dir += self->w_dir[col][ts][qs].im *
+                            self->r_out_im_in_m2[ts][indx][row][col];
+              sum_im_dir -= self->w_dir[col][ts][qs].re *
+                            self->r_out_im_in_m2[ts][indx][row][col];
+            }
+            self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
+            self->hyb_dir_out[row][ts][qs].im = sum_im_dir;
+            self->hyb_diff_out[row][ts][qs].re +=
+                self->w_diff[1][ts][qs].im *
+                self->r_out_diff_im_in_m2[ts][indx][row][1];
+            self->hyb_diff_out[row][ts][qs].im -=
+                self->w_diff[1][ts][qs].re *
+                self->r_out_diff_im_in_m2[ts][indx][row][1];
+          }
+        }
+        for (qs = 2; qs < self->hyb_band_count_max; qs++) {
+          WORD32 indx = self->hyb_band_to_processing_band_table[qs];
+          for (row = 0; row < self->out_ch_count; row++) {
+            FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
+            FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
+            for (col = 0; col < num_col_iters; col++) {
+              sum_re_dir -= self->w_dir[col][ts][qs].im *
+                            self->r_out_im_in_m2[ts][indx][row][col];
+              sum_im_dir += self->w_dir[col][ts][qs].re *
+                            self->r_out_im_in_m2[ts][indx][row][col];
+            }
+            self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
+            self->hyb_dir_out[row][ts][qs].im = sum_im_dir;
+            self->hyb_diff_out[row][ts][qs].re -=
+                self->w_diff[1][ts][qs].im *
+                self->r_out_diff_im_in_m2[ts][indx][row][1];
+            self->hyb_diff_out[row][ts][qs].im +=
+                self->w_diff[1][ts][qs].re *
+                self->r_out_diff_im_in_m2[ts][indx][row][1];
           }
           self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
           self->hyb_dir_out[row][ts][qs].im = sum_im_dir;
@@ -521,23 +546,40 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
           self->hyb_diff_out[row][ts][qs].im = sum_im_diff;
         }
       }
-      for (qs = 2; qs < self->hyb_band_count; qs++) {
-        WORD32 indx = self->hyb_band_to_processing_band_table[qs];
-        for (row = 0; row < self->out_ch_count; row++) {
-          FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
-          FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
-          FLOAT32 sum_re_diff = self->hyb_diff_out[row][ts][qs].re;
-          FLOAT32 sum_im_diff = self->hyb_diff_out[row][ts][qs].im;
-          for (col = 0; col < (self->dir_sig_count + self->decor_sig_count);
-               col++) {
-            sum_re_dir -= self->w_dir[col][ts][qs].im *
-                          self->r_out_im_in_m2[ts][indx][row][col];
-            sum_im_dir += self->w_dir[col][ts][qs].re *
-                          self->r_out_im_in_m2[ts][indx][row][col];
-            sum_re_diff -= self->w_diff[col][ts][qs].im *
-                           self->r_out_diff_im_in_m2[ts][indx][row][col];
-            sum_im_diff += self->w_diff[col][ts][qs].re *
-                           self->r_out_diff_im_in_m2[ts][indx][row][col];
+    } else {
+      int num_cols = (self->dir_sig_count + self->decor_sig_count) > 1
+                         ? 1
+                         : (self->dir_sig_count + self->decor_sig_count);
+      for (ts = 0; ts < self->time_slots; ts++) {
+        for (qs = 0; qs < 2; qs++) {
+          WORD32 indx = self->hyb_band_to_processing_band_table[qs];
+          for (row = 0; row < self->out_ch_count; row++) {
+            FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
+            FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
+            if (num_cols > 0) {
+              sum_re_dir += self->w_dir[0][ts][qs].im *
+                            self->r_out_im_in_m2[ts][indx][row][0];
+              sum_im_dir -= self->w_dir[0][ts][qs].re *
+                            self->r_out_im_in_m2[ts][indx][row][0];
+            }
+            self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
+            self->hyb_dir_out[row][ts][qs].im = sum_im_dir;
+          }
+        }
+        for (qs = 2; qs < self->hyb_band_count_max; qs++) {
+          WORD32 indx = self->hyb_band_to_processing_band_table[qs];
+          for (row = 0; row < self->out_ch_count; row++) {
+            FLOAT32 sum_re_dir = self->hyb_dir_out[row][ts][qs].re;
+            FLOAT32 sum_im_dir = self->hyb_dir_out[row][ts][qs].im;
+            if (num_cols > 0) {
+              sum_re_dir -= self->w_dir[0][ts][qs].im *
+                            self->r_out_im_in_m2[ts][indx][row][0];
+              sum_im_dir += self->w_dir[0][ts][qs].re *
+                            self->r_out_im_in_m2[ts][indx][row][0];
+            }
+            self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
+            self->hyb_dir_out[row][ts][qs].im = sum_im_dir;
+>>>>>>> 849a504... Optimisation changes in mps apply function
           }
           self->hyb_dir_out[row][ts][qs].re = sum_re_dir;
           self->hyb_dir_out[row][ts][qs].im = sum_im_dir;

@@ -994,10 +994,9 @@ WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
   self->time_slots = self->frame_length;
-  self->frame_len = self->time_slots * self->qmf_band_count;
   self->bs_param_bands = ixheaacd_freq_res_table[self->config->bs_freq_res];
 
-  self->hyb_band_count = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
+  self->hyb_band_count_max = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
 
   switch (self->bs_param_bands) {
     case 4:

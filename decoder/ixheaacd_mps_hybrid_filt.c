@@ -243,7 +243,7 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
     }
   }
 
-  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
+  for (k = 0; k < MAX_NUM_QMF_BANDS_SAC / 2 - lf_qmf_bands; k++) {
     for (n = 0; n < hf_samples_shift; n++) {
       handle->hf_buffer[k][n].re = handle->hf_buffer[k][n + num_samples].re;
       handle->hf_buffer[k][n].im = handle->hf_buffer[k][n + num_samples].im;
