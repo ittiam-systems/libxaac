@@ -28,6 +28,8 @@
 #include "ixheaacd_mps_interface.h"
 
 #include "ixheaacd_mps_polyphase.h"
+#include "ixheaacd_constants.h"
+#include "ixheaacd_basic_ops32.h"
 
 #include "ixheaacd_mps_hybfilter.h"
 
@@ -71,13 +73,14 @@ static VOID ixheaacd_mps_hyb_filt_type1(
         in_re = (WORD32)(input[n + i].re);
         in_im = (WORD32)(input[n + i].im);
 
-        in_re = in_re << shift;
-        in_im = in_im << shift;
+        in_re = ixheaacd_shl32_sat(in_re, shift);
+        in_im = ixheaacd_shl32_sat(in_im, shift);
 
         coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
-        temp = ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30) -
-               ixheaacd_mps_mult32_local(in_im, modulation_fac_im, 30);
+        temp = ixheaacd_sub32_sat(
+            ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30),
+            ixheaacd_mps_mult32_local(in_im, modulation_fac_im, 30));
 
         if (temp >= 1073741823)
           temp = 1073741823;
@@ -87,8 +90,9 @@ static VOID ixheaacd_mps_hyb_filt_type1(
         temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
         acc_re = acc_re + (WORD64)temp;
 
-        temp = ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30) +
-               ixheaacd_mps_mult32_local(in_re, modulation_fac_im, 30);
+        temp = ixheaacd_add32_sat(
+            ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30),
+            ixheaacd_mps_mult32_local(in_re, modulation_fac_im, 30));
 
         if (temp >= 1073741823)
           temp = 1073741823;
@@ -130,8 +134,8 @@ static VOID ixheaacd_mps_hyb_filt_type2(
         in_re = (WORD32)(input[n + i].re);
         in_im = (WORD32)(input[n + i].im);
 
-        in_re = in_re << shift;
-        in_im = in_im << shift;
+        in_re = ixheaacd_shl32_sat(in_re, shift);
+        in_im = ixheaacd_shl32_sat(in_im, shift);
 
         coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
