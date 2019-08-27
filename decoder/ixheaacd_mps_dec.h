@@ -295,7 +295,7 @@ typedef struct ia_mps_dec_state_struct {
 
   WORD32 bs_high_rate_mode;
 
-  WORD32 tmp_buf[84 * MAX_NUM_QMF_BANDS_SAC];
+  FLOAT32 tmp_buf[84 * MAX_NUM_QMF_BANDS_SAC];
 
   FLOAT32 r_out_re_in_m1[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                         [MAX_M_INPUT];

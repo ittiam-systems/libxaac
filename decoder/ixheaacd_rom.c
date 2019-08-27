@@ -453,6 +453,11 @@ const WORD32 ixheaacd_twiddle_table_fft_32x32[514] = {
     0x8009de7e, 0x03242abe, 0x80058d2f, 0x025b26d7, 0x800277a6, 0x01921d1f,
     0x80009dea, 0x00c90f87, 0x80000000, 0x00000000};
 
+const FLOAT32 ixheaacd_twiddle_table_fft_flt[16] = {
+    1.000000f, -0.000000f, 0.980785f, -0.195090f, 0.923880f, -0.382683f,
+    0.831470f, -0.555570f, 0.707107f, -0.707107f, 0.555570f, -0.831470f,
+    0.382683f, -0.923880f, 0.195090f, -0.980785f};
+
 const WORD32 ixheaacd_twiddle_table_3pr[1155] = {
     0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7ffb9d14, 0x7fee74a1,
     0x7fffffff, 0x7fee74a1, 0x7fb9d757, 0x7fffffff, 0x7fd8878c, 0x7f62368e,
@@ -4291,5 +4296,4 @@ const FLOAT32 ixheaacd_dico_lsf_abs_8b_flt[16 * 256] = {
     2437.3232f, 2691.4072f, 3030.3025f, 3524.1379f, 3771.7576f, 4083.2375f,
     4601.1567f, 4963.4697f, 5434.8530f, 5942.8315f};
 
-const WORD8 ixheaacd_mps_dig_rev[16] = {0, 8,  16, 24, 2, 10, 18, 26,
-                                        4, 12, 20, 28, 6, 14, 22, 30};
+const WORD8 ixheaacd_mps_dig_rev[8] = {0, 4, 8, 12, 2, 6, 10, 14};
