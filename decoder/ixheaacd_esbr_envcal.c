@@ -779,6 +779,10 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
     frame_data->var_len_id_prev = 1;
   }
 
+  if ((frame_data->str_frame_info_details.num_noise_env < 1) ||
+      (frame_data->str_frame_info_details.num_noise_env > 2))
+    return IA_FATAL_ERROR;
+
   for (i = 0; i < num_nf_bands; i++) {
     prev_env_noise_level[i] =
         frame_data->flt_noise_floor

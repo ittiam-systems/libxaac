@@ -882,7 +882,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
                          .str_usac_dec_config.preroll_bytes[preroll_counter];
 
         preroll_counter++;
-
+        if (preroll_counter > (MAX_AUDIO_PREROLLS + 1)) return IA_FATAL_ERROR;
         ptr_audio_specific_config->str_usac_config.str_usac_dec_config
             .preroll_counter = preroll_counter;
       } else {

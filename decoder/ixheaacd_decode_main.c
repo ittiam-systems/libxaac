@@ -63,7 +63,7 @@
 #include "ixheaacd_struct.h"
 #include "ixheaacd_create.h"
 #include "ixheaacd_dec_main.h"
-
+#include "ixheaacd_error_standards.h"
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
                           WORD32 pcmsize, FLOAT32 (*out_samples)[4096],
                           WORD32 *out_bytes, WORD32 num_channel_out) {
@@ -128,8 +128,7 @@ static WORD32 ixheaacd_audio_preroll_parsing(ia_dec_data_struct *pstr_dec_data,
   WORD32 num_pre_roll_frames = 0;
 
   WORD32 frame_idx = 0;
-  WORD32 frame_len[18] = {
-      0};  // max of escapedValue(2, 4, 0) i.e. 2^2 -1 + 2^4 -1;
+  WORD32 frame_len[MAX_AUDIO_PREROLLS] = {0};
   WORD32 temp = 0;
 
   WORD32 config_len = 0;
@@ -182,6 +181,8 @@ static WORD32 ixheaacd_audio_preroll_parsing(ia_dec_data_struct *pstr_dec_data,
         val_add = ixheaacd_read_bits_buf(temp_buff, 4);
         num_pre_roll_frames += val_add;
       }
+
+      if (num_pre_roll_frames > MAX_AUDIO_PREROLLS) return IA_FATAL_ERROR;
 
       for (frame_idx = 0; frame_idx < num_pre_roll_frames; frame_idx++) {
         WORD32 au_len = 0;  // escapedValued(16,16,0)
@@ -285,8 +286,8 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         config_len = ixheaacd_audio_preroll_parsing(pstr_dec_data, &config[0],
                                                     &preroll_units,
                                                     &preroll_frame_offset[0]);
-        if (config_len < 0) return -1;
-        if (preroll_units > (WORD)MAX_AUDIO_PREROLLS) return -1;
+
+        if (config_len == IA_FATAL_ERROR) return IA_FATAL_ERROR;
       }
 
       if (config_len != 0) {
