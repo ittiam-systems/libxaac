@@ -196,19 +196,23 @@ void ixheaacd_acelp_imdct(WORD32 *imdct_in, WORD32 npoints, WORD8 *qshift,
 WORD8 ixheaacd_cal_fac_data(ia_usac_data_struct *usac_data, WORD32 i_ch,
                             WORD32 n_long, WORD32 lfac, WORD32 *fac_idata) {
   WORD32 gain_fac, scale, k, *i_aq, itemp = 0, *izir;
-  WORD32 int_aq[ORDER + 1], intzir[2 * LEN_FRAME], x_in[FAC_LENGTH];
+  WORD32 int_aq[ORDER + 1] = {0};
+  WORD32 intzir[2 * LEN_FRAME] = {0};
+  WORD32 x_in[FAC_LENGTH] = {0};
   FLOAT32 gain, ztemp, ftemp, pow10, rem10;
   FLOAT32 qfac1;
-  WORD8 qshift1, qshift2 = 0, qshift3 = 0;
-  WORD32 quo, rem, preshift = 0;
+  WORD8 qshift1 = 0;
+  WORD8 qshift2 = 0;
+  WORD8 qshift3 = 0;
+  WORD32 preshift = 0;
 
   FLOAT32 *last_lpc = usac_data->lpc_prev[i_ch];
   FLOAT32 *acelp_in = usac_data->acelp_in[i_ch];
   WORD32 *fac_data = usac_data->fac_data[i_ch];
   WORD32 *ptr_scratch = &usac_data->scratch_buffer[0];
 
-  quo = fac_data[0] / 28;
-  rem = fac_data[0] % 28;
+  WORD32 quo = fac_data[0] / 28;
+  WORD32 rem = fac_data[0] % 28;
   pow10 = ixheaacd_pow10(quo);
   rem10 = (FLOAT32)ixheaacd_power_10_table[rem];
 
