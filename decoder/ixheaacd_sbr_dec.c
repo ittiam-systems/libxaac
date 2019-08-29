@@ -285,10 +285,6 @@ VOID ixheaacd_esbr_analysis_filt_block(ia_sbr_dec_struct *ptr_sbr_dec,
       ptr_sbr_dec->qmf_buf_imag[op_delay + idx][z] =
           ((FLOAT32)ploc_qmf_buf_imag[z] * gain);
     }
-    for (z = core_syn_ch_index; z < num_columns; z++) {
-      ptr_sbr_dec->qmf_buf_real[op_delay + idx][z] = (FLOAT32)0.0f;
-      ptr_sbr_dec->qmf_buf_imag[op_delay + idx][z] = (FLOAT32)0.0f;
-    }
   }
 
   pstr_qmf_anal_bank->filter_pos_32 = ptr_win_coeffs_1;
@@ -1176,6 +1172,8 @@ WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
 
   if (!mps_sbr_flag) {
     return 0;
+  } else {
+    ptr_frame_data->cov_count = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
   }
 
   no_bins = ptr_header_data->output_framesize / 64;

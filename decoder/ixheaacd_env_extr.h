@@ -74,7 +74,7 @@ typedef struct {
   WORD32 over_sampling_flag;
   WORD32 pitch_in_bins;
   WORD32 pvc_mode;
-
+  WORD32 cov_count;
   WORD32 sbr_invf_mode_prev[MAX_NUM_NOISE_VALUES];
   FLOAT32 flt_env_sf_arr[MAX_NUM_ENVELOPE_VALUES];
   FLOAT32 flt_noise_floor[MAX_NUM_NOISE_VALUES];
