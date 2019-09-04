@@ -52,13 +52,14 @@
 
 #include "ixheaacd_aacdec.h"
 
-static PLATFORM_INLINE WORD32 ixheaacd_mac32_tns(WORD32 a, WORD32 b, WORD32 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_mac32_tns_sat(WORD32 a, WORD32 b,
+                                                     WORD32 c) {
   WORD32 result;
   WORD64 temp_result;
 
   temp_result = (WORD64)a * (WORD64)b;
   result = (WORD32)(temp_result >> 32);
-  result = ixheaacd_add32(c, result);
+  result = ixheaacd_add32_sat(c, result);
   return (result);
 }
 
@@ -225,29 +226,29 @@ VOID ixheaacd_tns_ar_filter_fixed_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   {
     WORD32 temp_lo = 0;
     for (i = 0; i < order; i++) {
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
-        acc = ixheaacd_mac32_tns(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32(y, (acc << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
     }
     temp_lo = 0;
     for (i = order; i < size; i++) {
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       acc = 0;
       for (j = order; j > 0; j--) {
-        acc = ixheaacd_mac32_tns(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32(y, (acc << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -274,15 +275,15 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
   {
     WORD32 temp_lo = 0;
     for (i = 0; i < order; i++) {
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
-        acc = ixheaacd_mac32_tns(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32(y, (acc << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -291,15 +292,15 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
     for (i = order; i < size; i++) {
       WORD64 acc = 0;
       WORD32 acc1;
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
         acc = mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32(y, (acc1 << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc1, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -324,15 +325,15 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
   {
     WORD32 temp_lo = 0;
     for (i = 0; i < order; i++) {
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
-        acc = ixheaacd_mac32_tns(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32(y, (acc << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -341,15 +342,15 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
     for (i = order; i < size; i++) {
       WORD64 acc = 0;
       WORD32 acc1;
-      y = (*spectrum) << scale_spec;
+      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
         acc = ixheaacd_mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32(y, (acc1 << 1));
-      state[0] = ixheaacd_shl32(y, shift_value);
+      y = ixheaacd_sub32(y, ixheaacd_shl32_sat(acc1, 1));
+      state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -394,32 +395,32 @@ VOID ixheaacd_tns_ar_filter_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   }
 
   for (i = 0; i < order; i++) {
-    y = (*spectrum) << scale_spec;
+    y = ixheaacd_shl32_sat((*spectrum), scale_spec);
     acc = 0;
 
     for (j = i; j > 0; j--) {
-      acc = ixheaacd_add32(
+      acc = ixheaacd_add32_sat(
           acc, ixheaacd_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
 
-    y = ixheaacd_sub32(y, (acc << 1));
-    ptr_filter_state[0] = ixheaacd_shl32(y, shift_value);
+    y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+    ptr_filter_state[0] = ixheaacd_shl32_sat(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }
 
   for (i = order; i < size; i++) {
-    y = (*spectrum) << scale_spec;
+    y = ixheaacd_shl32_sat((*spectrum), scale_spec);
     acc = 0;
     for (j = order; j > 0; j--) {
-      acc = ixheaacd_add32(
+      acc = ixheaacd_add32_sat(
           acc, ixheaacd_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
 
-    y = ixheaacd_sub32(y, (acc << 1));
-    ptr_filter_state[0] = ixheaacd_shl32(y, shift_value);
+    y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
+    ptr_filter_state[0] = ixheaacd_shl32_sat(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }

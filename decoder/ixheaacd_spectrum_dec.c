@@ -243,8 +243,10 @@ VOID ixheaacd_section_data(ia_usac_data_struct *usac_data,
   WORD32 is_1_group = 1;
 
   WORD32 bb = 0, i;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next = g_bs->ptr_read_next + 4;
+  WORD32 increment;
+  WORD32 read_word =
+      ixheaacd_aac_showbits_32(ptr_read_next, g_bs->cnt_bits, &increment);
+  ptr_read_next = g_bs->ptr_read_next + increment;
 
   trans_sfb = info->sfb_per_sbk;
   temp_ptr_scale_fac = factors;
@@ -278,7 +280,8 @@ VOID ixheaacd_section_data(ia_usac_data_struct *usac_data,
         ixheaacd_huffman_decode(read_word1, &index, &length, hscf, idx_tab);
 
         bit_pos += length;
-        ixheaacd_aac_read_2bytes(&ptr_read_next, &bit_pos, &read_word);
+        ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                                     g_bs->ptr_bit_buf_end);
         norm_val = index - 60;
 
         if (cb_num > NOISE_HCB) {
@@ -312,8 +315,11 @@ VOID ixheaacd_section_data(ia_usac_data_struct *usac_data,
       }
     }
   }
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               g_bs->ptr_bit_buf_end);
 
-  g_bs->ptr_read_next = ptr_read_next - 4;
+  g_bs->ptr_read_next = ptr_read_next;
 
   g_bs->bit_pos = 7 - bit_pos;
   {

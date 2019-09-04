@@ -49,7 +49,7 @@ ixheaacd_post_twiddle_armv8:
 
 ARM_PROLOGUE:
     CMP             w3, #0x400
-    LDR             x21, =7500
+    MOV             x21, #7500
     ADD             x2, x2, x21
     BLT             NEXT
     MOV             w4, #50

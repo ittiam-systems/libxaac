@@ -99,6 +99,11 @@
 
 #define LEFT_OFFSET 12
 
+#define ixheaacd_bitbuf_checkpoint(it_bit_buf, saved_bit_buf) \
+  (saved_bit_buf) = (it_bit_buf)
+#define ixheaacd_bitbuf_restore(it_bit_buf, saved_bit_buf) \
+  (it_bit_buf) = (saved_bit_buf)
+
 static int ixheaacd_rvlc_decode(short cw, int len, int *found) {
   short indx = 0;
   *found = 0;
@@ -526,7 +531,7 @@ static VOID ixheaacd_rvlc_decode_forward(
 
   WORD16 dpcm;
 
-  ia_bit_buf_struct temp_buf;
+  ia_bit_buf_struct temp_buf = {0};
 
   WORD16 factor = ptr_aac_dec_channel_info->global_gain;
   WORD16 position = 0;
@@ -950,7 +955,7 @@ VOID ixheaacd_hcr_read(ia_bit_buf_struct *it_bit_buff,
   }
 }
 
-static VOID ixheaacd_rvlc_init(
+static WORD32 ixheaacd_rvlc_init(
     ia_rvlc_info_struct *ptr_rvlc,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_bit_buf_struct *it_bit_buff) {
@@ -1001,6 +1006,10 @@ static VOID ixheaacd_rvlc_init(
         ((it_bit_buff->size - it_bit_buff->cnt_bits) >> 3);
     it_bit_buff->bit_pos = ((it_bit_buff->size - it_bit_buff->cnt_bits) & 7);
   }
+  if (it_bit_buff->cnt_bits < 0) {
+    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+  } else
+    return 0;
 }
 
 VOID ixheaacd_bi_dir_est_scf_prev_frame_reference(
@@ -1276,8 +1285,8 @@ VOID ixheaacd_bi_dir_est_lower_scf_cur_frame(
   conceal_group_max = ptr_rvlc->conceal_max / max_scf_bands;
 
   if (ptr_rvlc->conceal_min == ptr_rvlc->conceal_max) {
-    WORD32 ref_fwd, ref_nrg_fwd, ref_scf_fwd;
-    WORD32 ref_bwd, ref_nrg_bwd, ref_scf_bwd;
+    WORD32 ref_fwd = 0, ref_nrg_fwd = 0, ref_scf_fwd = 0;
+    WORD32 ref_bwd = 0, ref_nrg_bwd = 0, ref_scf_bwd = 0;
 
     bnds = ptr_rvlc->conceal_min;
     ixheaacd_calc_ref_val_fwd(ptr_rvlc, ptr_aac_dec_channel_info, &ref_fwd,
@@ -1734,17 +1743,18 @@ static VOID ixheaacd_rvlc_final_error_detection(
   }
 }
 
-VOID ixheaacd_rvlc_dec(ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
-                       ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info,
-                       ia_bit_buf_struct *it_bit_buff) {
+IA_ERRORCODE ixheaacd_rvlc_dec(
+    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
+    ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info,
+    ia_bit_buf_struct *it_bit_buff) {
   ia_rvlc_info_struct *ptr_rvlc = &ptr_aac_dec_channel_info->ptr_rvlc_info;
-  WORD32 bit_cnt_offset;
-  UWORD32 save_bit_cnt;
+  ia_bit_buf_struct saved_it_bit_buff;
+  IA_ERRORCODE error_code = 0;
+  error_code =
+      ixheaacd_rvlc_init(ptr_rvlc, ptr_aac_dec_channel_info, it_bit_buff);
+  if (error_code) return error_code;
 
-  ixheaacd_rvlc_init(ptr_rvlc, ptr_aac_dec_channel_info, it_bit_buff);
-
-  save_bit_cnt = it_bit_buff->cnt_bits;
-
+  ixheaacd_bitbuf_checkpoint(*it_bit_buff, saved_it_bit_buff);
   if (ptr_rvlc->sf_esc_present)
     ixheaacd_rvlc_decode_escape(
         ptr_rvlc, ptr_aac_dec_channel_info->rvlc_scf_esc_arr, it_bit_buff);
@@ -1758,12 +1768,6 @@ VOID ixheaacd_rvlc_dec(ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
   ptr_aac_dec_channel_info->rvlc_intensity_used = ptr_rvlc->intensity_used;
   ptr_aac_dec_channel_info->str_pns_info.pns_active = ptr_rvlc->noise_used;
 
-  bit_cnt_offset = it_bit_buff->cnt_bits - save_bit_cnt;
-  if (bit_cnt_offset) {
-    it_bit_buff->cnt_bits -= bit_cnt_offset;
-    it_bit_buff->ptr_read_next =
-        it_bit_buff->ptr_bit_buf_base +
-        ((it_bit_buff->size - it_bit_buff->cnt_bits) >> 3);
-    it_bit_buff->bit_pos = ((it_bit_buff->size - it_bit_buff->cnt_bits) & 7);
-  }
+  ixheaacd_bitbuf_restore(*it_bit_buff, saved_it_bit_buff);
+  return error_code;
 }

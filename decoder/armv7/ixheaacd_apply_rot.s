@@ -25,7 +25,7 @@
 
 ixheaacd_apply_rot_armv7:
     STMFD           SP!, {R4-R12, R14}
-    LDR             R5, =0x59e
+    MOVW            R5, #0x59e
     MOV             R4, #22
     ADD             R11, R0, R5
 LOOP1:
@@ -70,7 +70,7 @@ LOOP1:
 
     BGT             LOOP1
 
-    LDR             R4, =0x53C
+    MOVW            R4, #0x53C
     LDR             R12, [R0, #44]
     ADD             R11, R0, R4
     MOV             R4, #10
@@ -116,8 +116,8 @@ LOOP2:
 
     BGT             LOOP2
 
-    LDR             R11, =0x6c2
-    LDR             R5, =0x564
+    MOVW            R11, #0x6c2
+    MOVW            R5, #0x564
     LDRSH           R14, [R0, R11]
     ADD             R11, R0, R5
     LDR             R5, [SP, #44]

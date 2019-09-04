@@ -33,13 +33,13 @@ ixheaacd_imdct_using_fft_armv7:
 @    LDR         r6, [sp, #0x68+8]
 @    LDR         r7, [sp, #0x68+12]
 
-    LDR             r8, =11600
+    MOVW            r8, #11600
     ADD             r4, r0, r8
-    LDR             r8, =11856
+    MOVW            r8, #11856
     ADD             r5, r0, r8
-    LDR             r8, =11920
+    MOVW            r8, #11920
     ADD             r6, r0, r8
-    LDR             r8, =11936
+    MOVW            r8, #11936
     ADD             r7, r0, r8
 
 
@@ -278,7 +278,7 @@ RADIX_8_FIRST_LOOP:
     VUZP.16         d28, d29
     VADD.S32        q4, q8, q7
 
-    LDR             r14, =0x5a82
+    MOVW            r14, #0x5a82
 
     VSUB.S32        q11, q8, q7
 
@@ -615,7 +615,7 @@ RADIX_4_FIRST_ENDS:
 
     PUSH            {r3}
     LSR             r5, r5, #2
-    LDR             r14, =8528
+    MOVW            r14, #8528
     ADD             r0, r0, r14
 
 OUTER_LOOP_R4:

@@ -66,7 +66,7 @@
 #include "ixheaacd_env_dec.h"
 #include "ixheaacd_basic_funcs.h"
 #include "ixheaacd_sbr_crc.h"
-
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_sbrqmftrans.h"
 
 #include "ixheaacd_audioobjtypes.h"

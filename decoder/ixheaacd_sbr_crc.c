@@ -69,7 +69,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_sbr_crc(ia_bit_buf_struct* it_bit_buff,
 
 FLAG ixheaacd_sbr_crccheck(ia_bit_buf_struct* it_bit_buff,
                            WORD32 crc_bits_len) {
-  struct ia_bit_buf_struct it_bit_buff_local;
+  struct ia_bit_buf_struct it_bit_buff_local = {0};
   WORD32 num_crc_bits;
   WORD32 calc_crc_sum;
   WORD32 bits_available;

@@ -74,7 +74,7 @@ VOID ixheaacd_lt_prediction(
 
       for (i = 0; i < num_samples; i++) {
         in_data[i] =
-            ixheaacd_shr32(ixheaacd_mult32x16in32_shl(
+            ixheaacd_shr32(ixheaacd_mult32x16in32_shl_sat(
                                ixheaacd_codebook_Q30[ltp->coef],
                                lt_pred_stat[num_samples + i - ltp->lag]),
                            SHIFT_VAL);
@@ -93,8 +93,8 @@ VOID ixheaacd_lt_prediction(
         if (ltp->long_used[sfb]) {
           for (bin = sfb_width - 1; bin >= 0; bin--) {
             WORD32 temp = *ptr_spec;
-            temp += ixheaacd_shr32(*ptr_x_est++, SHIFT_VAL1);
-
+            temp = ixheaacd_add32_sat(temp,
+                                      ixheaacd_shr32(*ptr_x_est++, SHIFT_VAL1));
             *ptr_spec++ = temp;
           }
         } else {

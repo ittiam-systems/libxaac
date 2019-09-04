@@ -19,6 +19,7 @@
 */
 #include <stdlib.h>
 #include <ixheaacd_type_def.h>
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_constants.h"
 #include <ixheaacd_basic_ops32.h>
 #include <ixheaacd_basic_ops16.h>
@@ -153,21 +154,18 @@ WORD32 ixheaacd_read_prog_config_element(
     struct ia_bit_buf_struct *it_bit_buff) {
   WORD32 i, tmp;
   WORD count = 0, num_ch = 0;
-  WORD32 object_type;
 
   tmp = ixheaacd_read_bits_buf(it_bit_buff, 6);
 
   ptr_config_element->element_instance_tag = (tmp >> 2);
   ptr_config_element->object_type = tmp & 0x3;
 
-  object_type = 0;
-
   if ((ptr_config_element->object_type + 1) != 2
 
       && (ptr_config_element->object_type + 1) != 4
 
       ) {
-    object_type = IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+    return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
   }
 
   ptr_config_element->samp_freq_index = ixheaacd_read_bits_buf(it_bit_buff, 4);
@@ -236,7 +234,7 @@ WORD32 ixheaacd_read_prog_config_element(
 
   ixheaacd_skip_bits(it_bit_buff, 8, tmp);
 
-  return object_type;
+  return 0;
 }
 
 WORD ixheaacd_decode_pce(struct ia_bit_buf_struct *it_bit_buff,
@@ -245,9 +243,10 @@ WORD ixheaacd_decode_pce(struct ia_bit_buf_struct *it_bit_buff,
   WORD32 error_code = 0;
 
   if (*ui_pce_found_in_hdr == 1 || *ui_pce_found_in_hdr == 3) {
-    ia_program_config_struct ptr_config_element;
+    ia_program_config_struct ptr_config_element = {0};
     ptr_config_element.alignment_bits = ptr_prog_config->alignment_bits;
-    ixheaacd_read_prog_config_element(&ptr_config_element, it_bit_buff);
+    error_code =
+        ixheaacd_read_prog_config_element(&ptr_config_element, it_bit_buff);
     *ui_pce_found_in_hdr = 3;
   } else {
     error_code =
@@ -494,6 +493,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
   memset(aac_state_struct->ia_audio_specific_config, 0,
          sizeof(ia_audio_specific_config_struct));
 
+  memset(&(aac_state_struct->eld_specific_config), 0,
+         sizeof(ia_eld_specific_config_struct));
+
   pstr_audio_specific_config = aac_state_struct->ia_audio_specific_config;
 
   aac_state_struct->p_config->str_prog_config.alignment_bits =
@@ -539,11 +541,12 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
         ixheaacd_read_bits_buf(it_bit_buff, 5);
   }
 
-  if ((aac_state_struct->audio_object_type >= AOT_AAC_MAIN ||
-       aac_state_struct->audio_object_type <= AOT_AAC_LTP ||
+  if (((aac_state_struct->audio_object_type >= AOT_AAC_MAIN &&
+        aac_state_struct->audio_object_type <= AOT_AAC_LTP) ||
        aac_state_struct->audio_object_type == AOT_AAC_SCAL ||
        aac_state_struct->audio_object_type == AOT_TWIN_VQ ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LD ||
+       aac_state_struct->audio_object_type == AOT_ER_AAC_ELD ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LC) &&
       aac_state_struct->audio_object_type != AOT_USAC)
 
@@ -610,6 +613,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
                           &(pstr_audio_specific_config->channel_configuration));
     if (err != 0) return err;
 
+    pstr_audio_specific_config->sampling_frequency =
+        pstr_audio_specific_config->str_usac_config.usac_sampling_frequency;
+
     if (pstr_audio_specific_config->audio_object_type == AOT_USAC) {
       pstr_audio_specific_config->sbr_present_flag = 1;
       pstr_audio_specific_config->ext_audio_object_type = AOT_SBR;
@@ -635,54 +641,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 }
 
 {
-  WORD32 write_flag = 0;
-  WORD32 system_flag = 1;
-  WORD32 len;
-
-  if (system_flag) {
-    if (write_flag == 0) {
-      if ((SIZE_T)it_bit_buff->ptr_read_next ==
-          (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
-        len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                 (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                1)
-               << 3) -
-              (SIZE_T)it_bit_buff->size;
-      } else {
-        len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                 (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                1)
-               << 3) -
-              (((((SIZE_T)it_bit_buff->ptr_read_next -
-                  (SIZE_T)it_bit_buff->ptr_bit_buf_base))
-                << 3) +
-               7 - it_bit_buff->bit_pos);
-      }
-      if (len > 0) {
-        if ((SIZE_T)it_bit_buff->ptr_read_next ==
-            (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
-          len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                   (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                  1)
-                 << 3) -
-                (SIZE_T)it_bit_buff->size - 0;
-        } else {
-          len = ((((SIZE_T)it_bit_buff->ptr_bit_buf_end -
-                   (SIZE_T)it_bit_buff->ptr_bit_buf_base) +
-                  1)
-                 << 3) -
-                ((((((SIZE_T)it_bit_buff->ptr_read_next -
-                     (SIZE_T)it_bit_buff->ptr_bit_buf_base))
-                   << 3) +
-                  7 - it_bit_buff->bit_pos) -
-                 0);
-        }
-        if (len > 0) {
-          dummy = ixheaacd_read_bits_buf(it_bit_buff, len);
-        }
-      }
-    }
-  }
+  dummy = ixheaacd_skip_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
 
   if ((SIZE_T)it_bit_buff->ptr_read_next ==
       (SIZE_T)it_bit_buff->ptr_bit_buf_base) {
@@ -924,7 +883,7 @@ IA_ERRORCODE ixheaacd_latm_header_decode(
         result = ixheaacd_latm_audio_mux_element(
             it_bit_buff, &latm_struct_element, aac_state_struct,
             pstr_samp_rate_info);
-        if (result < 0) {
+        if (result != 0) {
           sync_status = 0;
           aac_state_struct->sync_status = sync_status;
 
@@ -941,9 +900,9 @@ WORD32 ixheaacd_aac_headerdecode(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, UWORD8 *buffer,
     WORD32 *bytes_consumed,
     const ia_aac_dec_huffman_tables_struct *pstr_huffmann_tables) {
-  struct ia_bit_buf_struct it_bit_buff, *handle_bit_buff;
-  ia_adif_header_struct adif;
-  ia_adts_header_struct adts;
+  struct ia_bit_buf_struct it_bit_buff = {0}, *handle_bit_buff;
+  ia_adif_header_struct adif = {0};
+  ia_adts_header_struct adts = {0};
   WORD32 result;
   WORD32 header_len;
   WORD32 sync = 0;
@@ -970,6 +929,7 @@ WORD32 ixheaacd_aac_headerdecode(
   handle_bit_buff = ixheaacd_create_bit_buf(&it_bit_buff, (UWORD8 *)buffer,
                                             (WORD16)header_len);
   handle_bit_buff->cnt_bits += (header_len << 3);
+  handle_bit_buff->xaac_jmp_buf = &aac_state_struct->xaac_jmp_buf;
 
   if (is_ga_header == 1) {
     return ixheaacd_ga_hdr_dec(aac_state_struct, header_len, bytes_consumed,
@@ -1033,7 +993,7 @@ WORD32 ixheaacd_aac_headerdecode(
 
         if ((adts.aac_frame_length + ADTS_HEADER_LENGTH) <
             (header_len - bytes_taken)) {
-          ia_adts_header_struct adts_loc;
+          ia_adts_header_struct adts_loc = {0};
 
           handle_bit_buff = ixheaacd_create_init_bit_buf(
               &it_bit_buff, (UWORD8 *)(buffer + adts.aac_frame_length),
@@ -1084,7 +1044,11 @@ WORD32 ixheaacd_aac_headerdecode(
             bytes_taken += *bytes_consumed;
             *bytes_consumed = bytes_taken;
             return result;
-          } else
+          } else if (result == -1)
+            return -1;
+          else if (result == (WORD32)IA_FATAL_ERROR)
+            return IA_FATAL_ERROR;
+          else
             bytes_taken += *bytes_consumed - 1;
           continue;
         }
@@ -1106,6 +1070,22 @@ WORD32 ixheaacd_aac_headerdecode(
       if (err_code == 0) p_obj_exhaacplus_dec->aac_config.ui_mp4_flag = 1;
       return err_code;
     }
+
+    switch (aac_state_struct->audio_object_type) {
+        case AOT_AAC_MAIN:
+        case AOT_AAC_LC:
+        case AOT_AAC_SSR:
+        case AOT_AAC_LTP:
+        case AOT_AAC_SCAL:
+        case AOT_TWIN_VQ:
+        case AOT_ER_AAC_LD:
+        case AOT_ER_AAC_ELD:
+        case AOT_ER_AAC_LC:
+        case AOT_USAC:
+          break;
+        default:
+          return IA_ENHAACPLUS_DEC_INIT_FATAL_AUDIOOBJECTTYPE_NOT_SUPPORTED;
+      }
 
     if (aac_state_struct->audio_object_type != AOT_USAC)
       aac_state_struct->usac_flag = 0;

@@ -28,8 +28,8 @@ ixheaacd_conv_ergtoamplitudelp_armv7:
 
     LDR             R5, [SP, #44]
     LDR             R4, [SP, #40]
-    LDR             R11, =0x5A82
-    LDR             R10, =0x1FF
+    MOVW            R11, #0x5A82
+    MOVW            R10, #0x1FF
 
 LOOP1:
 

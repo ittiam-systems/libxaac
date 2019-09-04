@@ -430,7 +430,7 @@ typedef struct {
   WORD32 method_def;
   FLOAT32 method_val;
   WORD32 measurement_system;
-  WORD32 reliability;
+  WORD32 reliability; /* Parsed but unused */
 } ia_loudness_measure_struct;
 
 typedef struct {

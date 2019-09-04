@@ -170,27 +170,26 @@ impd_drc_uni_sel_proc_process(
       for (i = SUB_DRC_COUNT - 1; i >= 0; i--) {
         WORD32 drc_instructions_index =
             pstr_drc_uni_sel_proc->drc_instructions_index[i];
-        ia_drc_instructions_struct str_drc_instruction_str;
+        if (drc_instructions_index < 0) continue;
 
-        str_drc_instruction_str =
-            pstr_drc_uni_sel_proc->drc_config
-                .str_drc_instruction_str[drc_instructions_index];
+        ia_drc_instructions_struct* str_drc_instruction_str =
+            &(pstr_drc_uni_sel_proc->drc_config
+                  .str_drc_instruction_str[drc_instructions_index]);
 
-        if (drc_instructions_index >= 0 &&
-            str_drc_instruction_str.drc_set_id > 0) {
+        if (str_drc_instruction_str->drc_set_id > 0) {
           pstr_drc_uni_sel_proc->uni_drc_sel_proc_output
               .sel_drc_set_ids[activeDrcSetIndex] =
-              str_drc_instruction_str.drc_set_id;
+              str_drc_instruction_str->drc_set_id;
 
-          if ((i == 3) && (str_drc_instruction_str.drc_set_effect &
+          if ((i == 3) && (str_drc_instruction_str->drc_set_effect &
                            (EFFECT_BIT_DUCK_SELF | EFFECT_BIT_DUCK_OTHER))) {
             pstr_drc_uni_sel_proc->uni_drc_sel_proc_output
                 .sel_downmix_ids[activeDrcSetIndex] = 0;
           } else {
-            if (str_drc_instruction_str.drc_apply_to_dwnmix == 1) {
+            if (str_drc_instruction_str->drc_apply_to_dwnmix == 1) {
               pstr_drc_uni_sel_proc->uni_drc_sel_proc_output
                   .sel_downmix_ids[activeDrcSetIndex] =
-                  str_drc_instruction_str.downmix_id[0];
+                  str_drc_instruction_str->downmix_id[0];
             } else {
               pstr_drc_uni_sel_proc->uni_drc_sel_proc_output
                   .sel_downmix_ids[activeDrcSetIndex] = 0;
@@ -235,10 +234,12 @@ impd_drc_uni_sel_proc_process(
             .loudness_norm_gain_modification_db;
   }
   for (i = 0; i < 2; i++) {
-    pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_eq_set_ids[i] =
-        pstr_drc_uni_sel_proc->drc_config.str_drc_config_ext
-            .str_eq_instructions[pstr_drc_uni_sel_proc->eq_inst_index[i]]
-            .eq_set_id;
+    if (pstr_drc_uni_sel_proc->eq_inst_index[i] >= 0) {
+      pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_eq_set_ids[i] =
+          pstr_drc_uni_sel_proc->drc_config.str_drc_config_ext
+              .str_eq_instructions[pstr_drc_uni_sel_proc->eq_inst_index[i]]
+              .eq_set_id;
+    }
   }
   if (pstr_drc_uni_sel_proc->loud_eq_inst_index_sel >= 0) {
     pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_loud_eq_id =
@@ -695,7 +696,7 @@ WORD32 impd_manage_drc_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
       &pstr_drc_uni_sel_proc->uni_drc_sel_proc_params;
 
   impd_select_drc_coeff3(pstr_drc_config, &str_p_loc_drc_coefficients_uni_drc);
-
+  if (str_p_loc_drc_coefficients_uni_drc == NULL) return UNEXPECTED_ERROR;
   for (i = 0; i < pstr_drc_config->drc_instructions_uni_drc_count; i++) {
     str_drc_instruction_str = &pstr_drc_config->str_drc_instruction_str[i];
     if (str_drc_instruction_str->no_independent_use) continue;
@@ -899,6 +900,8 @@ WORD32 impd_manage_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
       (FLOAT32)(pow(2.0f, pstr_drc_uni_sel_proc->compl_level_supported_total));
 
   impd_select_drc_coeff3(pstr_drc_config, &str_p_loc_drc_coefficients_uni_drc);
+
+  if (str_p_loc_drc_coefficients_uni_drc == NULL) return UNEXPECTED_ERROR;
 
   for (p = 0; p < 4; p++) {
     if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_drc_set_ids[p] <= 0)

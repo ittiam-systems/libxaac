@@ -133,11 +133,11 @@ VOID ixheaacd_fftposttw(WORD32 *out,
     temp[3] = *ptr_out_rev--;
     temp[2] = *ptr_out_rev++;
 
-    in2 = temp[3] - temp[1];
-    in1 = temp[3] + temp[1];
+    in2 = ixheaacd_sub32_sat(temp[3], temp[1]);
+    in1 = ixheaacd_add32_sat(temp[3], temp[1]);
 
-    temp[1] = temp[0] - temp[2];
-    temp[3] = temp[0] + temp[2];
+    temp[1] = ixheaacd_sub32_sat(temp[0], temp[2]);
+    temp[3] = ixheaacd_add32_sat(temp[0], temp[2]);
 
     twid_re = *twidle_fwd++;
     twid_im = *twidle_rev--;
@@ -148,11 +148,11 @@ VOID ixheaacd_fftposttw(WORD32 *out,
     val1 = val1 << 1;
     val2 = val2 << 1;
 
-    *p_out_fwd++ = temp[3] + val1;
-    *p_out_fwd++ = in2 + val2;
+    *p_out_fwd++ = ixheaacd_add32_sat(temp[3], val1);
+    *p_out_fwd++ = ixheaacd_add32_sat(in2, val2);
 
-    *ptr_out_rev-- = -in2 + val2;
-    *ptr_out_rev-- = temp[3] - val1;
+    *ptr_out_rev-- = ixheaacd_sub32_sat(val2, in2);
+    *ptr_out_rev-- = ixheaacd_sub32_sat(temp[3], val1);
   }
 
   return;
@@ -172,12 +172,13 @@ VOID ixheaacd_posttwdct2(WORD32 *inp, WORD16 *out_fwd,
   out_fwd2 = out_fwd + 65;
   out_re = *inp++;
   out_im = *inp++;
-  out_re1 = (out_re + out_im) >> 1;
+  out_re1 =
+      ixheaacd_sat64_32(ixheaacd_add64((WORD64)out_re, (WORD64)out_im) >> 1);
   re1 = ixheaacd_round16(ixheaacd_shl32(out_re1, (5 - 1)));
 
   *out_fwd++ = re1;
 
-  last_val = (out_re - out_im);
+  last_val = ixheaacd_sub32_sat(out_re, out_im);
 
   twidle_fwd = qmf_dec_tables_ptr->dct23_tw + 2;
   for (k = DCT2_LEN / 2 - 2; k >= 0; k--) {
@@ -186,10 +187,10 @@ VOID ixheaacd_posttwdct2(WORD32 *inp, WORD16 *out_fwd,
 
     twid_re = *twidle_fwd++;
     twid_im = *twidle_fwd++;
-    out_re = ixheaacd_sub32(ixheaacd_mult32x16in32(inp_re, twid_re),
-                            ixheaacd_mult32x16in32(inp_im, twid_im));
-    out_im = ixheaacd_add32(ixheaacd_mult32x16in32(inp_im, twid_re),
-                            ixheaacd_mult32x16in32(inp_re, twid_im));
+    out_re = ixheaacd_sub32_sat(ixheaacd_mult32x16in32(inp_re, twid_re),
+                                ixheaacd_mult32x16in32(inp_im, twid_im));
+    out_im = ixheaacd_add32_sat(ixheaacd_mult32x16in32(inp_im, twid_re),
+                                ixheaacd_mult32x16in32(inp_re, twid_im));
     re1 = ixheaacd_round16(ixheaacd_shl32(out_re, (5 - 1)));
     im1 = ixheaacd_round16(ixheaacd_shl32(out_im, (5 - 1)));
     im2 = ixheaacd_negate16(im1);
@@ -238,11 +239,11 @@ static PLATFORM_INLINE VOID ixheaacd_fftposttw_32(
     temp3 = *ptr_out_rev--;
     temp2 = *ptr_out_rev++;
 
-    in1 = temp1 + temp3;
-    in2 = -temp1 + temp3;
+    in1 = ixheaacd_add32_sat(temp1, temp3);
+    in2 = ixheaacd_sub32_sat(temp3, temp1);
 
-    temp1 = temp0 - temp2;
-    temp3 = temp0 + temp2;
+    temp1 = ixheaacd_sub32_sat(temp0, temp2);
+    temp3 = ixheaacd_add32_sat(temp0, temp2);
 
     twid_re = *twidle_fwd;
     twidle_fwd += 2;
@@ -258,11 +259,11 @@ static PLATFORM_INLINE VOID ixheaacd_fftposttw_32(
     val1 = val1 << 1;
     val2 = val2 << 1;
 
-    *ptr_out_fwd++ = temp3 + val1;
-    *ptr_out_fwd++ = in2 + val2;
+    *ptr_out_fwd++ = ixheaacd_add32_sat(temp3, val1);
+    *ptr_out_fwd++ = ixheaacd_add32_sat(in2, val2);
 
-    *ptr_out_rev-- = -in2 + val2;
-    *ptr_out_rev-- = temp3 - val1;
+    *ptr_out_rev-- = ixheaacd_sub32_sat(val2, in2);
+    *ptr_out_rev-- = ixheaacd_sub32_sat(temp3, val1);
   }
 
   return;
@@ -287,10 +288,11 @@ ixheaacd_posttwdct2_32(WORD32 *inp, WORD16 *out_fwd,
   out_re = *inp++;
   out_im = *inp++;
 
-  out_re1 = (out_re + out_im) >> 1;
+  out_re1 =
+      ixheaacd_sat64_32(ixheaacd_add64((WORD64)out_re, (WORD64)out_im) >> 1);
   re1 = ixheaacd_round16(ixheaacd_shl32_sat(out_re1, (5 - 1)));
   *out_fwd++ = re1;
-  last_val = (out_re - out_im);
+  last_val = ixheaacd_sub32_sat(out_re, out_im);
 
   twidle_fwd = qmf_dec_tables_ptr->dct23_tw + 4;
   for (k = 14; k >= 0; k--) {
@@ -305,8 +307,8 @@ ixheaacd_posttwdct2_32(WORD32 *inp, WORD16 *out_fwd,
 
     inp_re = *inp++;
 
-    out_re = ixheaacd_sub32(temp1, ixheaacd_mult32x16in32(inp_re, twid_im));
-    out_im = ixheaacd_add32(ixheaacd_mult32x16in32(inp_re, twid_re), temp2);
+    out_re = ixheaacd_sub32_sat(temp1, ixheaacd_mult32x16in32(inp_re, twid_im));
+    out_im = ixheaacd_add32_sat(ixheaacd_mult32x16in32(inp_re, twid_re), temp2);
 
     out_re = ixheaacd_add32_sat(out_re, out_re);
     out_im = ixheaacd_add32_sat(out_im, out_im);

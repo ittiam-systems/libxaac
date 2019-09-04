@@ -20,7 +20,7 @@
 #ifndef IA_EAACP_DEC_MUTLCHANNEL_H
 #define IA_EAACP_DEC_MUTLCHANNEL_H
 
-WORD16 ixheaacd_dec_coupling_channel_element(
+IA_ERRORCODE ixheaacd_dec_coupling_channel_element(
     ia_handle_bit_buf_struct bs, ia_aac_decoder_struct *aac_handle,
     WORD32 sample_rate_idx, ia_aac_dec_tables_struct *ptr_aac_tables,
     ixheaacd_misc_tables *common_tables_ptr, WORD *element_index_order,

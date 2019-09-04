@@ -133,8 +133,11 @@ cc_library_static {
         misc_undefined: [
             "unsigned-integer-overflow",
             "signed-integer-overflow",
+            "bounds",
         ],
-        cfi: true,
+        // Enable CFI if this becomes a shared library.
+        // cfi: true,
+        blacklist: "libxaac_blacklist.txt",
     },
 
     arch: {

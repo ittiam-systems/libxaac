@@ -1138,9 +1138,15 @@ VOID ixheaacd_read_env_data(ia_sbr_frame_info_data_struct *ptr_frame_data,
     }
 
     for (i = (1 - dtdf_dir_flag); i < no_band[j]; i++) {
-      readword = ixheaacd_show_bits_buf(it_bit_buff, 20);
-      ixheaacd_huffman_decode(readword << 12, &index, &length,
-                              (const UWORD16 *)h, (const UWORD32 *)idx_tab);
+      if (it_bit_buff->cnt_bits < 20) {
+        readword = ixheaacd_show_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+        readword = readword << (32 - it_bit_buff->cnt_bits);
+      } else {
+        readword = ixheaacd_show_bits_buf(it_bit_buff, 20);
+        readword = readword << 12;
+      }
+      ixheaacd_huffman_decode(readword, &index, &length, (const UWORD16 *)h,
+                              (const UWORD32 *)idx_tab);
       delta = index - lav;
       ixheaacd_read_bits_buf(it_bit_buff, length);
       p_sbr_sf[ixheaacd_drc_offset + i] =
@@ -1328,7 +1334,7 @@ int ixheaacd_extract_frame_info_ld(
   WORD16 time_border[MAX_ENVELOPES + 1];
   WORD16 time_border_noise[2 + 1];
   WORD16 f[MAX_ENVELOPES + 1];
-  int rel_bord_lead[7] ={0};
+  int rel_bord_lead[7] = {0};
 
   ia_frame_info_struct *v_frame_info = &h_frame_data->str_frame_info_details;
 
@@ -1354,6 +1360,9 @@ int ixheaacd_extract_frame_info_ld(
       bs_transient_position =
           ixheaacd_read_bits_buf(it_bit_buff, SBR_TRAN_BITS);
       v_frame_info->frame_class = 0;
+      if ((numTimeSlots != 16) && (bs_transient_position >= LD_ENV_TBL_480)) {
+        return -1;
+      }
       bs_num_env = (numTimeSlots == 16)
                        ? ixheaacd_ld_env_table_512[bs_transient_position]
                                                   [SBR_ENVT_NUMENV]

@@ -23,6 +23,12 @@
 
 #define MAX_SFB 51
 #define MAX_LTP_SFB 40
+#define MAX_LTP_SFB_SR_FIVE_PLUS_480 31
+#define MAX_LTP_SFB_SR_FIVE_480 38
+#define MAX_LTP_SFB_SR_FIVE_LESS_480 36
+#define MAX_LTP_SFB_SR_FIVE_PLUS_512 32
+#define MAX_LTP_SFB_SR_FIVE_512 38
+#define MAX_LTP_SFB_SR_FIVE_LESS_512 37
 
 enum { ltp_buffer_size = (4 * 1024) };
 

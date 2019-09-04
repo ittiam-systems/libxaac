@@ -56,7 +56,7 @@
 #include "ixheaacd_pvc_dec.h"
 
 #include "ixheaacd_sbr_dec.h"
-
+#include "ixheaacd_error_standards.h"
 #include "ixheaacd_sbrqmftrans.h"
 #include "ixheaacd_qmf_poly.h"
 
@@ -259,8 +259,9 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
            TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(FLOAT32));
   }
 
-  ixheaacd_hbe_post_anal_process(ptr_hbe_txposer, pitch_in_bins,
-                                 ptr_hbe_txposer->upsamp_4_flag);
+  err_code = ixheaacd_hbe_post_anal_process(ptr_hbe_txposer, pitch_in_bins,
+                                            ptr_hbe_txposer->upsamp_4_flag);
+  if (err_code) return err_code;
 
   for (i = 0; i < ptr_hbe_txposer->no_bins; i++) {
     for (qmf_band_idx = ptr_hbe_txposer->start_band;
@@ -1532,9 +1533,9 @@ VOID ixheaacd_hbe_post_anal_xprod4(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
   }
 }
 
-VOID ixheaacd_hbe_post_anal_process(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
-                                    WORD32 pitch_in_bins,
-                                    WORD32 sbr_upsamp_4_flg) {
+IA_ERRORCODE ixheaacd_hbe_post_anal_process(
+    ia_esbr_hbe_txposer_struct *ptr_hbe_txposer, WORD32 pitch_in_bins,
+    WORD32 sbr_upsamp_4_flg) {
   FLOAT32 p;
   WORD32 trans_fac;
   WORD32 qmf_voc_columns = ptr_hbe_txposer->no_bins / 2;
@@ -1555,9 +1556,11 @@ VOID ixheaacd_hbe_post_anal_process(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                    ptr_hbe_txposer->x_over_qmf[1]);
 
     trans_fac = 4;
-    if (trans_fac <= ptr_hbe_txposer->max_stretch)
+    if (trans_fac <= ptr_hbe_txposer->max_stretch) {
+      if (ptr_hbe_txposer->x_over_qmf[2] <= 1) return IA_FATAL_ERROR;
       ixheaacd_hbe_post_anal_prod4(ptr_hbe_txposer, qmf_voc_columns,
                                    ptr_hbe_txposer->x_over_qmf[2]);
+    }
 
   } else {
     trans_fac = 2;
@@ -1579,9 +1582,12 @@ VOID ixheaacd_hbe_post_anal_process(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                     (pitch_in_bins + sbr_upsamp_4_flg * 128));
 
     trans_fac = 4;
-    if (trans_fac <= ptr_hbe_txposer->max_stretch)
+    if (trans_fac <= ptr_hbe_txposer->max_stretch) {
+      if (ptr_hbe_txposer->x_over_qmf[2] <= 1) return IA_FATAL_ERROR;
       ixheaacd_hbe_post_anal_xprod4(ptr_hbe_txposer, qmf_voc_columns,
                                     ptr_hbe_txposer->x_over_qmf[2], p,
                                     (pitch_in_bins + sbr_upsamp_4_flg * 128));
+    }
   }
+  return IA_NO_ERROR;
 }

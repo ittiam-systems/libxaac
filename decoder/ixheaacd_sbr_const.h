@@ -204,26 +204,31 @@
 #define MAX_OV_DELAY 12
 
 #define LD_TRAN 1
+#define LD_ENV_TIME_SLOT 7
+#define LD_ENV_TBL_512 16
+#define LD_ENV_TBL_480 15
+#define LD_ENV_TBL_SIZE 4
 #define SBR_TRAN_BITS 4
 #define SBRLD_CLA_BITS 1
 #define SBR_ENVT_NUMENV 0
 #define SBR_ENVT_TRANIDX 3
 
-static const int ixheaacd_ld_env_table_512[16][4] = {
+static const int ixheaacd_ld_env_table_512[LD_ENV_TBL_512][LD_ENV_TBL_SIZE] = {
     {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
     {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
     {3, 8, 12, 1},  {3, 9, 13, 1},  {3, 10, 14, 1}, {2, 11, -1, 1},
     {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1}, {2, 15, -1, 1},
 };
 
-static const int ixheaacd_ld_env_table_480[15][4] = {
+static const int ixheaacd_ld_env_table_480[LD_ENV_TBL_480][LD_ENV_TBL_SIZE] = {
     {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
     {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
     {3, 8, 12, 1},  {3, 9, 13, 1},  {2, 10, -1, 1}, {2, 11, -1, 1},
     {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1},
 };
 
-static const int ixheaacd_ld_env_table_time_slot[7] = {8, 5, 0, 0, 0, 0, 0};
+static const int ixheaacd_ld_env_table_time_slot[LD_ENV_TIME_SLOT] = {
+    8, 5, 0, 0, 0, 0, 0};
 
 #define SBR_CLA_BITS 2
 #define SBR_ABS_BITS 2

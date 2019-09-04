@@ -39,7 +39,20 @@
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_drc_dec.h"
 
+#include "ixheaacd_sbr_scale.h"
+#include "ixheaacd_env_extr_part.h"
+#include "ixheaacd_sbr_rom.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
+#include "ixheaacd_common_rom.h"
+#include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_sbr_const.h"
+#include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_sbrdecoder.h"
+#include "ixheaacd_env_extr.h"
+#include "ixheaacd_env_calc.h"
+#include "ixheaacd_pvc_dec.h"
+#include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 
@@ -50,7 +63,6 @@
 #include <ixheaacd_type_def.h>
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
-#include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_defines.h"
 #include <ixheaacd_aac_rom.h>
 #include "ixheaacd_common_rom.h"
@@ -302,21 +314,26 @@ WORD32 ixheaacd_decode_init(
       case ID_USAC_SCE:
       case ID_USAC_LFE:
 
+        if ((chan + 1) > MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         usac_data->seed_value[chan] = 0x3039;
+        chan++;
 
         break;
 
       case ID_USAC_CPE: {
-        WORD32 frame_len_tbl[] = {-1, -1, 32, 32, 64};
+        static const WORD32 frame_len_tbl[MAX_CORE_SBR_FRAME_LEN_IDX + 1] = {
+            -1, -1, 32, 32, 64};
 
+        if ((chan + 2) > MAX_NUM_CHANNELS_USAC_LVL2) return -1;
         usac_data->seed_value[chan] = 0x3039;
         chan++;
 
         usac_data->seed_value[chan] = 0x10932;
+        chan++;
 
         if (stereo_config_index > 0) {
           WORD32 bs_frame_length =
-              frame_len_tbl[ptr_usac_config->core_sbr_framelength_index] - 1;
+              frame_len_tbl[ptr_usac_config->core_sbr_framelength_index];
           WORD32 bs_residual_coding = (stereo_config_index > 1) ? 1 : 0;
 
           ia_usac_dec_mps_config_struct *ptr_usac_mps212_config =
@@ -523,7 +540,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
                               WORD32 tracks_for_decoder) {
   WORD32 stream;
 
-  WORD32 num_delay_samp = 0;
   WORD32 err = 0;
   ia_frame_data_struct *pstr_frame_data;
   WORD32 stream_count;
@@ -540,6 +556,8 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
 
         err = ixheaacd_dec_data_init(handle, pstr_frame_data,
                                      &(pstr_dec_data->str_usac_data));
+
+        if (err != 0) return err;
 
         switch (pstr_dec_data->str_usac_data.sbr_ratio_idx) {
           case 0:
@@ -559,7 +577,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
             handle->aac_config.ui_sbr_mode = 0;
         }
 
-        if (err != 0) return err;
 
         break;
 
@@ -677,9 +694,12 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
 
       if (pstr_dec_data->str_usac_data.pstr_esbr_dec == NULL) {
         return -1;
+      } else {
+        pstr_dec_data->str_usac_data.pstr_esbr_dec->xaac_jmp_buf =
+            &(aac_dec_handle->xaac_jmp_buf);
       }
     }
   }
-
-  return (num_delay_samp);
+  aac_dec_handle->decode_create_done = 1;
+  return 0;
 }

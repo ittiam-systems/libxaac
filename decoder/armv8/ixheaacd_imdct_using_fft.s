@@ -55,13 +55,13 @@
 ixheaacd_imdct_using_fft_armv8:
     push_v_regs
 
-    LDR             X29, =11600
+    MOV             X29, #11600
     ADD             X4, X0, X29
-    LDR             X29, =11856
+    MOV             X29, #11856
     ADD             X5, X0, X29
-    LDR             X29, =11920
+    MOV             X29, #11920
     ADD             X6, X0, X29
-    LDR             X29, =11936
+    MOV             X29, #11936
     ADD             X7, X0, X29
 
 COND_1: CMP         X1, #0x400
@@ -611,7 +611,7 @@ RADIX_4_FIRST_ENDS:
     MOv             x30, X3
     LSR             X5, X5, #2
 
-    LDR             X14, =8528
+    MOV             X14, #8528
     ADD             X0, X0, X14
 
 OUTER_LOOP_R4:

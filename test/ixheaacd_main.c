@@ -41,6 +41,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_module_obj, WORD32 i_cmd, WORD32 i_idx,
 
 VOID ixheaacd_error_handler_init();
 VOID ia_testbench_error_handler_init();
+VOID metadata_mp4_stsz_size_free(metadata_info *meta_info);
 
 extern ia_error_info_struct ixheaacd_ia_testbench_error_info;
 extern ia_error_info_struct ixheaacd_error_info;
@@ -59,7 +60,6 @@ extern ia_error_info_struct ixheaacd_error_info;
 #define IA_MAX_CMD_LINE_LENGTH 300
 #define IA_MAX_ARGS 20
 #define IA_SCREEN_WIDTH 80
-#define PARAMFILE "paramfilesimple.txt"
 
 /*****************************************************************************/
 /* Error codes for the testbench                                             */
@@ -98,8 +98,7 @@ WORD g_w_malloc_count;
 FILE *g_pf_out;
 FileWrapperPtr g_pf_inp; /* file pointer to bitstream file (mp4) */
 
-FILE *g_pf_interface;
-WORD32 interface_file_present = 0;
+WORD32 mpeg_d_drc_on = 0;
 
 metadata_info meta_info;  // metadata pointer;
 WORD32 ixheaacd_i_bytes_to_read;
@@ -588,21 +587,27 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
 
     /*For MPEG-D DRC effect type*/
     if (!strncmp((pCHAR8)argv[i], "-effect:", 8)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 8);
-        WORD32 ui_effect = atoi(pb_arg_val);
-        err_code = (*p_ia_process_api)(
-            p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-            IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE, &ui_effect);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 8);
+      WORD32 ui_effect = atoi(pb_arg_val);
+      err_code =
+          (*p_ia_process_api)(p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                              IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE, &ui_effect);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      mpeg_d_drc_on = 1;
     }
     /*For MPEG-D DRC target loudness*/
     if (!strncmp((pCHAR8)argv[i], "-target_loudness:", 17)) {
-        pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 17);
-        WORD32 ui_target_loudness = atoi(pb_arg_val);
-        err_code = (*p_ia_process_api)(
-            p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-            IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS, &ui_target_loudness);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 17);
+      WORD32 ui_target_loudness = atoi(pb_arg_val);
+      if ((ui_target_loudness > 0) || (ui_target_loudness < -63)) {
+        ui_target_loudness = 0;
+      }
+      ui_target_loudness = -(ui_target_loudness << 2);
+      err_code = (*p_ia_process_api)(
+          p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS, &ui_target_loudness);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      mpeg_d_drc_on = 1;
     }
     if (!strncmp((pCHAR8)argv[i], "-ld_testing:", 12)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 12);
@@ -775,13 +780,13 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   pVOID pv_ia_drc_process_api_obj;
   UWORD32 pui_api_size;
 
-/* First part                                        */
-/* Error Handler Init                                */
-/* Get Library Name, Library Version and API Version */
-/* Initialize API structure + Default config set     */
-/* Set config params from user                       */
-/* Initialize memory tables                          */
-/* Get memory information and allocate memory        */
+  /* First part                                        */
+  /* Error Handler Init                                */
+  /* Get Library Name, Library Version and API Version */
+  /* Initialize API structure + Default config set     */
+  /* Set config params from user                       */
+  /* Initialize memory tables                          */
+  /* Get memory information and allocate memory        */
 
   UWORD8 drc_ip_buf[8192 * 4];
   UWORD8 drc_op_buf[8192 * 4];
@@ -923,7 +928,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   /* Allocate memory for API */
   g_pv_arr_alloc_memory[g_w_malloc_count] = malloc(pui_api_size + 4);
-  memset(g_pv_arr_alloc_memory[g_w_malloc_count], 0, pui_api_size);
   if (g_pv_arr_alloc_memory[g_w_malloc_count] == NULL) {
     _IA_HANDLE_ERROR(&ixheaacd_ia_testbench_error_info,
                      (pWORD8) "API struct alloc", err_code);
@@ -941,7 +945,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                             IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS, NULL);
 
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
-
 
   /* ******************************************************************/
   /* Set config parameters got from the user present in argc argv     */
@@ -1212,10 +1215,24 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       if (raw_testing) {
         ixheaacd_i_bytes_to_read =
             get_metadata_dec_exec(meta_info, frame_counter);
+
+        if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size)
+          return IA_FATAL_ERROR;
+
+        if (ixheaacd_i_bytes_to_read <= 0) {
+          err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+                                         IA_API_CMD_INPUT_OVER, 0, NULL);
+
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          return IA_NO_ERROR;
+        }
+
         /* Set number of bytes to be processed */
         err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                        IA_API_CMD_SET_INPUT_BYTES, 0,
                                        &ixheaacd_i_bytes_to_read);
+        init_iteration++;
       } else {
         /* Set number of bytes to be processed */
         err_code = (*p_ia_process_api)(
@@ -1236,6 +1253,10 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_INIT,
                                    IA_CMD_TYPE_INIT_DONE_QUERY, &ui_init_done);
 
+    if (init_iteration > 2 && ui_init_done == 0) {
+      frame_counter++;
+    }
+
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
     /* How much buffer is used in input buffers */
@@ -1247,7 +1268,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   } while (!ui_init_done);
 
-  if (interface_file_present == 1) {
+  if (mpeg_d_drc_on == 1) {
     err_code =
         (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq, &i_num_chan,
                               &i_pcm_wd_sz, &i_channel_mask);
@@ -1279,51 +1300,67 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     /*Set Effect Type*/
 
     {
-        err_code = (*p_ia_process_api)(
-            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
-            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_EFFECT_TYPE, &i_effect_type);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      err_code = (*p_ia_process_api)(
+          pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_EFFECT_TYPE, &i_effect_type);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-        err_code =
-            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-                IA_DRC_DEC_CONFIG_DRC_EFFECT_TYPE, &i_effect_type);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
-
+      err_code =
+          ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                         IA_DRC_DEC_CONFIG_DRC_EFFECT_TYPE, &i_effect_type);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
 
     /*Set target loudness */
 
     {
-        err_code = (*p_ia_process_api)(
-            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
-            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS, &i_target_loudness);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      err_code = (*p_ia_process_api)(
+          pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS,
+          &i_target_loudness);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-        err_code =
-            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-                IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS, &i_target_loudness);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
-
+      err_code = ia_drc_dec_api(
+          pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS, &i_target_loudness);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
 
     /*Set loud_norm_flag*/
     {
-        err_code = (*p_ia_process_api)(
-            pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
-            IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_LOUD_NORM, &i_loud_norm);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      err_code = (*p_ia_process_api)(
+          pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_LOUD_NORM, &i_loud_norm);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-        err_code =
-            ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-                IA_DRC_DEC_CONFIG_DRC_LOUD_NORM, &i_loud_norm);
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
-
+      err_code =
+          ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                         IA_DRC_DEC_CONFIG_DRC_LOUD_NORM, &i_loud_norm);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
 
+    /* Get memory info tables size */
+    err_code =
+        ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_GET_MEMTABS_SIZE,
+                       0, &ui_proc_mem_tabs_size);
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
+    g_pv_arr_alloc_memory[g_w_malloc_count] = malloc(ui_proc_mem_tabs_size);
 
+    if (g_pv_arr_alloc_memory[g_w_malloc_count] == NULL) {
+      err_code = IA_TESTBENCH_MFMAN_FATAL_MEM_ALLOC_FAILED;
+      _IA_HANDLE_ERROR(&ixheaacd_ia_testbench_error_info,
+                       (pWORD8) "Mem tables alloc", err_code);
+    }
 
+    /* Set pointer for process memory tables    */
+    err_code = ia_drc_dec_api(
+        pv_ia_drc_process_api_obj, IA_API_CMD_SET_MEMTABS_PTR, 0,
+        (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count]));
 
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    g_w_malloc_count++;
 
     err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
                               IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS, NULL);
@@ -1486,9 +1523,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
       /*Read interface buffer config file bitstream*/
 
-      if(mpegd_drc_present==1){
+      if (mpegd_drc_present == 1) {
         WORD32 interface_is_present = 1;
-
 
         err_code = ia_drc_dec_api(
             pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
@@ -1550,10 +1586,11 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #ifdef ENABLE_LD_DEC
       if (0 != frame_counter) {
 #endif
-        FileWrapper_Read(g_pf_inp, (unsigned char *)(pb_inp_buf + i_buff_size -
-                                                     i_bytes_consumed),
-                         ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
-                         (pUWORD32)&i_bytes_read);
+        FileWrapper_Read(
+            g_pf_inp,
+            (unsigned char *)(pb_inp_buf + i_buff_size - i_bytes_consumed),
+            ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
+            (pUWORD32)&i_bytes_read);
 #ifdef ENABLE_LD_DEC
       } else
         i_bytes_read = 0;
@@ -1576,6 +1613,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     if (raw_testing) {
       ixheaacd_i_bytes_to_read =
           get_metadata_dec_exec(meta_info, frame_counter);
+
+      if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size) return IA_FATAL_ERROR;
 
       if (ixheaacd_i_bytes_to_read <= 0) {
         err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
@@ -1623,7 +1662,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
-    if (interface_file_present == 1) {
+    if (mpeg_d_drc_on == 1) {
       if (ui_exec_done != 1) {
         VOID *p_array;        // ITTIAM:buffer to handle gain payload
         WORD32 buf_size = 0;  // ITTIAM:gain payload length
@@ -1689,35 +1728,26 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     if (mpegd_drc_present == 1) {
       memcpy(drc_ip_buf, pb_out_buf, i_out_bytes);
 
-
       err_code = (*p_ia_process_api)(
-      pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
-      IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE, &i_sbr_mode);
+          pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE, &i_sbr_mode);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
+      if (i_sbr_mode != 0) {
+        WORD32 frame_length;
+        if (i_sbr_mode == 1) {
+          frame_length = 2048;
+        } else if (i_sbr_mode == 3) {
+          frame_length = 4096;
+        } else {
+          frame_length = 1024;
+        }
 
-      if (i_sbr_mode != 0)
-      {
-          WORD32 frame_length;
-          if (i_sbr_mode == 1)
-          {
-              frame_length = 2048;
-          }
-          else if(i_sbr_mode == 3)
-          {
-              frame_length = 4096;
-          }
-          else
-          {
-              frame_length = 1024;
-          }
-
-      err_code =
-      ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-      IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE, &frame_length);
-      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+        err_code = ia_drc_dec_api(
+            pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+            IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE, &frame_length);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
       }
-
 
       err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj,
                                 IA_API_CMD_SET_INPUT_BYTES, 0, &i_out_bytes);
@@ -1731,7 +1761,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
       memcpy(pb_out_buf, drc_op_buf, i_out_bytes);
     }
-
 
     if (total_samples != 0)  // Usac stream
     {
@@ -1784,9 +1813,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
     }
 
-    if (i_out_bytes) {
-      frame_counter++;
-    }
+    frame_counter++;
 
 #ifdef _DEBUG
     if (frame_counter == 80) frame_counter = frame_counter;
@@ -1958,370 +1985,109 @@ void print_usage() {
 /*******************************************************************************/
 
 int main(WORD32 argc, char *argv[]) {
-  FILE *param_file_id;
-
-  WORD8 curr_cmd[IA_MAX_CMD_LINE_LENGTH];
-  WORD32 fargc, curpos;
-  WORD32 processcmd = 0;
-
-  WORD8 fargv[IA_MAX_ARGS][IA_MAX_CMD_LINE_LENGTH];
-
-  pWORD8 pargv[IA_MAX_ARGS];
-
-  WORD8 pb_input_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
-  WORD8 pb_output_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
+  WORD32 i, err_code = IA_NO_ERROR;
 
   ia_testbench_error_handler_init();
 
-  if (argc == 1) {
-    param_file_id = fopen(PARAMFILE, "r");
-    if (param_file_id == NULL) {
-      print_usage();
-      return IA_NO_ERROR;
+  g_pf_inp = NULL;
+  g_pf_meta = NULL;
+  g_pf_out = NULL;
+
+  for (i = 1; i < argc; i++) {
+    printf("%s ", argv[i]);
+
+    if (!strncmp((const char *)argv[i], "-ifile:", 7)) {
+      pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
+
+      g_pf_inp = FileWrapper_Open((char *)pb_arg_val);
+      if (g_pf_inp == NULL) {
+        err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
+        ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
+                               (pWORD8) "Input File", err_code);
+        exit(1);
+      }
+      raw_testing = 0;
     }
 
-    /* Process one line at a time */
-    while (fgets((char *)curr_cmd, IA_MAX_CMD_LINE_LENGTH, param_file_id)) {
-      curpos = 0;
-      fargc = 0;
-      /* if it is not a param_file command and if */
-      /* CLP processing is not enabled */
-      if (curr_cmd[0] != '@' && !processcmd) { /* skip it */
-        continue;
+    if (!strncmp((const char *)argv[i], "-imeta:", 7)) {
+      pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
+
+      g_pf_meta = fopen((const char *)pb_arg_val, "r");
+
+      if (g_pf_meta == NULL) {
+        err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
+        ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
+                               (pWORD8) "Metadata File", err_code);
+        exit(1);
       }
 
-      while (sscanf((char *)curr_cmd + curpos, "%s", fargv[fargc]) != EOF) {
-        if (fargv[0][0] == '/' && fargv[0][1] == '/') break;
-        if (strcmp((const char *)fargv[0], "@echo") == 0) break;
-        if (strcmp((const char *)fargv[fargc], "@New_line") == 0) {
-          fgets((char *)curr_cmd + curpos, IA_MAX_CMD_LINE_LENGTH,
-                param_file_id);
-          continue;
-        }
-        curpos += strlen((const char *)fargv[fargc]);
-        while (*(curr_cmd + curpos) == ' ' || *(curr_cmd + curpos) == '\t')
-          curpos++;
-        fargc++;
+      err_code = ixheaacd_read_metadata_info(g_pf_meta, &meta_info);
+
+      if (err_code == -1) {
+        exit(1);
       }
-
-      if (fargc < 1) /* for blank lines etc. */
-        continue;
-
-      if (strcmp((const char *)fargv[0], "@Output_path") == 0) {
-        if (fargc > 1)
-          strcpy((char *)pb_output_file_path, (const char *)fargv[1]);
-        else
-          strcpy((char *)pb_output_file_path, "");
-        continue;
-      }
-
-      if (strcmp((const char *)fargv[0], "@Input_path") == 0) {
-        if (fargc > 1)
-          strcpy((char *)pb_input_file_path, (const char *)fargv[1]);
-        else
-          strcpy((char *)pb_input_file_path, "");
-        continue;
-      }
-
-      if (strcmp((const char *)fargv[0], "@Start") == 0) {
-        processcmd = 1;
-        continue;
-      }
-
-      if (strcmp((const char *)fargv[0], "@Stop") == 0) {
-        processcmd = 0;
-        continue;
-      }
-
-      /* otherwise if this a normal command and its enabled for execution */
-      if (processcmd) {
-        int i;
-        int err_code = IA_NO_ERROR;
-        int file_count = 0;
-
-        for (i = 0; i < fargc; i++) {
-          printf("%s ", fargv[i]);
-          pargv[i] = fargv[i];
-
-          if (!strncmp((const char *)fargv[i], "-ifile:", 7)) {
-            pWORD8 pb_arg_val = fargv[i] + 7;
-            WORD8 pb_input_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-            strcat((char *)pb_input_file_name,
-                   (const char *)pb_input_file_path);
-            strcat((char *)pb_input_file_name, (const char *)pb_arg_val);
-
-            g_pf_inp = NULL;
-            g_pf_inp = FileWrapper_Open((char *)pb_input_file_name);
-
-            if (g_pf_inp == NULL) {
-              err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-              ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                     (pWORD8) "Input File", err_code);
-              exit(1);
-            }
-            file_count++;
-            raw_testing = 0;
-          }
-
-          if (!strncmp((const char *)fargv[i], "-imeta:", 7)) {
-            pWORD8 pb_arg_val = fargv[i] + 7;
-            WORD8 pb_metadata_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-            strcat((char *)pb_metadata_file_name,
-                   (const char *)pb_input_file_path);
-            strcat((char *)pb_metadata_file_name, (const char *)pb_arg_val);
-
-            g_pf_meta = fopen((const char *)pb_metadata_file_name, "r");
-
-            if (g_pf_meta == NULL) {
-              err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-              ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                     (pWORD8) "Metadata File", err_code);
-              exit(1);
-            }
-
-            metadata_info_init(&meta_info);
-            err_code = ixheaacd_read_metadata_info(g_pf_meta, &meta_info);
-
-            if (err_code == -1) exit(1);
-
-            raw_testing = 1;
-
-            file_count++;
-          }
-
-          if (!strncmp((const char *)fargv[i], "-ofile:", 7)) {
-            pWORD8 pb_arg_val = fargv[i] + 7;
-            WORD8 pb_output_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-            strcat((char *)pb_output_file_name,
-                   (const char *)pb_output_file_path);
-            strcat((char *)pb_output_file_name, (const char *)pb_arg_val);
-
-            g_pf_out = NULL;
-            g_pf_out = fopen((const char *)pb_output_file_name, "wb");
-            if (g_pf_out == NULL) {
-              err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-              ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                     (pWORD8) "Output File", err_code);
-              exit(1);
-            }
-            file_count++;
-          }
-          if (!strncmp((const char *)fargv[i], "-infile:", 8)) {
-            pWORD8 pb_arg_val = fargv[i] + 8;
-            WORD8 pb_interface_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-            strcat((char *)pb_interface_file_name,
-                   (const char *)pb_input_file_path);
-            strcat((char *)pb_interface_file_name, (const char *)pb_arg_val);
-
-            g_pf_interface = NULL;
-            g_pf_interface = fopen((const char *)pb_interface_file_name, "rb");
-
-            if (g_pf_interface == NULL) {
-              err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-              ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                     (pWORD8) "DRC Interface File", err_code);
-              exit(1);
-            }
-            interface_file_present = 1;
-            file_count++;
-          }
-        }
-        g_w_malloc_count = 0;
-
-        printf("\n");
-
-        if (file_count != 4 && file_count != 3 && file_count != 2)
-        {
-          err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-          ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                 (pWORD8) "Input or Output File", err_code);
-        }
-
-        if (err_code == IA_NO_ERROR) {
-          if (g_pf_inp->isMp4File == 1) {
-            strcpy((pCHAR8)fargv[fargc], "-mp4:1");
-            pargv[fargc] = fargv[fargc];
-            fargc++;
-          }
-
-          for (i = 0; i < fargc; i++) {
-            if (strcmp((pCHAR8)fargv[i], "-eld_testing:1"))
-              eld_testing = 0;
-            else {
-              eld_testing = 1;
-              break;
-            }
-          }
-
-          ixheaacd_main_process(fargc, pargv);
-        }
-
-        for (i = 0; i < g_w_malloc_count; i++) {
-          if (g_pv_arr_alloc_memory[i]) free(g_pv_arr_alloc_memory[i]);
-        }
-        if (g_pf_out) fclose(g_pf_out);
-
-        if (g_pf_meta) {
-          raw_testing = 0;
-          fclose(g_pf_meta);
-          memset_metadata(meta_info);
-          g_pf_meta=NULL;
-        }
-        FileWrapper_Close(g_pf_inp);
-
-        if (g_pf_interface) {
-          fclose(g_pf_interface);
-          interface_file_present = 0;
-        }
-      }
-    }
-  } else {
-    int i;
-    int err_code = IA_NO_ERROR;
-    int file_count = 0;
-
-    for (i = 1; i < argc; i++) {
-      pargv[i] = fargv[i];
-      strcpy((pCHAR8)fargv[i], (pCHAR8)argv[i]);
-      printf("%s ", pargv[i]);
-
-      if (!strncmp((const char *)pargv[i], "-ifile:", 7)) {
-        pWORD8 pb_arg_val = pargv[i] + 7;
-        WORD8 pb_input_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-        err_code = IA_NO_ERROR;
-        strcat((char *)pb_input_file_name, (const char *)pb_input_file_path);
-        strcat((char *)pb_input_file_name, (const char *)pb_arg_val);
-
-        g_pf_inp = NULL;
-        g_pf_inp = FileWrapper_Open((char *)pb_input_file_name);
-        if (g_pf_inp == NULL) {
-          err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-          ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                 (pWORD8) "Input File", err_code);
-          exit(1);
-        }
-        file_count++;
-        raw_testing = 0;
-      }
-
-      if (!strncmp((const char *)fargv[i], "-imeta:", 7)) {
-        pWORD8 pb_arg_val = fargv[i] + 7;
-        WORD8 pb_metadata_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-        strcat((char *)pb_metadata_file_name, (const char *)pb_input_file_path);
-        strcat((char *)pb_metadata_file_name, (const char *)pb_arg_val);
-
-        g_pf_meta = NULL;
-        g_pf_meta = fopen((const char *)pb_metadata_file_name, "r");
-
-        if (g_pf_meta == NULL) {
-          err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-          ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                 (pWORD8) "Metadata File", err_code);
-          exit(1);
-        }
-
-        metadata_info_init(&meta_info);
-        err_code = ixheaacd_read_metadata_info(g_pf_meta, &meta_info);
-
-        if (err_code == -1) {
-          exit(1);
-        }
-
-        raw_testing = 1;
-
-        file_count++;
-      }
-
-      if (!strncmp((const char *)pargv[i], "-ofile:", 7)) {
-        pWORD8 pb_arg_val = pargv[i] + 7;
-        WORD8 pb_output_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-        strcat((char *)pb_output_file_name, (const char *)pb_output_file_path);
-        strcat((char *)pb_output_file_name, (const char *)pb_arg_val);
-
-        g_pf_out = NULL;
-        g_pf_out = fopen((const char *)pb_output_file_name, "wb");
-        if (g_pf_out == NULL) {
-          err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-          ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                 (pWORD8) "Output File", err_code);
-          exit(1);
-        }
-        file_count++;
-      }
-
-      if (!strncmp((const char *)fargv[i], "-infile:", 8)) {
-        pWORD8 pb_arg_val = fargv[i] + 8;
-        WORD8 pb_interface_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
-
-        strcat((char *)pb_interface_file_name,
-               (const char *)pb_input_file_path);
-        strcat((char *)pb_interface_file_name, (const char *)pb_arg_val);
-
-        g_pf_interface = NULL;
-        g_pf_interface = fopen((const char *)pb_interface_file_name, "rb");
-
-        if (g_pf_interface == NULL) {
-          err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-          ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                                 (pWORD8) "DRC Interface File", err_code);
-          exit(1);
-        }
-        interface_file_present = 1;
-        file_count++;
-      }
-    }
-    g_w_malloc_count = 0;
-
-    printf("\n");
-
-    if (file_count != 4 && file_count != 3 && file_count != 2)
-    {
-      err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
-      ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
-                             (pWORD8) "Input or Output File", err_code);
+      raw_testing = 1;
     }
 
-    if (err_code == IA_NO_ERROR) {
-      if (g_pf_inp->isMp4File == 1) {
-        strcpy((pCHAR8)fargv[argc], "-mp4:1");
-        pargv[argc] = fargv[argc];
-        argc++;
+    if (!strncmp((const char *)argv[i], "-ofile:", 7)) {
+      pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
+
+      g_pf_out = fopen((const char *)pb_arg_val, "wb");
+      if (g_pf_out == NULL) {
+        err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
+        ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
+                               (pWORD8) "Output File", err_code);
+        exit(1);
       }
-
-      for (i = 0; i < argc; i++) {
-        if (strcmp((pCHAR8)fargv[i], "-eld_testing:1"))
-          eld_testing = 0;
-        else {
-          eld_testing = 1;
-          break;
-        }
-      }
-
-      ixheaacd_main_process(argc - 1, &pargv[1]);
-    }
-
-    for (i = 0; i < g_w_malloc_count; i++) {
-      if (g_pv_arr_alloc_memory[i]) free(g_pv_arr_alloc_memory[i]);
-    }
-    if (g_pf_out) fclose(g_pf_out);
-
-    if (g_pf_meta) {
-      fclose(g_pf_meta);
-      memset_metadata(meta_info);
-    }
-    FileWrapper_Close(g_pf_inp);
-    if (g_pf_interface) {
-      fclose(g_pf_interface);
-      interface_file_present = 0;
     }
   }
+
+  if ((g_pf_inp == NULL) || (g_pf_out == NULL)) {
+    print_usage();
+    err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
+    ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
+                           (pWORD8) "Input or Output File", err_code);
+    exit(1);
+  }
+
+  g_w_malloc_count = 0;
+
+  printf("\n");
+
+  for (i = 0; i < argc; i++) {
+    if (!strcmp((pCHAR8)argv[i], "-mp4:1")) {
+      if (g_pf_meta == NULL) {
+        print_usage();
+        err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
+        ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
+                               (pWORD8) "Metadata File", err_code);
+        exit(1);
+      }
+    }
+  }
+
+  for (i = 0; i < argc; i++) {
+    if (strcmp((pCHAR8)argv[i], "-eld_testing:1"))
+      eld_testing = 0;
+    else {
+      eld_testing = 1;
+      break;
+    }
+  }
+
+  ixheaacd_main_process(argc - 1, (pWORD8 *)(&argv[1]));
+
+  for (i = 0; i < g_w_malloc_count; i++) {
+    if (g_pv_arr_alloc_memory[i]) free(g_pv_arr_alloc_memory[i]);
+  }
+  if (g_pf_out) fclose(g_pf_out);
+
+  if (g_pf_meta) {
+    fclose(g_pf_meta);
+    metadata_mp4_stsz_size_free(&meta_info);
+  }
+  FileWrapper_Close(g_pf_inp);
+  mpeg_d_drc_on = 0;
 
   return IA_NO_ERROR;
 } /* end ixheaacd_main */

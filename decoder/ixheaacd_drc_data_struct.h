@@ -76,7 +76,6 @@ typedef struct {
   UWORD8 max_audio_channels;
   UWORD8 length_history;
   UWORD8 num_drc_elements;
-  WORD32 is_longblock[MAX_BS_ELEMENT];
   WORD32 state;
   WORD32 target_ref_level;
   WORD32 prog_ref_level;

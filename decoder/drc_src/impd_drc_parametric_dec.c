@@ -206,11 +206,11 @@ WORD32 impd_init_parametric_drc_feed_fwd(
   return 0;
 }
 
-WORD32 impd_init_parametric_drc_lim(
+VOID impd_init_parametric_drc_lim(
     ia_drc_config* pstr_drc_config, WORD32 instance_idx,
     WORD32 ch_count_from_dwnmix_id,
     ia_parametric_drc_params_struct* p_parametricdrc_params, pVOID* mem_ptr) {
-  WORD32 err = 0, i = 0;
+  WORD32 i = 0;
   UWORD32 j;
   UWORD32 attack, sec_len;
 
@@ -290,10 +290,6 @@ WORD32 impd_init_parametric_drc_lim(
        j++) {
     pstr_parametric_lim_type_drc_params->max_buf[j] = 0.f;
   }
-
-  if (err) return (err);
-
-  return 0;
 }
 
 WORD32 impd_init_parametric_drcInstance(
@@ -332,11 +328,9 @@ WORD32 impd_init_parametric_drcInstance(
       p_parametricdrc_params->str_parametric_drc_instance_params[instance_idx]
           .str_spline_nodes.num_nodes = p_parametricdrc_params->drc_frame_size;
 
-      err = impd_init_parametric_drc_lim(pstr_drc_config, instance_idx,
-                                         ch_count_from_dwnmix_id,
-                                         p_parametricdrc_params, mem_ptr);
-
-      if (err) return (err);
+      impd_init_parametric_drc_lim(pstr_drc_config, instance_idx,
+                                   ch_count_from_dwnmix_id,
+                                   p_parametricdrc_params, mem_ptr);
 
     } else {
       return (UNEXPECTED_ERROR);

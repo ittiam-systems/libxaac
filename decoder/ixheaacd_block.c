@@ -103,7 +103,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_drc(WORD32 a, WORD32 b,
 WORD32 ixheaacd_cnt_leading_ones(WORD32 a);
 
 VOID ixheaacd_huff_sfb_table(WORD32 it_bit_buff, WORD16 *huff_index,
-                             WORD16 *len, const UWORD16 *code_book_tbl,
+                             WORD32 *len, const UWORD16 *code_book_tbl,
                              const UWORD32 *idx_table) {
   UWORD32 temp = 0;
   UWORD32 temp1 = 0;
@@ -169,9 +169,14 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word1(
   WORD len_idx = 0;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  WORD16 index, length;
-  ptr_read_next += 4;
+  WORD16 index;
+  WORD32 length;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   do {
     len_idx = offsets[1] - offsets[0];
@@ -319,8 +324,12 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word1(
     no_bands--;
   } while (no_bands >= 0);
 
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
+
   it_bit_buff->bit_pos = bit_pos;
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  it_bit_buff->ptr_read_next = ptr_read_next;
 
   return err_code;
 }
@@ -335,11 +344,16 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_11(
   WORD idx;
   WORD32 out1, out2;
   WORD32 err_code = 0;
-  WORD16 index, length;
+  WORD16 index;
+  WORD32 length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next += 4;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   for (idx = width; idx != 0; idx -= 2) {
     {
@@ -471,8 +485,11 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_11(
       }
     }
   }
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
 
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  it_bit_buff->ptr_read_next = ptr_read_next;
   it_bit_buff->bit_pos = bit_pos;
 
   return err_code;
@@ -488,8 +505,12 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_quad(
   WORD16 index, length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next += 4;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
   spec_orig = spec_coef;
   do {
     idx_len = offsets[1] - offsets[0];
@@ -608,7 +629,10 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_quad(
     no_bands--;
   } while (no_bands >= 0);
 
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
+  it_bit_buff->ptr_read_next = ptr_read_next;
   it_bit_buff->bit_pos = bit_pos;
 
   return 0;
@@ -622,8 +646,12 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_quad(
   WORD16 index, length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next += 4;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   for (idx = width; idx != 0; idx -= 4) {
     WORD32 ampres, ampres1;
@@ -763,7 +791,10 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_quad(
                                 it_bit_buff->ptr_bit_buf_end);
   }
 
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
+  it_bit_buff->ptr_read_next = ptr_read_next;
   it_bit_buff->bit_pos = bit_pos;
 
   return 0;
@@ -784,8 +815,12 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_pair(
 
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next += 4;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   do {
     len_idx = offsets[1] - offsets[0];
@@ -858,7 +893,10 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_pair(
     no_bands--;
   } while (no_bands >= 0);
 
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
+  it_bit_buff->ptr_read_next = ptr_read_next;
   it_bit_buff->bit_pos = bit_pos;
 
   return 0;
@@ -875,8 +913,12 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_pair(
   WORD16 index, length;
   UWORD8 *ptr_read_next = it_bit_buff->ptr_read_next;
   WORD32 bit_pos = it_bit_buff->bit_pos;
-  WORD32 read_word = ixheaacd_aac_showbits_32(ptr_read_next);
-  ptr_read_next += 4;
+  WORD32 read_word;
+  WORD32 increment;
+
+  read_word = ixheaacd_aac_showbits_32(ptr_read_next, it_bit_buff->cnt_bits,
+                                       &increment);
+  ptr_read_next += increment;
 
   for (idx = width; idx != 0; idx -= 2) {
     {
@@ -955,7 +997,10 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word2_pair(
                                 it_bit_buff->ptr_bit_buf_end);
   }
 
-  it_bit_buff->ptr_read_next = ptr_read_next - 4;
+  ptr_read_next = ptr_read_next - increment;
+  ixheaacd_aac_read_byte_corr1(&ptr_read_next, &bit_pos, &read_word,
+                               it_bit_buff->ptr_bit_buf_end);
+  it_bit_buff->ptr_read_next = ptr_read_next;
   it_bit_buff->bit_pos = bit_pos;
 
   return 0;
@@ -1028,6 +1073,7 @@ WORD ixheaacd_huffman_dec_word2(ia_bit_buf_struct *it_bit_buff, WORD32 cb_no,
   WORD ret_val = 0;
   WORD32 huff_mode;
   WORD start_bit_pos = it_bit_buff->bit_pos;
+  WORD32 cnt_bits = it_bit_buff->cnt_bits;
   WORD32 *pow_table =
       (WORD32 *)ptr_aac_tables->pstr_block_tables->ixheaacd_pow_table_Q13;
   UWORD8 *start_read_pos = it_bit_buff->ptr_read_next;
@@ -1070,14 +1116,14 @@ WORD ixheaacd_huffman_dec_word2(ia_bit_buf_struct *it_bit_buff, WORD32 cb_no,
     if (it_bit_buff->bit_pos <= 7) {
       bits_cons = ((it_bit_buff->ptr_read_next - start_read_pos) << 3) +
                   (it_bit_buff->bit_pos - start_bit_pos);
-      it_bit_buff->cnt_bits -= bits_cons;
+      it_bit_buff->cnt_bits = cnt_bits - bits_cons;
     } else {
       it_bit_buff->ptr_read_next += (it_bit_buff->bit_pos) >> 3;
       it_bit_buff->bit_pos = it_bit_buff->bit_pos & 0x7;
 
       bits_cons = ((it_bit_buff->ptr_read_next - start_read_pos) << 3) +
                   ((it_bit_buff->bit_pos - start_bit_pos));
-      it_bit_buff->cnt_bits -= bits_cons;
+      it_bit_buff->cnt_bits = cnt_bits - bits_cons;
     }
   }
   return ret_val;

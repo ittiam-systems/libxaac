@@ -59,7 +59,7 @@ ixheaacd_pretwiddle_compute_armv8:
     LSL             x7, x4, #4
     ADD             x7, x2, x7
     SUB             x7, x7, #4
-    LDR             x22, =7500
+    MOV             x22, #7500
     ADD             x3, x3, x22
     MVN             w5, w5
     ADD             w5, w5, #1

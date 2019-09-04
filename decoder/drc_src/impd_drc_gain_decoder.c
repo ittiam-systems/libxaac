@@ -187,7 +187,7 @@ IA_ERRORCODE impd_init_drc_decode_post_config(
     }
 
     p_drc_gain_dec_structs->eq_set = (ia_eq_set_struct*)*mem_ptr;
-    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr + sizeof(ia_eq_set_struct) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr + sizeof(ia_eq_set_struct));
 
     if (err_code) return (err_code);
 
@@ -217,14 +217,13 @@ IA_ERRORCODE impd_init_drc_decode_post_config(
 
   p_drc_gain_dec_structs->audio_band_buffer.non_interleaved_audio = *mem_ptr;
   *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
-                     (maxMultibandAudioSignalCount * sizeof(FLOAT32*)) + 32);
+                     (maxMultibandAudioSignalCount * sizeof(FLOAT32*)));
 
   for (i = 0; i < maxMultibandAudioSignalCount; i++) {
     p_drc_gain_dec_structs->audio_band_buffer.non_interleaved_audio[i] =
         *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_drc_params_struct->drc_frame_size * sizeof(FLOAT32)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_drc_params_struct->drc_frame_size * sizeof(FLOAT32)));
   }
   p_drc_gain_dec_structs->audio_band_buffer.multiband_audio_sig_count =
       maxMultibandAudioSignalCount;
@@ -235,21 +234,18 @@ IA_ERRORCODE impd_init_drc_decode_post_config(
   if (p_drc_params_struct->sub_band_domain_mode == SUBBAND_DOMAIN_MODE_OFF &&
       p_audio_in_out_buf->audio_delay_samples) {
     p_audio_in_out_buf->audio_io_buffer_delayed = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
     p_audio_in_out_buf->audio_in_out_buf = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
 
     for (i = 0; i < p_audio_in_out_buf->audio_num_chan; i++) {
       p_audio_in_out_buf->audio_io_buffer_delayed[i] = *mem_ptr;
       *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
                          ((p_audio_in_out_buf->frame_size +
                            p_audio_in_out_buf->audio_delay_samples) *
-                          sizeof(FLOAT32*)) +
-                         32);
+                          sizeof(FLOAT32*)));
       p_audio_in_out_buf->audio_in_out_buf[i] =
           &p_audio_in_out_buf->audio_io_buffer_delayed
                [i][p_audio_in_out_buf->audio_delay_samples];
@@ -258,35 +254,29 @@ IA_ERRORCODE impd_init_drc_decode_post_config(
   if (p_drc_params_struct->sub_band_domain_mode != SUBBAND_DOMAIN_MODE_OFF &&
       p_audio_in_out_buf->audio_delay_sub_band_samples) {
     p_audio_in_out_buf->audio_buffer_delayed_real = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
     p_audio_in_out_buf->audio_buffer_delayed_imag = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
     p_audio_in_out_buf->audio_real_buff = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
     p_audio_in_out_buf->audio_imag_buff = *mem_ptr;
-    *mem_ptr =
-        (pVOID)((SIZE_T)*mem_ptr +
-                (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)) + 32);
+    *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
+                       (p_audio_in_out_buf->audio_num_chan * sizeof(FLOAT32*)));
 
     for (i = 0; i < p_audio_in_out_buf->audio_num_chan; i++) {
       p_audio_in_out_buf->audio_buffer_delayed_real[i] = *mem_ptr;
       *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
                          ((p_audio_in_out_buf->audio_sub_band_frame_size +
                            p_audio_in_out_buf->audio_delay_sub_band_samples) *
-                          sizeof(FLOAT32*)) +
-                         32);
+                          sizeof(FLOAT32*)));
       p_audio_in_out_buf->audio_buffer_delayed_imag[i] = *mem_ptr;
       *mem_ptr = (pVOID)((SIZE_T)*mem_ptr +
                          ((p_audio_in_out_buf->audio_sub_band_frame_size +
                            p_audio_in_out_buf->audio_delay_sub_band_samples) *
-                          sizeof(FLOAT32*)) +
-                         32);
+                          sizeof(FLOAT32*)));
 
       p_audio_in_out_buf->audio_real_buff[i] =
           &p_audio_in_out_buf->audio_buffer_delayed_real
