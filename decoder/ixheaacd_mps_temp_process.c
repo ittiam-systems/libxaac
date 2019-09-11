@@ -80,6 +80,8 @@ static const FLOAT32 ixheaacd_gf[BP_SIZE] = {
     9.801e-005f, 0.00012321f, 0.00015625f, 0.00019881f, 0.00024964f,
     0.00032041f, 0.00041209f, 0.00053824f, 0.00070756f, 0.00094249f};
 
+extern const WORD32 ixheaacd_mps_gain_set_indx[29];
+
 static VOID ixheaacd_mps_temp_process_scale_calc(ia_mps_dec_state_struct* self,
                                                  WORD32 ts, FLOAT32* scale) {
   FLOAT32 dir_energy;
@@ -218,19 +220,43 @@ WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
   WORD32 err = 0;
   ia_sbr_frame_info_data_struct* ptr_frame_data =
       (ia_sbr_frame_info_data_struct*)self->p_sbr_frame[0];
+  if (self->res_bands != 28) {
+    if (self->config->bs_temp_shape_config == 1) {
+      WORD32 dif_s = ((self->res_bands == 0)
+                          ? 0
+                          : ixheaacd_mps_gain_set_indx[self->res_bands]);
+      for (ch = 0; ch < self->out_ch_count; ch++) {
+        for (ts = 0; ts < self->time_slots; ts++) {
+          for (hyb = dif_s; hyb < HYBRID_BAND_BORDER; hyb++) {
+            self->hyb_dir_out[ch][ts][hyb].re +=
+                self->hyb_diff_out[ch][ts][hyb].re;
+            self->hyb_dir_out[ch][ts][hyb].im +=
+                self->hyb_diff_out[ch][ts][hyb].im;
+            self->hyb_diff_out[ch][ts][hyb].re = 0;
+            self->hyb_diff_out[ch][ts][hyb].im = 0;
+          }
+        }
+      }
 
-  for (ch = 0; ch < self->out_ch_count; ch++) {
-    for (ts = 0; ts < self->time_slots; ts++) {
-      for (hyb = 0; hyb < HYBRID_BAND_BORDER; hyb++) {
-        self->hyb_dir_out[ch][ts][hyb].re += self->hyb_diff_out[ch][ts][hyb].re;
-        self->hyb_dir_out[ch][ts][hyb].im += self->hyb_diff_out[ch][ts][hyb].im;
-        self->hyb_diff_out[ch][ts][hyb].re = 0;
-        self->hyb_diff_out[ch][ts][hyb].im = 0;
+      for (ts = 0; ts < self->time_slots; ts++)
+        ixheaacd_mps_subbandtp(self, ts);
+
+    } else {
+      WORD32 dif_s = ((self->res_bands == 0)
+                          ? 0
+                          : ixheaacd_mps_gain_set_indx[self->res_bands]);
+      for (ch = 0; ch < self->out_ch_count; ch++) {
+        for (ts = 0; ts < self->time_slots; ts++) {
+          for (hyb = dif_s; hyb < self->hyb_band_count_max; hyb++) {
+            self->hyb_dir_out[ch][ts][hyb].re +=
+                self->hyb_diff_out[ch][ts][hyb].re;
+            self->hyb_dir_out[ch][ts][hyb].im +=
+                self->hyb_diff_out[ch][ts][hyb].im;
+          }
+        }
       }
     }
   }
-
-  for (ts = 0; ts < self->time_slots; ts++) ixheaacd_mps_subbandtp(self, ts);
 
   ixheaacd_mps_qmf_hyb_synthesis(self);
 
