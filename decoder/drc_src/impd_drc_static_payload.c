@@ -723,6 +723,8 @@ WORD32 impd_parse_ch_layout(ia_bit_buf_struct* it_bit_buff,
 
   channel_layout->base_channel_count = impd_read_bits_buf(it_bit_buff, 7);
   if (it_bit_buff->error) return it_bit_buff->error;
+  if (channel_layout->base_channel_count > MAX_CHANNEL_COUNT)
+    return (UNEXPECTED_ERROR);
   if (ia_drc_params_struct->lfe_channel_map_count != -1 &&
       channel_layout->base_channel_count !=
           ia_drc_params_struct->lfe_channel_map_count) {
