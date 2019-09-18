@@ -356,13 +356,16 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
 
   while (((sb - usb) < 0) && (patch < MAX_NUM_PATCHES)) {
     ia_patch_param_struct *ptr_loc_patch_param = &p_str_patch_param[patch];
-
+    WORD16 abs_sb, flag_break = 0;
     ptr_loc_patch_param->guard_start_band = sb;
     sb = (sb + GUARDBANDS);
     ptr_loc_patch_param->dst_start_band = sb;
 
     num_bands_in_patch = (goal_sb - sb);
-
+    if ((num_bands_in_patch <= 0) &&
+        ((num_bands_in_patch - (lsb - src_start_band)) < 0)) {
+      flag_break = 1;
+    }
     if ((num_bands_in_patch - (lsb - src_start_band)) >= 0) {
       patch_stride = sb - src_start_band;
       patch_stride = (WORD16)(patch_stride & ~1);
@@ -387,9 +390,12 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     }
 
     src_start_band = SHIFT_START_SB;
+    abs_sb = ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3;
 
-    if ((ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3) < 0) {
+    if (abs_sb < 0) {
       goal_sb = usb;
+    } else {
+      if (flag_break == 1) break;
     }
   }
 
@@ -413,6 +419,8 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     sb = ixheaacd_min32(sb, p_str_patch_param[patch].src_start_band);
     temp = ixheaacd_max32(temp, p_str_patch_param[patch].src_end_band);
   }
+
+  if (sb > temp) return IA_FATAL_ERROR;
 
   pstr_transposer_settings->start_patch = sb;
   pstr_transposer_settings->stop_patch = temp;
