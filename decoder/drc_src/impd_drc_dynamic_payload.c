@@ -394,6 +394,9 @@ WORD32 impd_parse_spline_nodes(ia_bit_buf_struct* it_bit_buff,
   }
 
   if (it_bit_buff->ptr_bit_buf_base == NULL) {
+    if ((str_spline_nodes->num_nodes < 1) ||
+        (str_spline_nodes->num_nodes > NODE_COUNT_MAX))
+      return UNEXPECTED_ERROR;
     FLOAT32 prev_db_gain =
         str_spline_nodes->str_node[str_spline_nodes->num_nodes - 1].loc_db_gain;
     str_spline_nodes->drc_gain_coding_mode = 0;
@@ -413,6 +416,9 @@ WORD32 impd_parse_spline_nodes(ia_bit_buf_struct* it_bit_buff,
   } else {
     str_spline_nodes->drc_gain_coding_mode = impd_read_bits_buf(it_bit_buff, 1);
     if (it_bit_buff->error == PROC_COMPLETE) {
+      if ((str_spline_nodes->num_nodes < 1) ||
+          (str_spline_nodes->num_nodes > NODE_COUNT_MAX))
+        return UNEXPECTED_ERROR;
       str_spline_nodes->drc_gain_coding_mode = 0;
       str_spline_nodes->str_node[0].slope = 0.0;
       str_spline_nodes->str_node[0].time =
