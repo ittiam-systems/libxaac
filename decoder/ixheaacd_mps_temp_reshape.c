@@ -83,14 +83,26 @@ static VOID ixheaacd_mps_est_normalized_envelope(ia_mps_dec_state_struct *self,
       break;
     case DOWNMIX_IN:
       ch_offset = self->out_ch_count;
-      for (ii = 0; ii < self->time_slots; ii++) {
-        for (jj = 0; jj < self->hyb_band_count_max; jj++) {
-          slot_energy[ii]
-                     [ixheaacd_hybrid_band_71_to_processing_band_20_map[jj]] +=
-              self->hyb_in[ch][ii][jj].re * self->hyb_in[ch][ii][jj].re +
-              self->hyb_in[ch][ii][jj].im * self->hyb_in[ch][ii][jj].im;
+      if ((self->pre_mix_req | self->bs_tsd_enable)) {
+        for (ii = 0; ii < self->time_slots; ii++) {
+          for (jj = 0; jj < self->hyb_band_count_max; jj++) {
+            slot_energy
+                [ii][ixheaacd_hybrid_band_71_to_processing_band_20_map[jj]] +=
+                self->hyb_in[ch][jj][ii].re * self->hyb_in[ch][jj][ii].re +
+                self->hyb_in[ch][jj][ii].im * self->hyb_in[ch][jj][ii].im;
+          }
+        }
+      } else {
+        for (ii = 0; ii < self->time_slots; ii++) {
+          for (jj = 0; jj < self->hyb_band_count_max; jj++) {
+            slot_energy
+                [ii][ixheaacd_hybrid_band_71_to_processing_band_20_map[jj]] +=
+                self->w_dir[ch][ii][jj].re * self->w_dir[ch][ii][jj].re +
+                self->w_dir[ch][ii][jj].im * self->w_dir[ch][ii][jj].im;
+          }
         }
       }
+
       break;
     default:
       ch_offset = 0;

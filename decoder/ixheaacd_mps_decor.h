@@ -30,6 +30,6 @@ VOID ixheaacd_mps_decor_apply(
     ia_mps_decor_struct_handle self,
     ia_cmplx_flt_struct in[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
     ia_cmplx_flt_struct out[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
-    WORD32 length);
+    WORD32 length, WORD32 res_bands);
 
 #endif

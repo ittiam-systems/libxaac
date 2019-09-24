@@ -39,7 +39,7 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
   int ps = 0, pb, row, col;
   int res_bands = 0;
   int *p_smoothing_data;
-
+  self->pre_mix_req = 0;
   if (self->residual_coding) res_bands = self->max_res_bands;
 
   p_smoothing_data = &self->smoothing_data[ps][res_bands];
@@ -72,6 +72,7 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
                MULT(one_minus_delta, self->m2_resid_im_prev[pb][row][col]));
         }
       }
+      self->pre_mix_req++;
     }
   }
 
@@ -112,6 +113,7 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
                       self->m2_resid_im[ps - 1][pb][row][col]));
           }
         }
+        self->pre_mix_req++;
       }
     }
   }

@@ -24,9 +24,15 @@ VOID ixheaacd_mps_qmf_hybrid_analysis_init(ia_mps_hybrid_filt_struct *handle);
 
 VOID ixheaacd_mps_qmf_hybrid_analysis(
     ia_mps_hybrid_filt_struct *handle,
-    ia_cmplx_flt_struct in_qmf[MAX_TIME_SLOTS][MAX_NUM_QMF_BANDS_MPS_NEW],
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
     WORD32 num_bands, WORD32 num_samples,
-    ia_cmplx_flt_struct out_hyb[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]);
+    ia_cmplx_flt_struct out_hyb[MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS]);
+
+VOID ixheaacd_mps_qmf_hybrid_analysis_no_pre_mix(
+    ia_mps_hybrid_filt_struct *handle,
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
+    WORD32 num_bands, WORD32 num_samples,
+    ia_cmplx_flt_struct v[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]);
 
 VOID ixheaacd_mps_qmf_hybrid_synthesis(
     ia_cmplx_flt_struct in_hyb[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
