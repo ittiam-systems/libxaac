@@ -38,6 +38,8 @@
 
 #define MAX_DECORR_FIL_ORDER (DECORR_FILT_0_ORD)
 
+#define NO_RES_BANDS -1
+
 typedef struct {
   FLOAT32 re;
   FLOAT32 im;
@@ -188,8 +190,7 @@ typedef struct ia_mps_dec_state_struct {
   WORD32 decor_sig_count;
 
   WORD32 time_slots;
-  WORD32 present_time_slot;
-
+  WORD32 pre_mix_req;
   WORD32 temp_shape_enable_ch_stp[2];
   WORD32 temp_shape_enable_ch_ges[2];
 
@@ -269,9 +270,9 @@ typedef struct ia_mps_dec_state_struct {
   FLOAT32 m2_resid_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
   FLOAT32 m2_resid_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
 
-  ia_cmplx_flt_struct qmf_in[2][MAX_TIME_SLOTS][MAX_NUM_QMF_BANDS_MPS_NEW];
-  ia_cmplx_flt_struct hyb_in[2][MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
-  ia_cmplx_flt_struct hyb_res[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
+  ia_cmplx_flt_struct qmf_in[2][MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS];
+  ia_cmplx_flt_struct hyb_in[2][MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS];
+  ia_cmplx_flt_struct hyb_res[MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS];
   ia_cmplx_flt_struct v[MAX_M1_OUTPUT][MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
   ia_cmplx_flt_struct w_diff[MAX_M2_INPUT][MAX_TIME_SLOTS]
                             [MAX_HYBRID_BANDS_MPS];
@@ -338,7 +339,9 @@ typedef struct ia_mps_dec_state_struct {
 VOID ixheaacd_mps_init_pre_and_post_matrix(ia_mps_dec_state_struct *self);
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self);
 WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix_type1(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix_type2(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self);
 
 WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
 
@@ -364,7 +367,7 @@ VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
                                FLOAT32 *h_imag, FLOAT32 *h_real,
                                WORD32 param_set_idx, WORD32 res_bands);
 
-WORD32 ixheaacd_mps_upmix_interp(
+WORD32 ixheaacd_mps_upmix_interp_type1(
     FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                     [MAX_M_INPUT],
     FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
@@ -372,6 +375,14 @@ WORD32 ixheaacd_mps_upmix_interp(
     FLOAT32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
     WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self,
     WORD32 bs_high_rate_mode);
+
+WORD32 ixheaacd_mps_upmix_interp_type2(
+    FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
+    WORD32 num_rows, ia_mps_dec_state_struct *self, WORD32 col);
 
 VOID ixheaacd_mps_phase_interpolation(
     FLOAT32 pl[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],

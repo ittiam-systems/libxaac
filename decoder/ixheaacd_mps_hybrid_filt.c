@@ -214,11 +214,11 @@ VOID ixheaacd_mps_qmf_hybrid_analysis_init(ia_mps_hybrid_filt_struct *handle) {
                                    sizeof(ia_cmplx_flt_struct));
 }
 
-VOID ixheaacd_mps_qmf_hybrid_analysis(
+VOID ixheaacd_mps_qmf_hybrid_analysis_no_pre_mix(
     ia_mps_hybrid_filt_struct *handle,
-    ia_cmplx_flt_struct in_qmf[MAX_TIME_SLOTS][MAX_NUM_QMF_BANDS_MPS_NEW],
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
     WORD32 num_bands, WORD32 num_samples,
-    ia_cmplx_flt_struct hyb[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]) {
+    ia_cmplx_flt_struct v[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]) {
   WORD32 lf_samples_shift;
   WORD32 hf_samples_shift;
   WORD32 lf_qmf_bands;
@@ -237,26 +237,18 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
   }
 
   for (k = 0; k < lf_qmf_bands; k++) {
-    for (n = 0; n < num_samples; n++) {
-      handle->lf_buffer[k][n + lf_samples_shift].re = (in_qmf[n][k].re);
-      handle->lf_buffer[k][n + lf_samples_shift].im = (in_qmf[n][k].im);
-    }
+    memcpy(&handle->lf_buffer[k][lf_samples_shift].re, &in_qmf[k][0].re,
+           2 * num_samples * sizeof(FLOAT32));
   }
 
   for (k = 0; k < MAX_NUM_QMF_BANDS_SAC / 2 - lf_qmf_bands; k++) {
-    for (n = 0; n < hf_samples_shift; n++) {
-      handle->hf_buffer[k][n].re = handle->hf_buffer[k][n + num_samples].re;
-      handle->hf_buffer[k][n].im = handle->hf_buffer[k][n + num_samples].im;
-    }
+    memmove(&handle->hf_buffer[k][0].re, &handle->hf_buffer[k][num_samples].re,
+            2 * hf_samples_shift * sizeof(FLOAT32));
   }
 
   for (k = 0; k < num_bands - lf_qmf_bands; k++) {
-    for (n = 0; n < num_samples; n++) {
-      handle->hf_buffer[k][n + hf_samples_shift].re =
-          (in_qmf[n][k + lf_qmf_bands].re);
-      handle->hf_buffer[k][n + hf_samples_shift].im =
-          (in_qmf[n][k + lf_qmf_bands].im);
-    }
+    memcpy(&handle->hf_buffer[k][hf_samples_shift].re,
+           &in_qmf[k + lf_qmf_bands][0].re, 2 * num_samples * sizeof(FLOAT32));
   }
 
   ixheaacd_mps_hyb_filt_type1(
@@ -265,15 +257,15 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k].re = scratch[k + 6][n].re;
-      hyb[n][k + 2].re = scratch[k][n].re;
-      hyb[n][k + 4].re = scratch[k + 2][n].re;
-      hyb[n][k + 4].re += scratch[5 - k][n].re;
+      v[n][k].re = scratch[k + 6][n].re;
+      v[n][k + 2].re = scratch[k][n].re;
+      v[n][k + 4].re = scratch[k + 2][n].re;
+      v[n][k + 4].re += scratch[5 - k][n].re;
 
-      hyb[n][k].im = scratch[k + 6][n].im;
-      hyb[n][k + 2].im = scratch[k][n].im;
-      hyb[n][k + 4].im = scratch[k + 2][n].im;
-      hyb[n][k + 4].im += scratch[5 - k][n].im;
+      v[n][k].im = scratch[k + 6][n].im;
+      v[n][k + 2].im = scratch[k][n].im;
+      v[n][k + 4].im = scratch[k + 2][n].im;
+      v[n][k + 4].im += scratch[5 - k][n].im;
     }
   }
 
@@ -283,8 +275,8 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 6].re = scratch[1 - k][n].re;
-      hyb[n][k + 6].im = scratch[1 - k][n].im;
+      v[n][k + 6].re = scratch[1 - k][n].re;
+      v[n][k + 6].im = scratch[1 - k][n].im;
     }
   }
 
@@ -294,16 +286,99 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 8].re = scratch[k][n].re;
-      hyb[n][k + 8].im = scratch[k][n].im;
+      v[n][k + 8].re = scratch[k][n].re;
+      v[n][k + 8].im = scratch[k][n].im;
     }
   }
 
   for (k = 0; k < num_bands - lf_qmf_bands; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 10].re = (handle->hf_buffer[k][n + hf_samples_shift].re);
-      hyb[n][k + 10].im = (handle->hf_buffer[k][n + hf_samples_shift].im);
+      v[n][k + 10].re = (handle->hf_buffer[k][n + hf_samples_shift].re);
+      v[n][k + 10].im = (handle->hf_buffer[k][n + hf_samples_shift].im);
     }
+  }
+}
+
+VOID ixheaacd_mps_qmf_hybrid_analysis(
+    ia_mps_hybrid_filt_struct *handle,
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
+    WORD32 num_bands, WORD32 num_samples,
+    ia_cmplx_flt_struct hyb[MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS]) {
+  WORD32 lf_samples_shift;
+  WORD32 hf_samples_shift;
+  WORD32 lf_qmf_bands;
+  WORD32 k, n;
+
+  ia_cmplx_flt_struct scratch[MAX_HYBRID_ONLY_BANDS_PER_QMF][MAX_TIME_SLOTS];
+
+  lf_samples_shift = BUFFER_LEN_LF_MPS - num_samples;
+  hf_samples_shift = BUFFER_LEN_HF_MPS - num_samples;
+
+  lf_qmf_bands = QMF_BANDS_TO_HYBRID;
+
+  for (k = 0; k < lf_qmf_bands; k++) {
+    memmove(&handle->lf_buffer[k][0].re, &handle->lf_buffer[k][num_samples].re,
+            2 * lf_samples_shift * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < lf_qmf_bands; k++) {
+    memcpy(&handle->lf_buffer[k][lf_samples_shift].re, &in_qmf[k][0].re,
+           2 * num_samples * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < MAX_NUM_QMF_BANDS_SAC / 2 - lf_qmf_bands; k++) {
+    memmove(&handle->hf_buffer[k][0].re, &handle->hf_buffer[k][num_samples].re,
+            2 * hf_samples_shift * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
+    memcpy(&handle->hf_buffer[k][hf_samples_shift].re,
+           &in_qmf[k + lf_qmf_bands][0].re, 2 * num_samples * sizeof(FLOAT32));
+  }
+
+  ixheaacd_mps_hyb_filt_type1(
+      &(handle->lf_buffer[0][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_ia_mps_hyb_filter_coeff_8);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k][n].re = scratch[k + 6][n].re;
+      hyb[k + 2][n].re = scratch[k][n].re;
+      hyb[k + 4][n].re = scratch[k + 2][n].re;
+      hyb[k + 4][n].re += scratch[5 - k][n].re;
+
+      hyb[k][n].im = scratch[k + 6][n].im;
+      hyb[k + 2][n].im = scratch[k][n].im;
+      hyb[k + 4][n].im = scratch[k + 2][n].im;
+      hyb[k + 4][n].im += scratch[5 - k][n].im;
+    }
+  }
+
+  ixheaacd_mps_hyb_filt_type2(
+      &(handle->lf_buffer[1][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_mps_hyb_filter_coeff_2);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k + 6][n].re = scratch[1 - k][n].re;
+      hyb[k + 6][n].im = scratch[1 - k][n].im;
+    }
+  }
+
+  ixheaacd_mps_hyb_filt_type2(
+      &(handle->lf_buffer[2][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_mps_hyb_filter_coeff_2);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k + 8][n].re = scratch[k][n].re;
+      hyb[k + 8][n].im = scratch[k][n].im;
+    }
+  }
+
+  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
+    memcpy(&hyb[k + 10][0].re, &handle->hf_buffer[k][hf_samples_shift].re,
+           2 * num_samples * sizeof(FLOAT32));
   }
 }
 
@@ -328,9 +403,7 @@ VOID ixheaacd_mps_qmf_hybrid_synthesis(
     in_qmf[n][2].re = hyb[n][8].re + hyb[n][9].re;
     in_qmf[n][2].im = hyb[n][8].im + hyb[n][9].im;
 
-    for (k = 3; k < num_bands; k++) {
-      in_qmf[n][k].re = hyb[n][k - 3 + 10].re;
-      in_qmf[n][k].im = hyb[n][k - 3 + 10].im;
-    }
+    memcpy(&in_qmf[n][3].re, &hyb[n][10].re,
+           2 * (num_bands - 3) * sizeof(FLOAT32));
   }
 }

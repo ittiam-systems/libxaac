@@ -44,6 +44,8 @@ static const WORD32 ixheaacd_qmf_split_freq_0[] = {3, 15, 24, 65};
 static const WORD32 ixheaacd_qmf_split_freq_1[] = {3, 50, 65, 65};
 static const WORD32 ixheaacd_qmf_split_freq_2[] = {0, 15, 65, 65};
 
+extern const WORD32 ixheaacd_mps_gain_set_indx[29];
+
 static const FLOAT32
     ixheaacd_lattice_coeff_0_filt_den_coeff[DECORR_FILT_0_ORD + 1] = {
         1.000000f, -0.314818f, -0.256828f, -0.173641f, -0.115077f, 0.000599f,
@@ -141,19 +143,25 @@ static VOID ixheaacd_mps_decor_energy_adjustment(
     ixheaacd_mps_decor_energy_adjust_filt_struct *handle,
     ia_cmplx_flt_struct in[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
     ia_cmplx_flt_struct out[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
-    WORD32 time_slots) {
+    WORD32 time_slots, WORD32 res_bands) {
   ixheaacd_mps_decor_energy_adjust_filt_struct *self =
       (ixheaacd_mps_decor_energy_adjust_filt_struct *)handle;
   FLOAT32 in_energy[MAX_PARAMETER_BANDS] = {0};
   FLOAT32 out_energy[MAX_PARAMETER_BANDS] = {0};
   FLOAT32 gain[MAX_PARAMETER_BANDS];
   WORD32 i, j, k;
+  WORD32 start_param_band = 0, start_bin = 0;
+
+  if (res_bands != NO_RES_BANDS) {
+    start_bin = ixheaacd_mps_gain_set_indx[res_bands];
+    start_param_band = res_bands;
+  }
 
   for (i = 0; i < time_slots; i++) {
     memset(in_energy, 0, sizeof(FLOAT32) * MAX_PARAMETER_BANDS);
     memset(out_energy, 0, sizeof(FLOAT32) * MAX_PARAMETER_BANDS);
 
-    for (j = 0; j < self->num_bins; j++) {
+    for (j = start_bin; j < self->num_bins; j++) {
       k = ixheaacd_hybrid_band_71_to_processing_band_28_map[j];
 
       in_energy[k] += in[i][j].re * in[i][j].re + in[i][j].im * in[i][j].im;
@@ -161,7 +169,7 @@ static VOID ixheaacd_mps_decor_energy_adjustment(
           out[i][j].re * out[i][j].re + out[i][j].im * out[i][j].im;
     }
 
-    for (k = 0; k < MAX_PARAMETER_BANDS; k++) {
+    for (k = start_param_band; k < MAX_PARAMETER_BANDS; k++) {
       self->smooth_in_energy[k] = self->smooth_in_energy[k] * DECOR_ALPHA +
                                   in_energy[k] * ONE_MINUS_DECOR_ALPHA;
       self->smooth_out_energy[k] = self->smooth_out_energy[k] * DECOR_ALPHA +
@@ -184,7 +192,7 @@ static VOID ixheaacd_mps_decor_energy_adjustment(
       }
     }
 
-    for (j = 0; j < self->num_bins; j++) {
+    for (j = start_bin; j < self->num_bins; j++) {
       k = ixheaacd_hybrid_band_71_to_processing_band_28_map[j];
 
       out[i][j].re *= gain[k];
@@ -233,12 +241,14 @@ VOID ixheaacd_mps_decor_apply(
     ia_mps_decor_struct_handle self,
     ia_cmplx_flt_struct in[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
     ia_cmplx_flt_struct out[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS],
-    WORD32 length) {
-  WORD32 idx, sb_sample;
+    WORD32 length, WORD32 res_bands) {
+  WORD32 idx, sb_sample, index = 0;
 
   ia_cmplx_flt_struct scratch[MAX_TIME_SLOTS];
 
-  for (idx = 0; idx < self->num_bins; idx++) {
+  if (res_bands != NO_RES_BANDS) index = ixheaacd_mps_gain_set_indx[res_bands];
+
+  for (idx = index; idx < self->num_bins; idx++) {
     for (sb_sample = 0; sb_sample < length; sb_sample++) {
       self->decor_delay_buffer[idx][self->delay_sample_count[idx] + sb_sample]
           .re = in[sb_sample][idx].re;
@@ -262,6 +272,6 @@ VOID ixheaacd_mps_decor_apply(
     }
   }
 
-  ixheaacd_mps_decor_energy_adjustment(&self->decor_nrg_smooth, in, out,
-                                       length);
+  ixheaacd_mps_decor_energy_adjustment(&self->decor_nrg_smooth, in, out, length,
+                                       res_bands);
 }

@@ -22,6 +22,7 @@
 
 VOID ixheaacd_mps_res_buf_copy(ia_mps_dec_state_struct* self);
 VOID ixheaacd_mps_qmf_hyb_analysis(ia_mps_dec_state_struct* self);
+VOID ixheaacd_mps_qmf_hyb_analysis_no_pre_mix(ia_mps_dec_state_struct* self);
 VOID ixheaacd_mps_qmf_hyb_synthesis(ia_mps_dec_state_struct* self);
 VOID ixheaacd_mps_decor(ia_mps_dec_state_struct* self);
 VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct* self);
