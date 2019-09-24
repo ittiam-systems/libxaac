@@ -773,6 +773,8 @@ impd_parse_dwnmix_instructions(
 
   dwnmix_instructions->downmix_id = (temp >> 16) & 0x7f;
   dwnmix_instructions->target_channel_count = (temp >> 9) & 0x7f;
+  if (dwnmix_instructions->target_channel_count > MAX_CHANNEL_COUNT)
+    return (UNEXPECTED_ERROR);
   dwnmix_instructions->target_layout = (temp >> 1) & 0xff;
   dwnmix_instructions->downmix_coefficients_present = temp & 1;
 
