@@ -73,7 +73,6 @@
 #include "math.h"
 #include <assert.h>
 #include <string.h>
-
 #include "ixheaacd_error_standards.h"
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -342,7 +341,7 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
   err = ixheaacd_mps_frame_decode(self);
 
   if (err != 0) return err;
-
+  
   ixheaacd_pre_and_mix_matrix_calculation(self);
 
   ixheaacd_mps_pre_matrix_mix_matrix_smoothing(self);
