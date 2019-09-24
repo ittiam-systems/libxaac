@@ -387,7 +387,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
                 .str_usac_config.str_usac_dec_config.preroll_counter;
 
         UWORD8 i;  // for looping index used for payload calculation
-        WORD32 payload_buffer_offeset = 0;
+        WORD32 payload_buffer_offset = 0;
         WORD32 copy_bytes =
             pstr_dec_data->str_frame_data.str_audio_specific_config
                 .str_usac_config.str_usac_dec_config
@@ -401,7 +401,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
                 .usac_ext_gain_payload_len[preroll_counter];
 
         for (i = 0; i < preroll_counter; i++)
-          payload_buffer_offeset +=
+          payload_buffer_offset +=
               pstr_dec_data->str_frame_data.str_audio_specific_config
                   .str_usac_config.str_usac_dec_config
                   .usac_ext_gain_payload_len[i] *
@@ -409,11 +409,11 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
         memcpy(pstr_audio_specific_config->str_usac_config.str_usac_dec_config
                        .usac_ext_gain_payload_buf +
-                   payload_buffer_offeset,
+                   payload_buffer_offset,
                pstr_dec_data->str_frame_data.str_audio_specific_config
                        .str_usac_config.str_usac_dec_config
                        .usac_ext_gain_payload_buf +
-                   payload_buffer_offeset,
+                   payload_buffer_offset,
                copy_bytes);
 
         pstr_audio_specific_config->str_usac_config.str_usac_dec_config
@@ -422,9 +422,6 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         preroll_counter++;
 
         if (preroll_counter > (MAX_AUDIO_PREROLLS + 1)) return IA_FATAL_ERROR;
-
-        pstr_audio_specific_config->str_usac_config.str_usac_dec_config
-            .usac_ext_gain_payload_len[preroll_counter] = -1;
 
         pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config
             .str_usac_dec_config.preroll_counter = preroll_counter;
