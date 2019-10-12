@@ -1,5 +1,5 @@
 [cfi]
-# CFI blacklist for external/libhevc
+# CFI blacklist for external/libxaac
 
 # assembly functions where CFI has issues
 fun:ixheaacd_fix_div_armv7
