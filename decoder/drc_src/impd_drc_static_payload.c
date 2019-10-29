@@ -1225,6 +1225,9 @@ impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
     if (err) return (err);
   }
 
+  if ((drc_config->drc_instructions_uni_drc_count +
+       drc_config->dwnmix_instructions_count) >= DRC_INSTRUCTIONS_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   impd_drc_gen_instructions_for_drc_off(drc_config);
   return (0);
 }
