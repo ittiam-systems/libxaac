@@ -883,6 +883,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
   if (apply_processing) {
     WORD16 degree_alias[NO_SYNTHESIS_CHANNELS];
     WORD16 *border_vec = ptr_frame_data->str_frame_info_details.border_vec;
+    IA_ERRORCODE error_code = IA_NO_ERROR;
 
     if (low_pow_flag) {
       memset(degree_alias, 0, NO_SYNTHESIS_CHANNELS * sizeof(WORD16));
@@ -922,13 +923,14 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
           audio_object_type);
     }
 
-    ixheaacd_calc_sbrenvelope(
+    error_code = ixheaacd_calc_sbrenvelope(
         &ptr_sbr_dec->str_sbr_scale_fact, &ptr_sbr_dec->str_sbr_calc_env,
         ptr_header_data, ptr_frame_data, ptr_frame_data_prev,
         p_arr_qmf_buf_real, p_arr_qmf_buf_imag, degree_alias, low_pow_flag,
         sbr_tables_ptr, pstr_common_tables,
         ptr_work_buf_core + (LPC_ORDER << (6 + !low_pow_flag)),
         audio_object_type);
+    if (error_code) return error_code;
 
     memcpy(ptr_frame_data_prev->sbr_invf_mode, ptr_frame_data->sbr_invf_mode,
            ptr_header_data->pstr_freq_band_data->num_if_bands * sizeof(WORD32));
