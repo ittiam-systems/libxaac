@@ -63,15 +63,6 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32_tns_sat(WORD32 a, WORD32 b,
   return (result);
 }
 
-static PLATFORM_INLINE WORD64 mac32x32in64_dual(WORD32 a, WORD32 b, WORD64 c) {
-  WORD64 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)a * (WORD64)b;
-  result = c + (temp_result);
-  return (result);
-}
-
 VOID ixheaacd_tns_decode_coefficients(
     const ia_filter_info_struct *filter, WORD32 *a,
     ia_aac_dec_tables_struct *ptr_aac_tables) {
@@ -294,7 +285,7 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
       WORD32 acc1;
       y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
-        acc = mac32x32in64_dual(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
