@@ -121,6 +121,9 @@ WORD32 impd_init_drc_bitstream_dec(ia_drc_bits_dec_struct* p_drc_bs_dec_struct,
   ia_drc_params_bs_dec_struct* ia_drc_params_struct =
       &p_drc_bs_dec_struct->ia_drc_params_struct;
   ia_drc_params_struct->drc_frame_size = frame_size;
+  if (sample_rate < MIN_DRC_SAMP_FREQ) {
+    return -1;
+  }
   ia_drc_params_struct->delta_tmin_default = impd_get_delta_tmin(sample_rate);
   ia_drc_params_struct->num_gain_values_max_default =
       ia_drc_params_struct->drc_frame_size /
@@ -129,9 +132,6 @@ WORD32 impd_init_drc_bitstream_dec(ia_drc_bits_dec_struct* p_drc_bs_dec_struct,
 
   if ((frame_size < 1) || (frame_size > AUDIO_CODEC_FRAME_SIZE_MAX) ||
       (ia_drc_params_struct->drc_frame_size < 0.001f * sample_rate)) {
-    return -1;
-  }
-  if (sample_rate < 1000) {
     return -1;
   }
 

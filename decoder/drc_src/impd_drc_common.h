@@ -213,6 +213,8 @@ extern "C" {
 
 #define SLOPE_FACTOR_DB_TO_LINEAR 0.1151f
 
+#define MIN_DRC_SAMP_FREQ 1000
+
 #ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif

@@ -87,9 +87,6 @@ WORD32
 impd_get_delta_tmin(const WORD32 sampling_rate) {
   WORD32 lowerBound = (WORD32)(0.5f + 0.0005f * sampling_rate);
   WORD32 result = 1;
-  if (sampling_rate < 1000) {
-    return (UNEXPECTED_ERROR);
-  }
   while (result <= lowerBound) result = result << 1;
   return result;
 }

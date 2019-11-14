@@ -910,6 +910,7 @@ WORD32 impd_drc_set_preselection(
             for (l = 0; l < loudness_info_count; l++) {
               WORD32 match_found_flag = 0;
               WORD32 p;
+              if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
               for (p = 0; p < peak_info_count; p++) {
                 if (eq_set_id_Peak[p] == eq_set_id_loudness[l]) {
                   if (eq_set_id_valid_flag[eq_set_id_Peak[p]] == 1) {
@@ -924,7 +925,6 @@ WORD32 impd_drc_set_preselection(
                     signal_peak_level[p] + loudness_normalization_gain_db[l] -
                         pstr_drc_sel_proc_params_struct->output_peak_level_max);
                 adjustment = min(adjustment, max(0.0f, loudness_deviation_max));
-                if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
                 selection_candidate_info[k].loudness_norm_db_gain_adjusted =
                     loudness_normalization_gain_db[l] - adjustment;
 
@@ -967,11 +967,9 @@ WORD32 impd_drc_set_preselection(
       }
     }
   }
+  if (k > SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
   *selection_candidate_count = k;
-
-  if (*selection_candidate_count > SELECTION_CANDIDATE_COUNT_MAX) {
-    return UNEXPECTED_ERROR;
-  } else if (pstr_drc_sel_proc_params_struct->dynamic_range_control_on == 1) {
+  if (pstr_drc_sel_proc_params_struct->dynamic_range_control_on == 1) {
     n = 0;
     for (k = 0; k < *selection_candidate_count; k++) {
       str_drc_instruction_str =
