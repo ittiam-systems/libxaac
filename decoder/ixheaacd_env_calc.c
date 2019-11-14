@@ -809,6 +809,8 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
       start_pos = SBR_TIME_STEP * ptr_border_vec[i];
       end_pos = SBR_TIME_STEP * ptr_border_vec[i + 1];
     }
+    if ((start_pos >= MAX_ENV_COLS) || (end_pos > MAX_ENV_COLS))
+      return IA_FATAL_ERROR;
     freq_res = ptr_frame_data->str_frame_info_details.freq_res[i];
 
     if (noise_floor_idx >= MAX_NOISE_ENVELOPES) return IA_FATAL_ERROR;
