@@ -957,8 +957,8 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
     max_val = ixheaacd_add32_sat(
         max_val, ixheaacd_mult32(cov_matrix.phi_12_im, cov_matrix.phi_12_im));
 
-    v = ixheaacd_sub32(ixheaacd_mult32(cov_matrix.phi_11, cov_matrix.phi_22),
-                       max_val)
+    v = ixheaacd_sub32_sat(
+            ixheaacd_mult32(cov_matrix.phi_11, cov_matrix.phi_22), max_val)
         << 1;
     cov_matrix.d = v;
 
@@ -978,8 +978,8 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
 
       modulus_d = ixheaacd_abs32_sat(cov_matrix.d);
       tmp_r =
-          (ixheaacd_sub32(
-              ixheaacd_sub32(
+          (ixheaacd_sub32_sat(
+              ixheaacd_sub32_sat(
                   ixheaacd_mult32(cov_matrix.phi_01, cov_matrix.phi_12),
                   ixheaacd_mult32(cov_matrix.phi_01_im, cov_matrix.phi_12_im)),
               ixheaacd_mult32(cov_matrix.phi_02, cov_matrix.phi_11))) >>
@@ -1022,12 +1022,12 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
       inverse_r11 = (WORD16)(*ixheaacd_fix_div)(
           0x40000000, (cov_matrix.phi_11 << norm_r11));
 
-      tmp_r = ixheaacd_add32(
+      tmp_r = ixheaacd_add32_sat(
           ixheaacd_add32(
               (cov_matrix.phi_01 >> (LPC_SCALE_FACTOR + 1)),
               ixheaacd_mult32x16in32(cov_matrix.phi_12, alpha_real[1])),
           ixheaacd_mult32x16in32(cov_matrix.phi_12_im, alpha_imag[1]));
-      tmp_i = ixheaacd_sub32(
+      tmp_i = ixheaacd_sub32_sat(
           ixheaacd_add32(
               (cov_matrix.phi_01_im >> (LPC_SCALE_FACTOR + 1)),
               ixheaacd_mult32x16in32(cov_matrix.phi_12, alpha_imag[1])),
@@ -1058,13 +1058,13 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
       }
     }
 
-    if (ixheaacd_add32((alpha_real[0] * alpha_real[0]),
-                       (alpha_imag[0] * alpha_imag[0])) >= 0x40000000L) {
+    if (ixheaacd_add32_sat((alpha_real[0] * alpha_real[0]),
+                           (alpha_imag[0] * alpha_imag[0])) >= 0x40000000L) {
       reset_lpc_coeff = 1;
     }
 
-    if (ixheaacd_add32((alpha_real[1] * alpha_real[1]),
-                       (alpha_imag[1] * alpha_imag[1])) >= 0x40000000L) {
+    if (ixheaacd_add32_sat((alpha_real[1] * alpha_real[1]),
+                           (alpha_imag[1] * alpha_imag[1])) >= 0x40000000L) {
       reset_lpc_coeff = 1;
     }
 
