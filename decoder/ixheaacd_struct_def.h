@@ -235,6 +235,7 @@ typedef struct ia_aac_dec_state_struct {
   jmp_buf xaac_jmp_buf;
   WORD32 decode_create_done;
   WORD32 fatal_err_present;
+  WORD8 *pers_mem_ptr;
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {
