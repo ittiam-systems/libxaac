@@ -109,6 +109,7 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                                    WORD32 stereo_config_idx,
                                    WORD16 num_channels,
                                    WORD32 audio_object_type) {
+  WORD32 ch;
   WORD32 err_code = 0;
   ia_aac_dec_sbr_bitstream_struct *esbr_bit_str = &usac_data->esbr_bit_str[0];
   ia_handle_sbr_dec_inst_struct self = usac_data->pstr_esbr_dec;
@@ -126,6 +127,13 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
 
   self->sbr_mode = usac_data->sbr_mode;
   self->aot_usac_flag = usac_data->usac_flag;
+
+  for (ch = 0; ch < num_channels; ch++) {
+    if ((self->pstr_sbr_channel[ch]
+             ->str_sbr_dec.str_synthesis_qmf_bank.qmf_filter_state_size) <
+        QMF_FILTER_STATE_SYN_SIZE)
+      return IA_FATAL_ERROR;
+  }
 
   err_code = ixheaacd_applysbr(self, esbr_bit_str, NULL, &num_channels, 1, 0, 0,
                                &sbr_scratch_struct, 0, 1, 0, it_bit_buff, NULL,

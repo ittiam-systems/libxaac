@@ -1027,14 +1027,13 @@ static PLATFORM_INLINE WORD32 ixheaacd_create_cplx_synt_qmfbank(
   WORD32 qmf_filter_state_size;
 
   memset(ptr_sbr_qmf, 0, sizeof(ia_sbr_qmf_filter_bank_struct));
+  qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
 
   if (down_sample_flag) {
     L = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
-    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE_DOWN_SAMPLED;
     ptr_sbr_qmf->usb = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
   } else {
     L = NO_SYNTHESIS_CHANNELS;
-    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
     ptr_sbr_qmf->usb = usb;
   }
 
