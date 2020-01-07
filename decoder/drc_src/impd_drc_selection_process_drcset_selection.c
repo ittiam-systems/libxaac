@@ -1170,6 +1170,7 @@ WORD32 impd_drc_set_final_selection(
         if (pstr_drc_sel_proc_params_struct->requested_dwnmix_id
                 [selection_candidate_info_step_2[i].downmix_id_request_index] ==
             str_drc_instruction_str->downmix_id[n]) {
+          if (k >= SELECTION_CANDIDATE_COUNT_MAX) return UNEXPECTED_ERROR;
           memcpy(&selection_candidate_info_step_2[k],
                  &selection_candidate_info_step_2[i],
                  sizeof(ia_selection_candidate_info_struct));
