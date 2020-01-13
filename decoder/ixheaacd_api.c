@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
@@ -1982,6 +1983,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       WORD ch_idx_err = 0;
       WORD persistent_used_t = 0;
       WORD channel_check = 0;
+      WORD cc_channel_check = 0;
       WORD max_ch_num = p_obj_exhaacplus_dec->aac_config.ui_max_channels;
       i = 0;
 
@@ -2006,30 +2008,34 @@ IA_ERRORCODE ixheaacd_dec_init(
       while (p_obj_exhaacplus_dec->aac_config.element_type[i] >= 0 &&
              p_obj_exhaacplus_dec->aac_config.element_type[i] <= 3) {
         WORD32 channel = 0;
-        if (p_obj_exhaacplus_dec->aac_config.element_type[i] == 0 ||
-            p_obj_exhaacplus_dec->aac_config.element_type[i] == 3) {
-          channel = 1;
-        }
-
-        if (p_obj_exhaacplus_dec->aac_config.element_type[i] == 1) {
-          channel = 2;
-        }
-
-        if (p_obj_exhaacplus_dec->aac_config.element_type[i] == 2) {
-          if (max_ch_num > 2) {
-            if (p_obj_exhaacplus_dec->aac_config.element_instance_order[i] !=
-                p_obj_exhaacplus_dec->aac_config.ui_coupling_channel) {
+        switch (p_obj_exhaacplus_dec->aac_config.element_type[i]) {
+          case 0:
+          case 3:
+            channel = 1;
+            break;
+          case 1:
+            channel = 2;
+            break;
+          case 2:
+            if (max_ch_num > 2) {
+              if (p_obj_exhaacplus_dec->aac_config.element_instance_order[i] !=
+                  p_obj_exhaacplus_dec->aac_config.ui_coupling_channel) {
+                i++;
+                continue;
+              }
+              channel = 1;
+            } else {
               i++;
               continue;
             }
-            channel = 1;
-          } else
-
-          {
-            i++;
-            continue;
-          }
+            cc_channel_check++;
+            break;
+          default:
+            assert(0);
         }
+
+        if (cc_channel_check > MAX_CC_CHANNEL_NUM)
+          return IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
         if (ps_enable == 1) {
           channel = 2;
         }
