@@ -1449,13 +1449,15 @@ impd_dec_gain_modifiers(ia_bit_buf_struct* it_bit_buff, WORD32 version,
       }
     }
     if (band_count == 1) {
+      WORD32 tmp;
       pstr_gain_modifiers->shape_filter_flag =
           impd_read_bits_buf(it_bit_buff, 1);
       if (it_bit_buff->error) return it_bit_buff->error;
       if (pstr_gain_modifiers->shape_filter_flag) {
-        pstr_gain_modifiers->shape_filter_idx =
-            impd_read_bits_buf(it_bit_buff, 4);
+        tmp = impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (tmp >= (SHAPE_FILTER_COUNT_MAX + 1)) return UNEXPECTED_ERROR;
+        pstr_gain_modifiers->shape_filter_idx = tmp;
       }
     }
   } else if (version == 0) {
