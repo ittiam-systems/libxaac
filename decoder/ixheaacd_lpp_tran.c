@@ -541,18 +541,18 @@ static PLATFORM_INLINE VOID ixheaacd_filt_step3_lp(WORD len, WORD32 coef1,
     WORD32 temp = ixheaacd_mult32x16hin32(prev2, coef2);
     pqmf_real_low += 64;
 
-    *pqmf_real_high =
-        ixheaacd_add32((curr >> LPC_SCALE_FACTOR),
-                       ((ixheaacd_mac32x16hin32(temp, prev1, coef1)) << 1));
+    *pqmf_real_high = ixheaacd_add32_sat(
+        (curr >> LPC_SCALE_FACTOR),
+        (ixheaacd_shl32_sat(ixheaacd_mac32x16hin32(temp, prev1, coef1), 1)));
     pqmf_real_high += 64;
 
     prev2 = *pqmf_real_low;
     temp = ixheaacd_mult32x16hin32(prev1, coef2);
     pqmf_real_low += 64;
 
-    *pqmf_real_high =
-        ixheaacd_add32((prev2 >> LPC_SCALE_FACTOR),
-                       ((ixheaacd_mac32x16hin32(temp, curr, coef1)) << 1));
+    *pqmf_real_high = ixheaacd_add32_sat(
+        (prev2 >> LPC_SCALE_FACTOR),
+        (ixheaacd_shl32_sat(ixheaacd_mac32x16hin32(temp, curr, coef1), 1)));
     pqmf_real_high += 64;
 
     prev1 = prev2;
