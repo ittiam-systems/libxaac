@@ -295,9 +295,13 @@ WORD32 impd_drc_uni_gain_read(ia_bit_buf_struct* it_bit_buff,
     for (seq = 0; seq < gain_sequence_count; seq++) {
       WORD32 index = drc_config->str_p_loc_drc_coefficients_uni_drc[0]
                          .gain_set_params_index_for_gain_sequence[seq];
-      ia_gain_set_params_struct* gain_set_params =
-          &(drc_config->str_p_loc_drc_coefficients_uni_drc
-                ->gain_set_params[index]);
+      ia_gain_set_params_struct str_gain_set_params = {0};
+      ia_gain_set_params_struct* gain_set_params = &str_gain_set_params;
+
+      if (index != -1) {
+        gain_set_params = &(drc_config->str_p_loc_drc_coefficients_uni_drc
+                                ->gain_set_params[index]);
+      }
       if (gain_set_params->gain_coding_profile ==
           GAIN_CODING_PROFILE_CONSTANT) {
         str_spline_nodes =
