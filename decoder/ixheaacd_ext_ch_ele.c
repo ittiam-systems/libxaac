@@ -370,14 +370,12 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
-    sum = 0;
-    sum = ixheaacd_mac32x32in64_7(sum, &in[i - 3], filter);
+    sum = ixheaacd_mac32x32in64_7(&in[i - 3], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
-    sum = 0;
-    sum = ixheaacd_mac32x32in64_7(sum, &in[i - 2], filter);
+    sum = ixheaacd_mac32x32in64_7(&in[i - 2], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
     out++;
