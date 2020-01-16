@@ -997,7 +997,7 @@ WORD32 ixheaacd_aac_headerdecode(
 
           handle_bit_buff = ixheaacd_create_init_bit_buf(
               &it_bit_buff, (UWORD8 *)(buffer + adts.aac_frame_length),
-              (WORD16)(header_len - adts.aac_frame_length));
+              (WORD16)(header_len - bytes_taken - adts.aac_frame_length));
 
           adts_loc.sync_word =
               (WORD16)ixheaacd_read_bits_buf(handle_bit_buff, 12);
