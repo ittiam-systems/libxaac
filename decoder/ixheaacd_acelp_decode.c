@@ -350,8 +350,8 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   FLOAT32 tmp, pitch_gain, gain_code, voicing_factor, r_v, innov_energy,
       pitch_energy, mean_ener_code;
   FLOAT32 gain_smooth, gain_code0, cpe;
-  FLOAT32 code[LEN_SUBFR], synth_temp[128 + 16];
-  FLOAT32 post_process_exc[LEN_SUBFR];
+  FLOAT32 code[LEN_SUBFR] = {0}, synth_temp[128 + 16] = {0};
+  FLOAT32 post_process_exc[LEN_SUBFR] = {0};
   FLOAT32 gain_smooth_factor;
   FLOAT32 *ptr_lp_filt_coeff;
   WORD32 pitch_min;
@@ -360,8 +360,8 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   WORD32 pitch_max;
   WORD32 subfr_nb = 0;
   static const WORD16 num_codebits_table[8] = {20, 28, 36, 44, 52, 64, 12, 16};
-  FLOAT32 x[FAC_LENGTH], xn2[2 * FAC_LENGTH + 16];
-  WORD32 int_x[FAC_LENGTH];
+  FLOAT32 x[FAC_LENGTH] = {0}, xn2[2 * FAC_LENGTH + 16] = {0};
+  WORD32 int_x[FAC_LENGTH] = {0};
   WORD32 TTT;
   WORD32 len_subfr = usac_data->len_subfrm;
   WORD32 fac_length;
