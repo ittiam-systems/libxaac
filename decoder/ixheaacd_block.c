@@ -59,7 +59,9 @@ static PLATFORM_INLINE WORD32 ixheaacd_shr32_drc(WORD32 a, WORD32 b) {
   WORD32 out_val;
 
   b = ((UWORD32)(b << 24) >> 24);
-  if (b >= 31) {
+  if (b == 0) {
+    out_val = a;
+  } else if (b >= 31) {
     if (a < 0)
       out_val = -1;
     else
