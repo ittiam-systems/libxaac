@@ -272,8 +272,10 @@ WORD32 impd_dec_times(ia_bit_buf_struct* it_bit_buff,
           e++;
         }
       }
-      str_node[k].time = time_offs + time_delta * delta_tmin;
-      time_offs = str_node[k].time;
+      time_offs += time_delta * delta_tmin;
+      if (time_offs >= (2 * AUDIO_CODEC_FRAME_SIZE_MAX - drc_frame_size))
+        return UNEXPECTED_ERROR;
+      str_node[k].time = time_offs;
     }
   }
   return (0);
