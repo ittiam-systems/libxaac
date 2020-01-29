@@ -130,6 +130,9 @@ WORD32 impd_apply_gains_and_add(
                 impd_shape_filt_block_adapt(lpcm_gains[iEnd],
                                             &shape_filter_block[g]);
               }
+              if ((iEnd == iStart) &&
+                  (drc_gain_last == shape_filter_block[g].drc_gain_last))
+                break;
               iStart = iEnd;
             }
           }
