@@ -1715,6 +1715,10 @@ impd_drc_parse_coeff(
             ia_drc_params_struct->drc_frame_size /
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .time_delt_min_val;
+        if (str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
+                .num_gain_max_values >
+            (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1))
+          return (UNEXPECTED_ERROR);
         err = impd_init_tbls(
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .num_gain_max_values,
@@ -1891,6 +1895,11 @@ impd_drc_parse_coeff(
             ia_drc_params_struct->drc_frame_size /
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .time_delt_min_val;
+        if (str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
+                .num_gain_max_values >
+            (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1))
+          return (UNEXPECTED_ERROR);
+
         err = impd_init_tbls(
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .num_gain_max_values,
