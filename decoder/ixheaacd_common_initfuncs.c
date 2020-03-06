@@ -158,12 +158,13 @@ VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,
                                WORD32 ixheaacd_drc_offset) {
   if (ixheaacd_drc_offset != 0) {
     WORD32 byte_offset;
-
-    it_bit_buff->cnt_bits = it_bit_buff->cnt_bits - ixheaacd_drc_offset;
-    if (it_bit_buff->cnt_bits < 0) {
+    if ((it_bit_buff->cnt_bits < 0) ||
+        (it_bit_buff->cnt_bits - ixheaacd_drc_offset < 0) ||
+        (it_bit_buff->cnt_bits - ixheaacd_drc_offset > it_bit_buff->size)) {
       longjmp(*(it_bit_buff->xaac_jmp_buf),
               IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
+    it_bit_buff->cnt_bits = it_bit_buff->cnt_bits - ixheaacd_drc_offset;
     it_bit_buff->bit_pos = it_bit_buff->bit_pos - ixheaacd_drc_offset;
     byte_offset = it_bit_buff->bit_pos >> 3;
     it_bit_buff->bit_pos = it_bit_buff->bit_pos - (byte_offset << 3);
