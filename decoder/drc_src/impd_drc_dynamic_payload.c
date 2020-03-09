@@ -521,9 +521,12 @@ WORD32 impd_parse_drc_gain_sequence(
       }
     }
     for (k = 0; k < num_nodes_node_reservoir; k++) {
-      drc_gain_sequence->str_spline_nodes[i].str_node[k].time =
-          prev_frame_time_buf[k] -
-          2 * pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size;
+      WORD32 tmp = prev_frame_time_buf[k] -
+                   2 * pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size;
+      if (tmp >= (2 * AUDIO_CODEC_FRAME_SIZE_MAX -
+                  pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size))
+        return UNEXPECTED_ERROR;
+      drc_gain_sequence->str_spline_nodes[i].str_node[k].time = tmp;
     }
     for (m = 0; m < num_nodes_cur; m++, k++) {
       drc_gain_sequence->str_spline_nodes[i].str_node[k].time =
