@@ -2103,6 +2103,9 @@ IA_ERRORCODE ixheaacd_dec_init(
 
         i++;
       }
+      p_state_enhaacplus_dec->pers_mem_ptr =
+          (WORD8 *)p_state_enhaacplus_dec->aac_persistent_mem_v +
+          persistent_used_t;
 
       p_obj_exhaacplus_dec->aac_config.i_channel_mask =
           ixheaacd_get_channel_mask(p_obj_exhaacplus_dec);
@@ -2542,14 +2545,12 @@ IA_ERRORCODE ixheaacd_dec_execute(
         WORD32 pers_used = 0;
         skip_full_decode = 1;
         pers_used = ixheaacd_set_aac_persistent_buffers(
-            (WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v + (8 * 1024),
-            channel);
+            p_state_enhaacplus_dec->pers_mem_ptr, channel);
 
         {
           struct ia_aac_persistent_struct *aac_persistent_mem =
-              (struct ia_aac_persistent_struct
-                   *)((WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v +
-                      (8 * 1024));
+              (struct ia_aac_persistent_struct *)
+                  p_state_enhaacplus_dec->pers_mem_ptr;
           aac_persistent_mem->str_aac_decoder.pstr_aac_tables =
               &p_obj_exhaacplus_dec->aac_tables;
           aac_persistent_mem->str_aac_decoder.pstr_common_tables =
@@ -2566,8 +2567,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
                 p_state_enhaacplus_dec->pstr_stream_sbr[ch_idx],
 
-                channel,
-                (WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v + (8 * 1024),
+                channel, p_state_enhaacplus_dec->pers_mem_ptr,
                 p_state_enhaacplus_dec->frame_length
 
                 );
