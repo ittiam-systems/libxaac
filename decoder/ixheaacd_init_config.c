@@ -307,6 +307,8 @@ IA_ERRORCODE ixheaacd_mps212_config(
 
   pstr_usac_mps212_config->bs_decorr_config =
       ixheaacd_read_bits_buf(it_bit_buff, 2);
+  if (pstr_usac_mps212_config->bs_decorr_config > MAX_DECOR_CONFIG_IDX)
+    return IA_FATAL_ERROR;
 
   pstr_usac_mps212_config->bs_high_rate_mode =
       ixheaacd_read_bits_buf(it_bit_buff, 1);
