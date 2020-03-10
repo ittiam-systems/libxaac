@@ -276,30 +276,6 @@ cc_library_static {
                 "decoder/x86_64/ixheaacd_function_selector_x86_64.c",
             ],
         },
-
-        mips: {
-            cflags: [
-            ],
-
-            local_include_dirs: [
-            ],
-
-            srcs: [
-                "decoder/generic/ixheaacd_function_selector_generic.c",
-            ],
-        },
-
-        mips64: {
-            cflags: [
-            ],
-
-            local_include_dirs: [
-            ],
-
-            srcs: [
-                "decoder/generic/ixheaacd_function_selector_generic.c",
-            ],
-        },
     },
 }
 
