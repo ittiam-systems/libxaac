@@ -69,6 +69,7 @@
 #include "ixheaacd_mps_hybfilter.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_huff_tab.h"
+#include "ixheaacd_error_standards.h"
 
 extern const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
 extern const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;
@@ -125,8 +126,9 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
   if ((self->residual_coding) && (self->res_bands > 0))
     ixheaacd_mps_qmf_hybrid_analysis_init(&self->hyb_filt_state[1]);
 
-  ixheaacd_mps_decor_init(&(self->mps_decor), self->hyb_band_count,
-                          self->config->bs_decorr_config);
+  err_code = ixheaacd_mps_decor_init(&(self->mps_decor), self->hyb_band_count,
+                                     self->config->bs_decorr_config);
+  if (err_code != IA_NO_ERROR) return err_code;
 
   ixheaacd_mps_init_pre_and_post_matrix(self);
 
