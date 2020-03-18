@@ -1089,7 +1089,7 @@ WORD32 impd_parser_td_filter_cascade(
 WORD32 impd_parse_eq_instructions(
     ia_bit_buf_struct* it_bit_buff, ia_drc_config* drc_config,
     ia_eq_instructions_struct* str_eq_instructions) {
-  WORD32 i, k, channel_count, temp;
+  WORD32 i, channel_count, temp;
   WORD32 dmix_id_present, additional_dmix_id_present,
       additional_dmix_id_cnt = 0;
   WORD32 additional_drc_set_id_present, additional_drc_set_id_cnt;
@@ -1199,22 +1199,20 @@ WORD32 impd_parse_eq_instructions(
   str_eq_instructions->eq_ch_group_count = 0;
 
   for (i = 0; i < channel_count; i++) {
-    WORD32 new_group = 1;
-    str_eq_instructions->eq_ch_group_of_channel[i] =
-        impd_read_bits_buf(it_bit_buff, 7);
+    WORD32 tmp = impd_read_bits_buf(it_bit_buff, 7);
     if (it_bit_buff->error) return it_bit_buff->error;
-
-    for (k = 0; k < i; k++) {
-      if (str_eq_instructions->eq_ch_group_of_channel[i] ==
-          str_eq_instructions->eq_ch_group_of_channel[k]) {
-        new_group = 0;
-        break;
-      }
-    }
-
-    if (new_group == 1) {
-      str_eq_instructions->eq_ch_group_count += 1;
-    }
+    if (tmp >= EQ_CHANNEL_GROUP_COUNT_MAX) return UNEXPECTED_ERROR;
+    str_eq_instructions->eq_ch_group_of_channel[i] = tmp;
+  }
+  {
+    WORD32 total;
+    WORD32 groups_used[EQ_CHANNEL_GROUP_COUNT_MAX] = {0};
+    for (i = 0; i < channel_count; i++)
+      groups_used[str_eq_instructions->eq_ch_group_of_channel[i]] = 1;
+    total = 0;
+    for (i = 0; i < EQ_CHANNEL_GROUP_COUNT_MAX; i++)
+      if (groups_used[i]) total++;
+    str_eq_instructions->eq_ch_group_count = total;
   }
 
   if (str_eq_instructions->eq_ch_group_count > EQ_CHANNEL_GROUP_COUNT_MAX)
