@@ -1223,9 +1223,10 @@ WORD32 impd_parse_eq_instructions(
   if (it_bit_buff->error) return it_bit_buff->error;
 
   if (str_eq_instructions->td_filter_cascade_present) {
-    impd_parser_td_filter_cascade(
+    WORD32 err = impd_parser_td_filter_cascade(
         it_bit_buff, str_eq_instructions,
         &(str_eq_instructions->str_td_filter_cascade));
+    if (err) return err;
   }
 
   str_eq_instructions->subband_gains_present =
@@ -1234,9 +1235,10 @@ WORD32 impd_parse_eq_instructions(
 
   if (str_eq_instructions->subband_gains_present) {
     for (i = 0; i < str_eq_instructions->eq_ch_group_count; i++) {
-      str_eq_instructions->subband_gains_index[i] =
-          impd_read_bits_buf(it_bit_buff, 6);
+      WORD32 tmp = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
+      if (tmp >= UNIQUE_SUBBAND_GAIN_COUNT_MAX) return UNEXPECTED_ERROR;
+      str_eq_instructions->subband_gains_index[i] = tmp;
     }
   }
 
