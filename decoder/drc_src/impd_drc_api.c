@@ -81,10 +81,10 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc);
    sizeof(ia_drc_sel_proc_output_struct) +                                   \
    sizeof(ia_drc_peak_limiter_struct) + sizeof(ia_drc_peak_limiter_struct) + \
    sizeof(ia_drc_qmf_filt_struct) + ANALY_BUF_SIZE + SYNTH_BUF_SIZE +        \
-   PEAK_LIM_BUF_SIZE + MAX_BS_BUF_SIZE + /*DRC Config Bitstream*/            \
-   MAX_DRC_CONFG_BUF_SIZE +              /*DRC loudness info Bitstream*/     \
-   MAX_LOUD_INFO_BUF_SIZE +              /*DRC interface Bitstream*/         \
-   MAX_INTERFACE_BUF_SIZE +                                                  \
+   PEAK_LIM_BUF_SIZE + MAX_DRC_BS_BUF_SIZE +                                 \
+   MAX_DRC_CONFG_BUF_SIZE + /*DRC Config Bitstream*/                         \
+   MAX_LOUD_INFO_BUF_SIZE + /*DRC loudness info Bitstream*/                  \
+   MAX_INTERFACE_BUF_SIZE + /*DRC interface Bitstream*/                      \
    NUM_GAIN_DEC_INSTANCES *                                                  \
        (SEL_DRC_COUNT * sizeof(ia_interp_buf_struct) * MAX_GAIN_ELE_COUNT +  \
         sizeof(ia_eq_set_struct) + /*non_interleaved_audio*/                 \
@@ -205,11 +205,16 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
         case IA_CMD_TYPE_INIT_CPY_BSF_BUFF: {
           memcpy(p_obj_drc->str_bit_handler.it_bit_buf +
-                     p_obj_drc->str_bit_handler.num_bytes_bs,
+                     p_obj_drc->str_bit_handler.num_bytes_offset_bs,
                  p_obj_drc->pp_mem[2], p_obj_drc->str_bit_handler.num_byts_cur);
           p_obj_drc->str_bit_handler.num_bytes_bs =
               p_obj_drc->str_bit_handler.num_bytes_bs +
               p_obj_drc->str_bit_handler.num_byts_cur;
+          p_obj_drc->str_bit_handler.num_bytes_offset_bs =
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+          p_obj_drc->str_bit_handler.num_total_bytes =
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+
           break;
         }
         case IA_CMD_TYPE_INIT_CPY_IC_BSF_BUFF: {
@@ -369,6 +374,11 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_TD_QMF64) {
             error_code = IA_FATAL_ERROR;
           }
+          p_obj_drc->str_bit_handler.byte_index_bs =
+              p_obj_drc->str_bit_handler.num_total_bytes -
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+          p_obj_drc->str_bit_handler.num_bytes_offset_bs = 0;
+
           break;
         }
         case IA_CMD_TYPE_DONE_QUERY: {
