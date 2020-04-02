@@ -149,7 +149,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
     case IA_API_CMD_INIT: {
       switch (i_idx) {
         case IA_CMD_TYPE_INIT_SET_BUFF_PTR: {
-          p_obj_drc->p_state->persistant_ptr =
+          p_obj_drc->p_state->persistent_ptr =
               (UWORD8 *)p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX] +
               sizeof(ia_drc_state_struct);
           impd_drc_set_struct_pointer(p_obj_drc);
