@@ -114,7 +114,7 @@ typedef struct ia_drc_state_struct {
   UWORD32 ui_ir_used;
   WORD32 delay_in_output;
   WORD32 delay_adjust_samples;
-  pVOID persistant_ptr;
+  pVOID persistent_ptr;
 } ia_drc_state_struct;
 
 typedef struct IA_PSM_API_Struct {
