@@ -488,6 +488,8 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
   WORD32 tmp;
   WORD32 cnt_bits = it_bit_buff->cnt_bits;
   WORD32 dummy = 0;
+  UWORD32 aot_init;
+
   ia_audio_specific_config_struct *pstr_audio_specific_config;
 
   memset(aac_state_struct->ia_audio_specific_config, 0,
@@ -500,6 +502,8 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
   aac_state_struct->p_config->str_prog_config.alignment_bits =
       it_bit_buff->bit_pos;
+
+  aot_init = aac_state_struct->audio_object_type;
 
   aac_state_struct->audio_object_type = ixheaacd_read_bits_buf(it_bit_buff, 5);
 
@@ -539,6 +543,10 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
     aac_state_struct->audio_object_type =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
+  }
+
+  if (aac_state_struct->ui_init_done) {
+    if (aac_state_struct->audio_object_type != aot_init) return IA_FATAL_ERROR;
   }
 
   if (((aac_state_struct->audio_object_type >= AOT_AAC_MAIN &&
