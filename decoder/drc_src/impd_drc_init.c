@@ -276,6 +276,7 @@ IA_ERRORCODE impd_drc_set_default_bitstream_config(
 IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc) {
   SIZE_T persistant_ptr = (SIZE_T)p_obj_drc->p_state->persistant_ptr;
 
+  SIZE_T persistant_size_consumed = 0;
   p_obj_drc->str_payload.pstr_bitstream_dec =
       (ia_drc_bits_dec_struct *)persistant_ptr;
   persistant_ptr = persistant_ptr + sizeof(ia_drc_bits_dec_struct);
@@ -307,7 +308,7 @@ IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc) {
   persistant_ptr = persistant_ptr + sizeof(ia_drc_sel_pro_struct);
 
   p_obj_drc->str_bit_handler.it_bit_buf = (UWORD8 *)persistant_ptr;
-  persistant_ptr = persistant_ptr + MAX_BS_BUF_SIZE;
+  persistant_ptr = persistant_ptr + MAX_DRC_BS_BUF_SIZE;
 
   p_obj_drc->str_payload.pstr_drc_sel_proc_params =
       (ia_drc_sel_proc_params_struct *)persistant_ptr;
@@ -345,6 +346,11 @@ IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc) {
 
   p_obj_drc->str_payload.pstr_qmf_filter->syn_buff = (FLOAT64 *)persistant_ptr;
   persistant_ptr = persistant_ptr + SYNTH_BUF_SIZE;
+  persistant_size_consumed =
+      (UWORD32)persistant_ptr - (UWORD32)p_obj_drc->p_state->persistant_ptr;
+  if (p_obj_drc->p_mem_info[IA_MEMTYPE_PERSIST].ui_size <
+      persistant_size_consumed)
+    return IA_FATAL_ERROR;
 
   p_obj_drc->p_state->persistant_ptr = (pVOID)persistant_ptr;
   return IA_NO_ERROR;
