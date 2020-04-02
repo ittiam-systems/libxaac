@@ -71,6 +71,8 @@ typedef struct bits_handler {
   WORD32 num_bits_read_bs;
   WORD32 num_bytes_read_bs;
   WORD32 num_bytes_bs;
+  WORD32 num_bytes_offset_bs;
+  WORD32 num_total_bytes;
   WORD32 num_bits_offset_bs;
   WORD32 byte_index_bs;
   WORD32 num_byts_cur;
