@@ -2461,7 +2461,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
             p_state_enhaacplus_dec,
             (ia_sampling_rate_info_struct *)&p_obj_exhaacplus_dec->aac_tables
                 .pstr_huffmann_tables->str_sample_rate_info[0]);
-        if (result < 0) return result;
+        if (result) return result;
         if (!p_state_enhaacplus_dec->latm_initialized) {
           p_state_enhaacplus_dec->sampling_rate =
               p_state_enhaacplus_dec->latm_struct_element.layer_info[0][0]
