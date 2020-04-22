@@ -180,11 +180,8 @@ static PLATFORM_INLINE WORD32 ixheaacd_add32_sat(WORD32 a, WORD32 b) {
 
   sum = (WORD64)a + (WORD64)b;
 
-  if ((((WORD32)a ^ (WORD32)b) & (WORD32)MIN_32) == 0) {
-    if (((WORD32)sum ^ (WORD32)a) & (WORD32)MIN_32) {
-      sum = (a < 0) ? MIN_32 : MAX_32;
-    }
-  }
+  if (sum >= MAX_32) return MAX_32;
+  if (sum <= MIN_32) return MIN_32;
 
   return (WORD32)sum;
 }
@@ -212,11 +209,8 @@ static PLATFORM_INLINE WORD32 ixheaacd_sub32_sat(WORD32 a, WORD32 b) {
 
   diff = (WORD64)a - (WORD64)b;
 
-  if ((((WORD32)a ^ (WORD32)b) & (WORD32)MIN_32) != 0) {
-    if (((WORD32)diff ^ (WORD32)a) & (WORD32)MIN_32) {
-      diff = (a < 0L) ? MIN_32 : MAX_32;
-    }
-  }
+  if (diff >= MAX_32) return MAX_32;
+  if (diff <= MIN_32) return MIN_32;
 
   return (WORD32)diff;
 }
