@@ -450,26 +450,6 @@ VOID ixheaacd_esbr_synthesis_filt_block(
     ia_sbr_frame_info_data_struct *ptr_frame_data, WORD32 apply_processing,
     FLOAT32 **qmf_buf_real, FLOAT32 **qmf_buf_imag, WORD32 stereo_config_idx,
     ia_sbr_tables_struct *sbr_tables_ptr, WORD32 mps_sbr_flag, WORD32 ch_fac) {
-  WORD32 i, k, p1;
-  WORD32 *ptr_filt_states;
-  WORD32 *ptr_filt_states_1;
-  WORD32 *ptr_filt_states_2;
-  WORD32 *filter_l;
-  WORD32 *ploc_qmf_buf_real;
-  WORD32 *ploc_qmf_buf_imag;
-  WORD32 out_scalefactor;
-  WORD32 sixty4;
-  WORD32 no_synthesis_channels;
-  WORD32 ixheaacd_drc_offset;
-  FLOAT32 *syn_buffer;
-  WORD32 *local_qmf_buffer = ptr_sbr_dec->sbr_scratch_local;
-  WORD32 *time_out = &(ptr_sbr_dec->sbr_scratch_local[128]);
-
-  ia_sbr_qmf_filter_bank_struct *qmf_bank =
-      &ptr_sbr_dec->str_synthesis_qmf_bank;
-  ia_qmf_dec_tables_struct *qmf_dec_tables_ptr =
-      sbr_tables_ptr->qmf_dec_tables_ptr;
-
   if (!mps_sbr_flag) {
     ixheaacd_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
                                   ptr_sbr_dec, ptr_frame_data, ptr_header_data,
@@ -479,73 +459,93 @@ VOID ixheaacd_esbr_synthesis_filt_block(
                                       ptr_sbr_dec, stereo_config_idx);
   }
 
-  out_scalefactor = 5;
-  qmf_bank->no_channels = 64;
-  qmf_bank->esbr_cos_twiddle =
-      (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l64;
-  qmf_bank->esbr_alt_sin_twiddle =
-      (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l64;
+  if (stereo_config_idx <= 0) {
+    WORD32 i, k, p1;
+    WORD32 *ptr_filt_states;
+    WORD32 *ptr_filt_states_1;
+    WORD32 *ptr_filt_states_2;
+    WORD32 *filter_l;
+    WORD32 *ploc_qmf_buf_real;
+    WORD32 *ploc_qmf_buf_imag;
+    WORD32 out_scalefactor;
+    WORD32 sixty4;
+    WORD32 no_synthesis_channels;
+    WORD32 ixheaacd_drc_offset;
+    FLOAT32 *syn_buffer;
+    WORD32 *local_qmf_buffer = ptr_sbr_dec->sbr_scratch_local;
+    WORD32 *time_out = &(ptr_sbr_dec->sbr_scratch_local[128]);
+    ia_sbr_qmf_filter_bank_struct *qmf_bank =
+        &ptr_sbr_dec->str_synthesis_qmf_bank;
+    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr =
+        sbr_tables_ptr->qmf_dec_tables_ptr;
+    out_scalefactor = 5;
+    qmf_bank->no_channels = 64;
+    qmf_bank->esbr_cos_twiddle =
+        (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l64;
+    qmf_bank->esbr_alt_sin_twiddle =
+        (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l64;
 
-  qmf_bank->filter_pos_syn_32 +=
-      qmf_dec_tables_ptr->esbr_qmf_c - qmf_bank->p_filter_32;
-  qmf_bank->p_filter_32 = qmf_dec_tables_ptr->esbr_qmf_c;
+    qmf_bank->filter_pos_syn_32 +=
+        qmf_dec_tables_ptr->esbr_qmf_c - qmf_bank->p_filter_32;
+    qmf_bank->p_filter_32 = qmf_dec_tables_ptr->esbr_qmf_c;
 
-  sixty4 = NO_SYNTHESIS_CHANNELS;
+    sixty4 = NO_SYNTHESIS_CHANNELS;
 
-  ptr_filt_states = qmf_bank->filter_states_32;
+    ptr_filt_states = qmf_bank->filter_states_32;
 
-  no_synthesis_channels = qmf_bank->no_channels;
-  ptr_filt_states_1 = &ptr_filt_states[0];
-  ptr_filt_states_2 = ptr_filt_states_1 + no_synthesis_channels;
+    no_synthesis_channels = qmf_bank->no_channels;
+    ptr_filt_states_1 = &ptr_filt_states[0];
+    ptr_filt_states_2 = ptr_filt_states_1 + no_synthesis_channels;
 
-  filter_l = qmf_bank->filter_pos_syn_32;
+    filter_l = qmf_bank->filter_pos_syn_32;
 
-  p1 = 0;
+    p1 = 0;
 
-  ixheaacd_drc_offset = qmf_bank->ixheaacd_drc_offset;
+    ixheaacd_drc_offset = qmf_bank->ixheaacd_drc_offset;
 
-  for (i = 0; i < ptr_sbr_dec->str_codec_qmf_bank.num_time_slots; i++) {
-    for (k = 0; k < 64; k++) {
-      local_qmf_buffer[k + 0] = (WORD32)(qmf_buf_real[i][k] * 64);
-      local_qmf_buffer[k + 64] = (WORD32)(qmf_buf_imag[i][k] * 64);
+    for (i = 0; i < ptr_sbr_dec->str_codec_qmf_bank.num_time_slots; i++) {
+      for (k = 0; k < 64; k++) {
+        local_qmf_buffer[k + 0] = (WORD32)(qmf_buf_real[i][k] * 64);
+        local_qmf_buffer[k + 64] = (WORD32)(qmf_buf_imag[i][k] * 64);
+      }
+      ploc_qmf_buf_real = local_qmf_buffer;
+      ploc_qmf_buf_imag = local_qmf_buffer + 64;
+
+      ixheaacd_esbr_inv_modulation(ploc_qmf_buf_real,
+                                   &ptr_sbr_dec->str_synthesis_qmf_bank,
+                                   sbr_tables_ptr->qmf_dec_tables_ptr);
+
+      ixheaacd_shiftrountine_with_rnd_hq(ploc_qmf_buf_real, ploc_qmf_buf_imag,
+                                         &ptr_filt_states[ixheaacd_drc_offset],
+                                         no_synthesis_channels,
+                                         out_scalefactor + 1);
+
+      ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
+                                    filter_l, &time_out[0], ch_fac);
+
+      syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
+      for (k = 0; k < 64; k++) {
+        syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
+      }
+
+      ptr_filt_states_1 += sixty4;
+      ptr_filt_states_2 -= sixty4;
+      sixty4 = -sixty4;
+      ixheaacd_drc_offset -= 128;
+
+      if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
+
+      filter_l += 64;
+
+      if (filter_l == qmf_bank->p_filter_32 + 640)
+        filter_l = (WORD32 *)qmf_bank->p_filter_32;
+
+      p1 += no_synthesis_channels;
     }
-    ploc_qmf_buf_real = local_qmf_buffer;
-    ploc_qmf_buf_imag = local_qmf_buffer + 64;
 
-    ixheaacd_esbr_inv_modulation(ploc_qmf_buf_real,
-                                 &ptr_sbr_dec->str_synthesis_qmf_bank,
-                                 sbr_tables_ptr->qmf_dec_tables_ptr);
-
-    ixheaacd_shiftrountine_with_rnd_hq(ploc_qmf_buf_real, ploc_qmf_buf_imag,
-                                       &ptr_filt_states[ixheaacd_drc_offset],
-                                       no_synthesis_channels,
-                                       out_scalefactor + 1);
-
-    ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
-                                  filter_l, &time_out[0], ch_fac);
-
-    syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
-    for (k = 0; k < 64; k++) {
-      syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
-    }
-
-    ptr_filt_states_1 += sixty4;
-    ptr_filt_states_2 -= sixty4;
-    sixty4 = -sixty4;
-    ixheaacd_drc_offset -= 128;
-
-    if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
-
-    filter_l += 64;
-
-    if (filter_l == qmf_bank->p_filter_32 + 640)
-      filter_l = (WORD32 *)qmf_bank->p_filter_32;
-
-    p1 += no_synthesis_channels;
+    qmf_bank->filter_pos_syn_32 = filter_l;
+    qmf_bank->ixheaacd_drc_offset = ixheaacd_drc_offset;
   }
-
-  qmf_bank->filter_pos_syn_32 = filter_l;
-  qmf_bank->ixheaacd_drc_offset = ixheaacd_drc_offset;
 
   if (!mps_sbr_flag) ptr_frame_data->reset_flag = 0;
 
