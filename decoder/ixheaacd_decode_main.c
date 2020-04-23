@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_error_standards.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -69,7 +70,7 @@ VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
                           WORD32 *out_bytes, WORD32 num_channel_out) {
   WORD32 num;
   WORD32 i;
-  WORD64 write_local;
+  FLOAT32 sample;
 
   WORD16 *out_buf = (WORD16 *)outbuffer;
 
@@ -77,31 +78,30 @@ VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
 
   if (pcmsize == 16) {
     for (i = 0; i < num; i++) {
-      write_local =
-          ((WORD64)(out_samples[i % num_channel_out][i / num_channel_out]));
+      sample = (out_samples[i % num_channel_out][i / num_channel_out]);
 
-      if (write_local > 32767) {
-        write_local = 32767;
+      if (sample > MAX_16) {
+        sample = MAX_16;
+      } else if (sample < MIN_16) {
+        sample = MIN_16;
       }
-      if (write_local < -32768) {
-        write_local = -32768;
-      }
-      out_buf[i] = (WORD16)write_local;
+      out_buf[i] = (WORD16)sample;
     }
 
     *out_bytes = num * sizeof(WORD16);
   } else {
     WORD8 *out_24bit = (WORD8 *)out_buf;
     for (i = 0; i < num; i++) {
-      write_local = ((WORD64)(
-          out_samples[i % num_channel_out][i / num_channel_out] * 256));
+      WORD32 write_local;
+      sample = (out_samples[i % num_channel_out][i / num_channel_out] * 256);
 
-      if (write_local > 8388607) {
-        write_local = 8388607;
+      if (sample > MAX_24) {
+        sample = MAX_24;
+      } else if (sample < MIN_24) {
+        sample = MIN_24;
       }
-      if (write_local < -8388608) {
-        write_local = -8388608;
-      }
+      write_local = (WORD32)sample;
+
       *out_24bit++ = (WORD32)write_local & 0xff;
       *out_24bit++ = ((WORD32)write_local >> 8) & 0xff;
       *out_24bit++ = ((WORD32)write_local >> 16) & 0xff;
