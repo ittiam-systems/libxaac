@@ -1037,63 +1037,60 @@ VOID impd_calc_filt_sect_delay(WORD32 section_count,
 
 VOID impd_get_eq_set_delay(ia_eq_set_struct* eq_set, WORD32* cascade_delay) {
   FLOAT32 delay, sect_delay;
-  WORD32 k, g, c, b;
+  WORD32 k, g, b;
 
   delay = 0;
-  for (c = 0; c < eq_set->audio_num_chan; c++) {
-    g = eq_set->eq_ch_group_of_channel[c];
-    if (g >= 0) {
-      switch (eq_set->domain) {
-        case EQ_FILTER_DOMAIN_TIME: {
-          ia_filt_cascade_td_struct* filt_cascade_td =
-              &eq_set->filt_cascade_td[g];
-          for (b = 0; b < filt_cascade_td->block_count; b++) {
-            ia_eq_filt_ele_struct* eq_filt_element =
-                &filt_cascade_td->pstr_eq_filt_block[b].eq_filt_element[0];
-            switch (eq_filt_element->format) {
-              case FILTER_ELEMENT_FORMAT_POLE_ZERO:
-                impd_calc_filt_sect_delay(
-                    eq_filt_element->pstr_pole_zero_filt.section_count,
-                    eq_filt_element->pstr_pole_zero_filt.filt_section,
-                    &sect_delay);
-                delay += sect_delay;
-                if (eq_filt_element->pstr_pole_zero_filt.filt_coeffs_flag) {
-                  delay += 0.5f * (eq_filt_element->pstr_pole_zero_filt
-                                       .fir_filter.coeff_count -
-                                   1);
-                }
-                break;
-              case FILTER_ELEMENT_FORMAT_FIR:
-                delay += 0.5f * (eq_filt_element->fir_filter.coeff_count - 1);
-                break;
-              default:
-                break;
-            }
-            for (k = 0; k < eq_filt_element->num_ph_align_filt; k++) {
-              ia_ph_alignment_filt_struct* ph_alignment_filt =
-                  &eq_filt_element->ph_alignment_filt[k];
-              impd_calc_filt_sect_delay(ph_alignment_filt->section_count,
-                                        ph_alignment_filt->filt_section,
-                                        &sect_delay);
+  g = eq_set->eq_ch_group_of_channel[0];
+  if (g >= 0) {
+    switch (eq_set->domain) {
+      case EQ_FILTER_DOMAIN_TIME: {
+        ia_filt_cascade_td_struct* filt_cascade_td =
+            &eq_set->filt_cascade_td[g];
+        for (b = 0; b < filt_cascade_td->block_count; b++) {
+          ia_eq_filt_ele_struct* eq_filt_element =
+              &filt_cascade_td->pstr_eq_filt_block[b].eq_filt_element[0];
+          switch (eq_filt_element->format) {
+            case FILTER_ELEMENT_FORMAT_POLE_ZERO:
+              impd_calc_filt_sect_delay(
+                  eq_filt_element->pstr_pole_zero_filt.section_count,
+                  eq_filt_element->pstr_pole_zero_filt.filt_section,
+                  &sect_delay);
               delay += sect_delay;
-            }
+              if (eq_filt_element->pstr_pole_zero_filt.filt_coeffs_flag) {
+                delay += 0.5f * (eq_filt_element->pstr_pole_zero_filt.fir_filter
+                                     .coeff_count -
+                                 1);
+              }
+              break;
+            case FILTER_ELEMENT_FORMAT_FIR:
+              delay += 0.5f * (eq_filt_element->fir_filter.coeff_count - 1);
+              break;
+            default:
+              break;
           }
-          for (b = 0; b < filt_cascade_td->num_ph_align_filt; b++) {
+          for (k = 0; k < eq_filt_element->num_ph_align_filt; k++) {
             ia_ph_alignment_filt_struct* ph_alignment_filt =
-                &filt_cascade_td->ph_alignment_filt[b];
+                &eq_filt_element->ph_alignment_filt[k];
             impd_calc_filt_sect_delay(ph_alignment_filt->section_count,
                                       ph_alignment_filt->filt_section,
                                       &sect_delay);
             delay += sect_delay;
           }
-        } break;
-        case EQ_FILTER_DOMAIN_SUBBAND:
-        case EQ_FILTER_DOMAIN_NONE:
-        default:
-          break;
-      }
+        }
+        for (b = 0; b < filt_cascade_td->num_ph_align_filt; b++) {
+          ia_ph_alignment_filt_struct* ph_alignment_filt =
+              &filt_cascade_td->ph_alignment_filt[b];
+          impd_calc_filt_sect_delay(ph_alignment_filt->section_count,
+                                    ph_alignment_filt->filt_section,
+                                    &sect_delay);
+          delay += sect_delay;
+        }
+      } break;
+      case EQ_FILTER_DOMAIN_SUBBAND:
+      case EQ_FILTER_DOMAIN_NONE:
+      default:
+        break;
     }
-    break;
   }
   *cascade_delay = (WORD32)delay;
   return;
