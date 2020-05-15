@@ -304,20 +304,16 @@ WORD32 impd_signal_peak_level_info(
               &pstr_drc_config->str_drc_instruction_str[n];
           if (loudness_drc_set_id_requested ==
               drc_instructions_drc_tmp->drc_set_id) {
-            for (k = 0; k < drc_instructions_drc_tmp->dwnmix_id_count; k++) {
-              if (ID_FOR_BASE_LAYOUT ==
-                  drc_instructions_drc_tmp->downmix_id[k]) {
-                if (drc_instructions_drc_tmp->limiter_peak_target_present) {
-                  eq_set_id[peak_count] = -1;
-                  signal_peak_level[peak_count] =
-                      drc_instructions_drc_tmp->limiter_peak_target +
-                      signal_peak_level_tmp;
-                  explicit_peak_information_present[peak_count] = 0;
-                  match_found_flag = 1;
-                  peak_count++;
-                }
+            if (ID_FOR_BASE_LAYOUT == drc_instructions_drc_tmp->downmix_id[0]) {
+              if (drc_instructions_drc_tmp->limiter_peak_target_present) {
+                eq_set_id[peak_count] = -1;
+                signal_peak_level[peak_count] =
+                    drc_instructions_drc_tmp->limiter_peak_target +
+                    signal_peak_level_tmp;
+                explicit_peak_information_present[peak_count] = 0;
+                match_found_flag = 1;
+                peak_count++;
               }
-              break;
             }
           }
         }
