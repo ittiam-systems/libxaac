@@ -8,4 +8,10 @@ cc_fuzz {
         "libxaacdec",
         "liblog",
     ],
+    fuzz_config: {
+        cc: [
+            "android-media-fuzzing-reports@google.com",
+        ],
+        componentid: 155276,
+    },
 }
