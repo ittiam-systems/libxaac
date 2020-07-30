@@ -132,7 +132,7 @@ cc_library_static {
         ],
         // Enable CFI if this becomes a shared library.
         // cfi: true,
-        blacklist: "libxaac_blacklist.txt",
+        blocklist: "libxaac_blocklist.txt",
     },
 
     arch: {
