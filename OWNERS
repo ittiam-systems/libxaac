@@ -1,3 +1,3 @@
-marcone@google.com
+# owners for external/libxaac
+include platform/frameworks/av:/media/janitors/OWNERS-codecs
 essick@google.com
-lajos@google.com
