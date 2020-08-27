@@ -17,7 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <ixheaacd_type_def.h>
+#include <string.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_sbr_common.h"
@@ -28,7 +29,7 @@
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_sbr_scale.h"
@@ -43,8 +44,6 @@
 #include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_qmf_poly.h"
 #include "ixheaacd_esbr_rom.h"
-
-#include "string.h"
 
 WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
   WORD32 idx;

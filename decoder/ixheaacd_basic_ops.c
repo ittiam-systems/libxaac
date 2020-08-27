@@ -18,11 +18,11 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
 
-#include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_windows.h"
 
 static PLATFORM_INLINE WORD32 ixheaacd_mult32_sh1(WORD32 a, WORD32 b) {
@@ -65,7 +65,8 @@ VOID ixheaacd_combine_fac(WORD32 *src1, WORD32 *src2, WORD32 *dest, WORD32 len,
     }
   } else {
     for (i = 0; i < len; i++) {
-      *dest = ixheaacd_add32_sat(*src1, ((*src2) << (output_q - fac_q)));
+      *dest = ixheaacd_add32_sat(
+          *src1, ixheaacd_shl32_sat((*src2), (output_q - fac_q)));
       dest++;
       src1++;
       src2++;
@@ -86,7 +87,8 @@ WORD8 ixheaacd_windowing_long1(WORD32 *src1, WORD32 *src2,
           ((ixheaacd_mult32_sh1(*src1, *win_fwd)) >> (shift1 - shift2)),
           ixheaacd_mult32_sh1(*src2, *win_rev));
       *(dest + (vlen - (2 * i)) - 1) = ixheaacd_add32_sat(
-          ((ixheaacd_mult32_sh1(-(*src1), *win_rev)) >> (shift1 - shift2)),
+          ((ixheaacd_mult32_sh1(ixheaacd_negate32_sat(*src1), *win_rev)) >>
+           (shift1 - shift2)),
           ixheaacd_mult32_sh1(*rsrc2, *win_fwd));
 
       src1++;
@@ -104,7 +106,7 @@ WORD8 ixheaacd_windowing_long1(WORD32 *src1, WORD32 *src2,
           ((ixheaacd_mult32_sh1(*src2, *win_rev)) >> (shift2 - shift1)));
 
       *(dest + (vlen - (2 * i)) - 1) = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-(*src1), *win_rev),
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(*src1), *win_rev),
           ((ixheaacd_mult32_sh1(*rsrc2, *win_fwd)) >> (shift2 - shift1)));
       src1++;
       src2++;
@@ -139,10 +141,11 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
            i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
            i++) {
         dest[i] = ixheaacd_add32_sat(
-            (ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long / 2 +
-                                       ixheaacd_drc_offset->n_flat_ls +
-                                       ixheaacd_drc_offset->lfac - i - 1],
-                                 *win_fwd) >>
+            (ixheaacd_mult32_sh1(
+                 ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                            ixheaacd_drc_offset->n_flat_ls +
+                                            ixheaacd_drc_offset->lfac - i - 1]),
+                 *win_fwd) >>
              (shiftp - fac_q)),
             (*fac_data_out));
         win_fwd++;
@@ -152,20 +155,21 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
       for (;
            i < ixheaacd_drc_offset->n_flat_ls + (ixheaacd_drc_offset->lfac * 3);
            i++) {
-        dest[i] =
-            ixheaacd_add32_sat((-src1[ixheaacd_drc_offset->n_long / 2 +
-                                      ixheaacd_drc_offset->n_flat_ls +
-                                      ixheaacd_drc_offset->lfac - i - 1] >>
-                                (shiftp - fac_q)),
-                               (*fac_data_out));
+        dest[i] = ixheaacd_add32_sat(
+            (ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                        ixheaacd_drc_offset->n_flat_ls +
+                                        ixheaacd_drc_offset->lfac - i - 1]) >>
+             (shiftp - fac_q)),
+            (*fac_data_out));
         fac_data_out++;
       }
 
       for (; i < ixheaacd_drc_offset->n_long; i++) {
-        dest[i] = -src1[ixheaacd_drc_offset->n_long / 2 +
-                        ixheaacd_drc_offset->n_flat_ls +
-                        ixheaacd_drc_offset->lfac - i - 1] >>
-                  (shiftp - fac_q);
+        dest[i] =
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                       ixheaacd_drc_offset->n_flat_ls +
+                                       ixheaacd_drc_offset->lfac - i - 1]) >>
+            (shiftp - fac_q);
       }
       return (fac_q);
     } else {
@@ -176,10 +180,11 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
            i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
            i++) {
         dest[i] = ixheaacd_add32_sat(
-            (ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long / 2 +
-                                       ixheaacd_drc_offset->n_flat_ls +
-                                       ixheaacd_drc_offset->lfac - i - 1],
-                                 *win_fwd) >>
+            (ixheaacd_mult32_sh1(
+                 ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                            ixheaacd_drc_offset->n_flat_ls +
+                                            ixheaacd_drc_offset->lfac - i - 1]),
+                 *win_fwd) >>
              (shiftp - shift_olap)),
             (*fac_data_out) >> (fac_q - shift_olap));
         win_fwd++;
@@ -189,20 +194,21 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
       for (;
            i < ixheaacd_drc_offset->n_flat_ls + (ixheaacd_drc_offset->lfac * 3);
            i++) {
-        dest[i] =
-            ixheaacd_add32_sat((-src1[ixheaacd_drc_offset->n_long / 2 +
-                                      ixheaacd_drc_offset->n_flat_ls +
-                                      ixheaacd_drc_offset->lfac - i - 1] >>
-                                (shiftp - shift_olap)),
-                               (*fac_data_out) >> (fac_q - shift_olap));
+        dest[i] = ixheaacd_add32_sat(
+            (ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                        ixheaacd_drc_offset->n_flat_ls +
+                                        ixheaacd_drc_offset->lfac - i - 1]) >>
+             (shiftp - shift_olap)),
+            (*fac_data_out) >> (fac_q - shift_olap));
         fac_data_out++;
       }
 
       for (; i < ixheaacd_drc_offset->n_long; i++) {
-        dest[i] = -src1[ixheaacd_drc_offset->n_long / 2 +
-                        ixheaacd_drc_offset->n_flat_ls +
-                        ixheaacd_drc_offset->lfac - i - 1] >>
-                  (shiftp - shift_olap);
+        dest[i] =
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                       ixheaacd_drc_offset->n_flat_ls +
+                                       ixheaacd_drc_offset->lfac - i - 1]) >>
+            (shiftp - shift_olap);
       }
       return (shift_olap);
     }
@@ -218,10 +224,11 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
            i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
            i++) {
         dest[i] = ixheaacd_add32_sat(
-            ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long / 2 +
-                                      ixheaacd_drc_offset->n_flat_ls +
-                                      ixheaacd_drc_offset->lfac - i - 1],
-                                *win_fwd),
+            ixheaacd_mult32_sh1(
+                ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                           ixheaacd_drc_offset->n_flat_ls +
+                                           ixheaacd_drc_offset->lfac - i - 1]),
+                *win_fwd),
             (*fac_data_out) >> (fac_q - shiftp));
         win_fwd++;
         fac_data_out++;
@@ -230,17 +237,19 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
       for (;
            i < ixheaacd_drc_offset->n_flat_ls + (ixheaacd_drc_offset->lfac * 3);
            i++) {
-        dest[i] = ixheaacd_add32_sat(-src1[ixheaacd_drc_offset->n_long / 2 +
-                                           ixheaacd_drc_offset->n_flat_ls +
-                                           ixheaacd_drc_offset->lfac - i - 1],
-                                     (*fac_data_out) >> (fac_q - shiftp));
+        dest[i] = ixheaacd_add32_sat(
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                       ixheaacd_drc_offset->n_flat_ls +
+                                       ixheaacd_drc_offset->lfac - i - 1]),
+            (*fac_data_out) >> (fac_q - shiftp));
         fac_data_out++;
       }
 
       for (; i < ixheaacd_drc_offset->n_long; i++) {
-        dest[i] = -src1[ixheaacd_drc_offset->n_long / 2 +
-                        ixheaacd_drc_offset->n_flat_ls +
-                        ixheaacd_drc_offset->lfac - i - 1];
+        dest[i] =
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                       ixheaacd_drc_offset->n_flat_ls +
+                                       ixheaacd_drc_offset->lfac - i - 1]);
       }
       return (shiftp);
     } else {
@@ -251,10 +260,11 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
            i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
            i++) {
         dest[i] = ixheaacd_add32_sat(
-            (ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long / 2 +
-                                       ixheaacd_drc_offset->n_flat_ls +
-                                       ixheaacd_drc_offset->lfac - i - 1],
-                                 *win_fwd) >>
+            (ixheaacd_mult32_sh1(
+                 ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                            ixheaacd_drc_offset->n_flat_ls +
+                                            ixheaacd_drc_offset->lfac - i - 1]),
+                 *win_fwd) >>
              (shiftp - shift_olap)),
             (*fac_data_out) >> (fac_q - shift_olap));
         win_fwd++;
@@ -264,20 +274,21 @@ WORD8 ixheaacd_windowing_long2(WORD32 *src1, const WORD32 *win_fwd,
       for (;
            i < ixheaacd_drc_offset->n_flat_ls + (ixheaacd_drc_offset->lfac * 3);
            i++) {
-        dest[i] =
-            ixheaacd_add32_sat((-src1[ixheaacd_drc_offset->n_long / 2 +
-                                      ixheaacd_drc_offset->n_flat_ls +
-                                      ixheaacd_drc_offset->lfac - i - 1] >>
-                                (shiftp - shift_olap)),
-                               (*fac_data_out) >> (fac_q - shift_olap));
+        dest[i] = ixheaacd_add32_sat(
+            (ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                        ixheaacd_drc_offset->n_flat_ls +
+                                        ixheaacd_drc_offset->lfac - i - 1]) >>
+             (shiftp - shift_olap)),
+            (*fac_data_out) >> (fac_q - shift_olap));
         fac_data_out++;
       }
 
       for (; i < ixheaacd_drc_offset->n_long; i++) {
-        dest[i] = -src1[ixheaacd_drc_offset->n_long / 2 +
-                        ixheaacd_drc_offset->n_flat_ls +
-                        ixheaacd_drc_offset->lfac - i - 1] >>
-                  (shiftp - shift_olap);
+        dest[i] =
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long / 2 +
+                                       ixheaacd_drc_offset->n_flat_ls +
+                                       ixheaacd_drc_offset->lfac - i - 1]) >>
+            (shiftp - shift_olap);
       }
       return (shift_olap);
     }
@@ -308,8 +319,9 @@ WORD8 ixheaacd_windowing_long3(WORD32 *src1, const WORD32 *win_fwd,
          i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
          i++) {
       dest[i] = ixheaacd_add32_sat(
-          (ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long - i - 1],
-                               *win_fwd) >>
+          (ixheaacd_mult32_sh1(
+               ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long - i - 1]),
+               *win_fwd) >>
            (shiftp - shift_olap)),
           ixheaacd_mult32_sh1(over_lap[i], *win_rev));
       win_fwd++;
@@ -318,7 +330,8 @@ WORD8 ixheaacd_windowing_long3(WORD32 *src1, const WORD32 *win_fwd,
 
     for (; i < ixheaacd_drc_offset->n_long; i++) {
       dest[i] =
-          -src1[ixheaacd_drc_offset->n_long - i - 1] >> (shiftp - shift_olap);
+          ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long - i - 1]) >>
+          (shiftp - shift_olap);
     }
 
     return (shift_olap);
@@ -340,15 +353,17 @@ WORD8 ixheaacd_windowing_long3(WORD32 *src1, const WORD32 *win_fwd,
          i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->n_trans_ls;
          i++) {
       dest[i] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[ixheaacd_drc_offset->n_long - i - 1],
-                              *win_fwd),
+          ixheaacd_mult32_sh1(
+              ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long - i - 1]),
+              *win_fwd),
           ixheaacd_mult32_sh1(over_lap[i], *win_rev) >> (shift_olap - shiftp));
       win_fwd++;
       win_rev--;
     }
 
     for (; i < ixheaacd_drc_offset->n_long; i++) {
-      dest[i] = -src1[ixheaacd_drc_offset->n_long - i - 1];
+      dest[i] =
+          ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_long - i - 1]);
     }
 
     return (shiftp);
@@ -369,7 +384,8 @@ VOID ixheaacd_windowing_short1(WORD32 *src1, WORD32 *src2, WORD32 *fp,
       for (i = ixheaacd_drc_offset->lfac; i < ixheaacd_drc_offset->n_short;
            i++) {
         dest[i] = ixheaacd_mult32_sh1(
-            -src1[ixheaacd_drc_offset->n_short - i - 1], src2[i]);
+            ixheaacd_negate32_sat(src1[ixheaacd_drc_offset->n_short - i - 1]),
+            src2[i]);
       }
 
       for (; i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->lfac;
@@ -390,9 +406,11 @@ VOID ixheaacd_windowing_short1(WORD32 *src1, WORD32 *src2, WORD32 *fp,
     if (ixheaacd_drc_offset->n_short > ixheaacd_drc_offset->lfac) {
       for (i = ixheaacd_drc_offset->lfac; i < ixheaacd_drc_offset->n_short;
            i++) {
-        dest[i] = ixheaacd_mult32_sh1(
-                      -src1[ixheaacd_drc_offset->n_short - i - 1], src2[i]) >>
-                  (shiftp - shift_olap);
+        dest[i] =
+            ixheaacd_mult32_sh1(ixheaacd_negate32_sat(
+                                    src1[ixheaacd_drc_offset->n_short - i - 1]),
+                                src2[i]) >>
+            (shiftp - shift_olap);
       }
 
       for (; i < ixheaacd_drc_offset->n_flat_ls + ixheaacd_drc_offset->lfac;
@@ -423,7 +441,7 @@ VOID ixheaacd_windowing_short2(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
           (ixheaacd_mult32_sh1(fp[i], *win_rev) >> (shift_olap - shiftp)));
 
       fp[ixheaacd_drc_offset->n_short - i - 1] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[i], *win_rev),
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[i]), *win_rev),
           (ixheaacd_mult32_sh1(fp[ixheaacd_drc_offset->n_short - i - 1],
                                *win_fwd) >>
            (shift_olap - shiftp)));
@@ -443,7 +461,8 @@ VOID ixheaacd_windowing_short2(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
           ixheaacd_mult32_sh1(fp[i], *win_rev));
 
       fp[ixheaacd_drc_offset->n_short - i - 1] = ixheaacd_add32_sat(
-          (ixheaacd_mult32_sh1(-src1[i], *win_rev) >> (shiftp - shift_olap)),
+          (ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[i]), *win_rev) >>
+           (shiftp - shift_olap)),
           ixheaacd_mult32_sh1(fp[ixheaacd_drc_offset->n_short - i - 1],
                               *win_fwd));
 
@@ -467,11 +486,13 @@ WORD8 ixheaacd_windowing_short3(WORD32 *src1, WORD32 *win_rev, WORD32 *fp,
   if (shift_olap > shiftp) {
     for (i = 0; i < n_short / 2; i++) {
       fp[i] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[n_short / 2 - i - 1], *win_rev),
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 - i - 1]),
+                              *win_rev),
           (fp[i] >> (shift_olap - shiftp)));
 
       fp[n_short - i - 1] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[n_short / 2 - i - 1], *win_fwd),
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 - i - 1]),
+                              *win_fwd),
           (fp[n_short - i - 1] >> (shift_olap - shiftp)));
       win_rev--;
       win_fwd++;
@@ -480,12 +501,14 @@ WORD8 ixheaacd_windowing_short3(WORD32 *src1, WORD32 *win_rev, WORD32 *fp,
   } else {
     for (i = 0; i < n_short / 2; i++) {
       fp[i] = ixheaacd_add32_sat(
-          (ixheaacd_mult32_sh1(-src1[n_short / 2 - i - 1], *win_rev) >>
+          (ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 - i - 1]),
+                               *win_rev) >>
            (shiftp - shift_olap)),
           fp[i]);
 
       fp[n_short - i - 1] = ixheaacd_add32_sat(
-          (ixheaacd_mult32_sh1(-src1[n_short / 2 - i - 1], *win_fwd) >>
+          (ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 - i - 1]),
+                               *win_fwd) >>
            (shiftp - shift_olap)),
           fp[n_short - i - 1]);
 
@@ -511,7 +534,8 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
           fp[i]);
 
       fp[n_short - i - 1] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[n_short / 2 + i], *win_rev) >>
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 + i]),
+                              *win_rev) >>
               (shiftp - output_q),
           fp[n_short - i - 1]);
 
@@ -521,12 +545,14 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
     if (flag == 1) {
       for (; i < n_short; i++) {
         fp[i + n_short / 2] = ixheaacd_add32_sat(
-            ixheaacd_mult32_sh1(-src1[n_short - i - 1], *win_fwd1) >>
+            ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short - i - 1]),
+                                *win_fwd1) >>
                 (shiftp - output_q),
             (fp[i + n_short / 2] >> (shift_olap - output_q)));
 
         fp[3 * n_short - n_short / 2 - i - 1] = ixheaacd_add32_sat(
-            ixheaacd_mult32_sh1(-src1[n_short - i - 1], *win_rev1) >>
+            ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short - i - 1]),
+                                *win_rev1) >>
                 (shiftp - output_q),
             (fp[3 * n_short - n_short / 2 - i - 1] >> (shift_olap - output_q)));
 
@@ -535,11 +561,11 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
       }
     } else {
       for (; i < n_short; i++) {
-        fp[i + n_short / 2] =
-            ixheaacd_add32_sat(-src1[n_short - i - 1] >> (shiftp - output_q),
-                               fp[i + n_short / 2] >> (shift_olap - output_q));
+        fp[i + n_short / 2] = ixheaacd_add32_sat(
+            ixheaacd_negate32_sat(src1[n_short - i - 1]) >> (shiftp - output_q),
+            fp[i + n_short / 2] >> (shift_olap - output_q));
         fp[3 * n_short - n_short / 2 - i - 1] = ixheaacd_add32_sat(
-            -src1[n_short - i - 1] >> (shiftp - output_q),
+            ixheaacd_negate32_sat(src1[n_short - i - 1]) >> (shiftp - output_q),
             fp[3 * n_short - n_short / 2 - i - 1] >> (shift_olap - output_q));
       }
     }
@@ -552,7 +578,8 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
           fp[i] >> (output_q - shift_olap));
 
       fp[n_short - i - 1] = ixheaacd_add32_sat(
-          ixheaacd_mult32_sh1(-src1[n_short / 2 + i], *win_rev) >>
+          ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short / 2 + i]),
+                              *win_rev) >>
               (shiftp - shift_olap),
           fp[n_short - i - 1]);
 
@@ -562,12 +589,14 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
     if (flag == 1) {
       for (; i < n_short; i++) {
         fp[i + n_short / 2] = ixheaacd_add32_sat(
-            ixheaacd_mult32_sh1(-src1[n_short - i - 1], *win_fwd1) >>
+            ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short - i - 1]),
+                                *win_fwd1) >>
                 (shiftp - shift_olap),
             fp[i + n_short / 2]);
 
         fp[3 * n_short - n_short / 2 - i - 1] = ixheaacd_add32_sat(
-            ixheaacd_mult32_sh1(-src1[n_short - i - 1], *win_rev1) >>
+            ixheaacd_mult32_sh1(ixheaacd_negate32_sat(src1[n_short - i - 1]),
+                                *win_rev1) >>
                 (shiftp - shift_olap),
             fp[3 * n_short - n_short / 2 - i - 1]);
 
@@ -577,10 +606,12 @@ WORD8 ixheaacd_windowing_short4(WORD32 *src1, WORD32 *win_fwd, WORD32 *fp,
     } else {
       for (; i < n_short; i++) {
         fp[i + n_short / 2] =
-            ixheaacd_add32_sat(-src1[n_short - i - 1] >> (shiftp - shift_olap),
+            ixheaacd_add32_sat(ixheaacd_negate32_sat(src1[n_short - i - 1]) >>
+                                   (shiftp - shift_olap),
                                fp[i + n_short / 2]);
         fp[3 * n_short - n_short / 2 - i - 1] =
-            ixheaacd_add32_sat(-src1[n_short - i - 1] >> (shiftp - shift_olap),
+            ixheaacd_add32_sat(ixheaacd_negate32_sat(src1[n_short - i - 1]) >>
+                                   (shiftp - shift_olap),
                                fp[3 * n_short - n_short / 2 - i - 1]);
       }
     }
@@ -599,7 +630,26 @@ VOID ixheaacd_scale_down(WORD32 *dest, WORD32 *src, WORD32 len, WORD8 shift1,
     }
   } else {
     for (i = 0; i < len; i++) {
-      *dest = *src << (shift2 - shift1);
+      *dest = ixheaacd_shl32_sat((*src), (shift2 - shift1));
+      src++;
+      dest++;
+    }
+  }
+}
+
+VOID ixheaacd_scale_down_adj(WORD32 *dest, WORD32 *src, WORD32 len,
+                             WORD8 shift1, WORD8 shift2) {
+  WORD32 i;
+  if (shift1 > shift2) {
+    for (i = 0; i < len; i++) {
+      *dest = ixheaacd_add32_sat((*src >> (shift1 - shift2)), ADJ_SCALE);
+      src++;
+      dest++;
+    }
+  } else {
+    for (i = 0; i < len; i++) {
+      *dest = ixheaacd_add32_sat(ixheaacd_shl32_sat((*src), (shift2 - shift1)),
+                                 ADJ_SCALE);
       src++;
       dest++;
     }

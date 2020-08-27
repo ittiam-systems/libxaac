@@ -20,23 +20,23 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_sbr_const.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -50,7 +50,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_ps_bitdec.h"
@@ -73,11 +73,12 @@
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
-static FLOAT32 ixheaacd_new_bw_table[4][4] = {{0.00f, 0.60f, 0.90f, 0.98f},
-                                              {0.60f, 0.75f, 0.90f, 0.98f},
-                                              {0.00f, 0.75f, 0.90f, 0.98f},
-                                              {0.00f, 0.75f, 0.90f, 0.98f}};
-static WORD32 ixheaacd_inew_bw_table[4][4] = {
+static const FLOAT32 ixheaacd_new_bw_table[4][4] = {
+    {0.00f, 0.60f, 0.90f, 0.98f},
+    {0.60f, 0.75f, 0.90f, 0.98f},
+    {0.00f, 0.75f, 0.90f, 0.98f},
+    {0.00f, 0.75f, 0.90f, 0.98f}};
+static const WORD32 ixheaacd_inew_bw_table[4][4] = {
     {0x00000000, 0x4ccccccd, 0x73333333, 0x7d70a3d7},
     {0x4ccccccd, 0x60000000, 0x73333333, 0x7d70a3d7},
     {0x00000000, 0x60000000, 0x73333333, 0x7d70a3d7},
@@ -110,8 +111,8 @@ WORD32 ixheaacd_derive_lim_band_tbl(
 
   WORD16 sub_band_start = f_low_tbl[0];
   WORD16 sub_band_end = f_low_tbl[num_low_bnd];
-  WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666, (WORD16)0x4000,
-                              (WORD16)0x6000};
+  static const WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666,
+                                           (WORD16)0x4000, (WORD16)0x6000};
 
   if (limiter_bands == 0) {
     f_lim_tbl[0] = 0;
@@ -355,13 +356,16 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
 
   while (((sb - usb) < 0) && (patch < MAX_NUM_PATCHES)) {
     ia_patch_param_struct *ptr_loc_patch_param = &p_str_patch_param[patch];
-
+    WORD16 abs_sb, flag_break = 0;
     ptr_loc_patch_param->guard_start_band = sb;
     sb = (sb + GUARDBANDS);
     ptr_loc_patch_param->dst_start_band = sb;
 
     num_bands_in_patch = (goal_sb - sb);
-
+    if ((num_bands_in_patch <= 0) &&
+        ((num_bands_in_patch - (lsb - src_start_band)) < 0)) {
+      flag_break = 1;
+    }
     if ((num_bands_in_patch - (lsb - src_start_band)) >= 0) {
       patch_stride = sb - src_start_band;
       patch_stride = (WORD16)(patch_stride & ~1);
@@ -386,9 +390,12 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     }
 
     src_start_band = SHIFT_START_SB;
+    abs_sb = ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3;
 
-    if ((ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3) < 0) {
+    if (abs_sb < 0) {
       goal_sb = usb;
+    } else {
+      if (flag_break == 1) break;
     }
   }
 
@@ -412,6 +419,8 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     sb = ixheaacd_min32(sb, p_str_patch_param[patch].src_start_band);
     temp = ixheaacd_max32(temp, p_str_patch_param[patch].src_end_band);
   }
+
+  if (sb > temp) return IA_FATAL_ERROR;
 
   pstr_transposer_settings->start_patch = sb;
   pstr_transposer_settings->stop_patch = temp;

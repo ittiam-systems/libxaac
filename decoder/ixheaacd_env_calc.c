@@ -18,12 +18,12 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
 #include "ixheaacd_intrinsics.h"
@@ -33,7 +33,7 @@
 
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_drc_data_struct.h"
 
@@ -47,7 +47,7 @@
 #include "ixheaacd_lpp_tran.h"
 
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
@@ -60,7 +60,7 @@
 #include "ixheaacd_env_extr.h"
 
 #include "ixheaacd_env_calc.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 
 #include "ixheaacd_qmf_dec.h"
 
@@ -664,7 +664,7 @@ VOID ixheaacd_calc_subband_gains(ia_freq_band_data_struct *pstr_freq_band_data,
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
-VOID ixheaacd_calc_sbrenvelope(
+IA_ERRORCODE ixheaacd_calc_sbrenvelope(
     ia_sbr_scale_fact_struct *ptr_sbr_scale_fac,
     ia_sbr_calc_env_struct *ptr_sbr_calc_env,
     ia_sbr_header_data_struct *ptr_header_data,
@@ -681,7 +681,7 @@ VOID ixheaacd_calc_sbrenvelope(
   WORD32 freq_res;
   WORD32 num_env = ptr_frame_data->str_frame_info_details.num_env;
   WORD16 *ptr_border_vec = ptr_frame_data->str_frame_info_details.border_vec;
-
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   WORD16 *ptr_noise_floor;
   ia_freq_band_data_struct *pstr_freq_band_data =
       ptr_header_data->pstr_freq_band_data;
@@ -809,7 +809,11 @@ VOID ixheaacd_calc_sbrenvelope(
       start_pos = SBR_TIME_STEP * ptr_border_vec[i];
       end_pos = SBR_TIME_STEP * ptr_border_vec[i + 1];
     }
+    if ((start_pos >= MAX_ENV_COLS) || (end_pos > MAX_ENV_COLS))
+      return IA_FATAL_ERROR;
     freq_res = ptr_frame_data->str_frame_info_details.freq_res[i];
+
+    if (noise_floor_idx >= MAX_NOISE_ENVELOPES) return IA_FATAL_ERROR;
 
     if (ptr_border_vec[i] ==
         ptr_frame_data->str_frame_info_details
@@ -944,6 +948,7 @@ VOID ixheaacd_calc_sbrenvelope(
   } else {
     ptr_sbr_calc_env->tansient_env_prev = -1;
   }
+  return err_code;
 }
 
 VOID ixheaacd_equalize_filt_buff_exp(WORD16 *ptr_filt_buf, WORD16 *nrg_gain,

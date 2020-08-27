@@ -63,9 +63,14 @@
 #define MAX_16 (WORD16)0x7fff
 #define MIN_16 (WORD16)0x8000
 
+#define MAX_24 (WORD32)0x007fffff
+#define MIN_24 (WORD32)0xff800000
+
 #define NULLPTR ((VOID *)0)
 
 #define IT_NULL ((VOID *)0)
+
+#define ADJ_SCALE 11
 /*****************************************************************************/
 /* function macros                                                           */
 /*****************************************************************************/

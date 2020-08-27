@@ -130,7 +130,7 @@ static PLATFORM_INLINE WORD64 ixheaacd_mac32x32in64_dual(WORD32 a, WORD32 b,
   WORD64 temp_result;
 
   temp_result = (WORD64)a * (WORD64)b;
-  result = c + (temp_result);
+  result = ixheaacd_add64_sat(c, temp_result);
   return (result);
 }
 

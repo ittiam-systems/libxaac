@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_acelp_com.h"
 #include "ixheaacd_windows.h"
@@ -48,9 +48,8 @@
 #include "ixheaacd_main.h"
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff,
                              WORD32 *nk_mode) {
@@ -264,7 +263,7 @@ VOID ixheaacd_fac_decoding(WORD32 fac_length, WORD32 k, WORD32 *fac_prm,
   }
 }
 
-UWORD8 ixheaacd_num_bites_celp_coding[8][4] = {
+const UWORD8 ixheaacd_num_bites_celp_coding[8][4] = {
     {5, 5, 5, 5},     {9, 9, 5, 5},     {9, 9, 9, 9}, {13, 13, 9, 9},
     {13, 13, 13, 13}, {16, 16, 16, 16}, {1, 5, 1, 5}, {1, 5, 5, 5}};
 
@@ -273,7 +272,7 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
                              ia_bit_buf_struct *it_bit_buff, WORD32 chan) {
   WORD32 sfr, kk;
   WORD32 nb_subfr = usac_data->num_subfrm;
-  UWORD8 *ptr_num_bits =
+  const UWORD8 *ptr_num_bits =
       &ixheaacd_num_bites_celp_coding[pstr_td_frame_data->acelp_core_mode][0];
 
   chan = 0;

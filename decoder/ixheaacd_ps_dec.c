@@ -19,17 +19,17 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops_arr.h"
 #include "ixheaacd_basic_ops.h"
 
 #include "ixheaacd_defines.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -39,7 +39,7 @@
 
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -51,7 +51,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"

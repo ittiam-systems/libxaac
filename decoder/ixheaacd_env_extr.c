@@ -18,16 +18,17 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
+#include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -40,12 +41,10 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
-
-#include <math.h>
 
 #include "ixheaacd_sbr_const.h"
 #include "ixheaacd_intrinsics.h"
@@ -1551,7 +1550,7 @@ WORD16 ixheaacd_sbr_time_freq_grid_info(
          bs_var_bord = 0, temp = 0;
   WORD32 freq_res_0 = 0, frame_class;
   WORD32 abs_bord_lead, abs_bord_trail, num_rel_trail, num_rel_lead;
-  WORD32 pointer_bits_array[7] = {1, 2, 2, 3, 3, 3, 3};
+  static const WORD32 pointer_bits_array[7] = {1, 2, 2, 3, 3, 3, 3};
   ia_frame_info_struct *p_fixfix_tab;
   ia_frame_info_struct *p_frame_info = &ptr_frame_data->str_frame_info_details;
 

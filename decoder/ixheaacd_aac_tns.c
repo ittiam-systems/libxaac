@@ -18,19 +18,19 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_error_codes.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_pns.h"
@@ -60,15 +60,6 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32_tns_sat(WORD32 a, WORD32 b,
   temp_result = (WORD64)a * (WORD64)b;
   result = (WORD32)(temp_result >> 32);
   result = ixheaacd_add32_sat(c, result);
-  return (result);
-}
-
-static PLATFORM_INLINE WORD64 mac32x32in64_dual(WORD32 a, WORD32 b, WORD64 c) {
-  WORD64 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)a * (WORD64)b;
-  result = c + (temp_result);
   return (result);
 }
 
@@ -294,7 +285,7 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
       WORD32 acc1;
       y = ixheaacd_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
-        acc = mac32x32in64_dual(state[j - 1], lpc[j], acc);
+        acc = ixheaacd_mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
@@ -349,7 +340,7 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32(y, ixheaacd_shl32_sat(acc1, 1));
+      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc1, 1));
       state[0] = ixheaacd_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
@@ -387,11 +378,15 @@ VOID ixheaacd_tns_ar_filter_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   WORD32 acc;
 
   if ((order & 3) != 0) {
-    for (i = order + 1; i < ((WORD32)(order & 0xfffffffc) + 4); i++) {
+    for (i = order + 1; i < ((WORD32)(order & (~3)) + 4); i++) {
       lpc[i] = 0;
     }
-    lpc[i] = 0;
-    order = ((order & 0xfffffffc) + 4);
+    if (i < (MAX_ORDER + 1)) {
+      lpc[i] = 0;
+      order = ((order & (~3)) + 4);
+    } else {
+      order = MAX_ORDER;
+    }
   }
 
   for (i = 0; i < order; i++) {

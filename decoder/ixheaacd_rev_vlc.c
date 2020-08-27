@@ -20,7 +20,7 @@
 
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"

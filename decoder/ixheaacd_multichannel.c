@@ -19,7 +19,7 @@
 */
 #include <string.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_sbr_common.h"
 
 #include "ixheaacd_constants.h"
@@ -74,7 +74,7 @@
 #include "ixheaacd_headerdecode.h"
 
 #include "ixheaacd_multichannel.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 
 WORD cblock_decode_huff_symbol(UWORD8 *ptr_read_next, WORD32 bit_pos,
                                const UWORD16 *huff_ori, WORD16 *input,

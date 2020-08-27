@@ -53,6 +53,8 @@ extern "C" {
 
 #define NUM_ELE_IN_CPLX_NUM 2
 #define MAX_BS_BUF_SIZE 768
+#define MAX_NUM_DRC_PAYROLL 3
+#define MAX_DRC_BS_BUF_SIZE (MAX_BS_BUF_SIZE * MAX_NUM_DRC_PAYROLL)
 #define MAX_DRC_CONFG_BUF_SIZE MAX_BS_BUF_SIZE
 #define MAX_LOUD_INFO_BUF_SIZE MAX_BS_BUF_SIZE
 #define MAX_INTERFACE_BUF_SIZE MAX_BS_BUF_SIZE
@@ -212,6 +214,8 @@ extern "C" {
 #define MAXPACKETLOSSTIME 2.5f
 
 #define SLOPE_FACTOR_DB_TO_LINEAR 0.1151f
+
+#define MIN_DRC_SAMP_FREQ 1000
 
 #ifndef min
 #define min(a, b) ((a) < (b) ? (a) : (b))

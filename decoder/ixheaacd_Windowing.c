@@ -20,9 +20,9 @@
 #include "ixheaacd_cnst.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_type_def.h"
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #include "ixheaacd_windows.h"
 

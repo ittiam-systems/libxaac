@@ -20,15 +20,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -37,7 +37,7 @@
 
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_aac_imdct.h"
 #include "ixheaacd_pulsedata.h"
 
@@ -53,7 +53,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_block.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
@@ -199,11 +199,11 @@ VOID(*ixheaacd_mps_complex_fft_64)
  WORD32 nlength) = &ixheaacd_mps_complex_fft_64_armv7;
 
 VOID(*ixheaacd_mps_synt_pre_twiddle)
-(WORD32 *ptr_in, WORD32 *table_re, WORD32 *table_im,
+(WORD32 *ptr_in, const WORD32 *table_re, const WORD32 *table_im,
  WORD32 resolution) = &ixheaacd_mps_synt_pre_twiddle_armv7;
 
 VOID(*ixheaacd_mps_synt_post_twiddle)
-(WORD32 *ptr_in, WORD32 *table_re, WORD32 *table_im,
+(WORD32 *ptr_in, const WORD32 *table_re, const WORD32 *table_im,
  WORD32 resolution) = &ixheaacd_mps_synt_post_twiddle_armv7;
 
 VOID(*ixheaacd_calc_pre_twid)
@@ -215,8 +215,9 @@ VOID(*ixheaacd_calc_post_twid)
  const WORD32 *cos_ptr, const WORD32 *sin_ptr) = &ixheaacd_calc_post_twid_armv7;
 
 VOID(*ixheaacd_mps_synt_post_fft_twiddle)
-(WORD32 resolution, WORD32 *fin_re, WORD32 *fin_im, WORD32 *table_re,
- WORD32 *table_im, WORD32 *state) = &ixheaacd_mps_synt_post_fft_twiddle_armv7;
+(WORD32 resolution, WORD32 *fin_re, WORD32 *fin_im, const WORD32 *table_re,
+ const WORD32 *table_im,
+ WORD32 *state) = &ixheaacd_mps_synt_post_fft_twiddle_armv7;
 
 VOID(*ixheaacd_mps_synt_out_calc)
 (WORD32 resolution, WORD32 *out, WORD32 *state,

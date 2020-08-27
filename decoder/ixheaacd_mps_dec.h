@@ -60,8 +60,8 @@ typedef struct ia_mps_decor_filt_struct {
   WORD32 den_len;
 
   ia_cmplx_flt_struct state[MAX_DECORR_FIL_ORDER + 1];
-  FLOAT32 *num;
-  FLOAT32 *den;
+  const FLOAT32 *num;
+  const FLOAT32 *den;
 
 } ia_mps_decor_filt_struct;
 
@@ -200,7 +200,7 @@ typedef struct ia_mps_dec_state_struct {
 
   WORD32 qmf_band_count;
   WORD32 hyb_band_count;
-  WORD32 *hyb_band_to_processing_band_table;
+  const WORD32 *hyb_band_to_processing_band_table;
 
   WORD32 res_ch_count;
 

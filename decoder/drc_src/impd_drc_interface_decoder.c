@@ -30,29 +30,6 @@
 #include "impd_drc_parser_interface.h"
 
 WORD32
-impd_drc_dec_interface_process(ia_bit_buf_struct* it_bit_buff,
-                               ia_drc_interface_struct* pstr_drc_interface,
-                               UWORD8* it_bit_buf, WORD32 num_bit_stream_bits,
-                               WORD32* num_bits_read) {
-  WORD32 err = 0;
-
-  if (it_bit_buff != NULL && num_bit_stream_bits) {
-    it_bit_buff = impd_create_init_bit_buf(it_bit_buff, it_bit_buf,
-                                           num_bit_stream_bits / 8);
-
-  } else {
-    return -1;
-  }
-
-  err = impd_unidrc_interface_read(it_bit_buff, pstr_drc_interface);
-  if (err) return (err);
-
-  *num_bits_read = (it_bit_buff->size) - it_bit_buff->cnt_bits;
-
-  return err;
-}
-
-WORD32
 impd_drc_dec_interface_add_effect_type(
     ia_drc_interface_struct* pstr_drc_interface, WORD32 drc_effect_type,
     WORD32 target_loudness, WORD32 loud_norm) {

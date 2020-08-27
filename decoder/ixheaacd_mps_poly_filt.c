@@ -21,24 +21,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_interface.h>
+#include "ixheaacd_type_def.h"
+#include "ixheaacd_interface.h"
 #include "ixheaacd_mps_polyphase.h"
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32
     ixheaacd_mps_polyphase_filter_coeff_fix[10 * MAX_NUM_QMF_BANDS_SAC / 2];
-extern WORD32 ixheaacd_mps_pre_re[64];
-extern WORD32 ixheaacd_mps_pre_im[64];
-extern WORD32 ixheaacd_mps_post_re[128];
-extern WORD32 ixheaacd_mps_post_im[128];
+extern const WORD32 ixheaacd_mps_pre_re[64];
+extern const WORD32 ixheaacd_mps_pre_im[64];
+extern const WORD32 ixheaacd_mps_post_re[128];
+extern const WORD32 ixheaacd_mps_post_im[128];
 
 static PLATFORM_INLINE WORD32 ixheaacd_mult32(WORD32 a, WORD32 b) {
   WORD32 result;
@@ -67,8 +66,9 @@ static VOID ixheaacd_float_to_int32(FLOAT32 *in, WORD32 *out, WORD32 q_factor,
   for (loop = 0; loop < sample; loop++) out[loop] = (WORD32)(in[loop] * temp);
 }
 
-VOID ixheaacd_mps_synt_pre_twiddle_dec(WORD32 *ptr_in, WORD32 *table_re,
-                                       WORD32 *table_im, WORD32 resolution) {
+VOID ixheaacd_mps_synt_pre_twiddle_dec(WORD32 *ptr_in, const WORD32 *table_re,
+                                       const WORD32 *table_im,
+                                       WORD32 resolution) {
   WORD32 tmp, k;
   for (k = 0; k < 2 * resolution; k += 2) {
     tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k >> 1]),
@@ -81,24 +81,27 @@ VOID ixheaacd_mps_synt_pre_twiddle_dec(WORD32 *ptr_in, WORD32 *table_re,
   }
 }
 
-VOID ixheaacd_mps_synt_post_twiddle_dec(WORD32 *ptr_in, WORD32 *table_re,
-                                        WORD32 *table_im, WORD32 resolution) {
+VOID ixheaacd_mps_synt_post_twiddle_dec(WORD32 *ptr_in, const WORD32 *table_re,
+                                        const WORD32 *table_im,
+                                        WORD32 resolution) {
   WORD32 tmp, k;
   for (k = 0; k < 2 * resolution; k += 2) {
     tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k]),
                              ixheaacd_mult32(ptr_in[k + 1], table_im[k]));
 
-    ptr_in[k + 1] =
-        ixheaacd_add32_sat(ixheaacd_mult32(-ptr_in[k], table_im[k]),
-                           ixheaacd_mult32(ptr_in[k + 1], table_re[k]));
+    ptr_in[k + 1] = ixheaacd_add32_sat(
+        ixheaacd_mult32(ixheaacd_negate32_sat(ptr_in[k]), table_im[k]),
+        ixheaacd_mult32(ptr_in[k + 1], table_re[k]));
 
     ptr_in[k] = tmp;
   }
 }
 
 VOID ixheaacd_mps_synt_post_fft_twiddle_dec(WORD32 resolution, WORD32 *fin_re,
-                                            WORD32 *fin_im, WORD32 *table_re,
-                                            WORD32 *table_im, WORD32 *state) {
+                                            WORD32 *fin_im,
+                                            const WORD32 *table_re,
+                                            const WORD32 *table_im,
+                                            WORD32 *state) {
   WORD32 l;
   for (l = 0; l < 2 * resolution; l++) {
     state[2 * resolution - l - 1] =

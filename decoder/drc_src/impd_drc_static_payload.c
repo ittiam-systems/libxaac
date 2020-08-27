@@ -338,7 +338,7 @@ impd_parametric_drc_parse_gain_set_params(
   str_parametric_drc_gain_set_params->parametric_drc_id = (temp >> 3) & 0xf;
   str_parametric_drc_gain_set_params->side_chain_config_type = temp & 7;
 
-  if (str_parametric_drc_gain_set_params->side_chain_config_type) {
+  if (str_parametric_drc_gain_set_params->side_chain_config_type == 1) {
     temp = impd_read_bits_buf(it_bit_buff, 8);
     if (it_bit_buff->error) return it_bit_buff->error;
 
@@ -443,9 +443,13 @@ static WORD32 impd_parametric_drc_gen_virtual_gain_sets(
     str_p_loc_drc_coefficients_uni_drc->gain_sequence_count = 0;
     drc_config->drc_coefficients_drc_count += 1;
   }
-  str_p_loc_drc_coefficients_uni_drc->gain_set_count_plus =
-      str_p_loc_drc_coefficients_uni_drc->gain_set_count +
-      str_drc_coeff_param_drc->parametric_drc_gain_set_count;
+  {
+    WORD32 tmp = str_p_loc_drc_coefficients_uni_drc->gain_set_count +
+                 str_drc_coeff_param_drc->parametric_drc_gain_set_count;
+    if (tmp > GAIN_SET_COUNT_MAX) return UNEXPECTED_ERROR;
+    str_p_loc_drc_coefficients_uni_drc->gain_set_count_plus = tmp;
+  }
+
   for (i = str_p_loc_drc_coefficients_uni_drc->gain_set_count;
        i < str_p_loc_drc_coefficients_uni_drc->gain_set_count_plus; i++) {
     str_p_loc_drc_coefficients_uni_drc->gain_set_params[i].band_count = 1;
@@ -518,9 +522,12 @@ static WORD32 impd_parametic_drc_parse_coeff(
   if (it_bit_buff->error) return it_bit_buff->error;
 
   str_drc_coeff_param_drc->drc_location = (temp >> 1) & 0xf;
+  if (str_drc_coeff_param_drc->drc_location < 1 ||
+      str_drc_coeff_param_drc->drc_location > 4)
+    return UNEXPECTED_ERROR;
   str_drc_coeff_param_drc->parametric_drc_frame_size_format = temp & 1;
 
-  if (str_drc_coeff_param_drc->parametric_drc_frame_size) {
+  if (str_drc_coeff_param_drc->parametric_drc_frame_size_format) {
     code = impd_read_bits_buf(it_bit_buff, 15);
     if (it_bit_buff->error) return it_bit_buff->error;
     str_drc_coeff_param_drc->parametric_drc_frame_size = code + 1;
@@ -532,6 +539,7 @@ static WORD32 impd_parametic_drc_parse_coeff(
 
   str_drc_coeff_param_drc->parametric_drc_delay_max_present =
       impd_read_bits_buf(it_bit_buff, 1);
+  if (it_bit_buff->error) return it_bit_buff->error;
   if (str_drc_coeff_param_drc->parametric_drc_delay_max_present) {
     temp = impd_read_bits_buf(it_bit_buff, 8);
     if (it_bit_buff->error) return it_bit_buff->error;
@@ -723,6 +731,8 @@ WORD32 impd_parse_ch_layout(ia_bit_buf_struct* it_bit_buff,
 
   channel_layout->base_channel_count = impd_read_bits_buf(it_bit_buff, 7);
   if (it_bit_buff->error) return it_bit_buff->error;
+  if (channel_layout->base_channel_count > MAX_CHANNEL_COUNT)
+    return (UNEXPECTED_ERROR);
   if (ia_drc_params_struct->lfe_channel_map_count != -1 &&
       channel_layout->base_channel_count !=
           ia_drc_params_struct->lfe_channel_map_count) {
@@ -767,6 +777,8 @@ impd_parse_dwnmix_instructions(
 
   dwnmix_instructions->downmix_id = (temp >> 16) & 0x7f;
   dwnmix_instructions->target_channel_count = (temp >> 9) & 0x7f;
+  if (dwnmix_instructions->target_channel_count > MAX_CHANNEL_COUNT)
+    return (UNEXPECTED_ERROR);
   dwnmix_instructions->target_layout = (temp >> 1) & 0xff;
   dwnmix_instructions->downmix_coefficients_present = temp & 1;
 
@@ -1219,6 +1231,9 @@ impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
     if (err) return (err);
   }
 
+  if ((drc_config->drc_instructions_uni_drc_count +
+       drc_config->dwnmix_instructions_count) >= DRC_INSTRUCTIONS_COUNT_MAX)
+    return (UNEXPECTED_ERROR);
   impd_drc_gen_instructions_for_drc_off(drc_config);
   return (0);
 }
@@ -1440,13 +1455,15 @@ impd_dec_gain_modifiers(ia_bit_buf_struct* it_bit_buff, WORD32 version,
       }
     }
     if (band_count == 1) {
+      WORD32 tmp;
       pstr_gain_modifiers->shape_filter_flag =
           impd_read_bits_buf(it_bit_buff, 1);
       if (it_bit_buff->error) return it_bit_buff->error;
       if (pstr_gain_modifiers->shape_filter_flag) {
-        pstr_gain_modifiers->shape_filter_idx =
-            impd_read_bits_buf(it_bit_buff, 4);
+        tmp = impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (tmp >= (SHAPE_FILTER_COUNT_MAX + 1)) return UNEXPECTED_ERROR;
+        pstr_gain_modifiers->shape_filter_idx = tmp;
       }
     }
   } else if (version == 0) {
@@ -1663,6 +1680,9 @@ impd_drc_parse_coeff(
       drc_frame_size = impd_read_bits_buf(it_bit_buff, 15);
       if (it_bit_buff->error) return it_bit_buff->error;
       str_p_loc_drc_coefficients_uni_drc->drc_frame_size = drc_frame_size + 1;
+      if (str_p_loc_drc_coefficients_uni_drc->drc_frame_size >
+          MAX_DRC_FRAME_SIZE)
+        return UNEXPECTED_ERROR;
     }
 
     str_p_loc_drc_coefficients_uni_drc->drc_characteristic_left_present = 0;
@@ -1695,6 +1715,10 @@ impd_drc_parse_coeff(
             ia_drc_params_struct->drc_frame_size /
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .time_delt_min_val;
+        if (str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
+                .num_gain_max_values >
+            (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1))
+          return (UNEXPECTED_ERROR);
         err = impd_init_tbls(
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .num_gain_max_values,
@@ -1871,6 +1895,11 @@ impd_drc_parse_coeff(
             ia_drc_params_struct->drc_frame_size /
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .time_delt_min_val;
+        if (str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
+                .num_gain_max_values >
+            (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1))
+          return (UNEXPECTED_ERROR);
+
         err = impd_init_tbls(
             str_p_loc_drc_coefficients_uni_drc->gain_set_params[i]
                 .num_gain_max_values,
@@ -2152,8 +2181,7 @@ impd_parse_drc_instructions_uni_drc(
       WORD32 bs_gain_set_idx;
       bs_gain_set_idx = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
-      if ((bs_gain_set_idx == 0) || (bs_gain_set_idx > GAIN_SET_COUNT_MAX))
-        return UNEXPECTED_ERROR;
+      if (bs_gain_set_idx > GAIN_SET_COUNT_MAX) return UNEXPECTED_ERROR;
       str_drc_instruction_str->gain_set_index[c] = bs_gain_set_idx - 1;
       impd_dec_ducking_scaling(
           it_bit_buff,
@@ -2257,6 +2285,7 @@ impd_parse_drc_instructions_uni_drc(
           (str_drc_instruction_str->drc_set_effect & EFFECT_BIT_DUCK_OTHER)
               ? ducking_sequence
               : unique_idx[g];
+      if (set < 0) return UNEXPECTED_ERROR;
       str_drc_instruction_str->gain_set_index_for_channel_group[g] = set;
       str_drc_instruction_str->str_ducking_modifiers_for_channel_group[g]
           .ducking_scaling = unique_scaling[g];
@@ -2305,8 +2334,7 @@ impd_parse_drc_instructions_uni_drc(
       bs_gain_set_idx = (temp >> 1) & 0x7f;
       repeat_gain_set_idx = temp & 1;
 
-      if ((bs_gain_set_idx == 0) || (bs_gain_set_idx > GAIN_SET_COUNT_MAX))
-        return UNEXPECTED_ERROR;
+      if (bs_gain_set_idx > GAIN_SET_COUNT_MAX) return UNEXPECTED_ERROR;
 
       str_drc_instruction_str->gain_set_index[c] = bs_gain_set_idx - 1;
       c++;
@@ -2368,6 +2396,7 @@ impd_parse_drc_instructions_uni_drc(
       WORD32 set, band_count;
 
       set = unique_idx[g];
+      if (set < 0) return UNEXPECTED_ERROR;
       str_drc_instruction_str->gain_set_index_for_channel_group[g] = set;
 
       if (str_p_loc_drc_coefficients_uni_drc != NULL &&
