@@ -25,6 +25,7 @@
 .text
 .p2align 2
     .global ixheaacd_shiftrountine_with_rnd
+    .type ixheaacd_shiftrountine_with_rnd, %function
 ixheaacd_shiftrountine_with_rnd:
     STMFD           sp!, {r4-r12, r14}
     MOV             r4, #0x1f
