@@ -20,6 +20,7 @@
 
 
 .global ixheaacd_esbr_radix4bfly
+.type ixheaacd_esbr_radix4bfly, %function
 
 ixheaacd_esbr_radix4bfly:
 

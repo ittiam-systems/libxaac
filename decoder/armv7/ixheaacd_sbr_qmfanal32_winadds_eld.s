@@ -1,6 +1,7 @@
 .text
 .p2align 2
 .global ixheaacd_sbr_qmfanal32_winadds_eld
+.type ixheaacd_sbr_qmfanal32_winadds_eld, %function
 
 ixheaacd_sbr_qmfanal32_winadds_eld:
 

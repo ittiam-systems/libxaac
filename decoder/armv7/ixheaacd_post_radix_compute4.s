@@ -22,6 +22,7 @@
 .text
 .p2align 2
         .global ixheaacd_postradixcompute4
+        .type ixheaacd_postradixcompute4, %function
 
 
 ixheaacd_postradixcompute4:
