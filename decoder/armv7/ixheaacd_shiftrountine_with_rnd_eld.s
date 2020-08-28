@@ -1,6 +1,7 @@
 .text
 .p2align 2
 .global ixheaacd_shiftrountine_with_rnd_eld
+.type ixheaacd_shiftrountine_with_rnd_eld, %function
 
 ixheaacd_shiftrountine_with_rnd_eld:
     STMFD           sp!, {r4-r12, r14}
