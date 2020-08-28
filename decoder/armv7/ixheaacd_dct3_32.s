@@ -22,6 +22,7 @@
 .text
 .p2align 2
 .global ixheaacd_dct3_32
+.type ixheaacd_dct3_32, %function
 .extern ixheaacd_radix4bfly
 .hidden ixheaacd_radix4bfly
 .extern ixheaacd_postradixcompute4

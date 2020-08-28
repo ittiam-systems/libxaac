@@ -1,6 +1,7 @@
 .text
 .p2align 2
 .global ixheaacd_complex_fft_p2_asm
+.type ixheaacd_complex_fft_p2_asm, %function
 
 ixheaacd_complex_fft_p2_asm:
     STMFD           sp!, {r0-r12, lr}
