@@ -4,6 +4,7 @@
 .text
 .p2align 2
     .global ixheaacd_shiftrountine_with_rnd_hq
+    .type ixheaacd_shiftrountine_with_rnd_hq, %function
 ixheaacd_shiftrountine_with_rnd_hq:
 
     STMFD           sp!, {r4-r12, r14}

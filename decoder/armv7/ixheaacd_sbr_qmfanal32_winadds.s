@@ -22,6 +22,7 @@
 .text
 .p2align 2
     .global ixheaacd_sbr_qmfanal32_winadds
+    .type ixheaacd_sbr_qmfanal32_winadds, %function
 
 ixheaacd_sbr_qmfanal32_winadds:
 

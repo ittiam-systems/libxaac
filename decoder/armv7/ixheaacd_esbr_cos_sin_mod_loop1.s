@@ -23,6 +23,7 @@
 .p2align 2
 
     .global ixheaacd_esbr_cos_sin_mod_loop1
+    .type ixheaacd_esbr_cos_sin_mod_loop1, %function
 ixheaacd_esbr_cos_sin_mod_loop1:
 
     STMFD           sp!, {r4-r12, r14}

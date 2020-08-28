@@ -1,6 +1,7 @@
 .text
 .p2align 2
 .global ixheaacd_mps_complex_fft_64_asm
+.type ixheaacd_mps_complex_fft_64_asm, %function
 
 ixheaacd_mps_complex_fft_64_asm:
     @LDR    r4,[sp]
