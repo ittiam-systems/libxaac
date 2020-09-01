@@ -19,16 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_pns.h"
@@ -50,7 +49,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
@@ -75,7 +74,7 @@
 
 #include "ixheaacd_multichannel.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_adts_crc_check.h"
 #include "ixheaacd_function_selector.h"
 
@@ -158,30 +157,24 @@ ia_bit_buf_struct *ixheaacd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
 VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,
                                WORD32 ixheaacd_drc_offset) {
   if (ixheaacd_drc_offset != 0) {
-    WORD32 bit_offset;
-
+    WORD32 byte_offset;
+    if ((it_bit_buff->cnt_bits < 0) ||
+        (it_bit_buff->cnt_bits - ixheaacd_drc_offset < 0) ||
+        (it_bit_buff->cnt_bits - ixheaacd_drc_offset > it_bit_buff->size)) {
+      longjmp(*(it_bit_buff->xaac_jmp_buf),
+              IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+    }
     it_bit_buff->cnt_bits = it_bit_buff->cnt_bits - ixheaacd_drc_offset;
     it_bit_buff->bit_pos = it_bit_buff->bit_pos - ixheaacd_drc_offset;
-    bit_offset = it_bit_buff->bit_pos >> 3;
-    it_bit_buff->bit_pos = it_bit_buff->bit_pos - (bit_offset << 3);
+    byte_offset = it_bit_buff->bit_pos >> 3;
+    it_bit_buff->bit_pos = it_bit_buff->bit_pos - (byte_offset << 3);
 
-    if (bit_offset) {
+    if (byte_offset) {
       UWORD8 *ptr_read_next;
-      WORD32 temp;
 
       ptr_read_next = it_bit_buff->ptr_read_next;
 
-      ptr_read_next = ptr_read_next - (bit_offset);
-
-      temp = it_bit_buff->ptr_bit_buf_end - it_bit_buff->ptr_bit_buf_base + 1;
-
-      if (ptr_read_next > it_bit_buff->ptr_bit_buf_end) {
-        ptr_read_next -= temp;
-      }
-
-      if (ptr_read_next < it_bit_buff->ptr_bit_buf_base) {
-        ptr_read_next += temp;
-      }
+      ptr_read_next = ptr_read_next - (byte_offset);
 
       it_bit_buff->ptr_read_next = ptr_read_next;
     }

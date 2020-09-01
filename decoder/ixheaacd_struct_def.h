@@ -32,6 +32,7 @@
 #define MAX_NUM_OTT_AT \
   (MAX_OUTPUT_CHANNELS * ((1 << MAX_ARBITRARY_TREE_LEVELS) - 1))
 #define MAX_PARAMETER_BANDS (28)
+#define MAX_DECOR_CONFIG_IDX (2)
 
 #define MAX_HYBRID_BANDS (MAX_NUM_QMF_BANDS - 3 + 10)
 
@@ -234,6 +235,8 @@ typedef struct ia_aac_dec_state_struct {
   ia_sbr_header_data_struct str_sbr_config;
   jmp_buf xaac_jmp_buf;
   WORD32 decode_create_done;
+  WORD32 fatal_err_present;
+  WORD8 *pers_mem_ptr;
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {

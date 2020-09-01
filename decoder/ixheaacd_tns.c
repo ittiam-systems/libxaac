@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_interface.h"
@@ -42,9 +42,9 @@
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_function_selector.h"
-#include <ixheaacd_constants.h>
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_constants.h"
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #define sfb_offset(x) (((x) > 0) ? sfb_top[(x)-1] : 0)
 

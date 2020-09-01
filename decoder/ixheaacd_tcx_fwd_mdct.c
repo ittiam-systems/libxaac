@@ -24,11 +24,10 @@
 #include <string.h>
 
 #include "ixheaacd_cnst.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_acelp_com.h"
 
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 
@@ -49,8 +48,8 @@
 #include "ixheaacd_sbr_const.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 

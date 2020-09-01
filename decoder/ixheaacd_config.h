@@ -161,6 +161,7 @@ typedef struct {
 #define DRC_BAND_COUNT_MAX BAND_COUNT_MAX
 #define SPEAKER_POS_COUNT_MAX (128)
 #define DOWNMIX_COEFF_COUNT_MAX (32 * 32)
+#define MAX_AUDIO_PREROLLS 3
 
 typedef struct {
   UINT32 tw_mdct;
@@ -185,10 +186,13 @@ typedef struct {
   WORD32 usac_ext_ele_payload_present[USAC_MAX_ELEMENTS];
   WORD32 usac_cfg_ext_info_len[USAC_MAX_CONFIG_EXTENSIONS];
   WORD32 usac_ext_ele_payload_len[USAC_MAX_ELEMENTS];
-  WORD32 usac_ext_gain_payload_len;
+  WORD32 usac_ext_gain_payload_len[MAX_AUDIO_PREROLLS + 2];
   UWORD8 usac_cfg_ext_info_buf[USAC_MAX_CONFIG_EXTENSIONS][768];
   UWORD8 usac_ext_ele_payload_buf[USAC_MAX_ELEMENTS][768];
-  UWORD8 usac_ext_gain_payload_buf[768];
+  UWORD8 usac_ext_gain_payload_buf[MAX_AUDIO_PREROLLS * 768];
+  UWORD32 preroll_bytes[MAX_AUDIO_PREROLLS +
+                        2];  // Contain the number of bytes in each preroll
+  WORD32 preroll_counter;    // count the number of prerolls in a frame.
 
   WORD32 preroll_flag;
 

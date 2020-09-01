@@ -56,8 +56,6 @@ IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc, WORD32 i_cmd,
 
 IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc);
 
-VOID impd_drc_set_default_config_params(ia_drc_config_struct *ptr_config);
-
 IA_ERRORCODE impd_drc_process_frame(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc);
@@ -83,10 +81,10 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc);
    sizeof(ia_drc_sel_proc_output_struct) +                                   \
    sizeof(ia_drc_peak_limiter_struct) + sizeof(ia_drc_peak_limiter_struct) + \
    sizeof(ia_drc_qmf_filt_struct) + ANALY_BUF_SIZE + SYNTH_BUF_SIZE +        \
-   PEAK_LIM_BUF_SIZE + MAX_BS_BUF_SIZE + /*DRC Config Bitstream*/            \
-   MAX_DRC_CONFG_BUF_SIZE +              /*DRC loudness info Bitstream*/     \
-   MAX_LOUD_INFO_BUF_SIZE +              /*DRC interface Bitstream*/         \
-   MAX_INTERFACE_BUF_SIZE +                                                  \
+   PEAK_LIM_BUF_SIZE + MAX_DRC_BS_BUF_SIZE +                                 \
+   MAX_DRC_CONFG_BUF_SIZE + /*DRC Config Bitstream*/                         \
+   MAX_LOUD_INFO_BUF_SIZE + /*DRC loudness info Bitstream*/                  \
+   MAX_INTERFACE_BUF_SIZE + /*DRC interface Bitstream*/                      \
    NUM_GAIN_DEC_INSTANCES *                                                  \
        (SEL_DRC_COUNT * sizeof(ia_interp_buf_struct) * MAX_GAIN_ELE_COUNT +  \
         sizeof(ia_eq_set_struct) + /*non_interleaved_audio*/                 \
@@ -151,7 +149,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
     case IA_API_CMD_INIT: {
       switch (i_idx) {
         case IA_CMD_TYPE_INIT_SET_BUFF_PTR: {
-          p_obj_drc->p_state->persistant_ptr =
+          p_obj_drc->p_state->persistent_ptr =
               (UWORD8 *)p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX] +
               sizeof(ia_drc_state_struct);
           impd_drc_set_struct_pointer(p_obj_drc);
@@ -207,11 +205,16 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
         case IA_CMD_TYPE_INIT_CPY_BSF_BUFF: {
           memcpy(p_obj_drc->str_bit_handler.it_bit_buf +
-                     p_obj_drc->str_bit_handler.num_bytes_bs,
+                     p_obj_drc->str_bit_handler.num_bytes_offset_bs,
                  p_obj_drc->pp_mem[2], p_obj_drc->str_bit_handler.num_byts_cur);
           p_obj_drc->str_bit_handler.num_bytes_bs =
               p_obj_drc->str_bit_handler.num_bytes_bs +
               p_obj_drc->str_bit_handler.num_byts_cur;
+          p_obj_drc->str_bit_handler.num_bytes_offset_bs =
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+          p_obj_drc->str_bit_handler.num_total_bytes =
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+
           break;
         }
         case IA_CMD_TYPE_INIT_CPY_IC_BSF_BUFF: {
@@ -268,60 +271,6 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
     }
     case IA_API_CMD_SET_CONFIG_PARAM: {
       switch (i_idx) {
-        case IA_DRC_DEC_CONFIG_PARAM_DEC_TYPE: {
-          if (*pus_value == 1) {
-            p_obj_drc->str_config.dec_type = DEC_TYPE_TD_QMF64;
-            p_obj_drc->str_config.sub_band_domain_mode =
-                SUBBAND_DOMAIN_MODE_QMF64;
-            p_obj_drc->str_config.sub_band_down_sampling_factor =
-                AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
-            p_obj_drc->str_config.sub_band_count =
-                AUDIO_CODEC_SUBBAND_COUNT_QMF64;
-          } else if (*pus_value == 2) {
-            p_obj_drc->str_config.dec_type = DEC_TYPE_QMF64;
-            p_obj_drc->str_config.sub_band_domain_mode =
-                SUBBAND_DOMAIN_MODE_QMF64;
-            p_obj_drc->str_config.sub_band_down_sampling_factor =
-                AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_QMF64;
-            p_obj_drc->str_config.sub_band_count =
-                AUDIO_CODEC_SUBBAND_COUNT_QMF64;
-          } else if (*pus_value == 3) {
-            p_obj_drc->str_config.dec_type = DEC_TYPE_STFT256;
-            p_obj_drc->str_config.sub_band_domain_mode =
-                SUBBAND_DOMAIN_MODE_STFT256;
-            p_obj_drc->str_config.sub_band_down_sampling_factor =
-                AUDIO_CODEC_SUBBAND_DOWNSAMPLING_FACTOR_STFT256;
-            p_obj_drc->str_config.sub_band_count =
-                AUDIO_CODEC_SUBBAND_COUNT_STFT256;
-          } else {
-            p_obj_drc->str_config.dec_type = DEC_TYPE_TD;
-            p_obj_drc->str_config.sub_band_domain_mode =
-                SUBBAND_DOMAIN_MODE_OFF;
-          }
-
-          if (*pus_value < 0 || *pus_value > 3) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_DECODE_TYPE;
-          }
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_CTRL_PARAM: {
-          if (*pus_value < 1 || *pus_value > 39) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_CTRL_PARAM_IDX;
-          }
-          p_obj_drc->str_config.control_parameter_index = *pus_value;
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_PEAK_LIMITER: {
-          if (*pus_value < 0 || *pus_value > 1) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PEAK_LIM_FLAG;
-          }
-          p_obj_drc->str_config.peak_limiter = *pus_value;
-          break;
-        }
-
-        case IA_DRC_DEC_CONFIG_PARAM_VER_MODE: {
-          break;
-        }
         case IA_DRC_DEC_CONFIG_PARAM_SAMP_FREQ: {
           if (*pus_value < 8000 || *pus_value > 96000) {
             return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_SAMP_FREQ;
@@ -338,8 +287,13 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
 
         case IA_DRC_DEC_CONFIG_PARAM_PCM_WDSZ: {
-          if ((*pus_value != 16) && (*pus_value != 32)) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PCM_SIZE;
+          switch (*pus_value) {
+            case 16:
+            case 24:
+            case 32:
+              break;
+            default:
+              return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_PCM_SIZE;
           }
 
           p_obj_drc->str_config.pcm_size = *pus_value;
@@ -348,54 +302,9 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
 
         case IA_DRC_DEC_CONFIG_PARAM_BITS_FORMAT: {
-          if ((*pus_value != 1) && (*pus_value != 0)) {
-            return -1;
-          }
-          p_obj_drc->str_config.bitstream_file_format = *pus_value;
-
           break;
         }
         case IA_DRC_DEC_CONFIG_PARAM_INT_PRESENT: {
-          if ((*pus_value != 1) && (*pus_value != 0)) {
-            return -1;
-          }
-          p_obj_drc->str_config.interface_bitstream_present = *pus_value;
-
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_DELAY_MODE: {
-          if ((*pus_value != 1) && (*pus_value != 0)) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_DELAY_MODE;
-          }
-          p_obj_drc->str_config.delay_mode = *pus_value;
-
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_GAIN_DELAY: {
-          if ((*pus_value > MAX_SIGNAL_DELAY) || (*pus_value < 0)) {
-            return IA_DRC_DEC_CONFIG_NON_FATAL_INVALID_GAIN_DELAY;
-          }
-
-          p_obj_drc->str_config.gain_delay_samples = *pus_value;
-
-          break;
-        }
-
-        /*Sujith: introduce error*/
-        case IA_DRC_DEC_CONFIG_PARAM_AUDIO_DELAY: {
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_CON_DELAY_MODE: {
-          if (*pus_value < 0 || *pus_value > 1) {
-            return IA_DRC_DEC_CONFIG_PARAM_CON_DELAY_MODE;
-          }
-          p_obj_drc->str_config.constant_delay_on = *pus_value;
-
-          break;
-        }
-        case IA_DRC_DEC_CONFIG_PARAM_ABSO_DELAY_OFF: {
-          p_obj_drc->str_config.absorb_delay_on = *pus_value;
-
           break;
         }
         case IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE: {
@@ -408,7 +317,6 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           break;
         }
         case IA_DRC_DEC_CONFIG_GAIN_STREAM_FLAG: {
-          p_obj_drc->str_bit_handler.gain_stream_flag = *pus_value;
           break;
         }
 
@@ -460,12 +368,17 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_TD) {
             error_code = impd_process_time_domain(p_obj_drc);
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_QMF64) {
-            error_code = impd_init_process_audio_main_qmf(p_obj_drc);
+            error_code = IA_FATAL_ERROR;
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_STFT256) {
-            error_code = impd_init_process_audio_main_stft(p_obj_drc);
+            error_code = IA_FATAL_ERROR;
           } else if (p_obj_drc->str_config.dec_type == DEC_TYPE_TD_QMF64) {
-            error_code = impd_init_process_audio_main_td_qmf(p_obj_drc);
+            error_code = IA_FATAL_ERROR;
           }
+          p_obj_drc->str_bit_handler.byte_index_bs =
+              p_obj_drc->str_bit_handler.num_total_bytes -
+              p_obj_drc->str_bit_handler.num_bytes_bs;
+          p_obj_drc->str_bit_handler.num_bytes_offset_bs = 0;
+
           break;
         }
         case IA_CMD_TYPE_DONE_QUERY: {
@@ -497,22 +410,6 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
     }
     case IA_API_CMD_INPUT_OVER: {
       p_obj_drc->p_state->ui_exe_done = 1;
-      break;
-    }
-    case IA_API_CMD_INPUT_OVER_BS: {
-      p_obj_drc->str_bit_handler.cpy_over = 1;
-      break;
-    }
-    case IA_API_CMD_INPUT_OVER_IC_BS: {
-      p_obj_drc->str_bit_handler.cpy_over_ic = 1;
-      break;
-    }
-    case IA_API_CMD_INPUT_OVER_IL_BS: {
-      p_obj_drc->str_bit_handler.cpy_over_il = 1;
-      break;
-    }
-    case IA_API_CMD_INPUT_OVER_IN_BS: {
-      p_obj_drc->str_bit_handler.cpy_over_in = 1;
       break;
     }
     case IA_API_CMD_SET_INPUT_BYTES_BS: {

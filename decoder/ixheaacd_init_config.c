@@ -22,7 +22,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -32,7 +32,7 @@
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_aac_rom.h"
 #include "ixheaacd_common_rom.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
 
@@ -66,6 +66,11 @@
 
 #include "ixheaacd_error_codes.h"
 
+static const WORD32 sampling_rate_tbl[] = {
+    96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025,
+    8000,  7350,  0,     0,     57600, 51200, 40000, 38400, 34150, 28800, 25600,
+    20000, 19200, 17075, 14400, 12800, 9600,  0,     0,     0};
+
 UWORD32 ixheaacd_sbr_ratio(UWORD32 core_sbr_framelength_idx) {
   UWORD32 sbr_ratio_index = 0x0FF;
 
@@ -88,22 +93,13 @@ UWORD32 ixheaacd_sbr_ratio(UWORD32 core_sbr_framelength_idx) {
   return sbr_ratio_index;
 }
 
-WORD32 ixheaacd_get_sample_freq_indx(WORD32 sampling_freq) {
-  WORD32 sampling_rate_tbl[] = {96000, 88200, 64000, 48000, 44100, 32000,
-                                24000, 22050, 16000, 12000, 11025, 8000,
-                                7350,  0,     0,     0};
-
+static WORD32 ixheaacd_get_sample_freq_indx(WORD32 sampling_freq) {
   WORD32 index;
-  WORD32 tbl_size = sizeof(sampling_rate_tbl) / sizeof(WORD32) - 1;
+  const WORD32 tbl_size = sizeof(sampling_rate_tbl) / sizeof(WORD32) - 1;
 
   for (index = 0; index < tbl_size; index++) {
     if (sampling_rate_tbl[index] == sampling_freq) break;
   }
-
-  if (index > tbl_size) {
-    return tbl_size - 1;
-  }
-
   return index;
 }
 UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_framelength_idx,
@@ -191,6 +187,11 @@ static VOID ixheaacd_get_usac_chan_conf(ia_usac_config_struct *pstr_usac_config,
       pstr_usac_config->num_out_channels = 2;
       pstr_usac_config->output_channel_pos[0] = BS_OUTPUT_CHANNEL_POS_L;
       pstr_usac_config->output_channel_pos[1] = BS_OUTPUT_CHANNEL_POS_R;
+      break;
+    case 8:
+      pstr_usac_config->num_out_channels = 2;
+      pstr_usac_config->output_channel_pos[0] = BS_OUTPUT_CHANNEL_POS_NA;
+      pstr_usac_config->output_channel_pos[1] = BS_OUTPUT_CHANNEL_POS_NA;
       break;
 
     default:
@@ -292,7 +293,7 @@ WORD32 ixheaacd_ext_element_config(
   return 0;
 }
 
-VOID ixheaacd_mps212_config(
+IA_ERRORCODE ixheaacd_mps212_config(
     ia_bit_buf_struct *it_bit_buff,
     ia_usac_dec_mps_config_struct *pstr_usac_mps212_config,
     WORD32 stereo_config_index) {
@@ -306,6 +307,8 @@ VOID ixheaacd_mps212_config(
 
   pstr_usac_mps212_config->bs_decorr_config =
       ixheaacd_read_bits_buf(it_bit_buff, 2);
+  if (pstr_usac_mps212_config->bs_decorr_config > MAX_DECOR_CONFIG_IDX)
+    return IA_FATAL_ERROR;
 
   pstr_usac_mps212_config->bs_high_rate_mode =
       ixheaacd_read_bits_buf(it_bit_buff, 1);
@@ -319,11 +322,16 @@ VOID ixheaacd_mps212_config(
   if (pstr_usac_mps212_config->bs_ott_bands_phase_present) {
     pstr_usac_mps212_config->bs_ott_bands_phase =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
+    if (pstr_usac_mps212_config->bs_ott_bands_phase > MAX_PARAMETER_BANDS)
+      return IA_FATAL_ERROR;
   }
 
   if (stereo_config_index > 1) {
     pstr_usac_mps212_config->bs_residual_bands =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
+
+    if (pstr_usac_mps212_config->bs_residual_bands > MAX_PARAMETER_BANDS)
+      return IA_FATAL_ERROR;
 
     pstr_usac_mps212_config->bs_ott_bands_phase =
         max(pstr_usac_mps212_config->bs_ott_bands_phase,
@@ -336,9 +344,11 @@ VOID ixheaacd_mps212_config(
   if (pstr_usac_mps212_config->bs_temp_shape_config == 2)
     pstr_usac_mps212_config->bs_env_quant_mode =
         ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+  return IA_NO_ERROR;
 }
 
-VOID ixheaacd_cpe_config(
+IA_ERRORCODE ixheaacd_cpe_config(
     ia_bit_buf_struct *it_bit_buff,
     ia_usac_dec_element_config_struct *pstr_usac_element_config,
     WORD32 sbr_ratio_index) {
@@ -357,9 +367,11 @@ VOID ixheaacd_cpe_config(
   }
 
   if (pstr_usac_element_config->stereo_config_index > 0)
-    ixheaacd_mps212_config(it_bit_buff,
-                           &(pstr_usac_element_config->str_usac_mps212_config),
-                           pstr_usac_element_config->stereo_config_index);
+    return ixheaacd_mps212_config(
+        it_bit_buff, &(pstr_usac_element_config->str_usac_mps212_config),
+        pstr_usac_element_config->stereo_config_index);
+
+  return IA_NO_ERROR;
 }
 
 WORD32 ixheaacd_decoder_config(
@@ -393,7 +405,7 @@ WORD32 ixheaacd_decoder_config(
             ixheaacd_read_bits_buf(it_bit_buff, 1);
         pstr_usac_element_config->noise_filling =
             ixheaacd_read_bits_buf(it_bit_buff, 1);
-
+        pstr_usac_element_config->stereo_config_index = 0;
         if (sbr_ratio_index > 0)
           ixheaacd_sbr_config(it_bit_buff,
                               &(pstr_usac_element_config->str_usac_sbr_config));
@@ -401,8 +413,9 @@ WORD32 ixheaacd_decoder_config(
         break;
 
       case ID_USAC_CPE:
-        ixheaacd_cpe_config(it_bit_buff, pstr_usac_element_config,
-                            sbr_ratio_index);
+        if (ixheaacd_cpe_config(it_bit_buff, pstr_usac_element_config,
+                                sbr_ratio_index) != IA_NO_ERROR)
+          return IA_FATAL_ERROR;
         if (pstr_usac_element_config->stereo_config_index > 1 && *chan < 2)
           return -1;
 
@@ -412,6 +425,7 @@ WORD32 ixheaacd_decoder_config(
 
         pstr_usac_element_config->tw_mdct = 0;
         pstr_usac_element_config->noise_filling = 0;
+        pstr_usac_element_config->stereo_config_index = 0;
         break;
 
       case ID_USAC_EXT:
@@ -462,6 +476,8 @@ WORD32 ixheaacd_config_extension(
     ixheaacd_read_escape_value(it_bit_buff, &(usac_config_ext_type), 4, 8, 16);
     ixheaacd_read_escape_value(it_bit_buff, &(usac_config_ext_len), 4, 8, 16);
 
+    if (usac_config_ext_len > 768) return IA_FATAL_ERROR;
+
     switch (usac_config_ext_type) {
       case ID_CONFIG_EXT_FILL:
         for (i = 0; i < usac_config_ext_len; i++) {
@@ -509,12 +525,6 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
     }
 
   } else {
-    static const WORD32 sampling_rate_tbl[] = {
-        96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050,
-        16000, 12000, 11025, 8000,  7350,  0,     0,     57600,
-        51200, 40000, 38400, 34150, 28800, 25600, 20000, 19200,
-        17075, 14400, 12800, 9600,  0,     0,     0};
-
     pstr_usac_conf->usac_sampling_frequency =
         sampling_rate_tbl[pstr_usac_conf->usac_sampling_frequency_index];
   }
@@ -527,7 +537,9 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
 
   pstr_usac_conf->channel_configuration_index =
       ixheaacd_read_bits_buf(it_bit_buff, 5);
-  if (pstr_usac_conf->channel_configuration_index >= 3) return -1;
+  if ((pstr_usac_conf->channel_configuration_index >= 3) &&
+      (pstr_usac_conf->channel_configuration_index != 8))
+    return -1;
 
   if (pstr_usac_conf->channel_configuration_index == 0) {
     UWORD32 i;

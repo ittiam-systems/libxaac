@@ -19,23 +19,23 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_sbr_const.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -49,7 +49,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_ps_bitdec.h"
@@ -500,6 +500,7 @@ IA_ERRORCODE ixheaacd_applysbr(
     if (err || (ptr_header_data[k]->sync_state == SBR_NOT_INITIALIZED)) {
       WORD32 lr1 = ps_enable ? 2 : num_channels;
       ixheaacd_prepare_upsamp(ptr_header_data, pstr_sbr_channel, lr1);
+      if (err) return err;
     }
 
     if (frame_status && (ptr_header_data[k]->sync_state == SBR_ACTIVE)) {

@@ -272,8 +272,10 @@ WORD32 impd_dec_times(ia_bit_buf_struct* it_bit_buff,
           e++;
         }
       }
-      str_node[k].time = time_offs + time_delta * delta_tmin;
-      time_offs = str_node[k].time;
+      time_offs += time_delta * delta_tmin;
+      if (time_offs >= (2 * AUDIO_CODEC_FRAME_SIZE_MAX - drc_frame_size))
+        return UNEXPECTED_ERROR;
+      str_node[k].time = time_offs;
     }
   }
   return (0);
@@ -295,9 +297,13 @@ WORD32 impd_drc_uni_gain_read(ia_bit_buf_struct* it_bit_buff,
     for (seq = 0; seq < gain_sequence_count; seq++) {
       WORD32 index = drc_config->str_p_loc_drc_coefficients_uni_drc[0]
                          .gain_set_params_index_for_gain_sequence[seq];
-      ia_gain_set_params_struct* gain_set_params =
-          &(drc_config->str_p_loc_drc_coefficients_uni_drc
-                ->gain_set_params[index]);
+      ia_gain_set_params_struct str_gain_set_params = {0};
+      ia_gain_set_params_struct* gain_set_params = &str_gain_set_params;
+
+      if (index != -1) {
+        gain_set_params = &(drc_config->str_p_loc_drc_coefficients_uni_drc
+                                ->gain_set_params[index]);
+      }
       if (gain_set_params->gain_coding_profile ==
           GAIN_CODING_PROFILE_CONSTANT) {
         str_spline_nodes =
@@ -394,6 +400,9 @@ WORD32 impd_parse_spline_nodes(ia_bit_buf_struct* it_bit_buff,
   }
 
   if (it_bit_buff->ptr_bit_buf_base == NULL) {
+    if ((str_spline_nodes->num_nodes < 1) ||
+        (str_spline_nodes->num_nodes > NODE_COUNT_MAX))
+      return UNEXPECTED_ERROR;
     FLOAT32 prev_db_gain =
         str_spline_nodes->str_node[str_spline_nodes->num_nodes - 1].loc_db_gain;
     str_spline_nodes->drc_gain_coding_mode = 0;
@@ -413,6 +422,9 @@ WORD32 impd_parse_spline_nodes(ia_bit_buf_struct* it_bit_buff,
   } else {
     str_spline_nodes->drc_gain_coding_mode = impd_read_bits_buf(it_bit_buff, 1);
     if (it_bit_buff->error == PROC_COMPLETE) {
+      if ((str_spline_nodes->num_nodes < 1) ||
+          (str_spline_nodes->num_nodes > NODE_COUNT_MAX))
+        return UNEXPECTED_ERROR;
       str_spline_nodes->drc_gain_coding_mode = 0;
       str_spline_nodes->str_node[0].slope = 0.0;
       str_spline_nodes->str_node[0].time =
@@ -509,9 +521,12 @@ WORD32 impd_parse_drc_gain_sequence(
       }
     }
     for (k = 0; k < num_nodes_node_reservoir; k++) {
-      drc_gain_sequence->str_spline_nodes[i].str_node[k].time =
-          prev_frame_time_buf[k] -
-          2 * pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size;
+      WORD32 tmp = prev_frame_time_buf[k] -
+                   2 * pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size;
+      if (tmp >= (2 * AUDIO_CODEC_FRAME_SIZE_MAX -
+                  pstr_drc_uni_bs_dec->ia_drc_params_struct.drc_frame_size))
+        return UNEXPECTED_ERROR;
+      drc_gain_sequence->str_spline_nodes[i].str_node[k].time = tmp;
     }
     for (m = 0; m < num_nodes_cur; m++, k++) {
       drc_gain_sequence->str_spline_nodes[i].str_node[k].time =
@@ -574,6 +589,11 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
 
     drc_instructions_uni_drc_v1_count = impd_read_bits_buf(it_bit_buff, 6);
     if (it_bit_buff->error) return it_bit_buff->error;
+    if (drc_config->drc_instructions_uni_drc_count +
+            drc_instructions_uni_drc_v1_count >
+        DRC_INSTRUCTIONS_COUNT_MAX)
+      return (UNEXPECTED_ERROR);
+
     for (i = 0; i < drc_instructions_uni_drc_v1_count; i++) {
       err = impd_parse_drc_instructions_uni_drc(
           it_bit_buff, version, drc_config,
@@ -591,9 +611,6 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   if (str_drc_config_ext->loud_eq_instructions_flag == 1) {
     str_drc_config_ext->loud_eq_instructions_count =
         impd_read_bits_buf(it_bit_buff, 4);
-    if (str_drc_config_ext->loud_eq_instructions_count >
-        LOUD_EQ_INSTRUCTIONS_COUNT_MAX)
-      return UNEXPECTED_ERROR;
 
     if (it_bit_buff->error) return it_bit_buff->error;
     if (str_drc_config_ext->loud_eq_instructions_count >
@@ -1072,7 +1089,7 @@ WORD32 impd_parser_td_filter_cascade(
 WORD32 impd_parse_eq_instructions(
     ia_bit_buf_struct* it_bit_buff, ia_drc_config* drc_config,
     ia_eq_instructions_struct* str_eq_instructions) {
-  WORD32 i, k, channel_count, temp;
+  WORD32 i, channel_count, temp;
   WORD32 dmix_id_present, additional_dmix_id_present,
       additional_dmix_id_cnt = 0;
   WORD32 additional_drc_set_id_present, additional_drc_set_id_cnt;
@@ -1182,22 +1199,20 @@ WORD32 impd_parse_eq_instructions(
   str_eq_instructions->eq_ch_group_count = 0;
 
   for (i = 0; i < channel_count; i++) {
-    WORD32 new_group = 1;
-    str_eq_instructions->eq_ch_group_of_channel[i] =
-        impd_read_bits_buf(it_bit_buff, 7);
+    WORD32 tmp = impd_read_bits_buf(it_bit_buff, 7);
     if (it_bit_buff->error) return it_bit_buff->error;
-
-    for (k = 0; k < i; k++) {
-      if (str_eq_instructions->eq_ch_group_of_channel[i] ==
-          str_eq_instructions->eq_ch_group_of_channel[k]) {
-        new_group = 0;
-        break;
-      }
-    }
-
-    if (new_group == 1) {
-      str_eq_instructions->eq_ch_group_count += 1;
-    }
+    if (tmp >= EQ_CHANNEL_GROUP_COUNT_MAX) return UNEXPECTED_ERROR;
+    str_eq_instructions->eq_ch_group_of_channel[i] = tmp;
+  }
+  {
+    WORD32 total;
+    WORD32 groups_used[EQ_CHANNEL_GROUP_COUNT_MAX] = {0};
+    for (i = 0; i < channel_count; i++)
+      groups_used[str_eq_instructions->eq_ch_group_of_channel[i]] = 1;
+    total = 0;
+    for (i = 0; i < EQ_CHANNEL_GROUP_COUNT_MAX; i++)
+      if (groups_used[i]) total++;
+    str_eq_instructions->eq_ch_group_count = total;
   }
 
   if (str_eq_instructions->eq_ch_group_count > EQ_CHANNEL_GROUP_COUNT_MAX)
@@ -1208,9 +1223,10 @@ WORD32 impd_parse_eq_instructions(
   if (it_bit_buff->error) return it_bit_buff->error;
 
   if (str_eq_instructions->td_filter_cascade_present) {
-    impd_parser_td_filter_cascade(
+    WORD32 err = impd_parser_td_filter_cascade(
         it_bit_buff, str_eq_instructions,
         &(str_eq_instructions->str_td_filter_cascade));
+    if (err) return err;
   }
 
   str_eq_instructions->subband_gains_present =
@@ -1219,9 +1235,10 @@ WORD32 impd_parse_eq_instructions(
 
   if (str_eq_instructions->subband_gains_present) {
     for (i = 0; i < str_eq_instructions->eq_ch_group_count; i++) {
-      str_eq_instructions->subband_gains_index[i] =
-          impd_read_bits_buf(it_bit_buff, 6);
+      WORD32 tmp = impd_read_bits_buf(it_bit_buff, 6);
       if (it_bit_buff->error) return it_bit_buff->error;
+      if (tmp >= UNIQUE_SUBBAND_GAIN_COUNT_MAX) return UNEXPECTED_ERROR;
+      str_eq_instructions->subband_gains_index[i] = tmp;
     }
   }
 

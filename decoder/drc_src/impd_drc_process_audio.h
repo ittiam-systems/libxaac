@@ -46,17 +46,6 @@ typedef struct {
 } ia_audio_in_out_buf;
 
 WORD32
-impd_apply_gains_subband(ia_drc_instructions_struct* pstr_drc_instruction_arr,
-                         const WORD32 drc_instructions_index,
-                         ia_drc_params_struct* ia_drc_params_struct,
-                         ia_gain_buffer_struct* pstr_gain_buf,
-                         ia_overlap_params_struct* pstr_overlap_params,
-                         FLOAT32* deinterleaved_audio_delayed_re[],
-                         FLOAT32* deinterleaved_audio_delayed_im[],
-                         FLOAT32* deinterleaved_audio_re[],
-                         FLOAT32* deinterleaved_audio_im[]);
-
-WORD32
 impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
                           const WORD32 drc_instructions_index,
                           ia_drc_params_struct* ia_drc_params_struct,
@@ -79,15 +68,8 @@ impd_retrieve_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
                                    ia_audio_in_out_buf* audio_io_buf_internal);
 
 WORD32
-impd_retrieve_audio_buffer_freq(FLOAT32* audio_real_buff[],
-                                FLOAT32* audio_imag_buff[],
-                                ia_audio_in_out_buf* audio_io_buf_internal);
-
-WORD32
 impd_advance_audio_io_buffer_time(ia_audio_in_out_buf* audio_io_buf_internal);
 
-WORD32
-impd_advance_audio_buff_freq(ia_audio_in_out_buf* audio_io_buf_internal);
 
 #ifdef __cplusplus
 }

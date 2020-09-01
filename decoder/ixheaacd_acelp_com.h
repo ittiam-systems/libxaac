@@ -62,7 +62,7 @@ VOID ixheaacd_lpc_coeff_wt_apply(FLOAT32 *a, FLOAT32 *ap);
 
 VOID ixheaacd_acelp_pitch_sharpening(FLOAT32 *x, WORD32 pit_lag);
 
-VOID ixheaacd_acelp_decode_pulses_per_track(WORD32 index[], WORD16 nbbits,
+VOID ixheaacd_acelp_decode_pulses_per_track(WORD32 index[], const WORD16 nbbits,
                                             FLOAT32 code[]);
 
 #endif

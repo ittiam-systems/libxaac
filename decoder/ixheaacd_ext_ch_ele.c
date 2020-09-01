@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_cnst.h"
 
@@ -50,9 +50,8 @@
 #include "ixheaacd_bit_extract.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #include "ixheaacd_func_def.h"
 
@@ -70,7 +69,7 @@ const WORD16 ixheaacd_mdst_fcoeff_long_sin_kbd[] = {-1499, -1876, -17718, 0,
 const WORD16 ixheaacd_mdst_fcoeff_long_kbd_sin[] = {-1499, 1876,  -17718, 0,
                                                     17718, -1876, 1499};
 
-const WORD16 *ixheaacd_mdst_fcoeff_longshort_curr[2][2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_longshort_curr[2][2] = {
     {ixheaacd_mdst_fcoeff_long_sin, ixheaacd_mdst_fcoeff_long_sin_kbd},
     {ixheaacd_mdst_fcoeff_long_kbd_sin, ixheaacd_mdst_fcoeff_long_kbd}};
 
@@ -83,7 +82,7 @@ const WORD16 ixheaacd_mdst_fcoeff_start_sin_kbd[] = {-3433, -3447, -18608, 0,
 const WORD16 ixheaacd_mdst_fcoeff_start_kbd_sin[] = {-4863, -1525, -19918, 0,
                                                      19918, 1525,  4863};
 
-const WORD16 *ixheaacd_mdst_fcoeff_start_curr[2][2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_start_curr[2][2] = {
     {ixheaacd_mdst_fcoeff_start_sin, ixheaacd_mdst_fcoeff_start_sin_kbd},
     {ixheaacd_mdst_fcoeff_start_kbd_sin, ixheaacd_mdst_fcoeff_start_kbd}};
 
@@ -96,7 +95,7 @@ const WORD16 ixheaacd_mdst_fcoeff_stop_sin_kbd[] = {-4863, 1525,  -19918, 0,
 const WORD16 ixheaacd_mdst_fcoeff_stop_kbd_sin[] = {-3433, 3447,  -18608, 0,
                                                     18608, -3447, 3433};
 
-const WORD16 *ixheaacd_mdst_fcoeff_stop_cur[2][2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_stop_cur[2][2] = {
     {ixheaacd_mdst_fcoeff_stop_sin, ixheaacd_mdst_fcoeff_stop_sin_kbd},
     {ixheaacd_mdst_fcoeff_stop_kbd_sin, ixheaacd_mdst_fcoeff_stop_kbd}};
 
@@ -109,7 +108,7 @@ const WORD16 ixheaacd_mdst_fcoeff_stopstart_sin_kbd[] = {-6797, -46, -20808, 0,
 const WORD16 ixheaacd_mdst_fcoeff_stopstart_kbd_sin[] = {-6797, 46, -20808, 0,
                                                          20808, 46, 6797};
 
-const WORD16 *ixheaacd_mdst_fcoeff_stopstart_cur[2][2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_stopstart_cur[2][2] = {
     {ixheaacd_mdst_fcoeff_stopstart_sin,
      ixheaacd_mdst_fcoeff_stopstart_sin_kbd},
     {ixheaacd_mdst_fcoeff_stopstart_kbd_sin,
@@ -125,10 +124,10 @@ const WORD16 ixheaacd_mdst_fcoeff_stop_stopstart_left_sin[] = {
 const WORD16 ixheaacd_mdst_fcoeff_stop_stopstart_left_kbd[] = {
     857, 866, 871, 873, 871, 866, 857};
 
-const WORD16 *ixheaacd_mdst_fcoeff_l_s_start_left_prev[2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_l_s_start_left_prev[2] = {
     ixheaacd_mdst_fcoeff_l_s_start_left_sin,
     ixheaacd_mdst_fcoeff_l_s_start_left_kbd};
-const WORD16 *ixheaacd_mdst_fcoeff_stop_stopstart_left_prev[2] = {
+const WORD16 *const ixheaacd_mdst_fcoeff_stop_stopstart_left_prev[2] = {
     ixheaacd_mdst_fcoeff_stop_stopstart_left_sin,
     ixheaacd_mdst_fcoeff_stop_stopstart_left_kbd};
 
@@ -153,7 +152,7 @@ static WORD32 ixheaacd_cplx_pred_data(
     ia_usac_tmp_core_coder_struct *pstr_core_coder, WORD32 num_window_groups,
     ia_bit_buf_struct *it_bit_buff) {
   ia_huff_code_book_struct *ptr_huff_code_book = &ixheaacd_book;
-  ia_huff_code_word_struct *ptr_huff_code_word =
+  const ia_huff_code_word_struct *ptr_huff_code_word =
       ptr_huff_code_book->pstr_huff_code_word;
   WORD32 cplx_pred_all;
   WORD32 delta_code_time;
@@ -371,14 +370,12 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
-    sum = 0;
-    sum = ixheaacd_mac32x32in64_7(sum, &in[i - 3], filter);
+    sum = ixheaacd_mac32x32in64_7(&in[i - 3], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
-    sum = 0;
-    sum = ixheaacd_mac32x32in64_7(sum, &in[i - 2], filter);
+    sum = ixheaacd_mac32x32in64_7(&in[i - 2], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
     out++;

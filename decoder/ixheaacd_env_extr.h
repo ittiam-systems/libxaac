@@ -31,6 +31,7 @@
 #define ROUNDING (1 << (EXP_BITS - 1))
 #define NRG_EXP_OFFSET 16
 #define NOISE_EXP_OFFSET 38
+#define MAX_QMF_SUB_BANDS 64
 
 typedef const UWORD16 *ia_huffman_data_type;
 
@@ -100,13 +101,13 @@ typedef struct {
   WORD32 gate_mode[4];
   WORD8 harm_flag_varlen_prev[64];
   WORD8 harm_flag_varlen[64];
-  FLOAT32 qmapped_pvc[64][48];
-  FLOAT32 env_tmp[64][48];
-  FLOAT32 noise_level_pvc[64][48];
-  FLOAT32 nrg_est_pvc[64][48];
-  FLOAT32 nrg_ref_pvc[64][48];
-  FLOAT32 nrg_gain_pvc[64][48];
-  FLOAT32 nrg_tone_pvc[64][48];
+  FLOAT32 qmapped_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 env_tmp[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 noise_level_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 nrg_est_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 nrg_ref_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 nrg_gain_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
+  FLOAT32 nrg_tone_pvc[MAX_QMF_SUB_BANDS][MAX_FREQ_COEFFS_SBR];
   WORD32 stereo_config_idx;
   FLAG reset_flag;
   FLAG mps_sbr_flag;

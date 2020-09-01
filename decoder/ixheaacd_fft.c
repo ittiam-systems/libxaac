@@ -20,10 +20,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
+#include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_function_selector.h"
 

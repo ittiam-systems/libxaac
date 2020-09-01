@@ -19,23 +19,23 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_sbr_const.h"
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -49,7 +49,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_ps_bitdec.h"
@@ -1027,14 +1027,13 @@ static PLATFORM_INLINE WORD32 ixheaacd_create_cplx_synt_qmfbank(
   WORD32 qmf_filter_state_size;
 
   memset(ptr_sbr_qmf, 0, sizeof(ia_sbr_qmf_filter_bank_struct));
+  qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
 
   if (down_sample_flag) {
     L = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
-    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE_DOWN_SAMPLED;
     ptr_sbr_qmf->usb = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
   } else {
     L = NO_SYNTHESIS_CHANNELS;
-    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
     ptr_sbr_qmf->usb = usb;
   }
 

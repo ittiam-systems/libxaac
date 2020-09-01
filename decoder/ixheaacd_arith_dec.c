@@ -19,11 +19,11 @@
 */
 #include <math.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 
@@ -49,10 +49,10 @@
 
 #define ARITH_ESCAPE 16
 
-UWORD16 ixheaacd_ari_cf_r[3][4] = {
+static const UWORD16 ixheaacd_ari_cf_r[3][4] = {
     {12571, 10569, 3696, 0}, {12661, 5700, 3751, 0}, {10827, 6884, 2929, 0}};
 
-static UWORD16 ixheaacd_ari_lookup_m[742] = {
+static const UWORD16 ixheaacd_ari_lookup_m[742] = {
     0x01, 0x34, 0x0D, 0x13, 0x12, 0x25, 0x00, 0x3A, 0x05, 0x00, 0x21, 0x13,
     0x1F, 0x1A, 0x1D, 0x36, 0x24, 0x2B, 0x1B, 0x33, 0x37, 0x29, 0x1D, 0x33,
     0x37, 0x33, 0x37, 0x33, 0x37, 0x33, 0x2C, 0x00, 0x21, 0x13, 0x25, 0x2A,
@@ -116,7 +116,7 @@ static UWORD16 ixheaacd_ari_lookup_m[742] = {
     0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17, 0x27, 0x17,
     0x27, 0x17, 0x27, 0x17, 0x27, 0x15, 0x27, 0x27, 0x15, 0x27};
 
-static UWORD32 ixheaacd_ari_hash_m[742] = {
+static const UWORD32 ixheaacd_ari_hash_m[742] = {
     0x00000104UL >> 8, 0x0000030AUL >> 8, 0x00000510UL >> 8, 0x00000716UL >> 8,
     0x00000A1FUL >> 8, 0x00000F2EUL >> 8, 0x00011100UL >> 8, 0x00111103UL >> 8,
     0x00111306UL >> 8, 0x00111436UL >> 8, 0x00111623UL >> 8, 0x00111929UL >> 8,
@@ -304,7 +304,7 @@ static UWORD32 ixheaacd_ari_hash_m[742] = {
     0x06000F27UL >> 8, 0x069FFF17UL >> 8, 0x06FFFF17UL >> 8, 0x08110017UL >> 8,
     0x08EFFF15UL >> 8, 0xFFFFFF00UL >> 8};
 
-static UWORD8 ixheaacd_ari_hash_m_1[742] = {
+static const UWORD8 ixheaacd_ari_hash_m_1[742] = {
     (UWORD8)0x04, (UWORD8)0x0A, (UWORD8)0x10, (UWORD8)0x16, (UWORD8)0x1F,
     (UWORD8)0x2E, (UWORD8)0x00, (UWORD8)0x03, (UWORD8)0x06, (UWORD8)0x36,
     (UWORD8)0x23, (UWORD8)0x29, (UWORD8)0x2E, (UWORD8)0x1B, (UWORD8)0x35,
@@ -455,7 +455,7 @@ static UWORD8 ixheaacd_ari_hash_m_1[742] = {
     (UWORD8)0x2F, (UWORD8)0x27, (UWORD8)0x17, (UWORD8)0x17, (UWORD8)0x17,
     (UWORD8)0x15, (UWORD8)0x00};
 
-UWORD16 ixheaacd_ari_cf_m[64][17] = {
+static const UWORD16 ixheaacd_ari_cf_m[64][17] = {
     {708, 706, 579, 569, 568, 567, 479, 469, 297, 138, 97, 91, 72, 52, 38, 34,
      0},
     {7619, 6917, 6519, 6412, 5514, 5003, 4683, 4563, 3907, 3297, 3125, 3060,
@@ -1625,8 +1625,8 @@ const WORD32 ixheaacd_pow_table_Q13[1025] = {0,
                                              84441795,
                                              84551870};
 
-static WORD32 ixheaacd_esc_nb_offset[8] = {0,      131072, 262144, 393216,
-                                           524288, 655360, 786432, 917504};
+static const WORD32 ixheaacd_esc_nb_offset[8] = {
+    0, 131072, 262144, 393216, 524288, 655360, 786432, 917504};
 
 static void ixheaacd_arith_map_context(WORD32 pres_n, WORD32 prev_n,
                                        WORD8 *c_prev, WORD8 *c,
@@ -1730,34 +1730,26 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
                                     UWORD16 const *cum_freq, WORD32 cfl) {
   register WORD32 symbol;
   register WORD32 low, high, range, value;
-  register WORD32 cum;
+  register WORD32 cumulative;
   register UWORD16 const *p;
   register UWORD16 const *q;
-
-  WORD32 short_value, i = 16;
-  int shift_value;
-  if (it_bit_buff->cnt_bits < 16) {
-    shift_value = 16 - it_bit_buff->cnt_bits;
-    short_value = ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
-    short_value <<= shift_value;
-  } else {
-    shift_value = 0;
-    short_value = ixheaacd_read_bits_buf(it_bit_buff, 16);
-  }
 
   low = s->low;
   high = s->high;
   value = s->value;
 
   range = high - low + 1;
-  cum = ((((WORD32)(value - low + 1)) << 14) - ((WORD32)1)) / ((WORD32)range);
+  cumulative = ((((WORD32)(value - low + 1)) << 14) - ((WORD32)1)) / ((WORD32)range);
+
+  if (it_bit_buff->cnt_bits == 0)
+    if (cumulative <= 0) return -1;
 
   p = cum_freq - 1;
 
   do {
     q = p + (cfl >> 1);
 
-    if (*q > cum) {
+    if (*q > cumulative) {
       p = q;
       cfl++;
     }
@@ -1786,12 +1778,14 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
     low += low;
     high += high + 1;
 
-    i--;
-    value = (value << 1) | ((short_value >> i) & 1);
+    if (it_bit_buff->cnt_bits > 0)
+      value = (value << 1) | ixheaacd_read_bits_buf(it_bit_buff, 1);
+    else
+      value = (value << 1);
+
     bit_count++;
   }
 
-  ixheaacd_read_bidirection(it_bit_buff, -(i - shift_value));
   s->low = low;
   s->high = high;
   s->value = value;
@@ -1847,10 +1841,6 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       if (esc_nb > 7) {
         esc_nb = 7;
       }
-      if (esc_nb < 0) {
-        esc_nb = 0;
-        return -1;
-      }
     }
 
     if (m == 0) {
@@ -1891,8 +1881,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
 
   if (bit_count > 0) {
     bit_count_5 = bit_count >> 5;
-    for (i = 0; i < bit_count_5; i++) ixheaacd_read_bits_buf(it_bit_buff, 32);
-    ixheaacd_read_bits_buf(it_bit_buff, bit_count & 31);
+    bit_count_5 = (bit_count_5 * 32) + (bit_count & 31);
+    ixheaacd_skip_bits_buf(it_bit_buff, bit_count_5);
   }
 
   for (i = 0; i < pres_n; i++) {

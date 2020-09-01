@@ -66,20 +66,20 @@ extern const FLOAT32 dwnmix_coeff[];
 
 extern const FLOAT32 dwnmix_coeff_lfe[];
 
-extern WORD32 drc_characteristic_order_default[][3];
+extern const WORD32 drc_characteristic_order_default[][3];
 
-extern WORD32 measurement_system_default_tbl[];
+extern const WORD32 measurement_system_default_tbl[];
 
-extern WORD32 measurement_system_bs1770_3_tbl[];
-extern WORD32 measurement_system_user_tbl[];
-extern WORD32 measurement_system_expert_tbl[];
-extern WORD32 measurement_system_rms_a_tbl[];
-extern WORD32 measurement_system_rms_b_tbl[];
-extern WORD32 measurement_system_rms_c_tbl[];
-extern WORD32 measurement_system_rms_d_tbl[];
-extern WORD32 measurement_system_rms_e_tbl[];
-extern WORD32 measurement_method_prog_loudness_tbl[];
-extern WORD32 measurement_method_peak_loudness_tbl[];
+extern const WORD32 measurement_system_bs1770_3_tbl[];
+extern const WORD32 measurement_system_user_tbl[];
+extern const WORD32 measurement_system_expert_tbl[];
+extern const WORD32 measurement_system_rms_a_tbl[];
+extern const WORD32 measurement_system_rms_b_tbl[];
+extern const WORD32 measurement_system_rms_c_tbl[];
+extern const WORD32 measurement_system_rms_d_tbl[];
+extern const WORD32 measurement_system_rms_e_tbl[];
+extern const WORD32 measurement_method_prog_loudness_tbl[];
+extern const WORD32 measurement_method_peak_loudness_tbl[];
 
 #define MAX_NUM_DOWNMIX_ID_REQUESTS_LOCAL 3
 
@@ -151,11 +151,11 @@ typedef struct {
 extern const ia_loc_drc_parameter_interface_struct
     loc_drc_parameter_interface[];
 
-extern FLOAT32 f_bands_nrm_QMF71[71];
-extern FLOAT32 f_bands_nrm_QMF64[64];
-extern FLOAT32 f_bands_nrm_STFT256[257];
+extern const FLOAT32 f_bands_nrm_QMF71[71];
+extern const FLOAT32 f_bands_nrm_QMF64[64];
+extern const FLOAT32 f_bands_nrm_STFT256[257];
 
-FLOAT64 qmf_filter_coeff[640];
+extern const FLOAT64 qmf_filter_coeff[640];
 
 extern const ia_filter_bank_params_struct
     normal_cross_freq[FILTER_BANK_PARAMETER_COUNT];

@@ -75,18 +75,9 @@ static IA_ERRORCODE impd_down_mix(
 IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   WORD32 i, j;
-  FLOAT32 *input_buffer;
-  WORD16 *input_buffer16, *output_buffer16;
-  FLOAT32 *output_buffer;
   FLOAT32 *audio_buff[10];
-  FLOAT32 *scratch_buffer;
   WORD32 last_frame = 0;
   WORD32 num_sample_to_process;
-  scratch_buffer = (FLOAT32 *)p_obj_drc->pp_mem[1];
-  input_buffer = (FLOAT32 *)p_obj_drc->pp_mem[2];
-  output_buffer = (FLOAT32 *)p_obj_drc->pp_mem[3];
-  input_buffer16 = (WORD16 *)p_obj_drc->pp_mem[2];
-  output_buffer16 = (WORD16 *)p_obj_drc->pp_mem[3];
 
   if (p_obj_drc->p_state->ui_in_bytes <= 0) {
     p_obj_drc->p_state->ui_out_bytes = 0;
@@ -111,29 +102,16 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
       (p_obj_drc->str_bit_handler.num_bits_read_bs & 7);
   p_obj_drc->str_bit_handler.byte_index_bs +=
       p_obj_drc->str_bit_handler.num_bytes_read_bs;
-  if (p_obj_drc->str_bit_handler.gain_stream_flag ==
-      0)  // ITTIAM: Flag for applying gain frame by frame
-  {
-    p_obj_drc->str_bit_handler.num_bytes_bs -=
-        p_obj_drc->str_bit_handler.num_bytes_read_bs;
-  }
 
-  if (p_obj_drc->str_config.bitstream_file_format ==
-      BITSTREAM_FILE_FORMAT_SPLIT) {
-    if (p_obj_drc->str_bit_handler.num_bits_offset_bs != 0) {
-      p_obj_drc->str_bit_handler.num_bits_read_bs =
-          p_obj_drc->str_bit_handler.num_bits_read_bs + 8 -
-          p_obj_drc->str_bit_handler.num_bits_offset_bs;
-      p_obj_drc->str_bit_handler.num_bytes_read_bs =
-          p_obj_drc->str_bit_handler.num_bytes_read_bs + 1;
-      p_obj_drc->str_bit_handler.num_bits_offset_bs = 0;
-      p_obj_drc->str_bit_handler.byte_index_bs =
-          p_obj_drc->str_bit_handler.byte_index_bs + 1;
-      if (p_obj_drc->str_bit_handler.gain_stream_flag == 0) {
-        p_obj_drc->str_bit_handler.num_bytes_bs =
-            p_obj_drc->str_bit_handler.num_bytes_bs - 1;
-      }
-    }
+  if (p_obj_drc->str_bit_handler.num_bits_offset_bs != 0) {
+    p_obj_drc->str_bit_handler.num_bits_read_bs =
+        p_obj_drc->str_bit_handler.num_bits_read_bs + 8 -
+        p_obj_drc->str_bit_handler.num_bits_offset_bs;
+    p_obj_drc->str_bit_handler.num_bytes_read_bs =
+        p_obj_drc->str_bit_handler.num_bytes_read_bs + 1;
+    p_obj_drc->str_bit_handler.num_bits_offset_bs = 0;
+    p_obj_drc->str_bit_handler.byte_index_bs =
+        p_obj_drc->str_bit_handler.byte_index_bs + 1;
   }
 
   num_sample_to_process =
@@ -145,6 +123,8 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
   if (num_sample_to_process < p_obj_drc->str_config.frame_size) last_frame = 1;
 
   if (p_obj_drc->str_config.pcm_size == 16) {
+    FLOAT32 *scratch_buffer = (FLOAT32 *)p_obj_drc->pp_mem[1];
+    WORD16 *input_buffer16 = (WORD16 *)p_obj_drc->pp_mem[2];
     for (i = 0; i < p_obj_drc->str_config.num_ch_in; i++) {
       audio_buff[i] =
           scratch_buffer + i * (p_obj_drc->str_config.frame_size + 32);
@@ -155,7 +135,29 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
             32767.0f;
       }
     }
+  } else if (p_obj_drc->str_config.pcm_size == 24) {
+    FLOAT32 *scratch_buffer = (FLOAT32 *)p_obj_drc->pp_mem[1];
+    WORD8 *input_buffer8 = (WORD8 *)p_obj_drc->pp_mem[2];
+    for (i = 0; i < p_obj_drc->str_config.num_ch_in; i++) {
+      audio_buff[i] =
+          scratch_buffer + i * (p_obj_drc->str_config.frame_size + 32);
+
+      for (j = 0; j < num_sample_to_process; j++) {
+        WORD32 temp;
+
+        WORD8 *addr =
+            (WORD8 *)(&input_buffer8[3 * j * p_obj_drc->str_config.num_ch_in +
+                                     3 * i]);
+        temp = (WORD8)(*(addr + 2));
+        temp = (temp << 8) | ((WORD8)(*(addr + 1)) & 0xff);
+        temp = (temp << 8) | (((WORD8) * (addr)) & 0xff);
+
+        audio_buff[i][j] = (FLOAT32)((temp) / 8388607.0f);
+      }
+    }
   } else {
+    FLOAT32 *scratch_buffer = (FLOAT32 *)p_obj_drc->pp_mem[1];
+    FLOAT32 *input_buffer = (FLOAT32 *)p_obj_drc->pp_mem[2];
     for (i = 0; i < p_obj_drc->str_config.num_ch_in; i++) {
       audio_buff[i] =
           scratch_buffer + i * (p_obj_drc->str_config.frame_size + 32);
@@ -214,6 +216,7 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
   }
 
   if (p_obj_drc->str_config.peak_limiter) {
+    FLOAT32 *output_buffer = (FLOAT32 *)p_obj_drc->pp_mem[3];
     for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
       for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
         output_buffer[j * p_obj_drc->str_config.num_ch_out + i] =
@@ -236,6 +239,7 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
   }
 
   if (p_obj_drc->str_config.pcm_size == 16) {
+    WORD16 *output_buffer16 = (WORD16 *)p_obj_drc->pp_mem[3];
     for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
       for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
         if (audio_buff[i][j] < -1.0f)
@@ -249,7 +253,30 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
               (WORD16)(audio_buff[i][j] * 32767.0f);
       }
     }
+  } else if (p_obj_drc->str_config.pcm_size == 24) {
+    WORD8 *output_buffer8 = (WORD8 *)p_obj_drc->pp_mem[3];
+    for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
+      for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
+        WORD32 temp = 0;
+        WORD8 *temp_addr =
+            &output_buffer8[3 * j * p_obj_drc->str_config.num_ch_out + 3 * i];
+
+        if (audio_buff[i][j] < -1.0f)
+          temp = -8388607;
+
+        else if (audio_buff[i][j] > 1.0f)
+          temp = 8388607;
+
+        else
+          temp = (WORD32)(audio_buff[i][j] * 8388607.0f);
+
+        *temp_addr++ = (WORD8)(temp & 0xff);
+        *temp_addr++ = (WORD8)((WORD32)temp >> 8) & 0xff;
+        *temp_addr = (WORD8)((WORD32)temp >> 16) & 0xff;
+      }
+    }
   } else {
+    FLOAT32 *output_buffer = (FLOAT32 *)p_obj_drc->pp_mem[3];
     for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
       for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
         output_buffer[j * p_obj_drc->str_config.num_ch_out + i] =
@@ -263,6 +290,8 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
       (p_obj_drc->p_state->ui_in_bytes / p_obj_drc->str_config.num_ch_in);
 
   if (p_obj_drc->p_state->delay_in_output != 0) {
+    FLOAT32 *output_buffer = (FLOAT32 *)p_obj_drc->pp_mem[3];
+    WORD16 *output_buffer16 = (WORD16 *)p_obj_drc->pp_mem[3];
     p_obj_drc->p_state->ui_out_bytes = p_obj_drc->str_config.num_ch_out *
                                        (p_obj_drc->str_config.frame_size -
                                         p_obj_drc->p_state->delay_in_output) *
@@ -294,32 +323,5 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
                                          p_obj_drc->str_config.num_ch_out *
                                          (p_obj_drc->str_config.pcm_size >> 3);
   }
-
-  if (last_frame == 0) {
-    if (p_obj_drc->str_config.bitstream_file_format !=
-        BITSTREAM_FILE_FORMAT_SPLIT) {
-      err_code = impd_process_drc_bitstream_dec(
-          p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
-          p_obj_drc->str_payload.pstr_drc_config,
-          p_obj_drc->str_payload.pstr_loudness_info,
-          &p_obj_drc->str_bit_handler
-               .it_bit_buf[p_obj_drc->str_bit_handler.byte_index_bs],
-          p_obj_drc->str_bit_handler.num_bytes_bs,
-          p_obj_drc->str_bit_handler.num_bits_offset_bs,
-          &p_obj_drc->str_bit_handler.num_bits_read_bs);
-
-      if (err_code > PROC_COMPLETE) return -1;
-
-      p_obj_drc->str_bit_handler.num_bytes_read_bs =
-          (p_obj_drc->str_bit_handler.num_bits_read_bs >> 3);
-      p_obj_drc->str_bit_handler.num_bits_offset_bs =
-          (p_obj_drc->str_bit_handler.num_bits_read_bs & 7);
-      p_obj_drc->str_bit_handler.byte_index_bs +=
-          p_obj_drc->str_bit_handler.num_bytes_read_bs;
-      p_obj_drc->str_bit_handler.num_bytes_bs -=
-          p_obj_drc->str_bit_handler.num_bytes_read_bs;
-    }
-  }
-
   return err_code;
 }

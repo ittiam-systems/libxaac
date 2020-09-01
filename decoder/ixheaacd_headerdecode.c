@@ -18,22 +18,22 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <stdlib.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_error_standards.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_sbr_common.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_hybrid.h"
@@ -488,6 +488,8 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
   WORD32 tmp;
   WORD32 cnt_bits = it_bit_buff->cnt_bits;
   WORD32 dummy = 0;
+  UWORD32 aot_init;
+
   ia_audio_specific_config_struct *pstr_audio_specific_config;
 
   memset(aac_state_struct->ia_audio_specific_config, 0,
@@ -500,6 +502,8 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
   aac_state_struct->p_config->str_prog_config.alignment_bits =
       it_bit_buff->bit_pos;
+
+  aot_init = aac_state_struct->audio_object_type;
 
   aac_state_struct->audio_object_type = ixheaacd_read_bits_buf(it_bit_buff, 5);
 
@@ -539,6 +543,10 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
     aac_state_struct->audio_object_type =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
+  }
+
+  if (aac_state_struct->ui_init_done) {
+    if (aac_state_struct->audio_object_type != aot_init) return IA_FATAL_ERROR;
   }
 
   if (((aac_state_struct->audio_object_type >= AOT_AAC_MAIN &&
@@ -997,7 +1005,7 @@ WORD32 ixheaacd_aac_headerdecode(
 
           handle_bit_buff = ixheaacd_create_init_bit_buf(
               &it_bit_buff, (UWORD8 *)(buffer + adts.aac_frame_length),
-              (WORD16)(header_len - adts.aac_frame_length));
+              (WORD16)(header_len - bytes_taken - adts.aac_frame_length));
 
           adts_loc.sync_word =
               (WORD16)ixheaacd_read_bits_buf(handle_bit_buff, 12);

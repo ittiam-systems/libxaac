@@ -71,6 +71,8 @@ typedef struct bits_handler {
   WORD32 num_bits_read_bs;
   WORD32 num_bytes_read_bs;
   WORD32 num_bytes_bs;
+  WORD32 num_bytes_offset_bs;
+  WORD32 num_total_bytes;
   WORD32 num_bits_offset_bs;
   WORD32 byte_index_bs;
   WORD32 num_byts_cur;
@@ -112,7 +114,7 @@ typedef struct ia_drc_state_struct {
   UWORD32 ui_ir_used;
   WORD32 delay_in_output;
   WORD32 delay_adjust_samples;
-  pVOID persistant_ptr;
+  pVOID persistent_ptr;
 } ia_drc_state_struct;
 
 typedef struct IA_PSM_API_Struct {

@@ -19,15 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -36,7 +36,7 @@
 
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -56,7 +56,7 @@
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
@@ -450,26 +450,6 @@ VOID ixheaacd_esbr_synthesis_filt_block(
     ia_sbr_frame_info_data_struct *ptr_frame_data, WORD32 apply_processing,
     FLOAT32 **qmf_buf_real, FLOAT32 **qmf_buf_imag, WORD32 stereo_config_idx,
     ia_sbr_tables_struct *sbr_tables_ptr, WORD32 mps_sbr_flag, WORD32 ch_fac) {
-  WORD32 i, k, p1;
-  WORD32 *ptr_filt_states;
-  WORD32 *ptr_filt_states_1;
-  WORD32 *ptr_filt_states_2;
-  WORD32 *filter_l;
-  WORD32 *ploc_qmf_buf_real;
-  WORD32 *ploc_qmf_buf_imag;
-  WORD32 out_scalefactor;
-  WORD32 sixty4;
-  WORD32 no_synthesis_channels;
-  WORD32 ixheaacd_drc_offset;
-  FLOAT32 *syn_buffer;
-  WORD32 *local_qmf_buffer = ptr_sbr_dec->sbr_scratch_local;
-  WORD32 *time_out = &(ptr_sbr_dec->sbr_scratch_local[128]);
-
-  ia_sbr_qmf_filter_bank_struct *qmf_bank =
-      &ptr_sbr_dec->str_synthesis_qmf_bank;
-  ia_qmf_dec_tables_struct *qmf_dec_tables_ptr =
-      sbr_tables_ptr->qmf_dec_tables_ptr;
-
   if (!mps_sbr_flag) {
     ixheaacd_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
                                   ptr_sbr_dec, ptr_frame_data, ptr_header_data,
@@ -479,73 +459,93 @@ VOID ixheaacd_esbr_synthesis_filt_block(
                                       ptr_sbr_dec, stereo_config_idx);
   }
 
-  out_scalefactor = 5;
-  qmf_bank->no_channels = 64;
-  qmf_bank->esbr_cos_twiddle =
-      (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l64;
-  qmf_bank->esbr_alt_sin_twiddle =
-      (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l64;
+  if (stereo_config_idx <= 0) {
+    WORD32 i, k, p1;
+    WORD32 *ptr_filt_states;
+    WORD32 *ptr_filt_states_1;
+    WORD32 *ptr_filt_states_2;
+    WORD32 *filter_l;
+    WORD32 *ploc_qmf_buf_real;
+    WORD32 *ploc_qmf_buf_imag;
+    WORD32 out_scalefactor;
+    WORD32 sixty4;
+    WORD32 no_synthesis_channels;
+    WORD32 ixheaacd_drc_offset;
+    FLOAT32 *syn_buffer;
+    WORD32 *local_qmf_buffer = ptr_sbr_dec->sbr_scratch_local;
+    WORD32 *time_out = &(ptr_sbr_dec->sbr_scratch_local[128]);
+    ia_sbr_qmf_filter_bank_struct *qmf_bank =
+        &ptr_sbr_dec->str_synthesis_qmf_bank;
+    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr =
+        sbr_tables_ptr->qmf_dec_tables_ptr;
+    out_scalefactor = 5;
+    qmf_bank->no_channels = 64;
+    qmf_bank->esbr_cos_twiddle =
+        (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l64;
+    qmf_bank->esbr_alt_sin_twiddle =
+        (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l64;
 
-  qmf_bank->filter_pos_syn_32 +=
-      qmf_dec_tables_ptr->esbr_qmf_c - qmf_bank->p_filter_32;
-  qmf_bank->p_filter_32 = qmf_dec_tables_ptr->esbr_qmf_c;
+    qmf_bank->filter_pos_syn_32 +=
+        qmf_dec_tables_ptr->esbr_qmf_c - qmf_bank->p_filter_32;
+    qmf_bank->p_filter_32 = qmf_dec_tables_ptr->esbr_qmf_c;
 
-  sixty4 = NO_SYNTHESIS_CHANNELS;
+    sixty4 = NO_SYNTHESIS_CHANNELS;
 
-  ptr_filt_states = qmf_bank->filter_states_32;
+    ptr_filt_states = qmf_bank->filter_states_32;
 
-  no_synthesis_channels = qmf_bank->no_channels;
-  ptr_filt_states_1 = &ptr_filt_states[0];
-  ptr_filt_states_2 = ptr_filt_states_1 + no_synthesis_channels;
+    no_synthesis_channels = qmf_bank->no_channels;
+    ptr_filt_states_1 = &ptr_filt_states[0];
+    ptr_filt_states_2 = ptr_filt_states_1 + no_synthesis_channels;
 
-  filter_l = qmf_bank->filter_pos_syn_32;
+    filter_l = qmf_bank->filter_pos_syn_32;
 
-  p1 = 0;
+    p1 = 0;
 
-  ixheaacd_drc_offset = qmf_bank->ixheaacd_drc_offset;
+    ixheaacd_drc_offset = qmf_bank->ixheaacd_drc_offset;
 
-  for (i = 0; i < ptr_sbr_dec->str_codec_qmf_bank.num_time_slots; i++) {
-    for (k = 0; k < 64; k++) {
-      local_qmf_buffer[k + 0] = (WORD32)(qmf_buf_real[i][k] * 64);
-      local_qmf_buffer[k + 64] = (WORD32)(qmf_buf_imag[i][k] * 64);
+    for (i = 0; i < ptr_sbr_dec->str_codec_qmf_bank.num_time_slots; i++) {
+      for (k = 0; k < 64; k++) {
+        local_qmf_buffer[k + 0] = (WORD32)(qmf_buf_real[i][k] * 64);
+        local_qmf_buffer[k + 64] = (WORD32)(qmf_buf_imag[i][k] * 64);
+      }
+      ploc_qmf_buf_real = local_qmf_buffer;
+      ploc_qmf_buf_imag = local_qmf_buffer + 64;
+
+      ixheaacd_esbr_inv_modulation(ploc_qmf_buf_real,
+                                   &ptr_sbr_dec->str_synthesis_qmf_bank,
+                                   sbr_tables_ptr->qmf_dec_tables_ptr);
+
+      ixheaacd_shiftrountine_with_rnd_hq(ploc_qmf_buf_real, ploc_qmf_buf_imag,
+                                         &ptr_filt_states[ixheaacd_drc_offset],
+                                         no_synthesis_channels,
+                                         out_scalefactor + 1);
+
+      ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
+                                    filter_l, &time_out[0], ch_fac);
+
+      syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
+      for (k = 0; k < 64; k++) {
+        syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
+      }
+
+      ptr_filt_states_1 += sixty4;
+      ptr_filt_states_2 -= sixty4;
+      sixty4 = -sixty4;
+      ixheaacd_drc_offset -= 128;
+
+      if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
+
+      filter_l += 64;
+
+      if (filter_l == qmf_bank->p_filter_32 + 640)
+        filter_l = (WORD32 *)qmf_bank->p_filter_32;
+
+      p1 += no_synthesis_channels;
     }
-    ploc_qmf_buf_real = local_qmf_buffer;
-    ploc_qmf_buf_imag = local_qmf_buffer + 64;
 
-    ixheaacd_esbr_inv_modulation(ploc_qmf_buf_real,
-                                 &ptr_sbr_dec->str_synthesis_qmf_bank,
-                                 sbr_tables_ptr->qmf_dec_tables_ptr);
-
-    ixheaacd_shiftrountine_with_rnd_hq(ploc_qmf_buf_real, ploc_qmf_buf_imag,
-                                       &ptr_filt_states[ixheaacd_drc_offset],
-                                       no_synthesis_channels,
-                                       out_scalefactor + 1);
-
-    ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
-                                  filter_l, &time_out[0], ch_fac);
-
-    syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
-    for (k = 0; k < 64; k++) {
-      syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
-    }
-
-    ptr_filt_states_1 += sixty4;
-    ptr_filt_states_2 -= sixty4;
-    sixty4 = -sixty4;
-    ixheaacd_drc_offset -= 128;
-
-    if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
-
-    filter_l += 64;
-
-    if (filter_l == qmf_bank->p_filter_32 + 640)
-      filter_l = (WORD32 *)qmf_bank->p_filter_32;
-
-    p1 += no_synthesis_channels;
+    qmf_bank->filter_pos_syn_32 = filter_l;
+    qmf_bank->ixheaacd_drc_offset = ixheaacd_drc_offset;
   }
-
-  qmf_bank->filter_pos_syn_32 = filter_l;
-  qmf_bank->ixheaacd_drc_offset = ixheaacd_drc_offset;
 
   if (!mps_sbr_flag) ptr_frame_data->reset_flag = 0;
 
@@ -653,11 +653,14 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
     if (hbe_flag) {
-      codec_x_delay = 32;
+      codec_x_delay = ESBR_HBE_DELAY_OFFSET;
     }
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       codec_x_delay = 2 * codec_x_delay;
     }
+    /* fixed decoder delay for bitstreams with SBR 4:1 and stereoConfigIndex 3
+     */
+    if (mps_sbr_flag) op_delay = MPS_SBR_DELAY;
 
     if (hbe_flag || mps_sbr_flag) {
       core_syn_ch_index = num_anal_bands;
@@ -880,6 +883,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
   if (apply_processing) {
     WORD16 degree_alias[NO_SYNTHESIS_CHANNELS];
     WORD16 *border_vec = ptr_frame_data->str_frame_info_details.border_vec;
+    IA_ERRORCODE error_code = IA_NO_ERROR;
 
     if (low_pow_flag) {
       memset(degree_alias, 0, NO_SYNTHESIS_CHANNELS * sizeof(WORD16));
@@ -919,13 +923,14 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
           audio_object_type);
     }
 
-    ixheaacd_calc_sbrenvelope(
+    error_code = ixheaacd_calc_sbrenvelope(
         &ptr_sbr_dec->str_sbr_scale_fact, &ptr_sbr_dec->str_sbr_calc_env,
         ptr_header_data, ptr_frame_data, ptr_frame_data_prev,
         p_arr_qmf_buf_real, p_arr_qmf_buf_imag, degree_alias, low_pow_flag,
         sbr_tables_ptr, pstr_common_tables,
         ptr_work_buf_core + (LPC_ORDER << (6 + !low_pow_flag)),
         audio_object_type);
+    if (error_code) return error_code;
 
     memcpy(ptr_frame_data_prev->sbr_invf_mode, ptr_frame_data->sbr_invf_mode,
            ptr_header_data->pstr_freq_band_data->num_if_bands * sizeof(WORD32));

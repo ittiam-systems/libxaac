@@ -24,7 +24,7 @@
 #define ONE_MINUS_DECOR_ALPHA (1 - DECOR_ALPHA)
 #define DECOR_GAMMA (1.5f)
 
-VOID ixheaacd_mps_decor_init(ia_mps_decor_struct_handle, int, int);
+IA_ERRORCODE ixheaacd_mps_decor_init(ia_mps_decor_struct_handle, int, int);
 
 VOID ixheaacd_mps_decor_apply(
     ia_mps_decor_struct_handle self,

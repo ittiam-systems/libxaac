@@ -17,16 +17,15 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_pulsedata.h"
