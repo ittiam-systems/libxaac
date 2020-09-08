@@ -31,7 +31,7 @@ typedef struct {
   WORD16 harm_index;
 } ia_sbr_calc_env_struct;
 
-VOID ixheaacd_calc_sbrenvelope(
+IA_ERRORCODE ixheaacd_calc_sbrenvelope(
     ia_sbr_scale_fact_struct *sbr_scale_factor,
     ia_sbr_calc_env_struct *ptr_sbr_calc_env,
     ia_sbr_header_data_struct *ptr_header_data,

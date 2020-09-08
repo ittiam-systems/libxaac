@@ -18,18 +18,18 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_dsp_fft32x32s.h"
 #include "ixheaacd_intrinsics.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 
 VOID ixheaacd_inv_dit_fft_8pt_dec(WORD32 *y, WORD32 *real, WORD32 *imag) {
   WORD32 a0, a1, a2, a3, a00, a10, a20, a30;

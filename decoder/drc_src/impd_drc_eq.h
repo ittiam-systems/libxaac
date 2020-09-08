@@ -178,11 +178,6 @@ impd_process_eq_set_td(ia_eq_set_struct* eq_set, WORD32 channel,
 WORD32 impd_process_eq_set_time_domain(ia_eq_set_struct* eq_set, WORD32 channel,
                                        FLOAT32* audio_in, FLOAT32* audio_out,
                                        WORD32 frame_size);
-WORD32
-impd_process_eq_set_subband_domain(ia_eq_set_struct* eq_set, WORD32 channel,
-                                   FLOAT32* subbandSampleIn,
-                                   FLOAT32* subbandSampleOut);
-
 #ifdef __cplusplus
 }
 #endif

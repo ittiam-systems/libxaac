@@ -61,9 +61,9 @@ typedef struct {
   WORD32 off;
   WORD32 sign_code_book;
   UWORD16 max_code_word_len;
-  ia_huff_code_word_struct *pstr_huff_code_word;
-  WORD16 *code_book_tbl;
-  WORD32 *idx_tbl;
+  const ia_huff_code_word_struct *pstr_huff_code_word;
+  const WORD16 *code_book_tbl;
+  const WORD32 *idx_tbl;
 } ia_huff_code_book_struct;
 
 typedef struct {
@@ -98,12 +98,13 @@ typedef struct {
 extern ia_huff_code_book_struct ixheaacd_book;
 
 VOID ixheaacd_hufftab(ia_huff_code_book_struct *ptr_huff_code_book,
-                      ia_huff_code_word_struct *ptr_huff_code_word,
-                      WORD16 *code_book_tbl, WORD32 *index, WORD32 dim,
-                      WORD32 lav, WORD32 lav_incr_esc, WORD32 sign_code_book,
-                      UWORD8 max_code_word_len);
+                      const ia_huff_code_word_struct *ptr_huff_code_word,
+                      const WORD16 *code_book_tbl, const WORD32 *index,
+                      WORD32 dim, WORD32 lav, WORD32 lav_incr_esc,
+                      WORD32 sign_code_book, UWORD8 max_code_word_len);
 
-WORD32 ixheaacd_huff_codeword(ia_huff_code_word_struct *h, UWORD16 data_present,
+WORD32 ixheaacd_huff_codeword(const ia_huff_code_word_struct *h,
+                              UWORD16 data_present,
                               ia_bit_buf_struct *it_bit_buff);
 
 #endif /* IXHEAACD_INFO_H */

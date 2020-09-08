@@ -18,35 +18,30 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
+#include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_error_standards.h"
-
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
-
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
-
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_env_dec.h"
 #include "ixheaacd_sbr_const.h"
-
 #include "ixheaacd_basic_funcs.h"
-
-#include "math.h"
 
 #define add16_m(a, b) ((a) + (b))
 #define sub16_m(a, b) ((a) - (b))
@@ -58,7 +53,7 @@ static VOID ixheaacd_dequant_esbr_env_data(FLOAT32 *ptr_env_sf,
                                            WORD32 num_noise_fac, WORD32 amp_res,
                                            FLOAT32 *ptr_noise_floor) {
   WORD32 i;
-  FLOAT32 array[2] = {0.5f, 1.0f};
+  static const FLOAT32 array[2] = {0.5f, 1.0f};
   FLOAT32 a_flt = array[amp_res];
 
   for (i = 0; i < num_env_sf; i++) {
@@ -328,7 +323,7 @@ VOID ixheaacd_dequant_env_data(ia_sbr_frame_info_data_struct *ptr_sbr_data,
   WORD32 exponent;
   WORD32 exp_add = (7 + NRG_EXP_OFFSET);
   WORD16 *ptr_env_sf = ptr_sbr_data->int_env_sf_arr;
-  WORD32 mant_arr[2] = {0x4000, 0x5a80};
+  static const WORD32 mant_arr[2] = {0x4000, 0x5a80};
 
   amp_res_1 = (1 - amp_res);
 
@@ -433,7 +428,8 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
 
   memcpy(ptr2, ptr1, sizeof(WORD16) * (num_nf_bands));
 
-  if (ptr_sbr_data->coupling_mode != COUPLING_BAL) {
+  if ((ptr_sbr_data->coupling_mode != COUPLING_BAL) ||
+      (ptr_header_data->usac_flag)) {
     WORD32 noise_floor_exp, tot_nf_bands;
 
     tot_nf_bands = (num_nf_bands * num_noise_env);
@@ -551,8 +547,8 @@ VOID ixheaacd_sbr_env_dequant_coup(
 
   WORD32 i;
   FLOAT32 temp_l, temp_r;
-  FLOAT32 pan_offset[2] = {24.0f, 12.0f};
-  FLOAT32 a_arr[2] = {0.5f, 1.0f};
+  static const FLOAT32 pan_offset[2] = {24.0f, 12.0f};
+  static const FLOAT32 a_arr[2] = {0.5f, 1.0f};
 
   FLOAT32 a = a_arr[amp_res];
 
@@ -648,6 +644,9 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
     }
 
     if (ptr_sbr_data_ch_0->coupling_mode) {
+      ptr_sbr_data_ch_0->num_noise_sfac =
+          ptr_header_data_ch_1->pstr_freq_band_data->num_nf_bands *
+          ptr_sbr_data_ch_1->str_frame_info_details.num_noise_env;
       ixheaacd_sbr_env_dequant_coup_fix(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                                         ptr_sbr_data_ch_1, ptr_common_tables);
 

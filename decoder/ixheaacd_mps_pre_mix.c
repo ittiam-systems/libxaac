@@ -17,7 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <ixheaacd_type_def.h>
+#include <math.h>
+#include <memory.h>
+
+#include <assert.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_polyphase.h"
@@ -25,15 +29,9 @@
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 
-#include <ixheaacd_type_def.h>
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
-
-#include <math.h>
-#include <memory.h>
-
-#include <assert.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #undef ABS_THR
 #define ABS_THR 1.0e-9f
@@ -58,12 +56,10 @@ extern const WORD32 ixheaacd_c_l_table_Q31[31];
 extern const WORD32 ixheaacd_sin_table_Q31[8][31];
 extern const WORD32 ixheaacd_cos_table_Q31[8][31];
 extern const WORD32 ixheaacd_atan_table_Q28[16][8][31];
-extern WORD32 ixheaacd_ipd_de_quant_table_q28[16];
+extern const WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880
-
-extern WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880

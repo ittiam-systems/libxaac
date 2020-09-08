@@ -17,10 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#define DEBUG
-
 #include <math.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_tns_usac.h"
@@ -38,16 +36,16 @@
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_acelp_com.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 
 #define LSF_GAP 50.0f
 #define FREQ_MAX 6400.0f
 #define FREQ_DIV 400.0f
 
-static FLOAT32 factor_table[4] = {60.0f, 65.0f, 64.0f, 63.0f};
+static const FLOAT32 factor_table[4] = {60.0f, 65.0f, 64.0f, 63.0f};
 
 VOID ixheaacd_lsf_weight_2st_flt(FLOAT32 *lsfq, FLOAT32 *w, WORD32 mode) {
   WORD32 i;
@@ -102,12 +100,12 @@ static WORD32 ixheaacd_decoding_avq_tool(WORD32 *read_arr, WORD32 *nvecq) {
 
 static WORD32 ixheaacd_avq_first_approx_abs(FLOAT32 *lsf, WORD32 *indx) {
   WORD32 i;
-  extern FLOAT32 ixheaacd_dico_lsf_abs_8b_flt[];
-  extern FLOAT32 ixheaacd_weight_table_avq[];
+  extern const FLOAT32 ixheaacd_dico_lsf_abs_8b_flt[];
+  extern const FLOAT32 ixheaacd_weight_table_avq[];
   WORD32 position = 0;
   WORD32 avq[ORDER];
   FLOAT32 d[ORDER + 1], lsf_min;
-  FLOAT32 *ptr_w;
+  const FLOAT32 *ptr_w;
 
   ptr_w = &ixheaacd_weight_table_avq[(indx[0] * ORDER)];
 

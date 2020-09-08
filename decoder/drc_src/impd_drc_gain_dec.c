@@ -34,7 +34,7 @@
 #include "impd_drc_eq.h"
 #include "impd_drc_gain_decoder.h"
 
-extern ia_cicp_sigmoid_characteristic_param_struct
+extern const ia_cicp_sigmoid_characteristic_param_struct
     pstr_cicp_sigmoid_characteristic_param[];
 
 WORD32 impd_gain_db_to_lin(ia_interp_params_struct* interp_params_str,
@@ -433,15 +433,15 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
     return (UNEXPECTED_ERROR);
   }
 
+  err = impd_conv_to_linear_domain(interp_params_str, drc_band, gain0, slope0,
+                                   &gain_t1, &slope_t1);
+  if (err) return (err);
+  err = impd_conv_to_linear_domain(interp_params_str, drc_band, gain1, slope1,
+                                   &gain_t2, &slope_t2);
+  if (err) return (err);
+
   if (interp_params_str->gain_interpolation_type ==
       GAIN_INTERPOLATION_TYPE_SPLINE) {
-    err = impd_conv_to_linear_domain(interp_params_str, drc_band, gain0, slope0,
-                                     &gain_t1, &slope_t1);
-    if (err) return (err);
-    err = impd_conv_to_linear_domain(interp_params_str, drc_band, gain1, slope1,
-                                     &gain_t2, &slope_t2);
-    if (err) return (err);
-
     slope_t1 = slope_t1 / (FLOAT32)interp_params_str->delta_tmin;
     slope_t2 = slope_t2 / (FLOAT32)interp_params_str->delta_tmin;
     if ((FLOAT32)fabs((FLOAT64)slope_t1) > (FLOAT32)fabs((FLOAT64)slope_t2)) {
@@ -522,14 +522,9 @@ WORD32 impd_interpolate_drc_gain(ia_interp_params_struct* interp_params_str,
       }
     }
   } else {
-    err = impd_conv_to_linear_domain(interp_params_str, drc_band, gain1, slope1,
-                                     &gain_t2, &slope_t2);
-    if (err) return (err);
-
-    a = 0;
-    b = gain_t2;
-
-    result[0] = gain_t2;
+    a = (gain_t2 - gain_t1) / (FLOAT32)gain_step_tdomain;
+    b = gain_t1;
+    result[0] = gain_t1;
     result[gain_step_tdomain] = gain_t2;
     for (n = 1; n < gain_step_tdomain; n++) {
       FLOAT32 t = (FLOAT32)n;

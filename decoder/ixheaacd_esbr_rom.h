@@ -27,13 +27,13 @@ extern const FLOAT32 ixheaacd_hphase_tbl[2][8];
 
 extern const FLOAT32 ixheaacd_g_lim_gains[4];
 
-typedef const FLOAT32 FIR_FILTER[5];
-extern FIR_FILTER ixheaacd_fir_0;
-extern FIR_FILTER ixheaacd_fir_1;
-extern FIR_FILTER ixheaacd_fir_2;
-extern FIR_FILTER ixheaacd_fir_3;
-extern FIR_FILTER ixheaacd_fir_4;
-extern FIR_FILTER *ixheaacd_fir_table[5];
+typedef FLOAT32 FIR_FILTER[5];
+extern const FIR_FILTER ixheaacd_fir_0;
+extern const FIR_FILTER ixheaacd_fir_1;
+extern const FIR_FILTER ixheaacd_fir_2;
+extern const FIR_FILTER ixheaacd_fir_3;
+extern const FIR_FILTER ixheaacd_fir_4;
+extern const FIR_FILTER* const ixheaacd_fir_table[5];
 extern const FLOAT32 ixheaacd_q_gamma_table[4];
 extern const WORD32 ixheaacd_start_subband2kL_tbl[33];
 extern const FLOAT32 ixheaacd_cos_table_trans_qmf[7][32 * 2];
@@ -47,15 +47,15 @@ extern const FLOAT32 ixheaacd_hbe_x_prod_cos_table_trans_3[2 * (128 + 128)];
 extern const FLOAT32 ixheaacd_hbe_x_prod_cos_table_trans_4[2 * (128 + 128)];
 extern const FLOAT32 ixheaacd_hbe_x_prod_cos_table_trans_4_1[2 * (128 + 128)];
 
-extern const FLOAT32 ixheaacd_synth_cos_table_kl_4[8 * 4];
-extern const FLOAT32 ixheaacd_synth_cos_table_kl_8[16 * 8];
-extern const FLOAT32 ixheaacd_synth_cos_table_kl_12[24 * 12];
-extern const FLOAT32 ixheaacd_synth_cos_table_kl_16[32 * 16];
+extern const FLOAT32 ixheaacd_synth_cos_table_kl_4[16];
+extern const FLOAT32 ixheaacd_synth_cos_table_kl_8[32];
+extern const FLOAT32 ixheaacd_synth_cos_table_kl_12[48];
+extern const FLOAT32 ixheaacd_synth_cos_table_kl_16[64];
 extern const FLOAT32 ixheaacd_synth_cos_table_kl_20[40 * 20];
-extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_8[8 * 8 * 2];
-extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_16[16 * 16 * 2];
-extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_24[24 * 24 * 2];
-extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_32[32 * 32 * 2];
-extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_40[40 * 80 * 2];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_8[32];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_16[64];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_24[96];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_32[128];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_40[40 * 40 * 2];
 extern const FLOAT32 ixheaacd_sel_case[5][8];
 #endif

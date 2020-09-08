@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -42,7 +42,7 @@
 #include "ixheaacd_sbr_const.h"
 
 #include "ixheaacd_env_extr_part.h"
-#include <ixheaacd_sbr_rom.h>
+#include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_sbr_scale.h"
@@ -61,8 +61,8 @@
 #include "ixheaacd_qmf_poly.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_op.h"
 
 #include "ixheaacd_esbr_rom.h"
 
@@ -576,7 +576,7 @@ VOID ixheaacd_hbe_xprod_proc_4(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
   max_n1 = max_n2 = max_trans_fac = 0;
 
   for (tr = 1; tr < 4; tr++) {
-    temp_fac = (2.0f * qmf_band_idx + 1 - tr * p) * 0.25;
+    temp_fac = (2.0 * qmf_band_idx + 1 - tr * p) * 0.25;
     n1 = ((WORD32)(temp_fac)) << 1;
     n2 = ((WORD32)(temp_fac + p)) << 1;
 
@@ -1083,7 +1083,7 @@ VOID ixheaacd_hbe_post_anal_xprod2(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     WORD32 n1, n2;
     FLOAT64 temp_fac;
     FLOAT32 mag_cmplx_gain = 1.666666667f;
-    temp_fac = (2.0f * qmf_band_idx + 1 - p) * 0.5;
+    temp_fac = (2.0 * qmf_band_idx + 1 - p) * 0.5;
     n1 = ((WORD32)(temp_fac)) << 1;
     n2 = ((WORD32)(temp_fac + p)) << 1;
 

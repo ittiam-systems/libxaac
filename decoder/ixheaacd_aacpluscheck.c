@@ -20,22 +20,22 @@
 #include <stdio.h>
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_constants.h"
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops16.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_basic_ops.h"
 
-#include <ixheaacd_basic_op.h>
+#include "ixheaacd_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_pns.h"
 
-#include <ixheaacd_aac_rom.h>
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_drc_data_struct.h"
 
@@ -158,7 +158,6 @@ FLAG ixheaacd_check_for_sbr_payload(
       }
       it_bit_buff->ptr_read_next += count - 1;
       it_bit_buff->cnt_bits -= ((count - 1) << 3);
-
     }
   }
   if (it_bit_buff->cnt_bits < 0) ret = -1;

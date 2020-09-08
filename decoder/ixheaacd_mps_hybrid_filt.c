@@ -19,7 +19,7 @@
 */
 #include <math.h>
 #include <string.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"
 
@@ -28,14 +28,16 @@
 #include "ixheaacd_mps_interface.h"
 
 #include "ixheaacd_mps_polyphase.h"
+#include "ixheaacd_constants.h"
+#include "ixheaacd_basic_ops32.h"
 
 #include "ixheaacd_mps_hybfilter.h"
 
-extern WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
-extern WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
-extern WORD32 ixheaacd_cosine[8][13];
-extern WORD32 ixheaacd_sine[8][13];
-extern WORD32 ixheaacd_cosine2[2][13];
+extern const WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
+extern const WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
+extern const WORD32 ixheaacd_cosine[8][13];
+extern const WORD32 ixheaacd_sine[8][13];
+extern const WORD32 ixheaacd_cosine2[2][13];
 
 static WORD32 ixheaacd_mps_mult32_local(WORD32 a, WORD32 b, WORD16 shift) {
   WORD64 temp;
@@ -47,7 +49,7 @@ static WORD32 ixheaacd_mps_mult32_local(WORD32 a, WORD32 b, WORD16 shift) {
 
 static VOID ixheaacd_mps_hyb_filt_type1(
     ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[8][MAX_TIME_SLOTS],
-    WORD32 num_samples, WORD32 *filt_coeff)
+    WORD32 num_samples, const WORD32 *filt_coeff)
 
 {
   WORD32 i, n, q;
@@ -71,13 +73,14 @@ static VOID ixheaacd_mps_hyb_filt_type1(
         in_re = (WORD32)(input[n + i].re);
         in_im = (WORD32)(input[n + i].im);
 
-        in_re = in_re << shift;
-        in_im = in_im << shift;
+        in_re = ixheaacd_shl32_sat(in_re, shift);
+        in_im = ixheaacd_shl32_sat(in_im, shift);
 
         coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
-        temp = ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30) -
-               ixheaacd_mps_mult32_local(in_im, modulation_fac_im, 30);
+        temp = ixheaacd_sub32_sat(
+            ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30),
+            ixheaacd_mps_mult32_local(in_im, modulation_fac_im, 30));
 
         if (temp >= 1073741823)
           temp = 1073741823;
@@ -87,8 +90,9 @@ static VOID ixheaacd_mps_hyb_filt_type1(
         temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
         acc_re = acc_re + (WORD64)temp;
 
-        temp = ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30) +
-               ixheaacd_mps_mult32_local(in_re, modulation_fac_im, 30);
+        temp = ixheaacd_add32_sat(
+            ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30),
+            ixheaacd_mps_mult32_local(in_re, modulation_fac_im, 30));
 
         if (temp >= 1073741823)
           temp = 1073741823;
@@ -107,7 +111,7 @@ static VOID ixheaacd_mps_hyb_filt_type1(
 
 static VOID ixheaacd_mps_hyb_filt_type2(
     ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[2][MAX_TIME_SLOTS],
-    WORD32 num_samples, WORD32 *filt_coeff)
+    WORD32 num_samples, const WORD32 *filt_coeff)
 
 {
   WORD32 i, n, q;
@@ -130,8 +134,8 @@ static VOID ixheaacd_mps_hyb_filt_type2(
         in_re = (WORD32)(input[n + i].re);
         in_im = (WORD32)(input[n + i].im);
 
-        in_re = in_re << shift;
-        in_im = in_im << shift;
+        in_re = ixheaacd_shl32_sat(in_re, shift);
+        in_im = ixheaacd_shl32_sat(in_im, shift);
 
         coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
