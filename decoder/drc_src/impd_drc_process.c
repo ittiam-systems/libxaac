@@ -31,7 +31,7 @@
 #include "impd_drc_gain_dec.h"
 #include "impd_drc_process_audio.h"
 
-WORD32 impd_apply_gains_and_add(
+VOID impd_apply_gains_and_add(
     ia_drc_instructions_struct* pstr_drc_instruction_arr,
     const WORD32 drc_instructions_index,
     ia_drc_params_struct* ia_drc_params_struct,
@@ -176,7 +176,7 @@ WORD32 impd_apply_gains_and_add(
     }
   }
 
-  return (0);
+  return;
 }
 
 WORD32
@@ -278,9 +278,8 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
   return (0);
 }
 
-WORD32
-impd_store_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
-                                ia_audio_in_out_buf* audio_io_buf_internal) {
+VOID impd_store_audio_io_buffer_time(
+    FLOAT32* audio_in_out_buf[], ia_audio_in_out_buf* audio_io_buf_internal) {
   WORD32 i, j;
 
   if (audio_io_buf_internal->audio_delay_samples) {
@@ -296,12 +295,11 @@ impd_store_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
     audio_io_buf_internal->audio_in_out_buf = audio_in_out_buf;
   }
 
-  return 0;
+  return;
 }
 
-WORD32
-impd_retrieve_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
-                                   ia_audio_in_out_buf* audio_io_buf_internal) {
+VOID impd_retrieve_audio_io_buffer_time(
+    FLOAT32* audio_in_out_buf[], ia_audio_in_out_buf* audio_io_buf_internal) {
   WORD32 i, j;
 
   if (audio_io_buf_internal->audio_delay_samples) {
@@ -313,11 +311,11 @@ impd_retrieve_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
     }
   }
 
-  return 0;
+  return;
 }
 
-WORD32
-impd_advance_audio_io_buffer_time(ia_audio_in_out_buf* audio_io_buf_internal) {
+VOID impd_advance_audio_io_buffer_time(
+    ia_audio_in_out_buf* audio_io_buf_internal) {
   WORD32 i;
   if (audio_io_buf_internal->audio_delay_samples) {
     for (i = 0; i < audio_io_buf_internal->audio_num_chan; i++) {
@@ -329,5 +327,5 @@ impd_advance_audio_io_buffer_time(ia_audio_in_out_buf* audio_io_buf_internal) {
     }
   }
 
-  return 0;
+  return;
 }

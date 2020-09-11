@@ -190,6 +190,7 @@ WORD32 impd_init_selected_drc_set(
   } else {
     err = impd_select_drc_coefficients(drc_config, &drc_coefficients_uni_drc,
                                        &drc_coefficients_selected);
+    if (err) return err;
   }
 
   ia_drc_params_struct->sel_drc_array[ia_drc_params_struct->drc_set_counter]
@@ -341,11 +342,11 @@ WORD32 impd_init_selected_drc_set(
         ia_filter_banks_struct);
     if (err) return (err);
 
-    err = impd_init_overlap_weight(
+    impd_init_overlap_weight(
         drc_coefficients_uni_drc,
         &(drc_config->str_drc_instruction_str[drc_instructions_selected]),
         ia_drc_params_struct->sub_band_domain_mode, pstr_overlap_params);
-    if (err) return (err);
+
   } else {
     ia_gain_modifiers_struct* gain_modifiers =
         drc_config->str_drc_instruction_str->str_gain_modifiers_of_ch_group;

@@ -160,6 +160,5 @@ FLAG ixheaacd_check_for_sbr_payload(
       it_bit_buff->cnt_bits -= ((count - 1) << 3);
     }
   }
-  if (it_bit_buff->cnt_bits < 0) ret = -1;
   return (ret);
 }
