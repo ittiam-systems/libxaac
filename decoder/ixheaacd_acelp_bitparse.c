@@ -50,6 +50,7 @@
 #include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
+#include "ixheaacd_error_standards.h"
 
 WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff,
                              WORD32 *nk_mode) {
@@ -324,12 +325,14 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
   }
 }
 
-VOID ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
-                         WORD32 k, WORD32 first_tcx_flag,
-                         ia_td_frame_data_struct *pstr_td_frame_data,
-                         ia_bit_buf_struct *it_bit_buff
+IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
+                                 WORD32 k, WORD32 first_tcx_flag,
+                                 ia_td_frame_data_struct *pstr_td_frame_data,
+                                 ia_bit_buf_struct *it_bit_buff
 
-                         ) {
+                                 ) {
+  IA_ERRORCODE err = IA_NO_ERROR;
+
   pstr_td_frame_data->noise_factor[k] = ixheaacd_read_bits_buf(it_bit_buff, 3);
 
   pstr_td_frame_data->global_gain[k] = ixheaacd_read_bits_buf(it_bit_buff, 7);
@@ -355,8 +358,11 @@ VOID ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
     }
   }
 
-  ixheaacd_arith_data(pstr_td_frame_data, quant, usac_data, it_bit_buff,
-                      (first_tcx_flag), k);
+  err = ixheaacd_arith_data(pstr_td_frame_data, quant, usac_data, it_bit_buff,
+                            (first_tcx_flag), k);
+  if (err) return err;
+
+  return IA_NO_ERROR;
 }
 
 WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
@@ -437,8 +443,9 @@ WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
       pstr_td_frame_data->tcx_lg[k] = 0;
       k += 1;
     } else {
-      ixheaacd_tcx_coding(usac_data, quant, k, first_tcx_flag,
-                          pstr_td_frame_data, it_bit_buff);
+      err = ixheaacd_tcx_coding(usac_data, quant, k, first_tcx_flag,
+                                pstr_td_frame_data, it_bit_buff);
+      if (err) return err;
       last_lpd_mode = pstr_td_frame_data->mod[k];
       quant += pstr_td_frame_data->tcx_lg[k];
 

@@ -25,7 +25,7 @@ WORD8 ixheaacd_float2fix(FLOAT32 *x, WORD32 *int_x, WORD32 length);
 VOID ixheaacd_fix2float(WORD32 *int_xn1, FLOAT32 *xn1, WORD32 length,
                         WORD8 *shiftp, WORD32 *preshift);
 
-VOID ixheaacd_complex_fft(WORD32 *data_r, WORD32 *data_i, WORD32 len,
-                          WORD32 fft_mode, WORD32 *preshift);
+WORD32 ixheaacd_complex_fft(WORD32 *data_r, WORD32 *data_i, WORD32 len,
+                            WORD32 fft_mode, WORD32 *preshift);
 
 #endif

@@ -402,6 +402,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
             error_code = ixheaacd_individual_ch_stream(
                 it_bit_buff, aac_dec_handle, ele_ch, frame_length,
                 total_channels, object_type, eld_specific_config, ele_type);
+            if (error_code) return error_code;
 
             if (ptr_adts_crc_info->crc_active == 1) {
               ixheaacd_adts_crc_end_reg(ptr_adts_crc_info, it_bit_buff,
@@ -425,13 +426,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
                 num_ch = num_ch + ele_ch;
               break;
             } else {
-              ixheaacd_channel_pair_process(
+              error_code = ixheaacd_channel_pair_process(
                   aac_dec_handle->pstr_aac_dec_ch_info, ele_ch,
                   aac_dec_handle->pstr_aac_tables, total_channels, object_type,
                   aac_spect_data_resil_flag,
                   eld_specific_config.aac_sf_data_resil_flag,
                   aac_scratch_ptrs->in_data, aac_scratch_ptrs->out_data,
                   (void *)aac_dec_handle);
+              if (error_code) return error_code;
               num_ch = num_ch + ele_ch;
             }
           }
@@ -454,16 +456,16 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
             if (error_code) {
               aac_dec_handle->frame_status = 0;
-
-              break;
+              return error_code;
             } else {
-              ixheaacd_channel_pair_process(
+              error_code = ixheaacd_channel_pair_process(
                   aac_dec_handle->pstr_aac_dec_ch_info, 1,
                   aac_dec_handle->pstr_aac_tables, total_channels, object_type,
                   aac_spect_data_resil_flag,
                   eld_specific_config.aac_sf_data_resil_flag,
                   aac_scratch_ptrs->in_data, aac_scratch_ptrs->out_data,
                   (void *)aac_dec_handle);
+              if (error_code) return error_code;
             }
           } else {
             error_code =
@@ -648,7 +650,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
                 {
                   if (object_type == AOT_ER_AAC_LD) {
-                    WORD16 temp = ixheaacd_ltp_decode(
+                    IA_ERRORCODE temp = ixheaacd_ltp_decode(
                         it_bit_buff, ptr_ics_info, object_type,
                         aac_dec_handle->samples_per_frame, LEFT);
 
@@ -663,6 +665,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
             error_code = ixheaacd_individual_ch_stream(
                 it_bit_buff, aac_dec_handle, ele_ch, frame_length,
                 total_channels, object_type, eld_specific_config, ele_type);
+            if (error_code) return error_code;
 
             if (ptr_adts_crc_info->crc_active == 1) {
               ixheaacd_adts_crc_end_reg(ptr_adts_crc_info, it_bit_buff,
@@ -686,13 +689,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
                 num_ch = num_ch + ele_ch;
               break;
             } else {
-              ixheaacd_channel_pair_process(
+              error_code = ixheaacd_channel_pair_process(
                   aac_dec_handle->pstr_aac_dec_ch_info, ele_ch,
                   aac_dec_handle->pstr_aac_tables, total_channels, object_type,
                   aac_spect_data_resil_flag,
                   eld_specific_config.aac_sf_data_resil_flag,
                   aac_scratch_ptrs->in_data, aac_scratch_ptrs->out_data,
                   (void *)aac_dec_handle);
+              if (error_code) return error_code;
               num_ch = num_ch + ele_ch;
             }
           }
@@ -707,7 +711,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
         cnt_bits = (frame_size * 8 - bits_decoded);
         if (cnt_bits >= 8) {
-          ixheaacd_extension_payload(it_bit_buff, cnt_bits);
+          error_code = ixheaacd_extension_payload(it_bit_buff, cnt_bits);
+          if (error_code) return error_code;
         }
 
         if (((object_type == AOT_ER_AAC_ELD) ||
@@ -783,9 +788,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
       scratch[0] = (WORD32 *)aac_scratch_ptrs->extra_scr_4k[2];
       scratch[1] = (WORD32 *)aac_scratch_ptrs->extra_scr_4k[1];
 
-      ixheaacd_drc_map_channels(
+      error_code = ixheaacd_drc_map_channels(
           pstr_drc_dec, aac_dec_handle->channels,
           aac_dec_handle->pstr_aac_dec_ch_info[0]->str_ics_info.frame_length);
+      if (error_code) return error_code;
 
       for (ch = 0; ch < aac_dec_handle->channels; ch++) {
         WORD32 *overlap1 = aac_dec_handle->ptr_aac_dec_static_channel_info[ch]

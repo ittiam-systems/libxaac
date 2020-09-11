@@ -198,7 +198,7 @@ WORD32 ixheaacd_read_pulse_data(ia_bit_buf_struct *it_bit_buff,
   return error_code;
 }
 
-static WORD16 ixheaacd_read_block_data(
+static IA_ERRORCODE ixheaacd_read_block_data(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
@@ -308,10 +308,11 @@ static WORD16 ixheaacd_read_block_data(
   return error_code;
 }
 
-WORD16 ixheaacd_ltp_decode(ia_bit_buf_struct *it_bit_buff,
-                           ia_ics_info_struct *ptr_ics_info, WORD32 object_type,
-                           WORD32 frame_size, WORD32 ch) {
-  WORD32 retval = AAC_DEC_OK;
+IA_ERRORCODE ixheaacd_ltp_decode(ia_bit_buf_struct *it_bit_buff,
+                                 ia_ics_info_struct *ptr_ics_info,
+                                 WORD32 object_type, WORD32 frame_size,
+                                 WORD32 ch) {
+  IA_ERRORCODE retval = AAC_DEC_OK;
 
   if (ptr_ics_info->predictor_data_present) {
     if (ch == 0) {
@@ -522,7 +523,7 @@ WORD16 ixheaacd_individual_ch_stream(
       if ((object_type == AOT_ER_AAC_LD) &&
           (aac_dec_handle->pstr_aac_dec_ch_info[LEFT]->common_window) &&
           (ele_type == ID_CPE)) {
-        WORD16 temp =
+        IA_ERRORCODE temp =
             ixheaacd_ltp_decode(it_bit_buff, ptr_ics_info, object_type,
                                 aac_dec_handle->samples_per_frame, 1);
 
@@ -580,19 +581,21 @@ VOID ixheaacd_read_ms_data(
   }
 }
 
-VOID ixheaacd_channel_pair_process(
+IA_ERRORCODE ixheaacd_channel_pair_process(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[], WORD32 num_ch,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
     WORD32 object_type, WORD32 aac_spect_data_resil_flag,
     WORD32 aac_sf_data_resil_flag, WORD32 *in_data, WORD32 *out_data,
     void *self_ptr) {
   WORD32 channel;
+  IA_ERRORCODE err = IA_NO_ERROR;
   ia_aac_decoder_struct *self = self_ptr;
   if (aac_spect_data_resil_flag &&
       ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_ER_AAC_ELD))) {
     for (channel = 0; channel < num_ch; channel++) {
-      ixheaacd_cblock_inv_quant_spect_data(ptr_aac_dec_channel_info[channel],
-                                           ptr_aac_tables);
+      err = ixheaacd_cblock_inv_quant_spect_data(
+          ptr_aac_dec_channel_info[channel], ptr_aac_tables);
+      if (err) return err;
       ixheaacd_cblock_scale_spect_data(ptr_aac_dec_channel_info[channel],
                                        ptr_aac_tables, num_ch, object_type,
                                        aac_sf_data_resil_flag);
@@ -665,6 +668,7 @@ VOID ixheaacd_channel_pair_process(
                                NULL);
     }
   }
+  return err;
 }
 
 VOID ixheaacd_set_corr_info(
@@ -722,7 +726,7 @@ VOID ixheaacd_pulse_data_apply(ia_pulse_info_struct *ptr_pulse_info,
   }
 }
 
-WORD16 ixheaacd_read_spectral_data(
+IA_ERRORCODE ixheaacd_read_spectral_data(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
@@ -1060,6 +1064,7 @@ WORD32 ixheaacd_cblock_inv_quant_spect_data(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables) {
   int window, group, grp_win, band;
+  IA_ERRORCODE err = IA_NO_ERROR;
   int sf_bands_transmitted = ptr_aac_dec_channel_info->str_ics_info.max_sfb;
   WORD8 *ptr_code_book = ptr_aac_dec_channel_info->ptr_code_book;
   const WORD16 *band_offsets = (WORD16 *)ixheaacd_getscalefactorbandoffsets(
@@ -1098,14 +1103,16 @@ WORD32 ixheaacd_cblock_inv_quant_spect_data(
           if (out1 <= 0) {
             out1 = sub_d(temp, out1);
             if (out1 > 127) {
-              ixheaacd_inv_quant(&out1, ptr_pow_table_Q13);
+              err = ixheaacd_inv_quant(&out1, ptr_pow_table_Q13);
+              if (err) return err;
             } else
               out1 = ptr_pow_table_Q13[out1];
             ptr_spec_coef[i] = -out1;
 
           } else {
             if (out1 > 127) {
-              ixheaacd_inv_quant(&out1, ptr_pow_table_Q13);
+              err = ixheaacd_inv_quant(&out1, ptr_pow_table_Q13);
+              if (err) return err;
             } else
               out1 = ptr_pow_table_Q13[out1];
 

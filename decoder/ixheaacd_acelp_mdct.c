@@ -207,7 +207,8 @@ WORD32 ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift,
   ixheaacd_pre_twid(ptr_in, ptr_data_r, ptr_data_i, length / 2,
                     ptr_pre_post_twid);
 
-  ixheaacd_complex_fft(ptr_data_r, ptr_data_i, length / 2, -1, preshift);
+  err = ixheaacd_complex_fft(ptr_data_r, ptr_data_i, length / 2, -1, preshift);
+  if (err) return err;
   *preshift += 1;
 
   ixheaacd_post_twid(ptr_data_r, ptr_data_i, ptr_out, length / 2,

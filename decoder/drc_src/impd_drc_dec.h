@@ -35,7 +35,7 @@ WORD32 impd_init_selected_drc_set(
     ,
     shape_filter_block* shape_filter_block);
 
-WORD32 impd_apply_gains_and_add(
+VOID impd_apply_gains_and_add(
     ia_drc_instructions_struct* pstr_drc_instruction_arr,
     const WORD32 drc_instructions_index,
     ia_drc_params_struct* ia_drc_params_struct,

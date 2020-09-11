@@ -119,18 +119,17 @@ typedef struct {
 
 } ia_sbr_frame_info_data_struct;
 
-WORD8 ixheaacd_sbr_read_sce(ia_sbr_header_data_struct *ptr_header_data,
-                            ia_sbr_frame_info_data_struct *ptr_frame_data,
-                            ia_ps_dec_struct *ptr_ps_dec,
-                            ia_bit_buf_struct *it_bit_buff,
-                            ia_sbr_tables_struct *ptr_sbr_tables,
-                            WORD audio_object_type);
+IA_ERRORCODE ixheaacd_sbr_read_sce(
+    ia_sbr_header_data_struct *ptr_header_data,
+    ia_sbr_frame_info_data_struct *ptr_frame_data, ia_ps_dec_struct *ptr_ps_dec,
+    ia_bit_buf_struct *it_bit_buff, ia_sbr_tables_struct *ptr_sbr_tables,
+    WORD audio_object_type);
 
-WORD8 ixheaacd_sbr_read_cpe(ia_sbr_header_data_struct *ptr_header_data,
-                            ia_sbr_frame_info_data_struct **ptr_frame_data,
-                            ia_bit_buf_struct *itt_bit_buf,
-                            ia_sbr_tables_struct *ptr_sbr_tables,
-                            WORD audio_object_type);
+IA_ERRORCODE ixheaacd_sbr_read_cpe(
+    ia_sbr_header_data_struct *ptr_header_data,
+    ia_sbr_frame_info_data_struct **ptr_frame_data,
+    ia_bit_buf_struct *itt_bit_buf, ia_sbr_tables_struct *ptr_sbr_tables,
+    WORD audio_object_type);
 
 WORD32 ixheaacd_sbr_read_header_data(
     ia_sbr_header_data_struct *ptr_sbr_header, ia_bit_buf_struct *it_bit_buf,
@@ -139,8 +138,9 @@ WORD32 ixheaacd_sbr_read_header_data(
 WORD32 ixheaacd_ssc_huff_dec(ia_huffman_data_type h,
                              ia_bit_buf_struct *it_bit_buff);
 
-int ixheaacd_extract_frame_info_ld(ia_bit_buf_struct *it_bit_buff,
-                                   ia_sbr_frame_info_data_struct *h_frame_data);
+IA_ERRORCODE ixheaacd_extract_frame_info_ld(
+    ia_bit_buf_struct *it_bit_buff,
+    ia_sbr_frame_info_data_struct *h_frame_data);
 
 WORD32 ixheaacd_pvc_time_freq_grid_info(
     ia_bit_buf_struct *it_bit_buff,

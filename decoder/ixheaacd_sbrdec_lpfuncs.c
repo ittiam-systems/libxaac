@@ -90,7 +90,7 @@ VOID ixheaacd_reset_sbrenvelope_calc(ia_sbr_calc_env_struct *h_cal_env) {
   h_cal_env->start_up = 1;
 }
 
-WORD32 ixheaacd_derive_lim_band_tbl(
+VOID ixheaacd_derive_lim_band_tbl(
     ia_sbr_header_data_struct *ptr_header_data,
     const ia_patch_param_struct *p_str_patch_param, WORD16 num_patches,
     ixheaacd_misc_tables *pstr_common_tables) {
@@ -186,7 +186,7 @@ WORD32 ixheaacd_derive_lim_band_tbl(
   }
   *num_lf_bands = nr_lim;
 
-  return 0;
+  return;
 }
 
 VOID ixheaacd_lean_sbrconcealment(

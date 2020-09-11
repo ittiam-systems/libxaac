@@ -69,10 +69,10 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
                              ia_td_frame_data_struct *pstr_td_frame_data,
                              ia_bit_buf_struct *it_bit_buff, WORD32 chan);
 
-VOID ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, WORD32 *quant,
-                         WORD32 k, WORD32 first_tcx_flag,
-                         ia_td_frame_data_struct *pstr_td_frame_data,
-                         ia_bit_buf_struct *it_bit_buff);
+IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, WORD32 *quant,
+                                 WORD32 k, WORD32 first_tcx_flag,
+                                 ia_td_frame_data_struct *pstr_td_frame_data,
+                                 ia_bit_buf_struct *it_bit_buff);
 
 WORD32 ixheaacd_win_seq_select(WORD32 window_sequence_curr,
                                WORD32 window_sequence_last);

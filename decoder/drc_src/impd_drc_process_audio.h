@@ -54,22 +54,22 @@ impd_filter_banks_process(ia_drc_instructions_struct* pstr_drc_instruction_arr,
                           ia_filter_banks_struct* ia_filter_banks_struct,
                           const WORD32 passThru);
 
-WORD32
-impd_store_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
-                                ia_audio_in_out_buf* audio_io_buf_internal);
+VOID impd_store_audio_io_buffer_time(
+    FLOAT32* audio_in_out_buf[], ia_audio_in_out_buf* audio_io_buf_internal);
 
-WORD32
-impd_store_audio_io_buffer_freq(FLOAT32* audio_real_buff[],
-                                FLOAT32* audio_imag_buff[],
-                                ia_audio_in_out_buf* audio_io_buf_internal);
+VOID impd_store_audio_io_buffer_freq(
+    FLOAT32* audio_real_buff[], FLOAT32* audio_imag_buff[],
+    ia_audio_in_out_buf* audio_io_buf_internal);
 
-WORD32
-impd_retrieve_audio_io_buffer_time(FLOAT32* audio_in_out_buf[],
-                                   ia_audio_in_out_buf* audio_io_buf_internal);
+VOID impd_retrieve_audio_io_buffer_time(
+    FLOAT32* audio_in_out_buf[], ia_audio_in_out_buf* audio_io_buf_internal);
 
-WORD32
-impd_advance_audio_io_buffer_time(ia_audio_in_out_buf* audio_io_buf_internal);
+VOID impd_retrieve_audio_buffer_freq(
+    FLOAT32* audio_real_buff[], FLOAT32* audio_imag_buff[],
+    ia_audio_in_out_buf* audio_io_buf_internal);
 
+VOID impd_advance_audio_io_buffer_time(
+    ia_audio_in_out_buf* audio_io_buf_internal);
 
 #ifdef __cplusplus
 }

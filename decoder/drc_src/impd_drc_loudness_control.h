@@ -30,16 +30,14 @@ impd_mixing_level_info(
     ia_drc_loudness_info_set_struct* pstr_loudness_info,
     WORD32 requested_dwnmix_id, WORD32 drc_set_id_requested,
     WORD32 eq_set_id_requested, FLOAT32* mixing_level);
-WORD32
-impd_signal_peak_level_info(ia_drc_config* pstr_drc_config,
-                            ia_drc_loudness_info_set_struct* pstr_loudness_info,
-                            ia_drc_instructions_struct* str_drc_instruction_str,
-                            WORD32 requested_dwnmix_id, WORD32 album_mode,
-                            WORD32 num_compression_eq_count,
-                            WORD32* num_compression_eq_id,
-                            WORD32* peak_info_count, WORD32 eq_set_id[],
-                            FLOAT32 signal_peak_level[],
-                            WORD32 explicit_peak_information_present[]);
+VOID impd_signal_peak_level_info(
+    ia_drc_config* pstr_drc_config,
+    ia_drc_loudness_info_set_struct* pstr_loudness_info,
+    ia_drc_instructions_struct* str_drc_instruction_str,
+    WORD32 requested_dwnmix_id, WORD32 album_mode,
+    WORD32 num_compression_eq_count, WORD32* num_compression_eq_id,
+    WORD32* peak_info_count, WORD32 eq_set_id[], FLOAT32 signal_peak_level[],
+    WORD32 explicit_peak_information_present[]);
 
 WORD32
 impd_extract_loudness_peak_to_average_info(

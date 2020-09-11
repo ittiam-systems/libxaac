@@ -786,14 +786,13 @@ WORD32 impd_drc_set_preselection(
               if (loudness_info_count > MAX_LOUDNESS_INFO_COUNT)
                 return UNEXPECTED_ERROR;
 
-              err = impd_signal_peak_level_info(
+              impd_signal_peak_level_info(
                   pstr_drc_config, pstr_loudness_info, str_drc_instruction_str,
                   requested_dwnmix_id[d],
                   pstr_drc_sel_proc_params_struct->album_mode,
                   num_compression_eq_count, num_compression_eq_id,
                   &peak_info_count, eq_set_id_Peak, signal_peak_level,
                   explicit_peak_information_present);
-              if (err) return (err);
 
               for (l = 0; l < loudness_info_count; l++) {
                 WORD32 match_found_flag = 0;
@@ -899,14 +898,13 @@ WORD32 impd_drc_set_preselection(
                 loudness_normalization_gain_db, loudness);
             if (err) return (err);
 
-            err = impd_signal_peak_level_info(
+            impd_signal_peak_level_info(
                 pstr_drc_config, pstr_loudness_info, str_drc_instruction_str,
                 requested_dwnmix_id[d],
                 pstr_drc_sel_proc_params_struct->album_mode,
                 num_compression_eq_count, num_compression_eq_id,
                 &peak_info_count, eq_set_id_Peak, signal_peak_level,
                 explicit_peak_information_present);
-            if (err) return (err);
             for (l = 0; l < loudness_info_count; l++) {
               WORD32 match_found_flag = 0;
               WORD32 p;
@@ -1127,10 +1125,11 @@ WORD32 impd_drc_set_final_selection(
     WORD32 eq_purpose_requested =
         pstr_drc_sel_proc_params_struct->eq_set_purpose_request;
 
-    impd_match_eq_set_purpose(pstr_drc_config, eq_purpose_requested,
-                              eq_set_id_valid_flag, selection_candidate_count,
-                              selection_candidate_info,
-                              selection_candidate_info_step_2);
+    err = impd_match_eq_set_purpose(
+        pstr_drc_config, eq_purpose_requested, eq_set_id_valid_flag,
+        selection_candidate_count, selection_candidate_info,
+        selection_candidate_info_step_2);
+    if (err) return (err);
   }
 
   output_level_min = 10000.0f;
@@ -1528,11 +1527,12 @@ WORD32 impd_select_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
           .drc_set_id;
   *eq_set_id_selected = selection_candidate_info[0].eq_set_id;
 
-  impd_select_loud_eq(
+  err = impd_select_loud_eq(
       pstr_drc_config,
       pstr_drc_sel_proc_params_struct->requested_dwnmix_id
           [selection_candidate_info[0].downmix_id_request_index],
       *drc_set_id_selected, *eq_set_id_selected, loud_eq_id_sel);
+  if (err) return (err);
   if (selection_candidate_count > 0) {
     pstr_drc_uni_sel_proc->uni_drc_sel_proc_output
         .loudness_normalization_gain_db =
