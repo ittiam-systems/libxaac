@@ -1129,7 +1129,7 @@ ixheaacd_persistent_buffer_sizes(WORD32 num_channel) {
   return (size_buffers);
 }
 
-IA_ERRORCODE ixheaacd_fill_aac_mem_tables(
+VOID ixheaacd_fill_aac_mem_tables(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec) {
   ia_mem_info_struct *p_mem_info_aac;
 
@@ -1232,7 +1232,7 @@ IA_ERRORCODE ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac->ui_alignment = 8;
     p_mem_info_aac->ui_type = IA_MEMTYPE_OUTPUT;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
 IA_ERRORCODE ixheaacd_dec_table_api(

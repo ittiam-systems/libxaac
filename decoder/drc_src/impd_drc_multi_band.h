@@ -40,22 +40,19 @@ typedef struct {
       str_group_overlap_params[CHANNEL_GROUP_COUNT_MAX];
 } ia_overlap_params_struct;
 
-WORD32
-impd_fcenter_norm_sb_init(WORD32 num_subbands, FLOAT32* fcenter_norm_subband);
+VOID impd_fcenter_norm_sb_init(WORD32 num_subbands,
+                               FLOAT32* fcenter_norm_subband);
 
-WORD32
-impd_generate_slope(WORD32 num_subbands, FLOAT32* fcenter_norm_subband,
-                    FLOAT32 fcross_norm_lo, FLOAT32 fcross_norm_hi,
-                    FLOAT32* response);
+VOID impd_generate_slope(WORD32 num_subbands, FLOAT32* fcenter_norm_subband,
+                         FLOAT32 fcross_norm_lo, FLOAT32 fcross_norm_hi,
+                         FLOAT32* response);
 
-WORD32
-impd_generate_overlap_weights(
+VOID impd_generate_overlap_weights(
     WORD32 num_drc_bands, WORD32 drc_band_type,
     ia_gain_params_struct* gain_params, WORD32 dec_subband_count,
     ia_group_overlap_params_struct* pstr_group_overlap_params);
 
-WORD32
-impd_init_overlap_weight(
+VOID impd_init_overlap_weight(
     ia_uni_drc_coeffs_struct* str_p_loc_drc_coefficients_uni_drc,
     ia_drc_instructions_struct* str_drc_instruction_str,
     WORD32 sub_band_domain_mode, ia_overlap_params_struct* pstr_overlap_params);

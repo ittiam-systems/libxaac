@@ -105,38 +105,9 @@ VOID ixheaacd_aac_shellsort(WORD16 *in, WORD32 n) {
 }
 
 WORD32
-ixheaacd_calc_start_band(WORD32 fs, const WORD32 start_freq,
+ixheaacd_calc_start_band(WORD32 fs_mapped, const WORD32 start_freq,
                          FLOAT32 upsamp_fac) {
   WORD32 k0_min;
-  WORD32 fs_mapped = 0;
-
-  if (upsamp_fac == 4) {
-    fs = fs / 2;
-  }
-
-  if (fs >= 0 && fs < 18783) {
-    fs_mapped = 16000;
-  } else if (fs >= 18783 && fs < 23004) {
-    fs_mapped = 22050;
-  } else if (fs >= 23004 && fs < 27713) {
-    fs_mapped = 24000;
-  } else if (fs >= 27713 && fs < 35777) {
-    fs_mapped = 32000;
-  } else if (fs >= 35777 && fs < 42000) {
-    fs_mapped = 40000;
-  } else if (fs >= 42000 && fs < 46009) {
-    fs_mapped = 44100;
-  } else if (fs >= 46009 && fs < 55426) {
-    fs_mapped = 48000;
-  } else if (fs >= 55426 && fs < 75132) {
-    fs_mapped = 64000;
-  } else if (fs >= 75132 && fs < 92017) {
-    fs_mapped = 88200;
-  } else if (fs >= 92017) {
-    fs_mapped = 96000;
-  } else {
-    return -1;
-  }
 
   if (upsamp_fac == 4) {
     if (fs_mapped < 32000) {
@@ -258,11 +229,46 @@ ixheaacd_calc_stop_band(WORD32 fs, const WORD32 stop_freq, FLOAT32 upsamp_fac) {
 
   return (result);
 }
-void ixheaacd_calc_k0_k2_bands(const WORD32 samp_freq, const WORD32 start_freq,
-                               const WORD32 stop_freq, FLOAT32 upsamp_fac,
-                               WORD16 *ptr_k0, WORD16 *ptr_k2) {
+IA_ERRORCODE ixheaacd_calc_k0_k2_bands(const WORD32 samp_freq,
+                                       const WORD32 start_freq,
+                                       const WORD32 stop_freq,
+                                       FLOAT32 upsamp_fac, WORD16 *ptr_k0,
+                                       WORD16 *ptr_k2) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
+
+  WORD32 fs_mapped = 0;
+  WORD32 fs = samp_freq;
+
+  if (upsamp_fac == 4) {
+    fs = fs / 2;
+  }
+
+  if (fs >= 0 && fs < 18783) {
+    fs_mapped = 16000;
+  } else if (fs >= 18783 && fs < 23004) {
+    fs_mapped = 22050;
+  } else if (fs >= 23004 && fs < 27713) {
+    fs_mapped = 24000;
+  } else if (fs >= 27713 && fs < 35777) {
+    fs_mapped = 32000;
+  } else if (fs >= 35777 && fs < 42000) {
+    fs_mapped = 40000;
+  } else if (fs >= 42000 && fs < 46009) {
+    fs_mapped = 44100;
+  } else if (fs >= 46009 && fs < 55426) {
+    fs_mapped = 48000;
+  } else if (fs >= 55426 && fs < 75132) {
+    fs_mapped = 64000;
+  } else if (fs >= 75132 && fs < 92017) {
+    fs_mapped = 88200;
+  } else if (fs >= 92017) {
+    fs_mapped = 96000;
+  } else {
+    return -1;
+  }
+
   /* Update start_freq struct */
-  *ptr_k0 = ixheaacd_calc_start_band(samp_freq, start_freq, upsamp_fac);
+  *ptr_k0 = ixheaacd_calc_start_band(fs_mapped, start_freq, upsamp_fac);
 
   /*Update stop_freq struct */
   if (stop_freq < 14) {
@@ -277,9 +283,10 @@ void ixheaacd_calc_k0_k2_bands(const WORD32 samp_freq, const WORD32 start_freq,
   if (*ptr_k2 > 64) {
     *ptr_k2 = 64;
   }
+  return err_code;
 }
 
-WORD16 ixheaacd_calc_master_frq_bnd_tbl(
+IA_ERRORCODE ixheaacd_calc_master_frq_bnd_tbl(
     ia_freq_band_data_struct *pstr_freq_band_data,
     ia_sbr_header_data_struct *ptr_header_data,
     ixheaacd_misc_tables *pstr_common_tables) {
@@ -297,13 +304,16 @@ WORD16 ixheaacd_calc_master_frq_bnd_tbl(
   WORD16 upsamp_fac = ptr_header_data->upsamp_fac;
   WORD16 *f_master_tbl = pstr_freq_band_data->f_master_tbl;
   WORD16 num_mf_bands;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
 
   k1 = 0;
   incr = 0;
   dk = 0;
 
-  ixheaacd_calc_k0_k2_bands(fs, ptr_header_data->start_freq,
-                            ptr_header_data->stop_freq, upsamp_fac, &k0, &k2);
+  err_code = ixheaacd_calc_k0_k2_bands(fs, ptr_header_data->start_freq,
+                                       ptr_header_data->stop_freq, upsamp_fac,
+                                       &k0, &k2);
+  if (err_code) return err_code;
 
   if (k2 > NO_SYNTHESIS_CHANNELS) {
     k2 = NO_SYNTHESIS_CHANNELS;

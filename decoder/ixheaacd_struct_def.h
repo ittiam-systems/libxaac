@@ -276,7 +276,7 @@ VOID ixheaacd_allocate_mem_persistent(
 WORD32 ixheaacd_dec_mem_api(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
                             WORD32 i_cmd, WORD32 i_idx, VOID *pv_value);
 
-WORD32 ixheaacd_fill_aac_mem_tables(
+VOID ixheaacd_fill_aac_mem_tables(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec);
 
 WORD32 ixheaacd_decoder_2_ga_hdr(

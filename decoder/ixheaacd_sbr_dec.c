@@ -752,10 +752,13 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
       ptr_pvc_data->pvc_rate = ptr_header_data->upsamp_fac;
 
       if (sbr_mode == PVC_SBR) {
-        ixheaacd_pvc_process(
+        err_code = ixheaacd_pvc_process(
             ptr_pvc_data, ptr_header_data->pstr_freq_band_data->sub_band_start,
             ptr_frame_data->str_pvc_frame_info.border_vec[0],
             &pvc_qmf_enrg_arr[0], &pvc_dec_out_buf[0]);
+
+        if (err_code) return err_code;
+
         ptr_pvc_data->prev_pvc_flg = 1;
       } else {
         memset(pvc_dec_out_buf, 0, 1024 * sizeof(FLOAT32));

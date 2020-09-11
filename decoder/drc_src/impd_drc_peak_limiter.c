@@ -62,7 +62,7 @@ WORD32 impd_peak_limiter_init(ia_drc_peak_limiter_struct *peak_limiter,
   return 0;
 }
 
-WORD32 impd_peak_limiter_reinit(ia_drc_peak_limiter_struct *peak_limiter) {
+VOID impd_peak_limiter_reinit(ia_drc_peak_limiter_struct *peak_limiter) {
   if (peak_limiter) {
     peak_limiter->delayed_input_index = 0;
     peak_limiter->pre_smoothed_gain = 1.0f;
@@ -75,11 +75,11 @@ WORD32 impd_peak_limiter_reinit(ia_drc_peak_limiter_struct *peak_limiter) {
                                                sizeof(FLOAT32));
   }
 
-  return 0;
+  return;
 }
 
-WORD32 impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter,
-                            FLOAT32 *samples, UWORD32 frame_len) {
+VOID impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter,
+                          FLOAT32 *samples, UWORD32 frame_len) {
   UWORD32 i, j;
   FLOAT32 tmp, gain;
   FLOAT32 min_gain = 1;
@@ -177,5 +177,5 @@ WORD32 impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter,
   peak_limiter->pre_smoothed_gain = pre_smoothed_gain;
   peak_limiter->min_gain = min_gain;
 
-  return 0;
+  return;
 }

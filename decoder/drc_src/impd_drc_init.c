@@ -381,22 +381,22 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
 
   pVOID persistent_ptr = p_obj_drc->p_state->persistent_ptr;
 
-  struct ia_bit_buf_struct *it_bit_buff;
-
   WORD32 decDownmixIdList[NUM_GAIN_DEC_INSTANCES] = {0, 4};
 
   p_obj_drc->p_state->delay_in_output = 0;
   p_obj_drc->str_payload.pstr_selection_proc->first_frame = 1;
 
-  p_obj_drc->pstr_bit_buf = impd_create_init_bit_buf(
-      &p_obj_drc->str_bit_buf, p_obj_drc->str_bit_handler.it_bit_buf,
-      p_obj_drc->str_bit_handler.num_bytes_bs / 8);
-  it_bit_buff = p_obj_drc->pstr_bit_buf;
+  impd_create_init_bit_buf(&p_obj_drc->str_bit_buf,
+                           p_obj_drc->str_bit_handler.it_bit_buf,
+                           p_obj_drc->str_bit_handler.num_bytes_bs / 8);
+
+  p_obj_drc->pstr_bit_buf = &p_obj_drc->str_bit_buf;
 
   err_code = impd_init_drc_bitstream_dec(
       p_obj_drc->str_payload.pstr_bitstream_dec,
       p_obj_drc->str_config.sampling_rate, p_obj_drc->str_config.frame_size,
       p_obj_drc->str_config.delay_mode, -1, 0);
+  if (err_code != IA_NO_ERROR) return err_code;
 
   for (i = 0; i < NUM_GAIN_DEC_INSTANCES; i++) {
     err_code = impd_init_drc_decode(p_obj_drc->str_config.frame_size,
@@ -405,6 +405,7 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
                                     p_obj_drc->str_config.delay_mode,
                                     p_obj_drc->str_config.sub_band_domain_mode,
                                     p_obj_drc->str_payload.pstr_gain_dec[i]);
+    if (err_code != IA_NO_ERROR) return err_code;
   }
 
   err_code = impd_drc_dec_interface_add_effect_type(
@@ -498,6 +499,7 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
         p_obj_drc->str_payload.pstr_gain_dec[i],
         p_obj_drc->str_payload.pstr_drc_config,
         p_obj_drc->str_payload.pstr_loudness_info, &persistent_ptr);
+    if (err_code) return err_code;
 
     impd_get_parametric_drc_delay(
         p_obj_drc->str_payload.pstr_gain_dec[i],
@@ -554,11 +556,12 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
   }
 
   if (p_obj_drc->str_config.peak_limiter) {
-    impd_peak_limiter_init(
+    err_code = impd_peak_limiter_init(
         p_obj_drc->str_payload.pstr_peak_limiter, DEFAULT_ATTACK_TIME_MS,
         DEFAULT_RELEASE_TIME_MS, LIM_DEFAULT_THRESHOLD,
         p_obj_drc->str_config.num_ch_out, p_obj_drc->str_config.sampling_rate,
         p_obj_drc->str_payload.pstr_peak_limiter->buffer);
+    if (err_code) return (err_code);
   }
 
   return IA_NO_ERROR;

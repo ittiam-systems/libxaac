@@ -40,7 +40,7 @@ enum {
 #define LEFT 0
 #define RIGHT 1
 
-VOID ixheaacd_channel_pair_process(
+IA_ERRORCODE ixheaacd_channel_pair_process(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[], WORD32 num_ch,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
     WORD32 object_type, WORD32 aac_spect_data_resil_flag,
