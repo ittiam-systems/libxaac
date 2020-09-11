@@ -235,8 +235,9 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
              ptr_hbe_txposer->no_bins * ptr_hbe_txposer->synth_size,
          ptr_hbe_txposer->synth_size * sizeof(FLOAT32));
 
-  ixheaacd_real_synth_filt(ptr_hbe_txposer, num_columns, qmf_buf_real,
-                           qmf_buf_imag);
+  err_code = ixheaacd_real_synth_filt(ptr_hbe_txposer, num_columns,
+                                      qmf_buf_real, qmf_buf_imag);
+  if (err_code) return err_code;
 
   for (i = 0; i < HBE_OPER_WIN_LEN - 1; i++) {
     memcpy(ptr_hbe_txposer->qmf_in_buf[i],

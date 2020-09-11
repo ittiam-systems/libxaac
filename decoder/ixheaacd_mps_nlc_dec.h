@@ -54,7 +54,7 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct strm,
                                   WORD32 pair_flag, WORD32 coarse_flag,
                                   WORD32 independency_flag);
 
-WORD32 ixheaacd_mps_huff_decode(ia_handle_bit_buf_struct strm, WORD32 *out_data,
-                                WORD32 num_val);
+VOID ixheaacd_mps_huff_decode(ia_handle_bit_buf_struct strm, WORD32 *out_data,
+                              WORD32 num_val);
 
 #endif

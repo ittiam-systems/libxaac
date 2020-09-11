@@ -45,7 +45,7 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
 
 VOID ixheaacd_reset_sbrenvelope_calc(ia_sbr_calc_env_struct *ptr_calc_env);
 
-WORD32 ixheaacd_derive_lim_band_tbl(
+VOID ixheaacd_derive_lim_band_tbl(
     ia_sbr_header_data_struct *ptr_header_data,
     const ia_patch_param_struct *p_str_patch_param, WORD16 num_patches,
     ixheaacd_misc_tables *pstr_common_tables);

@@ -47,7 +47,7 @@ WORD32 impd_peak_limiter_init(ia_drc_peak_limiter_struct *peak_limiter,
                               FLOAT32 limit_threshold, UWORD32 num_channels,
                               UWORD32 sample_rate, FLOAT32 *buffer);
 
-WORD32 impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter,
-                            FLOAT32 *samples, UWORD32 frame_len);
+VOID impd_limiter_process(ia_drc_peak_limiter_struct *peak_limiter,
+                          FLOAT32 *samples, UWORD32 frame_len);
 
 #endif

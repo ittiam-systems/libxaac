@@ -29,19 +29,18 @@
 #include "impd_drc_multi_band.h"
 #include "impd_drc_rom.h"
 
-IA_ERRORCODE impd_fcenter_norm_sb_init(WORD32 num_subbands,
-                                       FLOAT32* fcenter_norm_subband) {
+VOID impd_fcenter_norm_sb_init(WORD32 num_subbands,
+                               FLOAT32* fcenter_norm_subband) {
   WORD32 s;
   for (s = 0; s < num_subbands; s++) {
     fcenter_norm_subband[s] = (s + 0.5f) / (2.0f * num_subbands);
   }
-  return (0);
+  return;
 }
 
-IA_ERRORCODE impd_generate_slope(WORD32 num_sub_bands,
-                                 FLOAT32* fcenter_norm_subband,
-                                 FLOAT32 fcross_norm_lo, FLOAT32 fcross_norm_hi,
-                                 FLOAT32* response) {
+VOID impd_generate_slope(WORD32 num_sub_bands, FLOAT32* fcenter_norm_subband,
+                         FLOAT32 fcross_norm_lo, FLOAT32 fcross_norm_hi,
+                         FLOAT32* response) {
   WORD32 i;
   FLOAT32 filter_slope = -24.0f;
   FLOAT32 inv_log10_2 = 3.32192809f;
@@ -58,18 +57,18 @@ IA_ERRORCODE impd_generate_slope(WORD32 num_sub_bands,
           10.0, norm * log10(fcenter_norm_subband[i] / fcross_norm_hi));
     }
   }
-  return (0);
+  return;
 }
 
-IA_ERRORCODE impd_generate_overlap_weights(
+VOID impd_generate_overlap_weights(
     WORD32 num_drc_bands, WORD32 drc_band_type,
     ia_gain_params_struct* gain_params, WORD32 dec_subband_count,
     ia_group_overlap_params_struct* pstr_group_overlap_params) {
   FLOAT32 fcenter_norm_subband[AUDIO_CODEC_SUBBAND_COUNT_MAX];
   FLOAT32 w_norm[AUDIO_CODEC_SUBBAND_COUNT_MAX];
   FLOAT32 fcross_norm_lo, fcross_norm_hi;
-  WORD32 err, b, s, start_subband_index = 0, stop_sub_band_index = 0;
-  err = impd_fcenter_norm_sb_init(dec_subband_count, fcenter_norm_subband);
+  WORD32 b, s, start_subband_index = 0, stop_sub_band_index = 0;
+  impd_fcenter_norm_sb_init(dec_subband_count, fcenter_norm_subband);
 
   if (drc_band_type == 1) {
     fcross_norm_lo = 0.0f;
@@ -124,15 +123,15 @@ IA_ERRORCODE impd_generate_overlap_weights(
     }
   }
 
-  return (0);
+  return;
 }
 
-IA_ERRORCODE impd_init_overlap_weight(
+VOID impd_init_overlap_weight(
     ia_uni_drc_coeffs_struct* str_p_loc_drc_coefficients_uni_drc,
     ia_drc_instructions_struct* str_drc_instruction_str,
     WORD32 sub_band_domain_mode,
     ia_overlap_params_struct* pstr_overlap_params) {
-  WORD32 err = 0, g;
+  WORD32 g;
   WORD32 dec_subband_count = 0;
   switch (sub_band_domain_mode) {
     case SUBBAND_DOMAIN_MODE_QMF64:
@@ -148,7 +147,7 @@ IA_ERRORCODE impd_init_overlap_weight(
 
   for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups; g++) {
     if (str_drc_instruction_str->band_count_of_ch_group[g] > 1) {
-      err = impd_generate_overlap_weights(
+      impd_generate_overlap_weights(
           str_drc_instruction_str->band_count_of_ch_group[g],
           str_p_loc_drc_coefficients_uni_drc
               ->gain_set_params[str_drc_instruction_str
@@ -160,9 +159,8 @@ IA_ERRORCODE impd_init_overlap_weight(
               .gain_params,
           dec_subband_count,
           &(pstr_overlap_params->str_group_overlap_params[g]));
-      if (err) return (err);
     }
   }
 
-  return (0);
+  return;
 }

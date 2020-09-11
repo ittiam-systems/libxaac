@@ -34,13 +34,11 @@ typedef struct ia_bit_buf_struct {
 
 } ia_bit_buf_struct;
 
-ia_bit_buf_struct *impd_create_bit_buf(ia_bit_buf_struct *it_bit_buff,
-                                       UWORD8 *ptr_bit_buf_base,
-                                       WORD32 bit_buf_size);
+VOID impd_create_bit_buf(ia_bit_buf_struct *it_bit_buff,
+                         UWORD8 *ptr_bit_buf_base, WORD32 bit_buf_size);
 
-ia_bit_buf_struct *impd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
-                                            UWORD8 *ptr_bit_buf_base,
-                                            WORD32 bit_buf_size);
+VOID impd_create_init_bit_buf(ia_bit_buf_struct *it_bit_buff,
+                              UWORD8 *ptr_bit_buf_base, WORD32 bit_buf_size);
 
 WORD32 impd_read_bits_buf(ia_bit_buf_struct *it_bit_buff, WORD no_of_bits);
 
