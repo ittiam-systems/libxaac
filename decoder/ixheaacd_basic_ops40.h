@@ -156,8 +156,8 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_shl(WORD32 a, WORD32 b,
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 mac32x16in32_shl_sat(WORD32 a, WORD32 b,
-                                                   WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_shl_sat(WORD32 a, WORD32 b,
+                                                            WORD16 c) {
   return (ixheaacd_add32_sat(a, ixheaacd_mult32x16in32_shl_sat(b, c)));
 }
 
