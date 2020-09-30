@@ -231,6 +231,8 @@ WORD32 impd_dec_times(ia_bit_buf_struct* it_bit_buff,
         }
       }
       node_time_tmp = time_offs + time_delta * delta_tmin;
+      if (node_time_tmp >= (2 * AUDIO_CODEC_FRAME_SIZE_MAX - drc_frame_size))
+        return UNEXPECTED_ERROR;
       if (node_time_tmp > drc_frame_size + time_offset) {
         if (node_res_flag == 0) {
           str_node[k].time = drc_frame_size + time_offset;
