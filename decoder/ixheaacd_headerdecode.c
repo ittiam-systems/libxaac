@@ -546,7 +546,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
         ixheaacd_read_bits_buf(it_bit_buff, 5);
   }
 
-  if (aac_state_struct->header_dec_done) {
+  if (aac_state_struct->header_dec_done || aac_state_struct->ui_init_done) {
     if (aac_state_struct->audio_object_type != aot_init) return IA_FATAL_ERROR;
   }
 
