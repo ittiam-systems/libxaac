@@ -1471,7 +1471,7 @@ IA_ERRORCODE ixheaacd_dec_init(
         p_state_enhaacplus_dec->i_bytes_consumed = 0;
         return IA_NO_ERROR;
       }
-
+      p_state_enhaacplus_dec->ui_init_done = 0;
       memset(&(p_state_enhaacplus_dec->eld_specific_config), 0,
              sizeof(ia_eld_specific_config_struct));
       return_val = ixheaacd_aac_headerdecode(
