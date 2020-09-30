@@ -1414,17 +1414,21 @@ impd_dec_gain_modifiers(ia_bit_buf_struct* it_bit_buff, WORD32 version,
           impd_read_bits_buf(it_bit_buff, 1);
       if (it_bit_buff->error) return it_bit_buff->error;
       if (pstr_gain_modifiers->target_characteristic_left_present[b]) {
-        pstr_gain_modifiers->target_characteristic_left_index[b] =
-            impd_read_bits_buf(it_bit_buff, 4);
+        WORD32 tmp_index = impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (tmp_index >= SPLIT_CHARACTERISTIC_COUNT_MAX)
+          return (UNEXPECTED_ERROR);
+        pstr_gain_modifiers->target_characteristic_left_index[b] = tmp_index;
       }
       pstr_gain_modifiers->target_characteristic_right_present[b] =
           impd_read_bits_buf(it_bit_buff, 1);
       if (it_bit_buff->error) return it_bit_buff->error;
       if (pstr_gain_modifiers->target_characteristic_right_present[b]) {
-        pstr_gain_modifiers->target_characteristic_right_index[b] =
-            impd_read_bits_buf(it_bit_buff, 4);
+        WORD32 tmp_index = impd_read_bits_buf(it_bit_buff, 4);
         if (it_bit_buff->error) return it_bit_buff->error;
+        if (tmp_index >= SPLIT_CHARACTERISTIC_COUNT_MAX)
+          return (UNEXPECTED_ERROR);
+        pstr_gain_modifiers->target_characteristic_right_index[b] = tmp_index;
       }
       pstr_gain_modifiers->gain_scaling_flag[b] =
           impd_read_bits_buf(it_bit_buff, 1);
