@@ -356,7 +356,7 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
 
   WORD32 *ptr_scratch = &usac_data->scratch_buffer[0];
 
-  WORD32 subfr_len, n_subfr;
+  WORD32 subfr_len = 0, n_subfr = 0;
   WORD32 err = 0;
 
   len_fr = usac_data->ccfl;
@@ -663,15 +663,13 @@ WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data,
   float *synth, synth_corr, synth_energy;
   WORD32 pitch[NUM_SUBFR_SUPERFRAME_BY2 + 3];
   float pitch_gain[NUM_SUBFR_SUPERFRAME_BY2 + 3];
-  WORD32 len_fr, lpd_sbf_len, lpd_delay, num_subfr_by2, synth_delay, fac_length;
+  WORD32 len_fr, lpd_sbf_len, num_subfr_by2, synth_delay;
   WORD32 err = 0;
 
   len_fr = usac_data->ccfl;
   lpd_sbf_len = (NUM_FRAMES * usac_data->num_subfrm) / 2;
-  lpd_delay = lpd_sbf_len * LEN_SUBFR;
   num_subfr_by2 = lpd_sbf_len - 1;
   synth_delay = num_subfr_by2 * LEN_SUBFR;
-  fac_length = (usac_data->len_subfrm) / 2;
 
   ixheaacd_memset(synth_buf, MAX_PITCH + synth_delay + len_fr);
   ixheaacd_mem_cpy(st->synth_prev, synth_buf, MAX_PITCH + synth_delay);

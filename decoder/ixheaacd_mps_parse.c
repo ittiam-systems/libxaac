@@ -22,7 +22,22 @@
 #include <stdio.h>
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
+#include "ixheaacd_defines.h"
+#include "ixheaacd_aac_rom.h"
+#include "ixheaacd_pulsedata.h"
+#include "ixheaacd_pns.h"
+#include "ixheaacd_channelinfo.h"
+#include "ixheaacd_common_rom.h"
+#include "ixheaacd_sbrdecsettings.h"
+#include "ixheaacd_sbr_scale.h"
+#include "ixheaacd_env_extr_part.h"
+#include "ixheaacd_sbr_rom.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_audioobjtypes.h"
+
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
@@ -30,85 +45,159 @@
 #include "ixheaacd_mps_hybfilter.h"
 #include "ixheaacd_error_standards.h"
 
+#include "ixheaacd_error_standards.h"
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-static const int ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
+static const WORD32 ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
 
-static const int
+static const WORD32 ixheaacd_freq_res_table_ld[] = {0, 23, 15, 12, 9, 7, 5, 4};
+
+static const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_4_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
 
-static const int
+static const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_5_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 
-static const int
+static const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_7_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5,
         5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6};
 
-static const int
+static const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_10_map[MAX_HYBRID_BANDS_MPS] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8,
         8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
         9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9};
 
-static const int
+static const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_14_map[MAX_HYBRID_BANDS_MPS] = {
         0,  0,  0,  0,  1,  1,  2,  3,  4,  4,  5,  6,  6,  7,  7,  8,  8,  8,
         9,  9,  9,  10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12,
         12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
         13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13};
 
-const int
+const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_20_map[MAX_HYBRID_BANDS_MPS] = {
         1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 14,
         15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18,
         18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19,
         19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19};
 
-const int
+const WORD32
     ixheaacd_hybrid_band_71_to_processing_band_28_map[MAX_HYBRID_BANDS_MPS] = {
         1,  0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
         16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23,
         23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26,
         26, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27};
 
-static const float ixheaacd_mps_clip_gain_table[] = {
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_4_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+         2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+         3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_5_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+         3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+         4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_7_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5,
+         5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_9_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0, 1, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7,
+         7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+         8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+         8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+         8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+         8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_12_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0,  1,  2,  3,  4,  4,  5,  5,  6,  6,  6,  7,  7,  7,  8,  8,
+         8,  8,  9,  9,  9,  9,  9,  10, 10, 10, 10, 10, 10, 10, 10, 10,
+         10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+         11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+         11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+         11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+         11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+         11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_15_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  9,  10, 10, 10, 11, 11,
+         11, 11, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13,
+         13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+         14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14};
+
+const WORD32
+    ixheaacd_hybrid_band_64_to_processing_band_23_map[MAX_HYBRID_BANDS_MPS_LD] =
+        {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 12, 13, 13,
+         14, 14, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 19, 19,
+         19, 19, 19, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 21, 21,
+         22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+         22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+         22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+         22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22,
+         22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22};
+
+static const FLOAT32 ixheaacd_mps_clip_gain_table[] = {
     1.000000f, 1.189207f, 1.414213f, 1.681792f,
     2.000000f, 2.378414f, 2.828427f, 4.000000f};
 
-static const int ixheaacd_mps_stride_table[] = {1, 2, 5, 28};
+static const WORD32 ixheaacd_mps_stride_table[] = {1, 2, 5, 28};
 
-static const float ixheaacd_cld_de_quant_table[] = {
+static const FLOAT32 ixheaacd_cld_de_quant_table[] = {
     -150.0, -45.0, -40.0, -35.0, -30.0, -25.0, -22.0, -19.0,
     -16.0,  -13.0, -10.0, -8.0,  -6.0,  -4.0,  -2.0,  0.0,
     2.0,    4.0,   6.0,   8.0,   10.0,  13.0,  16.0,  19.0,
     22.0,   25.0,  30.0,  35.0,  40.0,  45.0,  150.0};
 
-static const float ixheaacd_icc_de_quant_table[] = {
+static const FLOAT32 ixheaacd_icc_de_quant_table[] = {
     1.0000f, 0.9370f, 0.84118f, 0.60092f, 0.36764f, 0.0f, -0.5890f, -0.9900f};
 
-const float ixheaacd_ipd_de_quant_table[] = {
+const FLOAT32 ixheaacd_ipd_de_quant_table[] = {
     0.f,          0.392699082f, 0.785398163f, 1.178097245f,
     1.570796327f, 1.963495408f, 2.35619449f,  2.748893572f,
     3.141592654f, 3.534291735f, 3.926990817f, 4.319689899f,
     4.71238898f,  5.105088062f, 5.497787144f, 5.890486225f};
-const int ixheaacd_ipd_de_quant_table_q28[] = {
+const WORD32 ixheaacd_ipd_de_quant_table_q28[] = {
     0,          105414360,  210828720,  316243072, 421657440,  527071776,
     632486144,  737900480,  843314880,  948729216, 1054143552, 1159557888,
     1264972288, 1370386688, 1475800960, 1581215360};
-static const int ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
+static const WORD32 ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
 
 static const FLOAT32 ixheaacd_inverse_smoothing_time_table[] = {
     1.0f / 64.0f, 1.0f / 128.0f, 1.0f / 256.0f, 1.0f / 512.0f};
+
 
 static WORD32 bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
   var = min(var, upper_bound);
@@ -319,7 +408,7 @@ static IA_ERRORCODE ixheaacd_mps_ecdata_decoding(
         err = ixheaacd_mps_ecdatapairdec(
             bitstream, data, lastdata, datatype, set_index, data_bands,
             bs_data_pair, frame_xxx_data->bs_quant_coarse_xxx[set_index],
-            frame->independency_flag && (i == 0));
+            !(frame->independency_flag && (i == 0)) || (set_index > 0), 0);
         if (err) return err;
 
         for (pb = 0; pb < data_bands; pb++) {
@@ -610,6 +699,247 @@ IA_ERRORCODE ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
   return err;
 }
 
+static VOID ixheaacd_ld_mps_ecdata_decoding(
+    ia_mps_dec_state_struct *self, ia_handle_bit_buf_struct it_bit_buff,
+    WORD32 data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS], WORD32 datatype,
+    WORD32 start_band) {
+  WORD32 i, j, pb, data_set, set_index, bs_data_pair, data_bands,
+      old_quant_coarse_xxx;
+  WORD32 strides[MAX_PARAMETER_BANDS + 1] = {0};
+  WORD32 band_stop = 0;
+
+  WORD32 *lastdata = NULL;
+  ia_mps_data_struct *frame_xxx_data = NULL;
+  WORD32 default_val = 0;
+
+  ia_mps_bs_frame *frame = &(self->bs_frame);
+
+  if (datatype == CLD) {
+    frame_xxx_data = &frame->cld_data;
+    lastdata = frame->cmp_cld_idx_prev;
+    band_stop = self->bs_param_bands;
+  } else if (datatype == ICC) {
+    frame_xxx_data = &frame->icc_data;
+    lastdata = frame->cmp_icc_idx_prev;
+    band_stop = self->bs_param_bands;
+  } else if (datatype == IPD) {
+    frame_xxx_data = &frame->ipd_data;
+    lastdata = frame->ipd_idx_data_prev;
+    band_stop = self->num_bands_ipd;
+  } else {
+    frame_xxx_data = &frame->cld_data;
+    lastdata = frame->cmp_cld_idx_prev;
+    band_stop = self->bs_param_bands;
+  }
+  data_set = 0;
+  for (i = 0; i < self->num_parameter_sets; i++) {
+    frame_xxx_data->bs_xxx_data_mode[i] =
+        ixheaacd_read_bits_buf(it_bit_buff, 2);
+    if (frame_xxx_data->bs_xxx_data_mode[i] == 3) {
+      data_set++;
+    }
+  }
+
+  set_index = 0;
+  bs_data_pair = 0;
+  old_quant_coarse_xxx = frame_xxx_data->bs_quant_coarse_xxx_prev;
+
+  for (i = 0; i < self->num_parameter_sets; i++) {
+    if (frame_xxx_data->bs_xxx_data_mode[i] == 0) {
+      for (pb = 0; pb < band_stop; pb++) {
+        lastdata[pb] = default_val;
+      }
+
+      old_quant_coarse_xxx = 0;
+    }
+
+    if (frame_xxx_data->bs_xxx_data_mode[i] == 3) {
+      if (bs_data_pair) {
+        bs_data_pair = 0;
+      } else {
+        bs_data_pair = ixheaacd_read_bits_buf(it_bit_buff, 1);
+        frame_xxx_data->bs_quant_coarse_xxx[set_index] =
+            ixheaacd_read_bits_buf(it_bit_buff, 1);
+        frame_xxx_data->bs_freq_res_stride_xxx[set_index] =
+            ixheaacd_read_bits_buf(it_bit_buff, 2);
+
+        if (frame_xxx_data->bs_quant_coarse_xxx[set_index] !=
+            old_quant_coarse_xxx) {
+          if (old_quant_coarse_xxx) {
+            ixheaacd_mps_coarse2fine(lastdata, datatype, 0, band_stop - 0);
+          } else {
+            ixheaacd_mps_fine2coarse(lastdata, band_stop);
+          }
+        }
+
+        data_bands = ixheaacd_mps_getstridemap(
+            frame_xxx_data->bs_freq_res_stride_xxx[set_index], start_band,
+            band_stop, strides);
+        for (pb = 0; pb < data_bands; pb++) {
+          lastdata[pb] = lastdata[strides[pb]];
+        }
+
+        ixheaacd_mps_ecdatapairdec(
+            it_bit_buff, data, lastdata, datatype, set_index, data_bands,
+            bs_data_pair, frame_xxx_data->bs_quant_coarse_xxx[set_index],
+            !(frame->independency_flag && (i == 0)) || (set_index > 0), 1);
+
+        for (pb = 0; pb < data_bands; pb++) {
+          for (j = strides[pb]; j < strides[pb + 1]; j++) {
+            if (datatype == IPD) {
+              if (frame_xxx_data->bs_quant_coarse_xxx[set_index]) {
+                lastdata[j] = data[set_index + bs_data_pair][pb] & 7;
+              } else {
+                lastdata[j] = data[set_index + bs_data_pair][pb] & 15;
+              }
+            } else {
+              lastdata[j] = data[set_index + bs_data_pair][pb];
+            }
+          }
+        }
+
+        old_quant_coarse_xxx = frame_xxx_data->bs_quant_coarse_xxx[set_index];
+
+        if (bs_data_pair) {
+          frame_xxx_data->bs_quant_coarse_xxx[set_index + 1] =
+              frame_xxx_data->bs_quant_coarse_xxx[set_index];
+          frame_xxx_data->bs_freq_res_stride_xxx[set_index + 1] =
+              frame_xxx_data->bs_freq_res_stride_xxx[set_index];
+        }
+        set_index += bs_data_pair + 1;
+      }
+    }
+  }
+}
+
+IA_ERRORCODE ixheaacd_ld_mps_frame_parsing(
+    ia_mps_dec_state_struct *self, ia_handle_bit_buf_struct it_bit_buff) {
+  WORD32 i, bs_frame_type, data_bands, bs_temp_shape_enable,
+      num_of_temp_shape_ch;
+  WORD32 ps, pg, ts, ic;
+  WORD32 env_shape_data[MAX_TIME_SLOTS];
+  WORD32 alignment;
+  WORD32 bits_param_slot = 0;
+
+  ia_mps_bs_frame *frame = &(self->bs_frame);
+  alignment = it_bit_buff->cnt_bits;
+  if (self->parse_nxt_frame == 0) return IA_NO_ERROR;
+
+  self->num_parameter_sets_prev = self->num_parameter_sets;
+
+  bs_frame_type = ixheaacd_read_bits_buf(it_bit_buff, 1);
+  self->num_parameter_sets = ixheaacd_read_bits_buf(it_bit_buff, 1) + 1;
+
+  if (self->time_slots == 32)
+    bits_param_slot = 5;
+  else if (self->time_slots == 64)
+    bits_param_slot = 6;
+  else if (self->time_slots == 8)
+    bits_param_slot = 3;
+  else if (self->time_slots == 16 || self->time_slots == 15)
+    bits_param_slot = 4;
+
+  if (bs_frame_type) {
+    for (i = 0; i < self->num_parameter_sets; i++) {
+      self->param_slots[i] =
+          ixheaacd_read_bits_buf(it_bit_buff, bits_param_slot);
+    }
+  } else {
+    self->param_slots[0] = self->time_slots - 1;
+  }
+
+  frame->independency_flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+  for (i = 0; i < self->ldmps_config.num_ott_boxes; i++) {
+    ixheaacd_ld_mps_ecdata_decoding(self, it_bit_buff, frame->cmp_cld_idx, CLD,
+                                    0);
+  }
+
+  if (self->ldmps_config.bs_one_icc) {
+    ixheaacd_ld_mps_ecdata_decoding(self, it_bit_buff, frame->cmp_icc_idx, ICC,
+                                    0);
+  } else {
+    for (i = 0; i < self->ldmps_config.num_ott_boxes; i++) {
+      if (!self->ldmps_config.ott_mode_lfe[i])
+        ixheaacd_ld_mps_ecdata_decoding(self, it_bit_buff, frame->cmp_icc_idx,
+                                        ICC, 0);
+    }
+  }
+
+  for (ps = 0; ps < self->num_parameter_sets; ps++) {
+    frame->bs_smooth_mode[ps] = ixheaacd_read_bits_buf(it_bit_buff, 2);
+    if (frame->bs_smooth_mode[ps] >= 2) {
+      frame->bs_smooth_time[ps] = ixheaacd_read_bits_buf(it_bit_buff, 2);
+    }
+    if (frame->bs_smooth_mode[ps] == 3) {
+      frame->bs_freq_res_stride_smg[ps] =
+          ixheaacd_read_bits_buf(it_bit_buff, 2);
+      data_bands =
+          (ixheaacd_freq_res_table_ld[self->ldmps_config.bs_freq_res] - 1) /
+              ixheaacd_mps_stride_table[frame->bs_freq_res_stride_smg[ps]] +
+          1;
+      for (pg = 0; pg < data_bands; pg++) {
+        frame->bs_smg_data[ps][pg] = ixheaacd_read_bits_buf(it_bit_buff, 1);
+      }
+    }
+  }
+
+  for (i = 0; i < 2; i++) {
+    self->temp_shape_enable_ch_stp[i] = 0;
+    self->temp_shape_enable_ch_ges[i] = 0;
+  }
+
+  if (self->ldmps_config.bs_temp_shape_config != 0) {
+    bs_temp_shape_enable = ixheaacd_read_bits_buf(it_bit_buff, 1);
+    if (bs_temp_shape_enable) {
+      num_of_temp_shape_ch = 2;
+      switch (self->ldmps_config.bs_temp_shape_config) {
+        case 1:
+          for (i = 0; i < num_of_temp_shape_ch; i++) {
+            self->temp_shape_enable_ch_stp[i] =
+                ixheaacd_read_bits_buf(it_bit_buff, 1);
+          }
+          break;
+        case 2:
+          for (i = 0; i < num_of_temp_shape_ch; i++) {
+            self->temp_shape_enable_ch_ges[i] =
+                ixheaacd_read_bits_buf(it_bit_buff, 1);
+          }
+          for (i = 0; i < num_of_temp_shape_ch; i++) {
+            if (self->temp_shape_enable_ch_ges[i]) {
+              ixheaacd_mps_huff_decode(it_bit_buff, env_shape_data,
+                                       self->time_slots);
+              for (ts = 0; ts < self->time_slots; ts++) {
+                self->env_shape_data[i][ts] = (float)pow(
+                    2, (float)env_shape_data[ts] /
+                               (self->ldmps_config.bs_env_quant_mode + 2) -
+                           1);
+              }
+            }
+          }
+          break;
+        default:
+          return IA_FATAL_ERROR;
+      }
+    }
+  }
+
+  if (self->ldmps_config.bs_arbitrary_downmix != 0) {
+    for (ic = 0; ic < self->ldmps_config.num_input_channels; ic++) {
+      ixheaacd_ld_mps_ecdata_decoding(self, it_bit_buff, frame->cmp_cld_idx,
+                                      CLD, 0);
+    }
+  }
+
+  ixheaacd_byte_align(it_bit_buff, &alignment);
+
+  while (it_bit_buff->cnt_bits > 8) {
+    ixheaacd_read_bits_buf(it_bit_buff, 8);/*discard*/
+  }
+  ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);/*discard*/
+  return IA_NO_ERROR;
+}
+
 static VOID ixheaacd_mps_createmapping(int map[MAX_PARAMETER_BANDS + 1],
                                        int band_start, int band_stop,
                                        int ch_fac) {
@@ -672,7 +1002,7 @@ static VOID ixheaacd_mps_mapfrequency(int *in, int *out, int *map,
 static float ixheaacd_mps_de_quantize(int value, int param_type) {
   switch (param_type) {
     case CLD:
-      return ixheaacd_cld_de_quant_table[value + 15];
+      return ixheaacd_cld_de_quant_table[(value + 15)];
 
     case ICC:
       return ixheaacd_icc_de_quant_table[value];
@@ -686,7 +1016,7 @@ static float ixheaacd_mps_de_quantize(int value, int param_type) {
   }
 }
 
-static WORD32 ixheaacd_mps_mapindexdata(
+static IA_ERRORCODE ixheaacd_mps_mapindexdata(
     ia_mps_dec_state_struct *self, ia_mps_data_struct *frame_xxx_data,
     float out_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
     int out_idx_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],
@@ -793,9 +1123,8 @@ static WORD32 ixheaacd_mps_mapindexdata(
     x2 = param_slots[i2];
 
     if (interpolate_local[i] == 1) {
-      if (i2 < num_parameter_sets) {
-        return -1;
-      }
+      if (i2 < num_parameter_sets) return IA_FATAL_ERROR;
+
       for (band = band_start; band < band_stop; band++) {
         int yi, y1, y2;
         yi = 0;
@@ -805,9 +1134,7 @@ static WORD32 ixheaacd_mps_mapindexdata(
           if (y2 - y1 > 8) y1 += 16;
           if (y1 - y2 > 8) y2 += 16;
 
-          if (x2 != x1) {
-            yi = (y1 + (xi - x1) * (y2 - y1) / (x2 - x1)) % 16;
-          }
+          if (x2 != x1) yi = (y1 + (xi - x1) * (y2 - y1) / (x2 - x1)) % 16;
         } else {
           if (x2 != x1) {
             yi = y1 + (xi - x1) * (y2 - y1) / (x2 - x1);
@@ -839,35 +1166,37 @@ static WORD32 ixheaacd_mps_mapindexdata(
           out_idx_data[num_parameter_sets - 1][band];
     }
   }
-
-  return 0;
+  return IA_NO_ERROR;
 }
 
-static WORD32 ixheaacd_mps_dec_and_mapframeott(ia_mps_dec_state_struct *self) {
+static IA_ERRORCODE ixheaacd_mps_dec_and_mapframeott(
+    ia_mps_dec_state_struct *self) {
   ia_mps_bs_frame *cur_bit_stream_ptr = &(self->bs_frame);
-  WORD32 err_code = 0;
+  IA_ERRORCODE err_code = 0;
 
   err_code = ixheaacd_mps_mapindexdata(
       self, &cur_bit_stream_ptr->cld_data, self->cld_data,
       cur_bit_stream_ptr->cld_idx, cur_bit_stream_ptr->cmp_cld_idx,
       cur_bit_stream_ptr->cld_idx_pre, CLD);
-  if (err_code != 0) return err_code;
+
+  if (err_code != IA_NO_ERROR) return err_code;
 
   err_code = ixheaacd_mps_mapindexdata(
       self, &cur_bit_stream_ptr->icc_data, self->icc_data,
       cur_bit_stream_ptr->icc_idx, cur_bit_stream_ptr->cmp_icc_idx,
       cur_bit_stream_ptr->icc_idx_pre, ICC);
-  if (err_code != 0) return err_code;
+
+  if (err_code != IA_NO_ERROR) return err_code;
+
   if ((self->config->bs_phase_coding)) {
     err_code = ixheaacd_mps_mapindexdata(
         self, &cur_bit_stream_ptr->ipd_data, self->ipd_data,
         cur_bit_stream_ptr->ipd_idx, cur_bit_stream_ptr->ipd_idx_data,
         cur_bit_stream_ptr->ipd_idx_prev, IPD);
 
-    if (err_code != 0) return err_code;
+    if (err_code != IA_NO_ERROR) return err_code;
   }
-
-  return 0;
+  return IA_NO_ERROR;
 }
 
 static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
@@ -956,10 +1285,11 @@ static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
   }
 }
 
-WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
+IA_ERRORCODE ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
   int i;
-  WORD32 err_code = 0;
-  if (self->parse_nxt_frame == 1) return 0;
+  IA_ERRORCODE err_code = 0;
+  if (self->ldmps_config.ldmps_present_flag != 1)
+    if (self->parse_nxt_frame == 1) return err_code;
 
   self->ext_frame_flag = 0;
   if (self->param_slots[self->num_parameter_sets - 1] != self->time_slots - 1) {
@@ -968,7 +1298,7 @@ WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
 
   err_code = ixheaacd_mps_dec_and_mapframeott(self);
 
-  if (err_code != 0) return err_code;
+  if (err_code != IA_NO_ERROR) return err_code;
 
   ixheaacd_mps_dec_and_mapframesmg(self);
 
@@ -986,58 +1316,132 @@ WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
     self->inv_param_slot_diff_Q30[i] =
         (int)floor(self->inv_param_slot_diff[i] * 1073741824 + 0.5);
   }
-
-  return 0;
+  return IA_NO_ERROR;
 }
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
-  self->time_slots = self->frame_length;
+  int samp_freq;
+  WORD32 sampling_rate_tbl[] = {96000, 88200, 64000, 48000, 44100, 32000,
+                                24000, 22050, 16000, 12000, 11025, 8000,
+                                7350,  0,     0,     0};
+
+  if (self->ldmps_config.ldmps_present_flag == 1)
+    self->time_slots = self->frame_length + 1;
+  else
+    self->time_slots = self->frame_length;
+
   self->bs_param_bands = ixheaacd_freq_res_table[self->config->bs_freq_res];
 
-  self->hyb_band_count_max = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
+  if (self->ldmps_config.ldmps_present_flag == 1) {
+    if (self->ldmps_config.bs_sampling_freq_index == 15) {
+      samp_freq = self->ldmps_config.bs_fampling_frequency;
+    } else {
+      samp_freq = sampling_rate_tbl[self->ldmps_config.bs_sampling_freq_index];
+    }
 
-  switch (self->bs_param_bands) {
-    case 4:
+    if (samp_freq < 27713.0) {
+      self->qmf_band_count = 32;
+    } else if (samp_freq >= 55426.0) {
+      self->qmf_band_count = 128;
+    } else {
+      self->qmf_band_count = 64;
+    }
+  }
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_4_map;
-      break;
-    case 5:
+  if (self->object_type == AOT_ER_AAC_ELD ||
+      self->object_type == AOT_ER_AAC_LD) {
+    self->bs_param_bands =
+        ixheaacd_freq_res_table_ld[self->config->bs_freq_res];
+    self->hyb_band_count_max = self->qmf_band_count;
+  } else
+    self->hyb_band_count_max = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_5_map;
-      break;
-    case 7:
+  if (self->object_type == AOT_ER_AAC_ELD ||
+      self->object_type == AOT_ER_AAC_LD) {
+    switch (self->bs_param_bands) {
+      case 4:
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_7_map;
-      break;
-    case 10:
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_4_map;
+        break;
+      case 5:
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_10_map;
-      break;
-    case 14:
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_5_map;
+        break;
+      case 7:
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_14_map;
-      break;
-    case 20:
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_7_map;
+        break;
+      case 9:
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_20_map;
-      break;
-    case 28:
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_9_map;
+        break;
+      case 12:
 
-      self->hyb_band_to_processing_band_table =
-          ixheaacd_hybrid_band_71_to_processing_band_28_map;
-      break;
-    default:
-      self->hyb_band_to_processing_band_table = NULL;
-      return -1;
-      break;
-  };
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_12_map;
+        break;
+      case 15:
 
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_15_map;
+        break;
+      case 23:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_64_to_processing_band_23_map;
+        break;
+      default:
+        self->hyb_band_to_processing_band_table = NULL;
+        return -1;
+        break;
+    }
+  } else {
+    switch (self->bs_param_bands) {
+      case 4:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_4_map;
+        break;
+      case 5:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_5_map;
+        break;
+      case 7:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_7_map;
+        break;
+      case 10:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_10_map;
+        break;
+      case 14:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_14_map;
+        break;
+      case 20:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_20_map;
+        break;
+      case 28:
+
+        self->hyb_band_to_processing_band_table =
+            ixheaacd_hybrid_band_71_to_processing_band_28_map;
+        break;
+      default:
+        self->hyb_band_to_processing_band_table = NULL;
+        return -1;
+        break;
+    }
+  }
   self->in_ch_count = 1;
   self->out_ch_count = 2;
 
@@ -1047,27 +1451,30 @@ WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
   if (self->config->bs_ott_bands_phase_present) {
     self->num_bands_ipd = self->config->bs_ott_bands_phase;
   } else {
-    switch (self->bs_param_bands) {
-      case 4:
-      case 5:
-        self->num_bands_ipd = 2;
-        break;
-      case 7:
-        self->num_bands_ipd = 3;
-        break;
-      case 10:
-        self->num_bands_ipd = 5;
-        break;
-      case 14:
-        self->num_bands_ipd = 7;
-        break;
-      case 20:
-      case 28:
-        self->num_bands_ipd = 10;
-        break;
-      default:
-        assert(0);
-        break;
+    if (!(self->object_type == AOT_ER_AAC_ELD ||
+          self->object_type == AOT_ER_AAC_LD)) {
+      switch (self->bs_param_bands) {
+        case 4:
+        case 5:
+          self->num_bands_ipd = 2;
+          break;
+        case 7:
+          self->num_bands_ipd = 3;
+          break;
+        case 10:
+          self->num_bands_ipd = 5;
+          break;
+        case 14:
+          self->num_bands_ipd = 7;
+          break;
+        case 20:
+        case 28:
+          self->num_bands_ipd = 10;
+          break;
+        default:
+          assert(0);
+          break;
+      }
     }
   }
 
@@ -1090,6 +1497,7 @@ WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
   self->decor_sig_count = 1;
 
   self->bs_high_rate_mode = self->config->bs_high_rate_mode;
+  self->pre_mix_req = 1;
 
   return 0;
 }

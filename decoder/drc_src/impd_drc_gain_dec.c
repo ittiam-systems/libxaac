@@ -244,7 +244,7 @@ impd_map_gain(
     ia_split_drc_characteristic_struct* split_drc_characteristic_source,
     ia_split_drc_characteristic_struct* split_drc_characteristic_target,
     FLOAT32 gain_in_db, FLOAT32* gain_out_db) {
-  FLOAT32 inLevel;
+  FLOAT32 inLevel=0;
   WORD32 err = 0;
 
   switch (split_drc_characteristic_source->characteristic_format) {

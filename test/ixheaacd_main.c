@@ -909,7 +909,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   }
 
   /* API object requires 4 bytes (WORD32) alignment */
-  ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
+  ui_rem = ((SIZE_T)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
   /* Set API object with the memory allocated */
   pv_ia_process_api_obj =
       (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count] + 4 - ui_rem);
@@ -991,7 +991,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                        IA_TESTBENCH_MFMAN_FATAL_MEM_ALLOC_FAILED);
     }
 
-    ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] % ui_alignment);
+    ui_rem = ((SIZE_T)g_pv_arr_alloc_memory[g_w_malloc_count] % ui_alignment);
     pv_alloc_ptr = (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count] +
                            ui_alignment - ui_rem);
 
@@ -1035,7 +1035,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   }
 
   /* API object requires 4 bytes (WORD32) alignment */
-  ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
+  ui_rem = ((SIZE_T)g_pv_arr_alloc_memory[g_w_malloc_count] & 3);
 
   /* Set pointer for process memory tables    */
   err_code = (*p_ia_process_api)(
@@ -1104,7 +1104,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                        (pWORD8) "Mem tables alloc", err_code);
     }
 
-    ui_rem = ((WORD32)g_pv_arr_alloc_memory[g_w_malloc_count] % ui_alignment);
+    ui_rem = ((SIZE_T)g_pv_arr_alloc_memory[g_w_malloc_count] % ui_alignment);
     pv_alloc_ptr = (pVOID)((WORD8 *)g_pv_arr_alloc_memory[g_w_malloc_count] +
                            ui_alignment - ui_rem);
 

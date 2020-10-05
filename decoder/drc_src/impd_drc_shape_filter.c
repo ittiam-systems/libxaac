@@ -41,7 +41,7 @@ VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
                                  shape_filter_block* shape_filter_block) {
   //    WORD32 err = 0;
   WORD32 i;
-  FLOAT32 warpedGain, x1, y1;
+  FLOAT32 warpedGain=0, x1=0, y1;
   shape_filter_block->drc_gain_last = drc_gain;
   for (i = 0; i < 4; i++) {
     if (shape_filter_block->shape_filter[i].type == SHAPE_FILTER_TYPE_OFF)

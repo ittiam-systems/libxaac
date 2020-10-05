@@ -21,7 +21,20 @@
 #include <stdlib.h>
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
+#include "ixheaacd_defines.h"
+#include "ixheaacd_aac_rom.h"
+#include "ixheaacd_pulsedata.h"
+#include "ixheaacd_pns.h"
+#include "ixheaacd_channelinfo.h"
+#include "ixheaacd_common_rom.h"
+#include "ixheaacd_sbrdecsettings.h"
+#include "ixheaacd_sbr_scale.h"
+#include "ixheaacd_env_extr_part.h"
+#include "ixheaacd_sbr_rom.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
@@ -39,7 +52,7 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
   int ps = 0, pb, row, col;
   int res_bands = 0;
   int *p_smoothing_data;
-  self->pre_mix_req = 0;
+
   if (self->residual_coding) res_bands = self->max_res_bands;
 
   p_smoothing_data = &self->smoothing_data[ps][res_bands];
@@ -50,8 +63,8 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
   for (pb = res_bands; pb < self->bs_param_bands; pb++) {
     smooth_band = *p_smoothing_data++;
     if (smooth_band) {
-      for (row = 0; row < MAX_M_OUTPUT; row++) {
-        for (col = 0; col < MAX_M_INPUT; col++) {
+	  for (row = 0; row < MAX_M_OUTPUT; row++) {
+		for (col = 0; col < MAX_M_INPUT; col++) {
           self->m1_param_re[ps][pb][row][col] =
               (MULT(delta, self->m1_param_re[ps][pb][row][col]) +
                MULT(one_minus_delta, self->m1_param_re_prev[pb][row][col]));
@@ -85,8 +98,8 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
     for (pb = res_bands; pb < self->bs_param_bands; pb++) {
       smooth_band = *p_smoothing_data++;
       if (smooth_band) {
-        for (row = 0; row < MAX_M_OUTPUT; row++) {
-          for (col = 0; col < MAX_M_INPUT; col++) {
+				for (row = 0; row < MAX_M_OUTPUT; row++) {
+					for (col = 0; col < MAX_M_INPUT; col++) {
             self->m1_param_re[ps][pb][row][col] =
                 (MULT(delta, self->m1_param_re[ps][pb][row][col]) +
                  MULT(one_minus_delta,

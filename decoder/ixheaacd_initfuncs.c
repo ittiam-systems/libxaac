@@ -75,6 +75,7 @@
 #include "ixheaacd_aacdec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 
 #include "ixheaacd_struct_def.h"
@@ -428,7 +429,7 @@ ia_aac_decoder_struct *ixheaacd_aac_decoder_init(
       }
     } else {
       WORD16 *ptr_sfb_idx[2];
-      const WORD8 *ptr_sfb_width[2];
+      const WORD8 *ptr_sfb_width[2] = {0};
       WORD width_idx;
       WORD32 j;
 

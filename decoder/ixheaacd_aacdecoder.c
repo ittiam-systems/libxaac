@@ -72,11 +72,13 @@
 #include "ixheaacd_aacdec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_headerdecode.h"
 #include "ixheaacd_multichannel.h"
 #include "ixheaacd_adts_crc_check.h"
+#include "ixheaacd_ld_mps_dec.h"
 
 #include "ixheaacd_hcr.h"
 
@@ -84,6 +86,8 @@
 
 #define EXT_FILL_DATA 1
 #define EXT_FIL 0
+#define EXT_DATA_LENGTH 3
+#define EXT_LDSAC_DATA 9
 
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
 
@@ -96,7 +100,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
     WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
     WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy, UWORD8 *slot_pos)
+    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos)
 
 {
   WORD ch, ele_type;
@@ -714,8 +718,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
         bits_decoded = (it_bit_buff->size - it_bit_buff->cnt_bits);
 
         cnt_bits = (frame_size * 8 - bits_decoded);
+
+        p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle.ldmps_config
+            .no_ldsbr_present = 1;
+
         if (cnt_bits >= 8) {
-          error_code = ixheaacd_extension_payload(it_bit_buff, cnt_bits);
+          error_code = ixheaacd_extension_payload(
+              it_bit_buff, &cnt_bits,
+              &p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle);
           if (error_code) return error_code;
         }
 
@@ -812,10 +822,11 @@ WORD32 ixheaacd_aacdec_decodeframe(
                              str_ics_info[ch].frame_length);
         }
         if (skip_full_decode == 0) {
-          ixheaacd_imdct_process(
-              aac_dec_handle->pstr_aac_dec_overlap_info[ch], spec_coef[ch],
-              &str_ics_info[ch], time_data + slot_element, ch_fac, scratch[ch],
-              aac_dec_handle->pstr_aac_tables, object_type, slot_element);
+          ixheaacd_imdct_process(aac_dec_handle->pstr_aac_dec_overlap_info[ch],
+                                 spec_coef[ch], &str_ics_info[ch],
+                                 time_data + slot_element, ch_fac, scratch[ch],
+                                 aac_dec_handle->pstr_aac_tables, object_type,
+                                 ldmps_present, slot_element);
 
           if (slot_pos != NULL) *slot_pos = slot_element;
 
@@ -867,8 +878,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
   return error_code;
 }
 
-WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 cnt) {
-  WORD16 extension_type, discard;
+WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 *cnt,
+                                  ia_mps_dec_state_struct *self) {
+  WORD16 extension_type;
+  WORD32 len, add_len;
   WORD32 i;
   WORD32 fill_nibble;
 
@@ -878,20 +891,54 @@ WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 cnt) {
     case EXT_FILL_DATA:
 
       fill_nibble = ixheaacd_read_bits_buf(it_bit_buff, 4);
-
       if (fill_nibble == 0) {
-        for (i = 0; i < (cnt >> 3) - 1; i++) {
+        for (i = 0; i < (*cnt >> 3) - 1; i++) {
           ixheaacd_read_bits_buf(it_bit_buff, 8);
         }
 
       } else
         err = -1;
+      *cnt = it_bit_buff->cnt_bits;
       break;
+
+    case EXT_DATA_LENGTH:
+
+      len = (WORD32)ixheaacd_read_bits_buf(it_bit_buff, 4);
+
+      if (len == 15) {
+        add_len = ixheaacd_read_bits_buf(it_bit_buff, 8);
+        len += add_len;
+
+        if (add_len == 255) {
+          len += ixheaacd_read_bits_buf(it_bit_buff, 16);
+        }
+      }
+      len <<= 3;
+
+      ixheaacd_extension_payload(it_bit_buff, cnt, self);
+      break;
+
+    case EXT_LDSAC_DATA:
+
+      self->parse_nxt_frame = 1;
+      ixheaacd_read_bits_buf(it_bit_buff, 2);/*anc_type*/
+      ixheaacd_read_bits_buf(it_bit_buff, 2);/*anc_start_stop*/
+
+      err = ixheaacd_ld_mps_frame_parsing(self, it_bit_buff);
+      if (err) return err;
+
+      *cnt = it_bit_buff->cnt_bits;
+      break;
+
     case EXT_FIL:
     default:
-      for (i = 0; i < ((cnt)-8) + 4; i++) {
-        discard = (WORD16)ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+      for (i = 0; i < (*cnt) - 4; i++) {
+         ixheaacd_skip_bits_buf(it_bit_buff, 1);/*discard*/
       }
+
+      *cnt = it_bit_buff->cnt_bits;
+      break;
   }
 
   return err;

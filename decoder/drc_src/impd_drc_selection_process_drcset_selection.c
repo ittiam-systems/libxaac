@@ -203,8 +203,6 @@ WORD32 impd_get_selected_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
                                  WORD32 drc_set_id_selected) {
   WORD32 n;
 
-  ia_drc_instructions_struct* str_drc_instruction_str = NULL;
-
   for (n = 0; n < pstr_drc_uni_sel_proc->drc_config.drc_instructions_count_plus;
        n++) {
     if (pstr_drc_uni_sel_proc->drc_config.str_drc_instruction_str[n]
@@ -215,9 +213,6 @@ WORD32 impd_get_selected_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
     return (EXTERNAL_ERROR);
   }
   pstr_drc_uni_sel_proc->drc_inst_index_sel = n;
-  str_drc_instruction_str = &(
-      pstr_drc_uni_sel_proc->drc_config
-          .str_drc_instruction_str[pstr_drc_uni_sel_proc->drc_inst_index_sel]);
 
   pstr_drc_uni_sel_proc->drc_instructions_index[0] =
       pstr_drc_uni_sel_proc->drc_inst_index_sel;
@@ -431,10 +426,9 @@ WORD32 impd_match_effect_types(
   WORD32 k, err;
   WORD32 match_found_flag = 0;
   WORD32 state_requested;
-  WORD32 desired_effect_type_found, fallback_effect_type_found;
+  WORD32 desired_effect_type_found;
 
   desired_effect_type_found = 0;
-  fallback_effect_type_found = 0;
   k = 0;
   while (k < effect_type_requested_desired_count) {
     state_requested = 1;
@@ -453,7 +447,6 @@ WORD32 impd_match_effect_types(
           &match_found_flag, selection_candidate_count,
           selection_candidate_info);
       if (err) return (err);
-      if (match_found_flag) fallback_effect_type_found = 1;
       k++;
     }
   }

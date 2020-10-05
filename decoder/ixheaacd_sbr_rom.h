@@ -92,6 +92,7 @@ typedef struct {
   WORD16 qmf_c_eld2[640];
 
   WORD16 qmf_c_eld3[640];
+  WORD32 qmf_c_ldsbr_mps[640];
 
   WORD16 ixheaacd_sbr_synth_cos_sin_l32[64 + 64];
 

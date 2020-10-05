@@ -71,8 +71,11 @@
 #include "ixheaacd_audioobjtypes.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_memory_standards.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_adts_crc_check.h"
@@ -142,13 +145,10 @@ void ixheaacd_cblock_scale_spect_data(
   WORD32 *ptr_spect_coeff = ptr_aac_dec_channel_info->ptr_spec_coeff;
   WORD8 *ptr_sfb_width = (WORD8 *)(ixheaacd_getscalefactorbandwidth(
       &(ptr_aac_dec_channel_info->str_ics_info), ptr_aac_tables));
-  int max_band;
   WORD16 *ptr_scale_fac = ptr_aac_dec_channel_info->ptr_scale_factor;
   WORD tot_bands = ptr_aac_dec_channel_info->str_ics_info.max_sfb;
   WORD tot_groups = ptr_aac_dec_channel_info->str_ics_info.num_window_groups;
   WORD32 *scale_table_ptr = ptr_aac_tables->pstr_block_tables->scale_table;
-
-  max_band = ptr_aac_dec_channel_info->str_ics_info.max_sfb;
 
   do {
     grp_win =

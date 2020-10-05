@@ -45,7 +45,7 @@ VOID impd_apply_gains_and_add(
   WORD32 signalIndexForChannel[MAX_CHANNEL_COUNT];
   FLOAT32* lpcm_gains;
   FLOAT32 sum;
-  FLOAT32 drc_gain_last, gainThr;
+  FLOAT32 drc_gain_last=0, gainThr;
   WORD32 iEnd, iStart;
   ia_drc_instructions_struct* str_drc_instruction_str =
       &(pstr_drc_instruction_arr[drc_instructions_index]);

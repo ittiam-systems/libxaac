@@ -734,7 +734,6 @@ WORD32 impd_init_loudness_control(
     if (overall_loudness_info_present == 1) {
       WORD32 requested_method_definition = METHOD_DEFINITION_PROGRAM_LOUDNESS;
       WORD32 other_method_definition = METHOD_DEFINITION_PROGRAM_LOUDNESS;
-      WORD32 requested_measurement_system = MEASUREMENT_SYSTEM_BS_1770_4;
       WORD32 requested_preprocessing = 0;
 
       const WORD32* system_bonus = measurement_system_default_tbl;
@@ -761,35 +760,27 @@ WORD32 impd_init_loudness_control(
       switch (pstr_drc_sel_proc_params_struct->loudness_measurement_system) {
         case USER_MEASUREMENT_SYSTEM_DEFAULT:
         case USER_MEASUREMENT_SYSTEM_BS_1770_4:
-          requested_measurement_system = MEASUREMENT_SYSTEM_BS_1770_4;
           system_bonus = measurement_system_bs1770_3_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_USER:
-          requested_measurement_system = MEASUREMENT_SYSTEM_USER;
           system_bonus = measurement_system_user_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_EXPERT_PANEL:
-          requested_measurement_system = MEASUREMENT_SYSTEM_EXPERT_PANEL;
           system_bonus = measurement_system_expert_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_RESERVED_A:
-          requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_A;
           system_bonus = measurement_system_rms_a_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_RESERVED_B:
-          requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_B;
           system_bonus = measurement_system_rms_b_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_RESERVED_C:
-          requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_C;
           system_bonus = measurement_system_rms_c_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_RESERVED_D:
-          requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_D;
           system_bonus = measurement_system_rms_d_tbl;
           break;
         case USER_MEASUREMENT_SYSTEM_RESERVED_E:
-          requested_measurement_system = USER_MEASUREMENT_SYSTEM_RESERVED_E;
           system_bonus = measurement_system_rms_e_tbl;
           break;
 

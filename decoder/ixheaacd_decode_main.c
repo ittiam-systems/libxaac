@@ -24,6 +24,7 @@
 #include "ixheaacd_error_standards.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
+#include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -35,6 +36,8 @@
 #include "ixheaacd_lt_predict.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_sbr_common.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_channel.h"
@@ -46,6 +49,7 @@
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_bitbuffer.h"
@@ -120,13 +124,10 @@ static WORD32 ixheaacd_audio_preroll_parsing(
     WORD32 *preroll_frame_offset, ia_aac_dec_state_struct *aac_dec_handle) {
   ia_bit_buf_struct *temp_buff =
       (ia_bit_buf_struct *)&(pstr_dec_data->dec_bit_buf);
-  WORD32 independency_flag = 0;
+	  
   WORD32 ext_ele_present = 0;
   WORD32 ext_ele_use_dflt_len = 0;
   WORD32 ext_ele_payload_len = 0;
-
-  WORD32 apply_crossfade = 0;
-  WORD32 un_used_val = 0;
   WORD32 num_pre_roll_frames = 0;
 
   WORD32 frame_idx = 0;
@@ -138,14 +139,13 @@ static WORD32 ixheaacd_audio_preroll_parsing(
   if (pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config
           .str_usac_dec_config.usac_element_type[0] == ID_USAC_EXT) {
     temp = ixheaacd_show_bits_buf(temp_buff, 3);
-    independency_flag = (temp >> 2) & 0x1;
     ext_ele_present = (temp >> 1) & 0x1;
 
     if (ext_ele_present) {
       ext_ele_use_dflt_len = temp & 0x1;  // ixheaacd_read_bit(&temp_buff, 1);
       if (ext_ele_use_dflt_len != 0) return 0;
 
-      un_used_val = ixheaacd_read_bits_buf(temp_buff, 3);
+      ixheaacd_read_bits_buf(temp_buff, 3);// unused value
 
       ext_ele_payload_len = ixheaacd_read_bits_buf(temp_buff, 8);
 
@@ -182,8 +182,8 @@ static WORD32 ixheaacd_audio_preroll_parsing(
       memcpy(aac_dec_handle->preroll_config_prev, conf_buf,
              sizeof(aac_dec_handle->preroll_config_prev));
 
-      apply_crossfade = ixheaacd_read_bits_buf(temp_buff, 1);
-      un_used_val = ixheaacd_read_bits_buf(temp_buff, 1);  // reserverd
+      ixheaacd_read_bits_buf(temp_buff, 1); /*apply_crossfade*/
+      ixheaacd_read_bits_buf(temp_buff, 1);  // reserved
 
       // escapedValue(2, 4, 0);
       num_pre_roll_frames = ixheaacd_read_bits_buf(temp_buff, 2);
@@ -287,7 +287,6 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     pstr_dec_data->dec_bit_buf.bit_pos = 7;
     pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
     pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
-
     pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
     if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
       pstr_dec_data->dec_bit_buf.max_size = pstr_dec_data->dec_bit_buf.size;
@@ -364,7 +363,6 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
             (preroll_frame_offset[access_units] / 8);
       }
 
-      // temp_read=ixheaacd_show_bits_buf(pstr_dec_data->dec_bit_buf,preroll_frame_offset[access_unit]);
       if (!aac_dec_handle->decode_create_done) return IA_FATAL_ERROR;
 
       err =

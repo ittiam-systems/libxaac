@@ -39,7 +39,7 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
     VOID *sbr_persistent_mem_v, WORD32 *ptr_overlap_buf, WORD channel,
     WORD ps_enable, WORD sbr_ratio_idx, WORD output_frame_size, WORD *use_hbe,
     VOID *p_usac_dflt_header, ia_sbr_header_data_struct str_sbr_config,
-    WORD audio_object_type);
+    WORD audio_object_type, WORD32 ldmps_present, WORD32 ldsbr_present);
 
 VOID ixheaacd_setesbr_flags(VOID *sbr_persistent_mem_v, FLAG pvc_flag,
                             FLAG hbe_flag, FLAG inter_tes_flag);

@@ -1242,14 +1242,12 @@ WORD16 ixheaacd_read_sbr_env_data(
   WORD32 lav;
   WORD32 i;
   WORD16 no_band[MAX_ENVELOPES];
-  WORD32 delta;
   WORD32 amp_res, num_env, env_data_tbl_comp_factor, start_bits,
       start_bits_balance;
   WORD16 *p_freq_res = ptr_frame_data->str_frame_info_details.freq_res;
   WORD16 *p_num_sf_bands = ptr_header_data->pstr_freq_band_data->num_sf_bands;
   ia_huffman_data_type hcb_t, hcb_f;
 
-  delta = 0;
   amp_res = ptr_header_data->amp_res;
   num_env = ptr_frame_data->str_frame_info_details.num_env;
 
@@ -1335,7 +1333,7 @@ WORD16 ixheaacd_read_sbr_env_data(
 IA_ERRORCODE ixheaacd_extract_frame_info_ld(
     ia_bit_buf_struct *it_bit_buff,
     ia_sbr_frame_info_data_struct *h_frame_data) {
-  int abs_bord_lead = 0, num_rel_lead = 0, num_rel_trail = 0, bs_num_env = 0,
+  int abs_bord_lead = 0, num_rel_lead = 0, bs_num_env = 0,
       frame_class, temp, env, k, abs_bord_trail = 0, middle_bord = 0,
       bs_num_noise, transient_env_temp = 0, bs_transient_position = 0;
 
@@ -1387,7 +1385,6 @@ IA_ERRORCODE ixheaacd_extract_frame_info_ld(
       abs_bord_lead = 0;
       abs_bord_trail = numTimeSlots;
       num_rel_lead = bs_num_env - 1;
-      num_rel_trail = 0;
 
       for (k = 0; k < num_rel_lead; k++) {
         rel_bord_lead[k] = ixheaacd_ld_env_table_time_slot[num_rel_lead - 1];

@@ -131,11 +131,11 @@ WORD32 ixheaacd_inv_quant(WORD32 *x_quant, WORD32 *ixheaacd_pow_table_Q13);
 
 VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
                             WORD32 *ptr_spec_coeff,
-                            ia_ics_info_struct *ptr_ics_info,
-                            VOID* out_samples, const WORD16 ch_fac,
-                            WORD32 *scratch,
+                            ia_ics_info_struct *ptr_ics_info, VOID *out_samples,
+                            const WORD16 ch_fac, WORD32 *scratch,
                             ia_aac_dec_tables_struct *ptr_aac_tables,
-                            WORD32 object_type , WORD slot_element);
+                            WORD32 object_type, WORD32 ld_mps_present,
+                            WORD slot_element);
 
 VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                  WORD16 ch_fac);
@@ -175,7 +175,10 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *ptr_win,
                                 WORD32 *ptr_overlap_buf, const WORD16 stride,
                                 VOID *out_samples, WORD slot_element);
 
-WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 cnt);
+void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
+                                      const WORD16 *ptr_win, WORD32 framesize,
+                                      WORD16 q_shift, WORD32 *ptr_overlap_buf,
+                                      const WORD16 stride, WORD32 *out_samples);
 
 VOID ixheaacd_process_single_scf(WORD32 scale_factor, WORD32 *x_invquant,
                                  WORD32 width, WORD32 *ptr_scale_table,
@@ -184,6 +187,6 @@ VOID ixheaacd_process_single_scf(WORD32 scale_factor, WORD32 *x_invquant,
 
 void ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, VOID *out_tmp,
                            const WORD16 *window, WORD16 q_shift, WORD16 size,
-                           WORD16 stride , WORD slot_element);
+                           WORD16 stride, WORD slot_element);
 
 #endif /* #ifndef IXHEAACD_BLOCK_H */

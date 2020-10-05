@@ -865,8 +865,7 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
   WORD16 hybrid_resol;
   WORD32 tmp_real, tmp_img;
   WORD32 tmp_real1, tmp_img1;
-  WORD32 loopcnt;
-  WORD16 H11_H12[128 * 2];
+  WORD16 H11_H12[128 * 2] = {0};
 
   usb = ptr_ps_dec->usb;
 
@@ -938,7 +937,6 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
       }
     }
   }
-  loopcnt = (usb + 15) >> 4;
 
   for (subband = 0; subband < NO_QMF_CHANNELS_IN_HYBRID; subband++) {
     tmp_real = *p_hyb_left_re1++;

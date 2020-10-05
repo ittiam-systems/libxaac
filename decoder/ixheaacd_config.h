@@ -51,6 +51,23 @@
 #define ID_CONFIG_EXT_FILL 0
 #define ID_CONFIG_EXT_LOUDNESS_INFO (2)
 
+#define MAX_PARAMETER_BANDS (40)
+#define MAX_PARAMETER_BANDS_MPS (28)
+#define MAX_NUM_OTT (5)
+#define MAX_NUM_TTT (1)
+#define MAX_INPUT_CHANNELS (2)
+#define MAX_RESIDUAL_CHANNELS (3)
+#define MAX_OUTPUT_CHANNELS (7)
+#define MAX_NUM_EXT_TYPES (8)
+#define MAX_M_INPUT (2)
+#define MAX_M_OUTPUT (2)
+#define QMF_BANDS_TO_HYBRID (3)
+#define MAX_HYBRID_ONLY_BANDS_PER_QMF (8)
+#define MAX_ARBITRARY_TREE_LEVELS (2)
+#define MAX_OUTPUT_CHANNELS_AT \
+  (MAX_OUTPUT_CHANNELS * (1 << MAX_ARBITRARY_TREE_LEVELS))
+#define MAX_ARBITRARY_TREE_INDEX ((1 << (MAX_ARBITRARY_TREE_LEVELS + 1)) - 1)
+
 typedef UWORD8 UINT8;
 typedef UWORD32 UINT32;
 
@@ -83,6 +100,66 @@ typedef struct {
   UINT32 bs_residual_bands;
   UINT32 bs_pseudo_lr;
   UINT32 bs_env_quant_mode;
+  UINT32 ldmps_present_flag;
+
+  UINT32 bs_sampling_freq_index;
+  UINT32 bs_fampling_frequency;
+  UINT32 bs_frame_length;
+  UINT32 bs_tree_config;
+  UINT32 bs_quant_mode;
+  UINT32 bs_one_icc;
+  UINT32 bs_arbitrary_downmix;
+  UINT32 bs_residual_coding;
+  UINT32 bs_fixed_gain_sur;
+  UINT32 bs_fixed_gain_LFE;
+  UINT32 bs_matrix_mode;
+  UINT32 bs_3D_audio_mode;
+  UINT32 bs_3D_audio_HRTF_set;
+  UINT32 bs_HRTF_freq_res;
+  UINT32 HRTF_num_band;
+  UINT32 HRTF_num_phase;  // new
+  UINT32 bs_HRTF_num_chan;
+  UINT32 bs_HRTF_asymmetric;
+  UINT32 bs_HRTF_level_left[MAX_OUTPUT_CHANNELS][MAX_PARAMETER_BANDS];
+  UINT32 bs_HRTF_level_right[MAX_OUTPUT_CHANNELS][MAX_PARAMETER_BANDS];
+  UINT32 bs_HRTF_phase[MAX_OUTPUT_CHANNELS];
+  UINT32 bs_HRTF_phase_LR[MAX_OUTPUT_CHANNELS][MAX_PARAMETER_BANDS];
+  UINT32 bs_HRTF_icc[MAX_OUTPUT_CHANNELS];
+  UINT32 bs_HRTF_icc_LR[MAX_OUTPUT_CHANNELS][MAX_PARAMETER_BANDS];
+  UINT32 bs_ott_bands[MAX_NUM_OTT];
+  UINT32 bs_ttt_dual_mode[MAX_NUM_TTT];
+  UINT32 bs_ttt_mode_low[MAX_NUM_TTT];
+  UINT32 bs_ttt_mode_high[MAX_NUM_TTT];
+  UINT32 bs_ttt_bands_low[MAX_NUM_TTT];
+  UINT32 bs_ttt_bands_high[MAX_NUM_TTT];
+
+  UINT32 bs_sac_ext_type[MAX_NUM_EXT_TYPES];
+  UINT32 sac_ext_cnt;
+
+  UINT32 bs_residual_present[MAX_RESIDUAL_CHANNELS];
+  UINT32 bs_residual_sampling_freq_index;
+  UINT32 bs_residual_frames_per_spatial_frame;
+
+  UINT32 bs_residual_bands_ld_mps[MAX_RESIDUAL_CHANNELS];
+
+  UINT32 bs_arbitrary_downmix_residual_sampling_freq_index;
+  UINT32 bs_arbitrary_downmix_residual_frames_per_spatial_frame;
+  UINT32 bs_arbitrary_downmix_residual_bands;
+
+  UINT32 num_out_chan_AT;
+  UINT32 num_ott_boxes_AT;
+  UINT32 bs_output_channel_pos_AT[MAX_OUTPUT_CHANNELS_AT];
+  UINT32 bs_ott_box_present_AT[MAX_OUTPUT_CHANNELS][MAX_ARBITRARY_TREE_INDEX];
+  UINT32 bs_ott_default_cld_AT[MAX_OUTPUT_CHANNELS * MAX_ARBITRARY_TREE_INDEX];
+  UINT32 bs_ott_mode_lfe_AT[MAX_OUTPUT_CHANNELS * MAX_ARBITRARY_TREE_INDEX];
+  UINT32 bs_ott_bands_AT[MAX_OUTPUT_CHANNELS * MAX_ARBITRARY_TREE_INDEX];
+
+  WORD32 num_ott_boxes;
+  WORD32 num_ttt_boxes;
+  WORD32 num_input_channels;
+  WORD32 num_output_channels;
+  WORD32 ott_mode_lfe[MAX_NUM_OTT];  // new
+  WORD32 no_ldsbr_present;
 } ia_usac_dec_mps_config_struct;
 
 #define BS_OUTPUT_CHANNEL_POS_NA -1   /* n/a                                */
