@@ -997,6 +997,10 @@ WORD32 impd_manage_complexity(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc,
   complexityDrcTotal *= freqNorm;
   complexityEqTotal *= freqNorm;
 
+  if ((complexityDrcTotal > complexitySupportedTotal) ||
+      (complexityEqTotal > complexitySupportedTotal))
+    return UNEXPECTED_ERROR;
+
   if (numBandsTooLarge == 1) {
     if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_output.sel_drc_set_ids[0] > 0) {
       err = impd_find_drc_instructions_uni_drc(
