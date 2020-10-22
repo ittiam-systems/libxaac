@@ -457,6 +457,16 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
       p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info);
   if (err_code != IA_NO_ERROR) return err_code;
 
+  if (p_obj_drc->str_payload.pstr_loudness_info->loudness_info
+          ->anchor_loudness_present)
+    p_obj_drc->str_payload.pstr_selection_proc->uni_drc_sel_proc_params
+        .loudness_measurement_method = METHOD_DEFINITION_ANCHOR_LOUDNESS;
+
+  if (p_obj_drc->str_payload.pstr_loudness_info->loudness_info
+          ->expert_loudness_present)
+    p_obj_drc->str_payload.pstr_selection_proc->uni_drc_sel_proc_params
+        .loudness_measurement_system = USER_MEASUREMENT_SYSTEM_EXPERT_PANEL;
+
   err_code = impd_drc_uni_sel_proc_process(
       p_obj_drc->str_payload.pstr_selection_proc,
       p_obj_drc->str_payload.pstr_drc_config,

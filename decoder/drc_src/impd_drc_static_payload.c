@@ -2477,6 +2477,15 @@ impd_parse_loudness_info(ia_bit_buf_struct* it_bit_buff, WORD32 version,
   for (i = 0; i < loudness_info->measurement_count; i++) {
     err = impd_parse_loudness_measure(it_bit_buff,
                                       &(loudness_info->loudness_measure[i]));
+
+    if (loudness_info->loudness_measure[i].method_def ==
+        METHOD_DEFINITION_ANCHOR_LOUDNESS)
+      loudness_info->anchor_loudness_present = 1;
+
+    if (loudness_info->loudness_measure[i].measurement_system ==
+        MEASUREMENT_SYSTEM_EXPERT_PANEL)
+      loudness_info->expert_loudness_present = 1;
+
     if (err) return (err);
   }
 
