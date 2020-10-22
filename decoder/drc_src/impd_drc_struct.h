@@ -444,6 +444,8 @@ typedef struct {
   WORD32 true_peak_level_measurement_system; /* Parsed but unused */
   WORD32 true_peak_level_reliability;        /* Parsed but unused */
   WORD32 measurement_count;
+  WORD32 anchor_loudness_present;
+  WORD32 expert_loudness_present;
   ia_loudness_measure_struct loudness_measure[MEASUREMENT_COUNT_MAX];
 } ia_loudness_info_struct;
 
