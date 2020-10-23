@@ -32,7 +32,7 @@
 WORD32
 impd_drc_dec_interface_add_effect_type(
     ia_drc_interface_struct* pstr_drc_interface, WORD32 drc_effect_type,
-    WORD32 target_loudness, WORD32 loud_norm) {
+    WORD32 target_loudness, WORD32 loud_norm, WORD32 album_mode) {
   WORD32 err = 0;
   WORD32 i = 0;
 
@@ -67,7 +67,7 @@ impd_drc_dec_interface_add_effect_type(
         (FLOAT32)target_loudness;
 
     pstr_drc_interface->loudness_norm_parameter_interface_flag = 1;
-    pstr_drc_interface->loudness_norm_param_interface.album_mode = 0;
+    pstr_drc_interface->loudness_norm_param_interface.album_mode = album_mode;
     pstr_drc_interface->loudness_norm_param_interface.peak_limiter = 0;
     pstr_drc_interface->loudness_norm_param_interface
         .change_loudness_deviation_max = 1;
