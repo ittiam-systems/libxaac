@@ -345,7 +345,10 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           p_obj_drc->str_config.loud_norm_flag = *pus_value;
           break;
         }
-
+        case IA_DRC_DEC_CONFIG_DRC_ALBUM_MODE: {
+          p_obj_drc->str_config.album_mode = *pus_value;
+          break;
+        }
         default: { return -1; }
       }
       break;
