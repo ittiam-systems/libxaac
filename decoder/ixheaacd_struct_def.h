@@ -137,6 +137,8 @@ typedef struct {
   WORD32 ui_flush_cmd;
 
   ia_drc_config drc_config_struct;
+  WORD32 output_level;
+  WORD32 i_loud_ref_level;
 
 } ia_aac_dec_config_struct;
 

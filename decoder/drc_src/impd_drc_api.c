@@ -108,6 +108,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
   pUWORD32 pus_value = pv_value;
   pWORD8 pb_value = pv_value;
   SIZE_T *ps_value = pv_value;
+  pWORD32 pi_value = pv_value;
 
   switch (i_cmd) {
     case IA_API_CMD_GET_MEM_INFO_SIZE:
@@ -267,6 +268,15 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         }
         case IA_DRC_DEC_CONFIG_PROC_OUT_PTR: {
           *ps_value = (SIZE_T)p_obj_drc->str_payload.pstr_drc_sel_proc_output;
+          break;
+        }
+        case IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS: {
+          *pi_value = p_obj_drc->str_payload.pstr_loudness_info->loudness_info
+                          ->loudness_measure->method_val;
+          if (*pi_value < -1)
+            *pi_value = *pi_value * -4;
+          else
+            *pi_value = -1;
           break;
         }
       }
