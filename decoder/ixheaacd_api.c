@@ -406,6 +406,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 0;
           p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 0;
+          p_obj_exhaacplus_dec->aac_config.output_level = -1;
 
           p_obj_exhaacplus_dec->aac_config.ui_max_channels = 6;
 
@@ -580,6 +581,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
         case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LEVEL: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
+          p_obj_exhaacplus_dec->aac_config.i_loud_ref_level = *pui_value_signed;
           if (*pui_value > 127) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
             return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_TARGET);
@@ -813,6 +815,10 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     case IA_API_CMD_GET_MEMTABS_SIZE: {
       *pui_value = (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) *
                    (IA_ENHAACPDEC_NUM_MEMTABS);
+      break;
+    }
+    case IA_API_CMD_GET_LOUDNESS_VAL: {
+      *pui_value = p_obj_exhaacplus_dec->aac_config.output_level;
       break;
     }
     case IA_API_CMD_SET_MEMTABS_PTR: {
@@ -1809,6 +1815,16 @@ IA_ERRORCODE ixheaacd_dec_init(
           p_state_enhaacplus_dec->eld_specific_config,
           p_state_enhaacplus_dec->s_adts_hdr_present,
           &p_state_enhaacplus_dec->drc_dummy);
+
+      if (p_state_enhaacplus_dec->pstr_drc_dec->drc_element_found == 1) {
+        if (p_obj_exhaacplus_dec->aac_config.i_loud_ref_level < 0) {
+          p_obj_exhaacplus_dec->aac_config.output_level =
+              p_state_enhaacplus_dec->pstr_drc_dec->prog_ref_level;
+        } else {
+          p_obj_exhaacplus_dec->aac_config.output_level =
+              p_obj_exhaacplus_dec->aac_config.i_loud_ref_level;
+        }
+      }
 
       memset(&(p_obj_exhaacplus_dec->p_state_aac->pstr_aac_dec_info[ch_idx]
                    ->pstr_aac_dec_ch_info[0]
