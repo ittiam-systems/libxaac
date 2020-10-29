@@ -319,6 +319,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
   pWORD32 pui_value_signed = pv_value;
   pWORD8 pb_value = pv_value;
   pVOID *pp_value = (pVOID *)pv_value;
+  float *pf_value = pv_value;
 
   if ((i_cmd != IA_API_CMD_GET_API_SIZE) &&
       (i_cmd != IA_API_CMD_GET_LIB_ID_STRINGS)) {
@@ -559,23 +560,23 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         }
         case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_CUT: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
-          if (*pui_value > 127) {
+          if (*pf_value > 1) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
             return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_CUT);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_cut =
-              (WORD32)((*pui_value / 127.0) * 100);
+              (WORD32)((*pf_value) * 100);
           break;
         }
 
         case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_BOOST: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
-          if (*pui_value > 127) {
+          if (*pf_value > 1) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
             return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_BOOST);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_boost =
-              (WORD32)((*pui_value / 127.0) * 100);
+              (WORD32)((*pf_value) * 100);
           break;
         }
 
@@ -2615,8 +2616,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
           time_data, channel, p_obj_exhaacplus_dec->aac_config.ui_max_channels,
           p_state_enhaacplus_dec->audio_object_type);
 
-      if(p_state_enhaacplus_dec->ch_config == 2 && channel == 1)
-          return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+      if (p_state_enhaacplus_dec->ch_config == 2 && channel == 1)
+        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
 
       error_code = ixheaacd_aacdec_decodeframe(
           p_obj_exhaacplus_dec, &aac_scratch_struct, actual_out_buffer,

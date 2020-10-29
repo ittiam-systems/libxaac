@@ -56,6 +56,8 @@ typedef struct ia_drc_config_struct {
   WORD32 target_loudness;
   WORD32 loud_norm_flag;
   WORD32 album_mode;
+  FLOAT32 boost;
+  FLOAT32 compress;
 
 } ia_drc_config_struct;
 
