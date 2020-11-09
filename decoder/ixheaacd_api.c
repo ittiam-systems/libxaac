@@ -1331,6 +1331,8 @@ IA_ERRORCODE ixheaacd_dec_init(
   p_obj_exhaacplus_dec->p_state_aac =
       p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_PERSIST_IDX];
 
+  p_obj_exhaacplus_dec->p_state_aac->preroll_config_present = 0;
+
   if (p_obj_exhaacplus_dec->p_state_aac != NULL) {
     ret_val = setjmp(p_obj_exhaacplus_dec->p_state_aac->xaac_jmp_buf);
     if (ret_val != 0) {
