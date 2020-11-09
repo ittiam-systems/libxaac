@@ -21,6 +21,7 @@
 #define IXHEAACD_STRUCT_DEF_H
 
 #include <setjmp.h>
+#include <stdbool.h>
 
 #define MAX_OUTPUT_CHANNELS (8)
 #define MAX_NUM_OTT (1)
@@ -45,6 +46,10 @@
 #define BUFFER_LEN_HF ((PROTO_LEN - 1) / 2)
 #define MAX_TIME_SLOTS (72)
 #define MAX_NO_TIME_SLOTS_DELAY (14)
+
+#define MAX_PREROLL_FRAME_OFFSET 4
+// max of escapedValue(4, 4, 8) i.e. 2^4 -1 + 2^4 -1 + 2^8 -1;
+#define MAX_PREROLL_SIZE 285
 
 typedef struct {
   WORD8 element_instance_tag;
@@ -239,6 +244,8 @@ typedef struct ia_aac_dec_state_struct {
   WORD32 decode_create_done;
   WORD32 fatal_err_present;
   WORD8 *pers_mem_ptr;
+  bool preroll_config_present;
+  UWORD8 preroll_config_prev[MAX_PREROLL_SIZE];
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {
