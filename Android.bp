@@ -2,14 +2,14 @@ cc_library_static {
     name: "libxaacdec",
 
     vendor_available: true,
-    host_supported:true,
+    host_supported: true,
     cflags: [
-        "-O3"
+        "-O3",
     ],
 
     export_include_dirs: [
         "decoder",
-        "decoder/drc_src"
+        "decoder/drc_src",
     ],
 
     srcs: [
@@ -124,15 +124,26 @@ cc_library_static {
         "decoder/drc_src/impd_drc_static_payload.c",
     ],
 
+    target: {
+        android: {
+            sanitize: {
+                diag: {
+                    cfi: true,
+                },
+            },
+        },
+    },
+
     sanitize: {
         misc_undefined: [
             "unsigned-integer-overflow",
             "signed-integer-overflow",
             "bounds",
         ],
-        // Enable CFI if this becomes a shared library.
-        // cfi: true,
-        blocklist: "libxaac_blocklist.txt",
+        cfi: true,
+        config: {
+            cfi_assembly_support: true,
+        },
     },
 
     arch: {
@@ -213,9 +224,9 @@ cc_library_static {
                     "decoder/armv7/ixheaacd_aac_ld_dec_rearrange.s",
                     "decoder/armv7/ixheaacd_fft32x32_ld2_armv7.s",
                     "decoder/armv7/ixheaacd_apply_scale_fac.s",
-                    "decoder/armv7/ixheaacd_tns_ar_filter_fixed.s"
+                    "decoder/armv7/ixheaacd_tns_ar_filter_fixed.s",
                 ],
-            }
+            },
         },
 
         arm64: {
