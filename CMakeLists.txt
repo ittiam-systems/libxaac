@@ -85,6 +85,7 @@ list(
     "${XAAC_ROOT}/decoder/ixheaacd_mps_temp_process.c"
     "${XAAC_ROOT}/decoder/ixheaacd_mps_temp_reshape.c"
     "${XAAC_ROOT}/decoder/ixheaacd_pns_js_thumb.c"
+    "${XAAC_ROOT}/decoder/ixheaacd_peak_limiter.c"
     "${XAAC_ROOT}/decoder/ixheaacd_pred_vec_block.c"
     "${XAAC_ROOT}/decoder/ixheaacd_process.c"
     "${XAAC_ROOT}/decoder/ixheaacd_ps_bitdec.c"

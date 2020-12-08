@@ -76,7 +76,7 @@ VOID(*ixheaacd_covariance_matrix_calc_2)
  WORD16) = &ixheaacd_covariance_matrix_calc_2_armv7;
 
 VOID(*ixheaacd_over_lap_add1)
-(WORD32 *, WORD32 *, WORD16 *, const WORD16 *, WORD16, WORD16,
+(WORD32 *, WORD32 *, WORD32 *, const WORD16 *, WORD16, WORD16,
  WORD16) = &ixheaacd_over_lap_add1_armv7;
 
 VOID(*ixheaacd_over_lap_add2)
@@ -161,12 +161,13 @@ VOID(*ixheaacd_post_twiddle)
  WORD npoints) = &ixheaacd_post_twiddle_armv7;
 
 VOID(*ixheaacd_post_twid_overlap_add)
-(WORD16 pcm_out[], WORD32 spec_data[],
+(WORD32 pcm_out[], WORD32 spec_data[],
  ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints,
  WORD32 *ptr_overlap_buf, WORD16 q_shift, const WORD16 *window,
  WORD16 ch_fac) = &ixheaacd_post_twid_overlap_add_armv7;
+
 VOID(*ixheaacd_neg_shift_spec)
-(WORD32 *coef, WORD16 *out, WORD16 q_shift,
+(WORD32 *coef, WORD32 *out, WORD16 q_shift,
  WORD16 ch_fac) = &ixheaacd_neg_shift_spec_armv7;
 
 VOID(*ixheaacd_spec_to_overlapbuf)
@@ -174,11 +175,11 @@ VOID(*ixheaacd_spec_to_overlapbuf)
  WORD32 size) = &ixheaacd_spec_to_overlapbuf_armv7;
 
 VOID(*ixheaacd_overlap_buf_out)
-(WORD16 *out_samples, WORD32 *ptr_overlap_buf, WORD32 size,
+(WORD32 *out_samples, WORD32 *ptr_overlap_buf, WORD32 size,
  const WORD16 ch_fac) = &ixheaacd_overlap_buf_out_armv7;
 
 VOID(*ixheaacd_overlap_out_copy)
-(WORD16 *out_samples, WORD32 *ptr_overlap_buf, WORD32 *ptr_overlap_buf1,
+(WORD32 *out_samples, WORD32 *ptr_overlap_buf, WORD32 *ptr_overlap_buf1,
  const WORD16 ch_fac) = &ixheaacd_overlap_out_copy_armv7;
 
 VOID(*ixheaacd_pretwiddle_compute)

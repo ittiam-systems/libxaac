@@ -32,79 +32,60 @@ ixheaacd_neg_shift_spec_armv7:
     ADD             R6, R6, R0
     MOV             R8, #-16
     SUB             R6, R6, #12
-    MOV             R7, R3, LSL #1
+    MOV             R7, R3, LSL #2
     VDUP.32         Q1, R2
-    MOV             R4, #0x8000
-    VDUP.32         Q2, R4
-
     VLD1.32         {D0, D1}, [R6], R8
     VQNEG.S32       Q0, Q0
 
 
     VLD1.32         {D6, D7}, [R6], R8
     VQSHL.S32       Q15, Q0, Q1
-    VQADD.S32       Q14, Q15, Q2
-    VSHR.S32        Q13, Q14, #16
-    VREV64.32       Q13, Q13
+    VMOV            Q13, Q15
     SUB             R5, R5, #8
 
-    VUZP.16         D27, D26
     VQNEG.S32       Q3, Q3
-
+    VREV64.32       Q13,Q13
 
 LOOP_1:
 
-
-    VST1.16         D27[0], [R1], R7
-    VQSHL.S32       Q12, Q3, Q1
-    VLD1.32         {D0, D1}, [R6], R8
-    VST1.16         D27[1], [R1], R7
-    VQADD.S32       Q11, Q12, Q2
-    VST1.16         D27[2], [R1], R7
-    VQNEG.S32       Q0, Q0
-    VST1.16         D27[3], [R1], R7
-    VSHR.S32        Q10, Q11, #16
-    VREV64.32       Q10, Q10
-    SUBS            R5, R5, #8
+   VST1.32         {D27[0]},[R1], R7
+   VQSHL.S32       Q12, Q3, Q1
+   VLD1.32         {D0, D1}, [R6], R8
+   VST1.32         {D27[1]}, [R1], R7
+   VST1.32         {D26[0]}, [R1], R7
+   VQNEG.S32       Q0, Q0
+   VST1.32         {D26[1]}, [R1], R7
+   VMOV            Q10 , Q12
+   SUBS            R5, R5, #8
 
 
-    VUZP.16         D21, D20
-    VQSHL.S32       Q15, Q0, Q1
-    VST1.16         D21[0], [R1], R7
-    VLD1.32         {D6, D7}, [R6], R8
-    VQADD.S32       Q14, Q15, Q2
-    VST1.16         D21[1], [R1], R7
-    VSHR.S32        Q13, Q14, #16
-    VST1.16         D21[2], [R1], R7
-    VREV64.32       Q13, Q13
-    VST1.16         D21[3], [R1], R7
+   VREV64.32       Q10,Q10
+   VQSHL.S32       Q15, Q0, Q1
+   VST1.32         {D21[0]},[R1], R7
+   VLD1.32         {D6, D7}, [R6],R8
+   VST1.32         {D21[1]}, [R1],R7
+   VMOV            Q13,Q15
+   VST1.32         {D20[0]}, [R1],R7
+   VST1.32         {D20[1]}, [R1],R7
 
+   VREV64.32       Q13,Q13
+   VQNEG.S32       Q3, Q3
 
-    VUZP.16         D27, D26
-    VQNEG.S32       Q3, Q3
+   BGT             LOOP_1
 
+   VST1.32         {D27[0]},[R1],R7
+   VQSHL.S32       Q12, Q3, Q1
+   VST1.32         {D27[1]}, [R1],R7
+   VST1.32         {D26[0]}, [R1],R7
+   VST1.32         {D26[1]}, [R1],R7
+   VMOV             Q10, Q12
 
-
-    BGT             LOOP_1
-
-    VST1.16         D27[0], [R1], R7
-    VQSHL.S32       Q12, Q3, Q1
-    VST1.16         D27[1], [R1], R7
-    VST1.16         D27[2], [R1], R7
-    VQADD.S32       Q11, Q12, Q2
-    VST1.16         D27[3], [R1], R7
-    VSHR.S32        Q10, Q11, #16
-
-
-    VREV64.32       Q10, Q10
-
-    VUZP.16         D21, D20
-
-    VST1.16         D21[0], [R1], R7
-    VST1.16         D21[1], [R1], R7
-    VST1.16         D21[2], [R1], R7
-    VST1.16         D21[3], [R1], R7
-    VPOP            {D8 - D15}
-    LDMFD           sp!, {R4-R12, R15}
+   VREV64.32       Q10,Q10
+   VST1.32         {D21[0]}, [R1], R7
+   VST1.32         {D21[1]}, [R1], R7
+   VST1.32         {D20[0]}, [R1], R7
+   VST1.32         {D20[1]}, [R1], R7
+   VPOP            {D8 - D15}
+   LDMFD           sp!, {R4-R12, R15}
 .end
 

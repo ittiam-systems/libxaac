@@ -38,19 +38,19 @@ VOID ixheaacd_post_twiddle_armv8(
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD32 npoints);
 
 VOID ixheaacd_post_twid_overlap_add_dec(
-    WORD16 pcm_out[], WORD32 spec_data[],
+    WORD32 pcm_out[], WORD32 spec_data[],
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints,
     WORD32 *ptr_overlap_buf, WORD16 q_shift, const WORD16 *window,
     WORD16 ch_fac);
 
 VOID ixheaacd_post_twid_overlap_add_armv7(
-    WORD16 pcm_out[], WORD32 spec_data[],
+    WORD32 pcm_out[], WORD32 spec_data[],
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints,
     WORD32 *ptr_overlap_buf, WORD16 q_shift, const WORD16 *window,
     WORD16 ch_fac);
 
 VOID ixheaacd_post_twid_overlap_add_armv8(
-    WORD16 pcm_out[], WORD32 spec_data[],
+    WORD32 pcm_out[], WORD32 spec_data[],
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints,
     WORD32 *ptr_overlap_buf, WORD16 q_shift, const WORD16 *window,
     WORD16 ch_fac);

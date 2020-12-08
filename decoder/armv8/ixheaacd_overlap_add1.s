@@ -47,6 +47,7 @@
 .global ixheaacd_over_lap_add1_armv8
 ixheaacd_over_lap_add1_armv8:
     push_v_regs
+    LSL             X6 , X6 , #1
     LSL             X10, X5, #1
     SUB             X11, X10, #1
     LSL             X10, X11, #2
@@ -58,11 +59,9 @@ ixheaacd_over_lap_add1_armv8:
     MOV             X12, #-16
     DUP             V11.8H, W4
     LD1             {V3.4S}, [X10], X12
-    MOV             W7, #0x2000
 
     NEG             W7, W7
     SQNEG           V0.4S, V3.4S
-    DUP             V10.4S, W7
     UZP1            V31.8H, V0.8H, V0.8H
     UZP2            V30.8H, V0.8H, V0.8H
     REV64           V31.8h, V31.8h
@@ -105,12 +104,7 @@ ixheaacd_over_lap_add1_armv8:
     SQXTN2          V28.4S, V29.2D
     MOV             V14.16B, V28.16B
 
-    SQADD           V14.4S, V14.4S, V10.4S
     SQSUB           V13.4S, V15.4S, V14.4S
-    SQSHL           V13.4S, V13.4S, #2
-    SSHR            V13.4S, V13.4S, #16
-    UZP1            V26.8H, V13.8H, V13.8H
-
     UMULL           V12.4S, V31.4H, V3.4H
     USHR            V12.4S, V12.4S, #16
     SMLAL           V12.4S, V30.4H, V3.4H
@@ -124,8 +118,6 @@ ixheaacd_over_lap_add1_armv8:
     SQXTN2          V28.4S, V29.2D
     MOV             V8.16B, V28.16B
 
-    SQADD           V8.4S, V8.4S, V10.4S
-
     SQNEG           V0.4S, V3.4S
     UZP1            V1.8H, V0.8H, V0.8H
     UZP2            V0.8H, V0.8H, V0.8H
@@ -136,12 +128,9 @@ ixheaacd_over_lap_add1_armv8:
     UZP2            V6.8H, V3.8H, V3.8H
     REV64           V7.8h, V7.8h
     REV64           V6.8h, V6.8h
-    SQSHL           V9.4S, V9.4S, #2
     LD2             {V2.4H, V3.4H}, [X8], X12
-    SSHR            V9.4S, V9.4S, #16
     REV64           V2.4H, V2.4H
     REV64           V3.4H, V3.4H
-    UZP1            V18.8H, V9.8H, V9.8H
 
     LD1             {V4.4S}, [X1], #16
     SUB             W5, W5, #8
@@ -149,21 +138,21 @@ ixheaacd_over_lap_add1_armv8:
 
 LOOP_1:
 
-    ST1             {V26.H}[0], [X11], X4
+    ST1             {V13.S}[0], [X11], X4
     UMULL           V15.4S, V7.4H, V2.4H
-    ST1             {V26.H}[1], [X11], X4
+    ST1             {V13.S}[1], [X11], X4
     UMULL           V12.4S, V1.4H, V3.4H
-    ST1             {V26.H}[2], [X11], X4
+    ST1             {V13.S}[2], [X11], X4
     USHR            V15.4S, V15.4S, #16
-    ST1             {V26.H}[3], [X11], X4
+    ST1             {V13.S}[3], [X11], X4
     USHR            V12.4S, V12.4S, #16
-    ST1             {V18.H}[0], [X6], X9
+    ST1             {V9.S}[0], [X6], X9
     SMLAL           V15.4S, V6.4H, V2.4H
-    ST1             {V18.H}[1], [X6], X9
+    ST1             {V9.S}[1], [X6], X9
     SMLAL           V12.4S, V0.4H, V3.4H
-    ST1             {V18.H}[2], [X6], X9
+    ST1             {V9.S}[2], [X6], X9
     SQSHL           V15.4S, V15.4S, V11.4S
-    ST1             {V18.H}[3], [X6], X9
+    ST1             {V9.S}[3], [X6], X9
     SQSHL           V12.4S, V12.4S, V11.4S
     LD1             {V6.4S}, [X10], X12
 
@@ -187,12 +176,10 @@ LOOP_1:
 
     LD1             {V4.4S}, [X1], #16
 
-    SQADD           V14.4S, V14.4S, V10.4S
     UZP1            V1.8H, V0.8H, V0.8H
     UZP2            V0.8H, V0.8H, V0.8H
     REV64           V1.8h, V1.8h
     REV64           V0.8h, V0.8h
-    SQADD           V8.4S, V8.4S, V10.4S
     UZP1            V7.8H, V6.8H, V6.8H
     UZP2            V6.8H, V6.8H, V6.8H
     REV64           V7.8h, V7.8h
@@ -201,27 +188,21 @@ LOOP_1:
     REV64           V2.4H, V2.4H
     REV64           V3.4H, V3.4H
     SQSUB           V9.4S, V12.4S, V8.4S
-    SQSHL           V13.4S, V13.4S, #2
-    SQSHL           V9.4S, V9.4S, #2
     UMULL           V15.4S, V7.4H, V2.4H
-    SSHR            V13.4S, V13.4S, #16
-    UZP1            V26.8H, V13.8H, V13.8H
-    SSHR            V9.4S, V9.4S, #16
-    ST1             {V26.H}[0], [X11], X4
+    ST1             {V13.S}[0], [X11], X4
     UMULL           V12.4S, V1.4H, V3.4H
-    UZP1            V18.8H, V9.8H, V9.8H
     USHR            V15.4S, V15.4S, #16
-    ST1             {V26.H}[1], [X11], X4
+    ST1             {V13.S}[1], [X11], X4
     SMLAL           V15.4S, V6.4H, V2.4H
-    ST1             {V26.H}[2], [X11], X4
+    ST1             {V13.S}[2], [X11], X4
     USHR            V12.4S, V12.4S, #16
-    ST1             {V26.H}[3], [X11], X4
+    ST1             {V13.S}[3], [X11], X4
     SMLAL           V12.4S, V0.4H, V3.4H
-    ST1             {V18.H}[0], [X6], X9
+    ST1             {V9.S}[0], [X6], X9
     SQSHL           V15.4S, V15.4S, V11.4S
-    ST1             {V18.H}[1], [X6], X9
+    ST1             {V9.S}[1], [X6], X9
     SQSHL           V12.4S, V12.4S, V11.4S
-    ST1             {V18.H}[2], [X6], X9
+    ST1             {V9.S}[2], [X6], X9
 
     SSHLL           V27.4S, V3.4H, #0
     SMULL           V28.2D, V27.2S, V4.2S
@@ -230,7 +211,7 @@ LOOP_1:
     SQXTN2          V28.4S, V29.2D
     MOV             V14.16B, V28.16B
 
-    ST1             {V18.H}[3], [X6], X9
+    ST1             {V9.S}[3], [X6], X9
 
 
     SSHLL           V27.4S, V2.4H, #0
@@ -241,7 +222,6 @@ LOOP_1:
     MOV             V8.16B, V28.16B
 
     LD1             {V3.4S}, [X10], X12
-    SQADD           V14.4S, V14.4S, V10.4S
 
     SQNEG           V0.4S, V3.4S
     UZP1            V1.8H, V0.8H, V0.8H
@@ -253,39 +233,35 @@ LOOP_1:
     UZP2            V6.8H, V3.8H, V3.8H
     REV64           V7.8H, V7.8H
     REV64           V6.8H, V6.8H
-    SQADD           V8.4S, V8.4S, V10.4S
+
     LD2             {V2.4H, V3.4H}, [X8], X12
     SQSUB           V9.4S, V12.4S, V8.4S
     REV64           V2.4H, V2.4H
     REV64           V3.4H, V3.4H
-    SQSHL           V13.4S, V13.4S, #2
+
     LD1             {V4.4S}, [X1], #16
 
-    SQSHL           V9.4S, V9.4S, #2
-    SSHR            V13.4S, V13.4S, #16
+
     SUBS            X5, X5, #8
-    SSHR            V9.4S, V9.4S, #16
-    UZP1            V26.8H, V13.8H, V13.8H
-    UZP1            V18.8H, V9.8H, V9.8H
 
     BGT             LOOP_1
 
-    ST1             {V26.H}[0], [X11], X4
+    ST1             {V13.S}[0], [X11], X4
     UMULL           V15.4S, V7.4H, V2.4H
-    ST1             {V26.H}[1], [X11], X4
+    ST1             {V13.S}[1], [X11], X4
     UMULL           V12.4s, V1.4H, V3.4H
-    ST1             {V26.H}[2], [X11], X4
+    ST1             {V13.S}[2], [X11], X4
     USHR            V15.4S, V15.4S, #16
-    ST1             {V26.H}[3], [X11], X4
+    ST1             {V13.S}[3], [X11], X4
     USHR            V12.4S, V12.4S, #16
 
-    ST1             {V18.H}[0], [X6], X9
+    ST1             {V9.S}[0], [X6], X9
     SMLAL           V15.4S, V6.4H, V2.4H
-    ST1             {V18.H}[1], [X6], X9
+    ST1             {V9.S}[1], [X6], X9
     SMLAL           V12.4S, V0.4H, V3.4H
-    ST1             {V18.H}[2], [X6], X9
+    ST1             {V9.S}[2], [X6], X9
     SQSHL           V15.4S, V15.4S, V11.4S
-    ST1             {V18.H}[3], [X6], X9
+    ST1             {V9.S}[3], [X6], X9
     SQSHL           V12.4S, V12.4S, V11.4S
 
 
@@ -303,28 +279,20 @@ LOOP_1:
     SQXTN2          V28.4S, V29.2D
     MOV             V8.16B, V28.16B
 
-    SQADD           V14.4S, V14.4S, V10.4S
-    SQADD           V8.4S, V8.4S, V10.4S
+
     SQSUB           V13.4S, V15.4S, V14.4S
     SQSUB           V9.4S, V12.4S, V8.4S
-    SQSHL           V13.4S, V13.4S, #2
-    SQSHL           V9.4S, V9.4S, #2
-    SSHR            V13.4S, V13.4S, #16
-    SSHR            V9.4S, V9.4S, #16
-    UZP1            V26.8H, V13.8H, V13.8H
-
-    UZP1            V18.8H, V9.8H, V9.8H
 
 
-    ST1             {V26.H}[0], [X11], X4
-    ST1             {V26.H}[1], [X11], X4
-    ST1             {V26.H}[2], [X11], X4
-    ST1             {V26.H}[3], [X11], X4
+    ST1             {V13.S}[0], [X11], X4
+    ST1             {V13.S}[1], [X11], X4
+    ST1             {V13.S}[2], [X11], X4
+    ST1             {V13.S}[3], [X11], X4
 
-    ST1             {V18.H}[0], [X6], X9
-    ST1             {V18.H}[1], [X6], X9
-    ST1             {V18.H}[2], [X6], X9
-    ST1             {V18.H}[3], [X6], X9
+    ST1             {V9.S}[0], [X6], X9
+    ST1             {V9.S}[1], [X6], X9
+    ST1             {V9.S}[2], [X6], X9
+    ST1             {V9.S}[3], [X6], X9
     pop_v_regs
     RET
 
