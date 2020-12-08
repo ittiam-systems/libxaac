@@ -95,6 +95,7 @@ cc_library_static {
         "decoder/ixheaacd_mps_temp_process.c",
         "decoder/ixheaacd_mps_temp_reshape.c",
         "decoder/ixheaacd_pns_js_thumb.c",
+        "decoder/ixheaacd_peak_limiter.c",
         "decoder/ixheaacd_pred_vec_block.c",
         "decoder/ixheaacd_process.c",
         "decoder/ixheaacd_ps_bitdec.c",

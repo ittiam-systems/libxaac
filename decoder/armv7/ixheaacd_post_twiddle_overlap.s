@@ -44,7 +44,7 @@ ixheaacd_post_twid_overlap_add_armv7:
 
     VMOV.S16        D18, #50
     RSB             R9, R5, #15
-    VMOV.S32        Q10, #0x00008000
+    VMOV.S32        Q10, #0x0000000
     VDUP.32         Q8, R5
     SUB             R5, R5, #16
     STR             R5, [sp, #116]
@@ -149,14 +149,12 @@ NEXT1:
     VQSUB.S32       D8, D0, D8
 
 
-    VQSHL.S32       D8, D8, #2
     VDUP.32         D0, R8
-    VQADD.S32       D8, D8, D0
-    VSHR.S32        D8, D8, #16
 
 
 
     LDR             R7, [sp, #112]
+    LSL             R7 , R7 , #1
     LSL             R10, R7, #1
 
     ASR             R5, R3, #1
@@ -166,8 +164,8 @@ NEXT1:
     MVN             R9, R10
     ADD             R9, R9, #1
 
-    VST1.16         D8[2], [R0], R9
-    VST1.16         D8[0], [R5], R10
+    VST1.32         D8[1], [R0], R9
+    VST1.32         D8[0], [R5], R10
 
 
     MOV             R8, R1
@@ -397,27 +395,18 @@ PROLOGUE_NEON:
     VMLAL.S16       Q15, D15, D10
 
     VLD2.32         {Q5, Q6}, [R6], R12
-    VQSHL.S32       Q2, Q2, #2
 
     VUZP.16         D10, D11
-    VQSHL.S32       Q3, Q3, #2
 
     VUZP.16         D12, D13
-    VQADD.S32       Q7, Q2, Q10
+    VMOV            Q7,Q2
 
     VREV64.16       Q5, Q5
-    VQADD.S32       Q3, Q3, Q10
 
     VREV64.16       Q6, Q6
-    VSHR.S32        Q7, Q7, #16
-
-    VUZP.16         D14, D15
-    VSHR.S32        Q3, Q3, #16
-
-    VUZP.16         D6, D7
-
-    VMOV            D15, D6
     VQSHL.S32       Q4, Q4, Q8
+
+    VMOV             Q9,Q3
 
     VLD2.32         {Q2, Q3}, [R8]!
     VQSHL.S32       Q15, Q15, Q8
@@ -428,71 +417,60 @@ PROLOGUE_NEON:
     VUZP.16         D6, D7
     VQSUB.S32       Q11, Q15, Q11
 
-    VQSHL.S32       Q15, Q4, #2
+     VMOV            Q15,Q4
 
     VLD2.16         {D8, D9}, [R2]!
-    VQSHL.S32       Q11, Q11, #2
-
-    VQADD.S32       Q15, Q15, Q10
-    VQADD.S32       Q11, Q11, Q10
-
-    VSHR.S32        Q15, Q15, #16
-
-    VUZP.16         D30, D31
-    VSHR.S32        Q11, Q11, #16
-
-
-    VUZP.16         D22, D23
-    VMOV            D23, D30
 
 CORE_LOOP_PTO:
-    VST1.16         D14[0], [R0, : 16], R9
+
+    VST1.32         D14[0], [R0, :32], R9
+
+    VST1.32         D22[0], [R0, :32], R9
+
+    VST1.32         D14[1], [R0, :32], R9
+
+    VST1.32         D22[1], [R0, :32], R9
+
+    VST1.32         D15[0], [R0, :32], R9
+
+    VST1.32         D23[0], [R0, :32], R9
+
+    VST1.32         D15[1], [R0, :32], R9
+
+    VST1.32         D23[1], [R0, :32], R9
+
+    VST1.32         D18[0], [R5, :32], R10
+
+    VST1.32         D30[0], [R5, :32] ,R10
+
+    VST1.32         D18[1], [R5, :32], R10
+
+    VST1.32         D30[1], [R5, :32], R10
+
+    VST1.32         D19[0], [R5, :32], R10
+
+    VST1.32         D31[0], [R5, :32], R10
+
+    VST1.32         D19[1], [R5, :32], R10
+
+    VST1.32         D31[1], [R5, :32], R10
+
     VMULL.U16       Q15, D0, D9
-
-    VST1.16         D22[0], [R0, : 16], R9
     VMULL.U16       Q14, D2, D8
-
-    VST1.16         D14[1], [R0, : 16], R9
     VMULL.U16       Q13, D0, D8
-
-    VST1.16         D22[1], [R0, : 16], R9
     VMULL.U16       Q12, D2, D9
-
-    VST1.16         D14[2], [R0, : 16], R9
     VSHR.U32        Q15, Q15, #16
-
-    VST1.16         D22[2], [R0, : 16], R9
     VSHR.U32        Q14, Q14, #16
-
-    VST1.16         D14[3], [R0, : 16], R9
     VMLAL.S16       Q15, D1, D9
-
-    VST1.16         D22[3], [R0, : 16], R9
     VMLAL.S16       Q14, D3, D8
-
-    VST1.16         D15[0], [R5, : 16], R10
     VSHR.U32        Q13, Q13, #16
-
-    VST1.16         D23[0], [R5, : 16], R10
     VSHR.U32        Q12, Q12, #16
-
-    VST1.16         D15[1], [R5, : 16], R10
     VMLAL.S16       Q13, D1, D8
-
-    VST1.16         D23[1], [R5, : 16], R10
     VMLAL.S16       Q12, D3, D9
 
-    VST1.16         D15[2], [R5, : 16], R10
     VADD.I32        Q15, Q15, Q14
-
-    VST1.16         D23[2], [R5, : 16], R10
     VNEG.S32        Q15, Q15
-
-    VST1.16         D15[3], [R5, : 16], R10
-
-    VST1.16         D23[3], [R5, : 16], R10
     VSUB.I32        Q14, Q12, Q13
-
 
     VMOV            Q13, Q15
     VMULL.U16       Q11, D4, D8
@@ -501,6 +479,7 @@ CORE_LOOP_PTO:
 
     VUZP.16         D24, D25
 
+    VMOV.S16        D18, #50
 
     VUZP.16         D26, D27
     VMULL.U16       Q1, D24, D18
@@ -660,27 +639,20 @@ CORE_LOOP_PTO:
     VMLAL.S16       Q15, D15, D10
 
     VLD2.32         {Q5, Q6}, [R6], R12
-    VQSHL.S32       Q2, Q2, #2
 
     VUZP.16         D10, D11
-    VQSHL.S32       Q3, Q3, #2
 
     VUZP.16         D12, D13
-    VQADD.S32       Q7, Q2, Q10
+    VMOV             Q7 , Q2
 
     VREV64.16       Q5, Q5
-    VQADD.S32       Q3, Q3, Q10
 
     VREV64.16       Q6, Q6
-    VSHR.S32        Q7, Q7, #16
 
-    VUZP.16         D14, D15
-    VSHR.S32        Q3, Q3, #16
 
-    VUZP.16         D6, D7
-
-    VMOV            D15, D6
     VQSHL.S32       Q4, Q4, Q8
+
+    VMOV            Q9,Q3
 
     VLD2.32         {Q2, Q3}, [R8]!
     VQSHL.S32       Q15, Q15, Q8
@@ -691,22 +663,9 @@ CORE_LOOP_PTO:
     VUZP.16         D6, D7
     VQSUB.S32       Q11, Q15, Q11
 
-    VQSHL.S32       Q15, Q4, #2
+     VMOV            Q15,Q4
 
     VLD2.16         {D8, D9}, [R2]!
-    VQSHL.S32       Q11, Q11, #2
-
-    VQADD.S32       Q15, Q15, Q10
-    VQADD.S32       Q11, Q11, Q10
-
-    VSHR.S32        Q15, Q15, #16
-
-    VUZP.16         D30, D31
-    VSHR.S32        Q11, Q11, #16
-
-
-    VUZP.16         D22, D23
-    VMOV            D23, D30
 
     SUBS            R3, R3, #1
     BNE             CORE_LOOP_PTO
@@ -717,54 +676,57 @@ CORE_LOOP_PTO:
 
 EPILOGUE:
 
-    VST1.16         D14[0], [R0], R9
+    VST1.32         D14[0], [R0], R9
+
+    VST1.32         D22[0], [R0], R9
+
+    VST1.32         D14[1], [R0], R9
+
+    VST1.32         D22[1], [R0], R9
+
+    VST1.32         D15[0], [R0], R9
+
+    VST1.32         D23[0], [R0], R9
+
+    VST1.32         D15[1], [R0], R9
+
+    VST1.32         D23[1], [R0], R9
+
+    VST1.32         D18[0], [R5], R10
+
+    VST1.32         D30[0], [R5], R10
+
+    VST1.32         D18[1], [R5], R10
+
+    VST1.32         D30[1], [R5], R10
+
+    VST1.32         D19[0], [R5], R10
+
+    VST1.32         D31[0], [R5], R10
+
+    VST1.32         D19[1], [R5], R10
+
+    VST1.32         D31[1], [R5], R10
+
     VMULL.U16       Q15, D0, D9
-
-    VST1.16         D22[0], [R0], R9
     VMULL.U16       Q14, D2, D8
-
-    VST1.16         D14[1], [R0], R9
     VMULL.U16       Q13, D0, D8
-
-    VST1.16         D22[1], [R0], R9
     VMULL.U16       Q12, D2, D9
-
-    VST1.16         D14[2], [R0], R9
     VSHR.U32        Q15, Q15, #16
-
-    VST1.16         D22[2], [R0], R9
     VSHR.U32        Q14, Q14, #16
-
-    VST1.16         D14[3], [R0], R9
     VMLAL.S16       Q15, D1, D9
-
-    VST1.16         D22[3], [R0], R9
     VMLAL.S16       Q14, D3, D8
-
-    VST1.16         D15[0], [R5], R10
     VSHR.U32        Q13, Q13, #16
-
-    VST1.16         D23[0], [R5], R10
     VSHR.U32        Q12, Q12, #16
-
-    VST1.16         D15[1], [R5], R10
     VMLAL.S16       Q13, D1, D8
-
-    VST1.16         D23[1], [R5], R10
-    VMLAL.S16       Q12, D3, D9
-
-    VST1.16         D15[2], [R5], R10
+	VMLAL.S16       Q12, D3, D9
     VADD.I32        Q15, Q15, Q14
-
-    VST1.16         D23[2], [R5], R10
-    VNEG.S32        Q15, Q15
-
-    VST1.16         D15[3], [R5], R10
+	VNEG.S32        Q15, Q15
 
 
-    VST1.16         D23[3], [R5], R10
     VSUB.I32        Q14, Q12, Q13
 
+    VMOV.S16        D18, #50
 
     VMULL.U16       Q11, D4, D8
     VMOV            Q13, Q15
@@ -925,22 +887,10 @@ EPILOGUE:
 
     VMLAL.S16       Q15, D15, D10
 
-    VQSHL.S32       Q2, Q2, #2
 
-    VQSHL.S32       Q3, Q3, #2
 
     VQADD.S32       Q7, Q2, Q10
 
-    VQADD.S32       Q3, Q3, Q10
-
-    VSHR.S32        Q7, Q7, #16
-
-    VUZP.16         D14, D15
-    VSHR.S32        Q3, Q3, #16
-
-    VUZP.16         D6, D7
-
-    VMOV            D15, D6
     VQSHL.S32       Q4, Q4, Q8
 
     VQSHL.S32       Q15, Q15, Q8
@@ -949,40 +899,24 @@ EPILOGUE:
 
     VQSUB.S32       Q11, Q15, Q11
 
-    VQSHL.S32       Q15, Q4, #2
+    VMOV             Q15 , Q4
 
-    VQSHL.S32       Q11, Q11, #2
-
-    VQADD.S32       Q15, Q15, Q10
-    VQADD.S32       Q11, Q11, Q10
-
-    VSHR.S32        Q15, Q15, #16
-
-    VUZP.16         D30, D31
-    VSHR.S32        Q11, Q11, #16
-
-    VUZP.16         D22, D23
-    VMOV            D23, D30
-
-
-
-
-    VST1.16         D14[0], [R0], R9
-    VST1.16         D22[0], [R0], R9
-    VST1.16         D14[1], [R0], R9
-    VST1.16         D22[1], [R0], R9
-    VST1.16         D14[2], [R0], R9
-    VST1.16         D22[2], [R0], R9
-    VST1.16         D14[3], [R0], R9
-    VST1.16         D22[3], [R0], R9
-    VST1.16         D15[0], [R5], R10
-    VST1.16         D23[0], [R5], R10
-    VST1.16         D15[1], [R5], R10
-    VST1.16         D23[1], [R5], R10
-    VST1.16         D15[2], [R5], R10
-    VST1.16         D23[2], [R5], R10
-    VST1.16         D15[3], [R5], R10
-    VST1.16         D23[3], [R5], R10
+    VST1.32         D14[0], [R0], R9
+    VST1.32         D22[0], [R0], R9
+    VST1.32         D14[1], [R0], R9
+    VST1.32         D22[1], [R0], R9
+    VST1.32         D15[0], [R0], R9
+    VST1.32         D23[0], [R0], R9
+    VST1.32         D15[1], [R0], R9
+    VST1.32         D23[1], [R0], R9
+    VST1.32         D6[0], [R5], R10
+    VST1.32         D30[0], [R5], R10
+    VST1.32         D6[1], [R5], R10
+    VST1.32         D30[1], [R5], R10
+    VST1.32         D7[0], [R5], R10
+    VST1.32         D31[0], [R5], R10
+    VST1.32         D7[1], [R5], R10
+    VST1.32         D31[1], [R5], R10
 
 ARM_EPILOGUE:
 
@@ -1212,22 +1146,10 @@ ARM_LOOP:
 
     VMLAL.S16       Q15, D15, D10
 
-    VQSHL.S32       Q2, Q2, #2
 
-    VQSHL.S32       Q3, Q3, #2
 
-    VQADD.S32       Q7, Q2, Q10
+    VMOV           Q7 , Q2
 
-    VQADD.S32       Q3, Q3, Q10
-
-    VSHR.S32        Q7, Q7, #16
-
-    VUZP.16         D14, D15
-    VSHR.S32        Q3, Q3, #16
-
-    VUZP.16         D6, D7
-
-    VMOV            D15, D6
     VQSHL.S32       Q4, Q4, Q8
 
     VQSHL.S32       Q15, Q15, Q8
@@ -1236,39 +1158,26 @@ ARM_LOOP:
 
     VQSUB.S32       Q11, Q15, Q11
 
-    VQSHL.S32       Q15, Q4, #2
-
-    VQSHL.S32       Q11, Q11, #2
-
-    VQADD.S32       Q15, Q15, Q10
-    VQADD.S32       Q11, Q11, Q10
-
-    VSHR.S32        Q15, Q15, #16
-
-    VUZP.16         D30, D31
-    VSHR.S32        Q11, Q11, #16
-
-    VUZP.16         D22, D23
-    VMOV            D23, D30
+     VMOV            Q15, Q4
 
 
 
 
-    VST1.16         D14[0], [R0], R9
-    VST1.16         D22[0], [R0], R9
-    VST1.16         D14[1], [R0], R9
-    VST1.16         D22[1], [R0], R9
-    VST1.16         D14[2], [R0], R9
-    VST1.16         D22[2], [R0], R9
-    VST1.16         D14[3], [R0], R9
+    VST1.32         D14[0], [R0], R9
+    VST1.32         D22[0], [R0], R9
+    VST1.32         D14[1], [R0], R9
+    VST1.32         D22[1], [R0], R9
+    VST1.32         D15[0], [R0], R9
+    VST1.32         D23[0], [R0], R9
+    VST1.32         D15[1], [R0], R9
 
-    VST1.16         D15[0], [R5], R10
-    VST1.16         D23[0], [R5], R10
-    VST1.16         D15[1], [R5], R10
-    VST1.16         D23[1], [R5], R10
-    VST1.16         D15[2], [R5], R10
-    VST1.16         D23[2], [R5], R10
-    VST1.16         D15[3], [R5], R10
+    VST1.32         D6[0], [R5], R10
+    VST1.32         D30[0], [R5], R10
+    VST1.32         D6[1], [R5], R10
+    VST1.32         D30[1], [R5], R10
+    VST1.32         D7[0], [R5], R10
+    VST1.32         D31[0], [R5], R10
+    VST1.32         D7[1], [R5], R10
 
     VPOP            {d8 - d15}
     LDMFD           sp!, {R4-R12}

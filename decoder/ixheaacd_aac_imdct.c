@@ -467,14 +467,14 @@ VOID ixheaacd_post_twiddle_dec(WORD32 out_ptr[], WORD32 spec_data[],
 }
 
 VOID ixheaacd_post_twid_overlap_add_dec(
-    WORD16 pcm_out[], WORD32 spec_data[],
+    WORD32 pcm_out[], WORD32 spec_data[],
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints,
     WORD32 *ptr_overlap_buf, WORD16 q_shift, const WORD16 *window,
     WORD16 ch_fac) {
   WORD i;
   WORD16 cos, cos1, sin, sin1;
   WORD32 size = npoints / 2;
-  WORD16 *pcmout1 = pcm_out + (ch_fac * size);
+  WORD32 *pcmout1 = pcm_out + (ch_fac * size);
   const WORD16 *cos_sin_ptr = ptr_imdct_tables->cosine_array_2048_256;
 
   pcm_out = pcmout1 - ch_fac;
@@ -511,7 +511,7 @@ VOID ixheaacd_post_twid_overlap_add_dec(
         ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outi, win1), q_shift),
         ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
 
-    *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+    *pcm_out = accu;
 
     pcm_out -= ch_fac;
     accu = ixheaacd_sub32_sat(
@@ -520,7 +520,7 @@ VOID ixheaacd_post_twid_overlap_add_dec(
             q_shift),
         ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
 
-    *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+    *pcmout1 = accu;
 
     pcmout1 += ch_fac;
 
@@ -550,14 +550,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outr, win1), q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
-      *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+      *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(
               ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outr), win1),
               q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
-      *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+      *pcmout1 = accu;
       pcmout1 += ch_fac;
 
       tempr = *(spec_data - i);
@@ -585,14 +587,15 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outi, win1), q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
-      *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+      *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(
               ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outi), win1),
               q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
-      *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+      *pcmout1 = accu;
       pcmout1 += ch_fac;
     }
     cos1 = *cos_sin_ptr++;
@@ -620,14 +623,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outr, win1), q_shift),
         ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
-    *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+    *pcm_out = accu;
     pcm_out -= ch_fac;
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(
             ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outr), win1),
             q_shift),
         ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
-    *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+    *pcmout1 = accu;
     pcmout1 += ch_fac;
   } else {
     q_shift = -q_shift;
@@ -663,7 +668,7 @@ VOID ixheaacd_post_twid_overlap_add_dec(
           ixheaacd_shr32(ixheaacd_mult32x16lin32(outi, win1), q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
 
-      *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+      *pcm_out = accu;
 
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
@@ -672,7 +677,7 @@ VOID ixheaacd_post_twid_overlap_add_dec(
               q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
 
-      *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+      *pcmout1 = accu;
       pcmout1 += ch_fac;
 
       for (i = size - 2; i != 0;) {
@@ -701,14 +706,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
             ixheaacd_shr32(ixheaacd_mult32x16lin32(outr, win1), q_shift),
             ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
 
-        *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+        *pcm_out = accu;
         pcm_out -= ch_fac;
+
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(
                 ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outr), win1),
                 q_shift),
             ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
-        *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+
+        *pcmout1 = accu;
         pcmout1 += ch_fac;
 
         tempr = *(spec_data - i);
@@ -735,15 +742,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
             ixheaacd_shr32(ixheaacd_mult32x16lin32(outi, win1), q_shift),
             ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
 
-        *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+        *pcm_out = accu;
         pcm_out -= ch_fac;
+
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(
                 ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outi), win1),
                 q_shift),
             ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
 
-        *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+        *pcmout1 = accu;
         pcmout1 += ch_fac;
       }
       cos1 = *cos_sin_ptr++;
@@ -773,14 +781,14 @@ VOID ixheaacd_post_twid_overlap_add_dec(
           ixheaacd_shr32(ixheaacd_mult32x16lin32(outr, win1), q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
 
-      *pcm_out = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+      *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shr32(
               ixheaacd_mult32x16hin32_drc(ixheaacd_negate32(outr), win1),
               q_shift),
           ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
-      *pcmout1 = ixheaacd_round16(ixheaacd_shl32_sat(accu, 2));
+      *pcmout1 = accu;
       pcmout1 += ch_fac;
     }
   }

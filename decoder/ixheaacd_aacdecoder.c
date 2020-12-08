@@ -85,16 +85,18 @@
 #define EXT_FILL_DATA 1
 #define EXT_FIL 0
 
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
+
 WORD32 ixheaacd_aacdec_decodeframe(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
-    ia_aac_dec_scratch_struct *aac_scratch_ptrs, WORD16 *time_data,
+    ia_aac_dec_scratch_struct *aac_scratch_ptrs, VOID *time_data_tmp,
     FLAG frame_status, WORD *type, WORD *ch_idx, WORD init_flag, WORD channel,
     WORD *element_index_order, WORD skip_full_decode, WORD ch_fac,
     WORD slot_element, WORD max_channels, WORD32 total_channels,
     WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
     WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy)
+    ia_drc_dec_struct *drc_dummy, UWORD8 *slot_pos)
 
 {
   WORD ch, ele_type;
@@ -128,6 +130,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
   WORD32 *work_buffer_1 = aac_scratch_ptrs->extra_scr_4k[0];
   WORD32 *work_buffer_2 = aac_scratch_ptrs->extra_scr_4k[2];
   p_state_enhaacplus_dec = p_obj_exhaacplus_dec->p_state_aac;
+
+  WORD32 *time_data = (WORD32 *)time_data_tmp;
 
   aac_dec_handle = p_state_enhaacplus_dec->pstr_aac_dec_info[*ch_idx];
   it_bit_buff = p_state_enhaacplus_dec->ptr_bit_stream;
@@ -810,8 +814,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
         if (skip_full_decode == 0) {
           ixheaacd_imdct_process(
               aac_dec_handle->pstr_aac_dec_overlap_info[ch], spec_coef[ch],
-              &str_ics_info[ch], time_data + slot_element, (WORD16)ch_fac,
-              scratch[ch], aac_dec_handle->pstr_aac_tables, object_type);
+              &str_ics_info[ch], time_data + slot_element, ch_fac, scratch[ch],
+              aac_dec_handle->pstr_aac_tables, object_type, slot_element);
+
+          if (slot_pos != NULL) *slot_pos = slot_element;
+
+          p_obj_exhaacplus_dec->p_state_aac
+              ->qshift_adj[p_obj_exhaacplus_dec->p_state_aac->qshift_cnt++] =
+              str_ics_info[ch].qshift_adj;
 
           aac_dec_handle->ptr_aac_dec_static_channel_info[ch]
               ->overlap_add_data.win_shape = str_ics_info[ch].window_shape;
@@ -827,7 +837,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
                     time_data + slot_element, overlap1,
                     aac_dec_handle->samples_per_frame, object_type,
                     (WORD16)ch_fac, str_ics_info[ch].window_sequence,
-                    (WORD16 *)ptr_long_window_next);
+                    (WORD16 *)ptr_long_window_next, slot_element);
               } else {
                 ixheaacd_lt_update_state(
                     aac_dec_handle->ptr_aac_dec_static_channel_info[ch]
@@ -835,7 +845,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
                     time_data + slot_element, overlap1,
                     aac_dec_handle->samples_per_frame, object_type,
                     (WORD16)ch_fac, str_ics_info[ch].window_sequence,
-                    (WORD16 *)ptr_short_window_next);
+                    (WORD16 *)ptr_short_window_next, slot_element);
               }
             }
           }

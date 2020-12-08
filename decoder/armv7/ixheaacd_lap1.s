@@ -29,7 +29,7 @@
 ixheaacd_overlap_buf_out_armv7:
 
     STMFD           sp!, {r4-r5}
-    MOV             r3, r3, lsl #1
+    MOV             r3, r3, lsl #2
 
 OUTSAMPLE_LOOP:
 
@@ -37,11 +37,11 @@ OUTSAMPLE_LOOP:
     LDR             r5, [r1], #4
     SUBS            r2, r2, #2
 
-    QADD16          r4, r4, r4
-    QADD16          r5, r5, r5
+    LSL             r4,r4,#15
+    LSL             r5,r5,#15
 
-    STRH            r4, [r0], r3
-    STRH            r5, [r0], r3
+    STR            r4, [r0], r3
+    STR            r5, [r0], r3
 
     BGT             OUTSAMPLE_LOOP
 
@@ -54,7 +54,7 @@ ixheaacd_overlap_out_copy_armv7:
     STMFD           sp!, {r4-r9, r14}
     MOV             r9, #32
     MOV             r8, r1
-    MOV             r3, r3, LSL #1
+    MOV             r3, r3, LSL #2
 
 
 OUT_OVERLAP_LOOP:
@@ -62,14 +62,14 @@ OUT_OVERLAP_LOOP:
     LDR             r5, [r1], #4
     SUBS            r9, r9, #1
 
-    QADD16          r4, r4, r4
-    QADD16          r5, r5, r5
+    LSL             r4,r4,#15
+    LSL             r5,r5,#15
 
     LDR             r6, [r2], #4
     LDR             r7, [r2], #4
 
-    STRH            r4, [r0], r3
-    STRH            r5, [r0], r3
+    STR            r4, [r0], r3
+    STR            r5, [r0], r3
 
     STR             r6, [r8], #4
     STR             r7, [r8], #4

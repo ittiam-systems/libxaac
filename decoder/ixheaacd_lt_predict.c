@@ -396,15 +396,18 @@ VOID ixheaacd_filter_bank_ltp(ia_aac_dec_tables_struct *aac_tables_ptr,
   }
 }
 
-VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, WORD16 *time,
+VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, void *time_t,
                               WORD32 *overlap, WORD32 frame_len,
                               WORD32 object_type, WORD32 stride,
-                              WORD16 window_sequence, WORD16 *p_window_next) {
+                              WORD16 window_sequence, WORD16 *p_window_next,
+                              WORD slot_element) {
   WORD32 i;
+
   if (object_type == AOT_ER_AAC_LD) {
     WORD16 *ptr_ltp_state0 = &lt_pred_stat[0];
     WORD16 *ptr_ltp_state_fl = &lt_pred_stat[frame_len + 0];
     WORD16 *ptr_ltp_state_2fl = &lt_pred_stat[(frame_len * 2) + 0];
+    WORD16 *time = (WORD16 *)time_t - slot_element;
     WORD16 *ptr_time_in = &time[0 * stride];
 
     for (i = 0; i < frame_len; i++) {
@@ -417,11 +420,15 @@ VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, WORD16 *time,
   } else {
     WORD16 *ptr_ltp_state0 = &lt_pred_stat[0];
     WORD16 *ptr_ltp_state_fl = &lt_pred_stat[frame_len + 0];
-    WORD16 *ptr_time_in = &time[0 * stride];
+    WORD32 *time = (WORD32 *)time_t;
+    WORD32 *ptr_time_in = &time[0 * stride];
+
+    time = (WORD32 *)time_t;
 
     for (i = 0; i < frame_len; i++) {
       *ptr_ltp_state0++ = *ptr_ltp_state_fl;
-      *ptr_ltp_state_fl++ = *ptr_time_in;
+      *ptr_ltp_state_fl++ =
+          ixheaacd_round16(ixheaacd_shl32_sat(*ptr_time_in, 2));
       ptr_time_in += stride;
     }
   }
