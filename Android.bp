@@ -124,16 +124,6 @@ cc_library_static {
         "decoder/drc_src/impd_drc_static_payload.c",
     ],
 
-    target: {
-        android: {
-            sanitize: {
-                diag: {
-                    cfi: true,
-                },
-            },
-        },
-    },
-
     sanitize: {
         misc_undefined: [
             "unsigned-integer-overflow",
