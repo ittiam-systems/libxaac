@@ -53,71 +53,60 @@ ixheaacd_neg_shift_spec_armv8:
     ADD             X6, X6, X0
     MOV             X8, #-16
     SUB             X6, X6, #12
-    LSL             X7, X3, #1
+    LSL             X7, X3, #2
     DUP             V31.4S, W2
-    MOV             W4, #0x8000
-    DUP             V30.4S, W4
+
 
     LD1             {V0.4S}, [X6], X8
     SQNEG           V0.4S, V0.4S
 
     LD1             {V6.4S}, [X6], X8
     SQSHL           V25.4S, V0.4S, V31.4S
-    SQADD           V24.4S, V25.4S, V30.4S
-    SSHR            V23.4S, V24.4S, #16
-    REV64           V23.4S, V23.4S
+
+    REV64           V25.4S, V25.4S
     SUB             X5, X5, #8
 
-    UZP1            V27.8H, V23.8H, V23.8H
     SQNEG           V29.4S, V6.4S
 
 LOOP_1:
 
-    ST1             {V27.H}[2], [X1], X7
+    ST1             {V25.S}[2], [X1], X7
     SQSHL           V22.4S, V29.4S, V31.4S
     LD1             {V0.4S}, [X6], X8
-    ST1             {V27.H}[3], [X1], X7
-    SQADD           V21.4S, V22.4S, V30.4S
-    ST1             {V27.H}[0], [X1], X7
+    ST1             {V25.S}[3], [X1], X7
+    ST1             {V25.S}[0], [X1], X7
     SQNEG           V0.4S, V0.4S
-    ST1             {V27.H}[1], [X1], X7
-    SSHR            V20.4S, V21.4S, #16
-    REV64           V20.4S, V20.4S
+    ST1             {V25.S}[1], [X1], X7
+    REV64           V22.4S, V22.4S
     SUBS            X5, X5, #8
 
 
-    UZP1            V27.8H, V20.8H, V20.8H
     SQSHL           V25.4S, V0.4S, V31.4S
-    ST1             {V27.H}[2], [X1], X7
+    ST1             {V22.S}[2], [X1], X7
     LD1             {V6.4S}, [X6], X8
-    SQADD           V24.4S, V25.4S, V30.4S
-    ST1             {V27.H}[3], [X1], X7
-    SSHR            V23.4S, V24.4S, #16
-    ST1             {V27.H}[0], [X1], X7
-    REV64           V23.4S, V23.4S
-    ST1             {V27.H}[1], [X1], X7
+    ST1             {V22.S}[3], [X1], X7
+    ST1             {V22.S}[0], [X1], X7
+    REV64           V25.4S, V25.4S
+    ST1             {V22.S}[1], [X1], X7
 
 
-    UZP1            V27.8H, V23.8H, V23.8H
     SQNEG           V29.4S, V6.4S
 
     BGT             LOOP_1
 
-    ST1             {V27.H}[2], [X1], X7
+    ST1             {V25.S}[2], [X1], X7
     SQSHL           V22.4S, V29.4S, V31.4S
-    ST1             {V27.H}[3], [X1], X7
-    ST1             {V27.H}[0], [X1], X7
-    SQADD           V21.4S, V22.4S, V30.4S
-    ST1             {V27.H}[1], [X1], X7
-    SSHR            V20.4S, V21.4S, #16
+    ST1             {V25.S}[3], [X1], X7
+    ST1             {V25.S}[0], [X1], X7
 
-    REV64           V20.4S, V20.4S
+    ST1             {V25.S}[1], [X1], X7
 
-    UZP1            V27.8H, V20.8H, V20.8H
+    REV64            V22.4S, V22.4S
 
-    ST1             {V27.H}[2], [X1], X7
-    ST1             {V27.H}[3], [X1], X7
-    ST1             {V27.H}[0], [X1], X7
-    ST1             {V27.H}[1], [X1], X7
+
+    ST1             {V22.S}[2], [X1], X7
+    ST1             {V22.S}[3], [X1], X7
+    ST1             {V22.S}[0], [X1], X7
+    ST1             {V22.S}[1], [X1], X7
     pop_v_regs
     RET

@@ -120,14 +120,14 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32_drc(WORD32 a, WORD16 b) {
   return (result);
 }
 
-VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD32 *out,
                               const WORD16 *window_long,
                               const WORD16 *window_short, WORD16 q_shift,
                               WORD16 ch_fac, WORD16 flag) {
   WORD32 i, accu;
   WORD32 *coef_1;
   const WORD16 *temp_win_sh, *temp_win_long;
-  WORD16 *out1, *out2;
+  WORD32 *out1, *out2;
   WORD32 *temp_prev;
 
   if (flag == 1) {
@@ -137,13 +137,13 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD16 *out,
           (q_shift + 1));
 
       accu = ixheaacd_add32_sat(temp1, ((WORD32)prev[i] << 16));
-      out[ch_fac * i] = ixheaacd_round16(accu << 1);
+      out[ch_fac * i] = accu;
 
       accu = ixheaacd_shl32_dir_sat_limit(
           ixheaacd_mult32x16in32(-(coef[SIZE15 - 1 - i]),
                                  window_long[2 * (SIZE07 - i) - 1]),
           q_shift);
-      out[ch_fac * (i + SIZE09)] = ixheaacd_round16(accu << 2);
+      out[ch_fac * (i + SIZE09)] = (accu << 1);
     }
 
     temp_win_sh = &(window_short[0]);
@@ -158,14 +158,14 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD16 *out,
       accu = ixheaacd_mult32x16in32_drc(
           prev[SIZE08 - 1 - i], ixheaacd_negate16(window_long[2 * i + 1]));
 
-      out[ch_fac * i] = ixheaacd_round16(accu << 2);
+      out[ch_fac * i] = accu;
 
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_dir_sat_limit(-(coef[SIZE15 - 1 - i]), (q_shift - 1)),
           ixheaacd_mult32x16in32_drc(prev[i + SIZE01],
                                      window_long[2 * SIZE07 - 2 - 2 * i]));
 
-      out[ch_fac * (SIZE09 + i)] = ixheaacd_round16(accu << 2);
+      out[ch_fac * (SIZE09 + i)] = accu;
     }
 
     temp_win_sh = &(window_long[SIZE14]);
@@ -187,7 +187,7 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD16 *out,
         ixheaacd_shl32_dir_sat_limit(ixheaacd_mult32x16in32(temp_coef, win1),
                                      q_shift),
         ixheaacd_mult32x16in32_drc(prev1, win3));
-    *out1 = ixheaacd_round16(accu << 2);
+    *out1 = accu << flag;
     out1 += ch_fac;
 
     accu = ixheaacd_sub32_sat(
@@ -195,13 +195,13 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD16 *out,
             ixheaacd_mult32x16in32(ixheaacd_negate32_sat(temp_coef), win2),
             q_shift),
         ixheaacd_mult32x16in32_drc(prev1, win4));
-    *out2 = ixheaacd_round16(accu << 2);
+    *out2 = accu << flag;
     out2 -= ch_fac;
   }
 }
 
 static PLATFORM_INLINE VOID ixheaacd_long_short_win_process(
-    WORD32 *current, WORD32 *prev, WORD16 *out, const WORD16 *short_window,
+    WORD32 *current, WORD32 *prev, WORD32 *out, const WORD16 *short_window,
     const WORD16 *long_window_prev, WORD16 q_shift, WORD16 ch_fac,
     WORD32 flag) {
   WORD i;
@@ -220,7 +220,7 @@ static PLATFORM_INLINE VOID ixheaacd_long_short_win_process(
                                       ixheaacd_mult32x16in32(tmp2_cur, short1)),
                                      q_shift),
         ixheaacd_mult32x16in32_drc(prev[i], long_window_prev[0 - 2 - 2 * i]));
-    out[ch_fac * (0 + i)] = ixheaacd_round16(accu << 2);
+    out[ch_fac * (0 + i)] = accu;
 
     if (flag) {
       accu = ixheaacd_sub32_sat(
@@ -230,12 +230,12 @@ static PLATFORM_INLINE VOID ixheaacd_long_short_win_process(
               q_shift),
           ixheaacd_mult32x16in32_drc(prev[SIZE02 - 1 - i],
                                      long_window_prev[-2 * SIZE02 + 2 * i]));
-      out[ch_fac * (SIZE02 - 1 - i)] = ixheaacd_round16(accu << 2);
+      out[ch_fac * (SIZE02 - 1 - i)] = accu;
     }
   }
 }
 
-VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD32 *out,
                                  const WORD16 *short_window,
                                  const WORD16 *short_window_prev,
                                  const WORD16 *long_window_prev, WORD16 q_shift,
@@ -245,7 +245,7 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD16 *out,
   for (i = 0; i < SIZE07; i++) {
     accu = ixheaacd_mult32x16in32_drc(
         prev[SIZE08 - 1 - i], ixheaacd_negate16(long_window_prev[2 * i + 1]));
-    out[ch_fac * i] = ixheaacd_round16(accu << 2);
+    out[ch_fac * i] = accu;
   }
 
   for (i = 0; i < SIZE01; i++) {
@@ -256,7 +256,7 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD16 *out,
             q_shift),
         ixheaacd_mult32x16in32_drc(prev[SIZE01 - 1 - i],
                                    long_window_prev[2 * SIZE07 + 1 + 2 * i]));
-    out[ch_fac * (SIZE07 + i)] = ixheaacd_round16(accu << 2);
+    out[ch_fac * (SIZE07 + i)] = accu;
   }
 
   for (i = 0; i < SIZE01; i++) {
@@ -267,7 +267,7 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD16 *out,
             q_shift),
         ixheaacd_mult32x16in32_drc(prev[i],
                                    long_window_prev[SIZE16 - 2 - (2 * i)]));
-    out[ch_fac * (SIZE08 + i)] = ixheaacd_round16(accu << 2);
+    out[ch_fac * (SIZE08 + i)] = accu;
   }
 
   flag = 1;
@@ -307,12 +307,11 @@ VOID ixheaacd_nolap1_32(WORD32 *coef,
   }
 }
 
-VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD16 *out, WORD16 q_shift,
+VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                  WORD16 ch_fac) {
   WORD32 i;
-
   for (i = 0; i < SIZE07; i++) {
-    out[ch_fac * i] = ixheaacd_round16(ixheaacd_shl32_dir_sat_limit(
+    out[ch_fac * i] = (ixheaacd_shl32_dir_sat_limit(
         ixheaacd_negate32_sat(coef[SIZE07 - 1 - i]), q_shift));
   }
 }
@@ -326,33 +325,34 @@ VOID ixheaacd_spec_to_overlapbuf_dec(WORD32 *ptr_overlap_buf,
   }
 }
 
-VOID ixheaacd_overlap_buf_out_dec(WORD16 *out_samples, WORD32 *ptr_overlap_buf,
+VOID ixheaacd_overlap_buf_out_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
                                   WORD32 size, const WORD16 ch_fac) {
   WORD32 i;
 
   for (i = 0; i < size; i++) {
-    out_samples[ch_fac * i] = ixheaacd_shl16_sat((WORD16)ptr_overlap_buf[i], 1);
+    out_samples[ch_fac * i] =
+        (ixheaacd_shl32_sat((WORD16)ptr_overlap_buf[i], 15));
   }
 }
 
-VOID ixheaacd_overlap_out_copy_dec(WORD16 *out_samples, WORD32 *ptr_overlap_buf,
+VOID ixheaacd_overlap_out_copy_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
                                    WORD32 *ptr_overlap_buf1,
                                    const WORD16 ch_fac) {
   WORD32 i;
 
   for (i = 0; i < SIZE01; i++) {
-    out_samples[ch_fac * i] = ixheaacd_shl16_sat((WORD16)ptr_overlap_buf[i], 1);
+    out_samples[ch_fac * i] =
+        ixheaacd_shl32_sat((WORD16)ptr_overlap_buf[i], 15);
     ptr_overlap_buf[i] = ptr_overlap_buf1[i];
   }
 }
 
 VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
                             WORD32 *ptr_spec_coeff,
-                            ia_ics_info_struct *ptr_ics_info,
-                            WORD16 out_samples[], const WORD16 ch_fac,
-                            WORD32 *scratch,
+                            ia_ics_info_struct *ptr_ics_info, VOID *out_samples,
+                            const WORD16 ch_fac, WORD32 *scratch,
                             ia_aac_dec_tables_struct *ptr_aac_tables,
-                            WORD32 object_type) {
+                            WORD32 object_type, WORD slot_element) {
   WORD32 *ptr_overlap_buf;
   const WORD16 *ptr_long_window;
   const WORD16 *ptr_short_window;
@@ -371,6 +371,8 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
 
     if ((512 == ptr_ics_info->frame_length) ||
         (480 == ptr_ics_info->frame_length)) {
+      ptr_ics_info->qshift_adj = -2;
+
       if (512 == ptr_ics_info->frame_length) {
         WORD32 *ld_cos_sin_ptr =
             (WORD32 *)ptr_aac_tables->pstr_imdct_tables->cosine_array_1024;
@@ -415,10 +417,13 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
 
             if (1024 == ptr_ics_info->frame_length) {
               ia_ics_info_struct *tmp_ptr_ics_info = ptr_ics_info;
+
               (*ixheaacd_post_twid_overlap_add)(
-                  out_samples, ptr_spec_coeff,
+                  (WORD32 *)out_samples, ptr_spec_coeff,
                   ptr_aac_tables->pstr_imdct_tables, 1024, ptr_overlap_buf,
                   q_shift, ptr_long_window, ch_fac);
+
+              ptr_ics_info->qshift_adj = 2;
               ptr_ics_info = tmp_ptr_ics_info;
             }
             if ((512 == ptr_ics_info->frame_length) ||
@@ -426,21 +431,24 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
               if (object_type != AOT_ER_AAC_ELD) {
                 if (512 == ptr_ics_info->frame_length) {
                   ixheaacd_lap1_512_480(ptr_spec_coeff, ptr_overlap_buf,
-                                        out_samples, ptr_long_window, q_shift,
-                                        SIZE04, ch_fac);
+                                        (WORD16 *)out_samples, ptr_long_window,
+                                        q_shift, SIZE04, ch_fac, slot_element);
                   ixheaacd_spec_to_overlapbuf(ptr_overlap_buf, ptr_spec_coeff,
                                               q_shift, SIZE04);
                 } else if (480 == ptr_ics_info->frame_length) {
                   ixheaacd_lap1_512_480(ptr_spec_coeff, ptr_overlap_buf,
-                                        out_samples, ptr_long_window, q_shift,
-                                        240, ch_fac);
+                                        (WORD16 *)out_samples, ptr_long_window,
+                                        q_shift, 240, ch_fac, slot_element);
                   ixheaacd_spec_to_overlapbuf(ptr_overlap_buf, ptr_spec_coeff,
                                               q_shift, 240);
                 }
               } else {
-                ixheaacd_eld_dec_windowing(
-                    ptr_spec_coeff, ptr_long_window, ptr_ics_info->frame_length,
-                    q_shift, ptr_overlap_buf, ch_fac, out_samples);
+                ixheaacd_eld_dec_windowing(ptr_spec_coeff, ptr_long_window,
+                                           ptr_ics_info->frame_length, q_shift,
+                                           ptr_overlap_buf, ch_fac,
+                                           (WORD16 *)out_samples, slot_element);
+
+                ptr_ics_info->qshift_adj = -2;
               }
             }
             break;
@@ -452,9 +460,10 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
                                        ptr_aac_tables->pstr_imdct_tables, 1024);
             }
 
-            ixheaacd_process_win_seq(scratch, ptr_overlap_buf, out_samples,
-                                     ptr_long_window, ptr_short_window, q_shift,
-                                     ch_fac, 1);
+            ixheaacd_process_win_seq(scratch, ptr_overlap_buf,
+                                     (WORD32 *)out_samples, ptr_long_window,
+                                     ptr_short_window, q_shift, ch_fac, 1);
+            ptr_ics_info->qshift_adj = 1;
 
             if (512 == ptr_ics_info->frame_length) {
               ixheaacd_spec_to_overlapbuf(ptr_overlap_buf, ptr_spec_coeff,
@@ -480,17 +489,20 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
           case ONLY_LONG_SEQUENCE:
           case LONG_STOP_SEQUENCE:
 
-            (*ixheaacd_over_lap_add1)(scratch, ptr_overlap_buf, out_samples,
-                                      ptr_long_window, q_shift, SIZE08, ch_fac);
+            (*ixheaacd_over_lap_add1)(scratch, ptr_overlap_buf,
+                                      (WORD32 *)out_samples, ptr_long_window,
+                                      q_shift, SIZE08, ch_fac);
 
+            ptr_ics_info->qshift_adj = 2;
             break;
 
           case LONG_START_SEQUENCE:
           case EIGHT_SHORT_SEQUENCE:
 
-            ixheaacd_process_win_seq(scratch, ptr_overlap_buf, out_samples,
-                                     ptr_long_window, ptr_short_window, q_shift,
-                                     ch_fac, 1);
+            ixheaacd_process_win_seq(scratch, ptr_overlap_buf,
+                                     (WORD32 *)out_samples, ptr_long_window,
+                                     ptr_short_window, q_shift, ch_fac, 1);
+            ptr_ics_info->qshift_adj = 1;
 
             break;
         }
@@ -512,28 +524,32 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
           case EIGHT_SHORT_SEQUENCE:
           case LONG_START_SEQUENCE:
 
-            (*ixheaacd_overlap_buf_out)(out_samples, ptr_overlap_buf, SIZE07,
-                                        ch_fac);
+            (*ixheaacd_overlap_buf_out)((WORD32 *)out_samples, ptr_overlap_buf,
+                                        SIZE07, ch_fac);
 
             (*ixheaacd_over_lap_add1)(
                 &scratch[SIZE14], &ptr_overlap_buf[SIZE07],
-                &out_samples[ch_fac * (SIZE07)], ptr_short_window, q_shift,
-                SIZE01, ch_fac);
+                ((WORD32 *)out_samples + ch_fac * (SIZE07)), ptr_short_window,
+                q_shift, SIZE01, ch_fac);
 
             {
-              WORD16 q_shift1 = q_shift + 1;
-              (*ixheaacd_neg_shift_spec)(&scratch[SIZE08],
-                                         &out_samples[ch_fac * SIZE09],
-                                         q_shift1, ch_fac);
+              WORD16 q_shift1 = q_shift - 1;
+
+              (*ixheaacd_neg_shift_spec)(
+                  &scratch[SIZE08], ((WORD32 *)out_samples + ch_fac * SIZE09),
+                  q_shift1, ch_fac);
             }
+            ptr_ics_info->qshift_adj = 2;
 
             break;
           case ONLY_LONG_SEQUENCE:
           case LONG_STOP_SEQUENCE:
 
-            ixheaacd_process_win_seq(scratch, ptr_overlap_buf, out_samples,
-                                     ptr_long_window, ptr_short_window, q_shift,
-                                     ch_fac, 0);
+            ixheaacd_process_win_seq(scratch, ptr_overlap_buf,
+                                     (WORD32 *)out_samples, ptr_long_window,
+                                     ptr_short_window, q_shift, ch_fac, 0);
+
+            ptr_ics_info->qshift_adj = 2;
             break;
         }
 
@@ -579,11 +595,11 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
       case EIGHT_SHORT_SEQUENCE:
       case LONG_START_SEQUENCE:
 
-        (*ixheaacd_overlap_buf_out)(out_samples, ptr_overlap_buf, SIZE07,
-                                    ch_fac);
+        (*ixheaacd_overlap_buf_out)((WORD32 *)out_samples, ptr_overlap_buf,
+                                    SIZE07, ch_fac);
 
         (*ixheaacd_over_lap_add1)(&scratch[0], &ptr_overlap_buf[SIZE07],
-                                  &out_samples[ch_fac * SIZE07],
+                                  ((WORD32 *)out_samples + ch_fac * SIZE07),
                                   ptr_short_window, q_shift, SIZE01, ch_fac);
 
         for (i = 0; i < 3; i++) {
@@ -591,27 +607,32 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
           (*ixheaacd_spec_to_overlapbuf)(overlap_buf_loc, &scratch[inc],
                                          q_shift, SIZE01);
 
-          (*ixheaacd_over_lap_add1)(&scratch[SIZE02 + inc], overlap_buf_loc,
-                                    &out_samples[ch_fac * (SIZE09 + inc)],
-                                    short_window, q_shift, SIZE01, ch_fac);
+          (*ixheaacd_over_lap_add1)(
+              &scratch[SIZE02 + inc], overlap_buf_loc,
+              ((WORD32 *)out_samples + ch_fac * (SIZE09 + inc)), short_window,
+              q_shift, SIZE01, ch_fac);
         }
 
         (*ixheaacd_over_lap_add2)(&scratch[SIZE08], &scratch[SIZE06],
                                   ptr_overlap_buf, short_window, q_shift,
                                   SIZE01, 1);
 
-        (*ixheaacd_overlap_out_copy)(&out_samples[ch_fac * SIZE15],
+        (*ixheaacd_overlap_out_copy)(((WORD32 *)out_samples + ch_fac * SIZE15),
                                      ptr_overlap_buf, &ptr_overlap_buf[SIZE01],
                                      ch_fac);
+
+        ptr_ics_info->qshift_adj = 2;
 
         break;
 
       case ONLY_LONG_SEQUENCE:
       case LONG_STOP_SEQUENCE:
 
-        ixheaacd_long_short_win_seq(scratch, ptr_overlap_buf, out_samples,
-                                    short_window, ptr_short_window,
-                                    ptr_long_window, q_shift, ch_fac);
+        ixheaacd_long_short_win_seq(
+            scratch, ptr_overlap_buf, (WORD32 *)out_samples, short_window,
+            ptr_short_window, ptr_long_window, q_shift, ch_fac);
+
+        ptr_ics_info->qshift_adj = 2;
 
         break;
     }
@@ -633,7 +654,7 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
 void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
                                 WORD32 framesize, WORD16 q_shift,
                                 WORD32 *p_overlap_buffer, const WORD16 stride,
-                                WORD16 *out_samples)
+                                VOID *out_samples_t, WORD slot_element)
 
 {
   int i = 0;
@@ -643,6 +664,8 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
   WORD32 *ptr_out, *p_out2;
   WORD32 *p_overlap_buffer32 = (WORD32 *)p_overlap_buffer;
   WORD32 delay = framesize >> 2;
+
+  WORD16 *out_samples = (WORD16 *)out_samples_t - slot_element;
 
   ptr_z = ptr_spect_coeff + delay;
   p_win += delay;

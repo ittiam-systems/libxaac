@@ -78,15 +78,15 @@ IA_ERRORCODE ixheaacd_read_section_data(
     WORD32 aac_spect_data_resil_flag, WORD32 aac_sect_data_resil_flag,
     ia_aac_dec_tables_struct *ptr_aac_tables);
 
-VOID ixheaacd_over_lap_add1_dec(WORD32 *coef, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_over_lap_add1_dec(WORD32 *coef, WORD32 *prev, WORD32 *out,
                                 const WORD16 *window, WORD16 q_shift,
                                 WORD16 size, WORD16 ch_fac);
 
-VOID ixheaacd_over_lap_add1_armv7(WORD32 *coef, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_over_lap_add1_armv7(WORD32 *coef, WORD32 *prev, WORD32 *out,
                                   const WORD16 *window, WORD16 q_shift,
                                   WORD16 size, WORD16 ch_fac);
 
-VOID ixheaacd_over_lap_add1_armv8(WORD32 *coef, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_over_lap_add1_armv8(WORD32 *coef, WORD32 *prev, WORD32 *out,
                                   const WORD16 *window, WORD16 q_shift,
                                   WORD16 size, WORD16 ch_fac);
 
@@ -120,10 +120,10 @@ VOID ixheaacd_spec_to_overlapbuf_armv7(WORD32 *ptr_overlap_buf,
                                        WORD32 *ptr_spec_coeff, WORD32 q_shift,
                                        WORD32 size);
 
-VOID ixheaacd_overlap_buf_out_dec(WORD16 *out_samples, WORD32 *ptr_overlap_buf,
+VOID ixheaacd_overlap_buf_out_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
                                   WORD32 size, const WORD16 ch_fac);
 
-VOID ixheaacd_overlap_buf_out_armv7(WORD16 *out_samples,
+VOID ixheaacd_overlap_buf_out_armv7(WORD32 *out_samples,
                                     WORD32 *ptr_overlap_buf, WORD32 size,
                                     const WORD16 ch_fac);
 
@@ -132,33 +132,33 @@ WORD32 ixheaacd_inv_quant(WORD32 *x_quant, WORD32 *ixheaacd_pow_table_Q13);
 VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
                             WORD32 *ptr_spec_coeff,
                             ia_ics_info_struct *ptr_ics_info,
-                            WORD16 out_samples[], const WORD16 ch_fac,
+                            VOID* out_samples, const WORD16 ch_fac,
                             WORD32 *scratch,
                             ia_aac_dec_tables_struct *ptr_aac_tables,
-                            WORD32 object_type);
+                            WORD32 object_type , WORD slot_element);
 
-VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD16 *out, WORD16 q_shift,
+VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                  WORD16 ch_fac);
 
-VOID ixheaacd_neg_shift_spec_armv7(WORD32 *coef, WORD16 *out, WORD16 q_shift,
+VOID ixheaacd_neg_shift_spec_armv7(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                    WORD16 ch_fac);
 
-VOID ixheaacd_neg_shift_spec_armv8(WORD32 *coef, WORD16 *out, WORD16 q_shift,
+VOID ixheaacd_neg_shift_spec_armv8(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                    WORD16 ch_fac);
 
 VOID ixheaacd_nolap1_32(WORD32 *coef, WORD32 *out, WORD16 cu_scale,
                         WORD16 stride);
 
-VOID ixheaacd_overlap_out_copy_dec(WORD16 *out_samples, WORD32 *ptr_overlap_buf,
+VOID ixheaacd_overlap_out_copy_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
                                    WORD32 *ptr_overlap_buf1,
                                    const WORD16 ch_fac);
 
-VOID ixheaacd_overlap_out_copy_armv7(WORD16 *out_samples,
+VOID ixheaacd_overlap_out_copy_armv7(WORD32 *out_samples,
                                      WORD32 *ptr_overlap_buf,
                                      WORD32 *ptr_overlap_buf1,
                                      const WORD16 ch_fac);
 
-VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD16 *out,
+VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD32 *out,
                                  const WORD16 *short_window,
                                  const WORD16 *short_window_prev,
                                  const WORD16 *long_window_prev, WORD16 q_shift,
@@ -173,7 +173,7 @@ VOID ixheaacd_huffman_decode(WORD32 it_bit_buff, WORD16 *huff_index,
 void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *ptr_win,
                                 WORD32 framesize, WORD16 q_shift,
                                 WORD32 *ptr_overlap_buf, const WORD16 stride,
-                                WORD16 *out_samples);
+                                VOID *out_samples, WORD slot_element);
 
 WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 cnt);
 
@@ -182,8 +182,8 @@ VOID ixheaacd_process_single_scf(WORD32 scale_factor, WORD32 *x_invquant,
                                  WORD32 total_channels, WORD32 object_type,
                                  WORD32 aac_sf_data_resil_flag);
 
-void ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, WORD16 *out,
+void ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, VOID *out_tmp,
                            const WORD16 *window, WORD16 q_shift, WORD16 size,
-                           WORD16 stride);
+                           WORD16 stride , WORD slot_element);
 
 #endif /* #ifndef IXHEAACD_BLOCK_H */

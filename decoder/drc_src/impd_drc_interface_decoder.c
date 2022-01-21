@@ -23,7 +23,6 @@
 #include <assert.h>
 #include <string.h>
 #include "impd_type_def.h"
-
 #include "impd_drc_bitbuffer.h"
 #include "impd_drc_common.h"
 #include "impd_drc_interface.h"
@@ -32,7 +31,8 @@
 WORD32
 impd_drc_dec_interface_add_effect_type(
     ia_drc_interface_struct* pstr_drc_interface, WORD32 drc_effect_type,
-    WORD32 target_loudness, WORD32 loud_norm) {
+    WORD32 target_loudness, WORD32 loud_norm, WORD32 album_mode, FLOAT32 boost,
+    FLOAT32 compress) {
   WORD32 err = 0;
   WORD32 i = 0;
 
@@ -67,7 +67,7 @@ impd_drc_dec_interface_add_effect_type(
         (FLOAT32)target_loudness;
 
     pstr_drc_interface->loudness_norm_parameter_interface_flag = 1;
-    pstr_drc_interface->loudness_norm_param_interface.album_mode = 0;
+    pstr_drc_interface->loudness_norm_param_interface.album_mode = album_mode;
     pstr_drc_interface->loudness_norm_param_interface.peak_limiter = 0;
     pstr_drc_interface->loudness_norm_param_interface
         .change_loudness_deviation_max = 1;
@@ -138,8 +138,8 @@ impd_drc_dec_interface_add_effect_type(
     pstr_drc_interface->drc_parameter_interface_flag = 1;
     pstr_drc_interface->drc_parameter_interface.change_compress = 1;
     pstr_drc_interface->drc_parameter_interface.change_boost = 1;
-    pstr_drc_interface->drc_parameter_interface.compress = 1.0f;
-    pstr_drc_interface->drc_parameter_interface.boost = 1.0f;
+    pstr_drc_interface->drc_parameter_interface.compress = compress;
+    pstr_drc_interface->drc_parameter_interface.boost = boost;
     pstr_drc_interface->drc_parameter_interface
         .change_drc_characteristic_target = 1;
     pstr_drc_interface->drc_parameter_interface.drc_characteristic_target = 0;

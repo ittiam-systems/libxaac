@@ -60,6 +60,7 @@
 #define IA_API_CMD_GET_TABLE_INFO_PRIORITY 0x001C
 #define IA_API_CMD_SET_TABLE_PTR 0x001D
 #define IA_API_CMD_GET_TABLE_PTR 0x001E
+#define IA_API_CMD_GET_LOUDNESS_VAL 0x001F
 
 /*****************************************************************************/
 /* Ittiam standard API command indices                                       */

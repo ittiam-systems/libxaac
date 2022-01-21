@@ -61,7 +61,7 @@ extern VOID (*ixheaacd_covariance_matrix_calc)(WORD32 *,
                                                WORD32);
 extern VOID (*ixheaacd_covariance_matrix_calc_2)(
     ixheaacd_lpp_trans_cov_matrix *, WORD32 *, WORD32, WORD16);
-extern VOID (*ixheaacd_over_lap_add1)(WORD32 *, WORD32 *, WORD16 *,
+extern VOID (*ixheaacd_over_lap_add1)(WORD32 *, WORD32 *, WORD32 *,
                                       const WORD16 *, WORD16, WORD16, WORD16);
 extern VOID (*ixheaacd_over_lap_add2)(WORD32 *, WORD32 *, WORD32 *,
                                       const WORD16 *, WORD16, WORD16, WORD16);
@@ -119,19 +119,19 @@ extern WORD32 (*ixheaacd_calc_max_spectral_line)(WORD32 *, WORD32);
 extern VOID (*ixheaacd_post_twiddle)(WORD32[], WORD32[],
                                      ia_aac_dec_imdct_tables_struct *, WORD);
 
-extern VOID (*ixheaacd_post_twid_overlap_add)(WORD16[], WORD32[],
+extern VOID (*ixheaacd_post_twid_overlap_add)(WORD32[], WORD32[],
                                               ia_aac_dec_imdct_tables_struct *,
                                               WORD, WORD32 *, WORD16,
                                               const WORD16 *, WORD16);
 
-extern VOID (*ixheaacd_neg_shift_spec)(WORD32 *, WORD16 *, WORD16, WORD16);
+extern VOID (*ixheaacd_neg_shift_spec)(WORD32 *, WORD32 *, WORD16, WORD16);
 
 extern VOID (*ixheaacd_spec_to_overlapbuf)(WORD32 *, WORD32 *, WORD32, WORD32);
 
-extern VOID (*ixheaacd_overlap_buf_out)(WORD16 *, WORD32 *, WORD32,
+extern VOID (*ixheaacd_overlap_buf_out)(WORD32 *, WORD32 *, WORD32,
                                         const WORD16);
 
-extern VOID (*ixheaacd_overlap_out_copy)(WORD16 *, WORD32 *, WORD32 *,
+extern VOID (*ixheaacd_overlap_out_copy)(WORD32 *, WORD32 *, WORD32 *,
                                          const WORD16);
 
 extern VOID (*ixheaacd_pretwiddle_compute)(WORD32 *, WORD32 *, WORD32 *,
