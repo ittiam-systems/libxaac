@@ -181,38 +181,6 @@ Sample CLI:
 <xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16 					 
 ```
 
-**Using paramfile :**
-
-The same CLI options can be provided to the Ex-HEAAC decoder via a parameter file.
-
-Parameter file can be used to run multiple files in a single decoder instance.
-
-Default parameter file name: `paramfilesimple.txt` 
-
-Apart from the facility to invoke command line options, there are certain special options available that can be set in the parameter file. 
-
-Below is the list of all such parameters:
-
-```
-@Input_path  <Path to Input streams location>
-@Output_path <Path to write output PCM/WAVs location>
-@Start
-<CLI options>
-@Stop
-```
-
-Any CLI can be invoked only after `@Start`.
-
-`@Stop` indicates end of CLI option processing.
-
-Any CLI mentioned after `@Stop` will not be processed. 
-
-In case there are multiple `@Start` and `@Stop`, only the options between the first `@Start` and `@Stop` will be processed.
-
-The input and the output paths in parameter file should either be relative to the executable path or the absolute paths.
-
-If no argument is given, by default the application reads the test vectors names from the parameter file located in the same directory as executable, with the name as paramfilesimple.txt.
-
 # Validating the Ex-HEAAC Decoder
 
 Conformance testing for AAC/HEAAC v1/HEAAC v2 mainly involves comparing 
