@@ -1272,6 +1272,27 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   } while (!ui_init_done);
 
   if (mpeg_d_drc_on == 1) {
+    err_code = (*p_ia_process_api)(
+        pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+        IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE, &i_sbr_mode);
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+    if (i_sbr_mode != 0) {
+      WORD32 frame_length;
+      if (i_sbr_mode == 1) {
+        frame_length = 2048;
+      } else if (i_sbr_mode == 3) {
+        frame_length = 4096;
+      } else {
+        frame_length = 1024;
+      }
+
+      err_code =
+          ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                         IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE, &frame_length);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+
     err_code =
         (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq, &i_num_chan,
                               &i_pcm_wd_sz, &i_channel_mask);
@@ -1738,8 +1759,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         i_total_bytes += i_out_bytes;
 
         if (mpegd_drc_present == 1) {
-          memcpy(drc_ip_buf, pb_out_buf + preroll_frame_offset, i_out_bytes);
-          preroll_frame_offset += i_out_bytes;
+          WORD32 is_config_changed = 0, apply_crossfade = 0;
 
           err_code = (*p_ia_process_api)(
               pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
@@ -1767,6 +1787,124 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                              IA_API_CMD_SET_INPUT_BYTES, 0, &i_out_bytes);
 
           _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          err_code = (*p_ia_process_api)(
+              pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+              IA_ENHAACPLUS_DEC_DRC_IS_CONFIG_CHANGED, &is_config_changed);
+
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          err_code = ia_drc_dec_api(
+              pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+              IA_DRC_DEC_CONFIG_PARAM_CONFIG_CHANGED, &is_config_changed);
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          err_code = (*p_ia_process_api)(
+              pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+              IA_ENHAACPLUS_DEC_DRC_APPLY_CROSSFADE, &apply_crossfade);
+
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          err_code = ia_drc_dec_api(
+              pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+              IA_DRC_DEC_CONFIG_PARAM_APPLY_CROSSFADE, &apply_crossfade);
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+          if (is_config_changed == 1) {
+            VOID *p_array[2][16];
+            WORD32 ii;
+            WORD32 num_elements;
+            WORD32 num_config_ext;
+            WORD32 buf_sizes[2][16];
+            WORD32 bit_str_fmt = 1;
+
+            memset(buf_sizes, 0, 32 * sizeof(WORD32));
+
+            err_code = (*p_ia_process_api)(
+                pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_BUF_SIZES, &buf_sizes[0][0]);
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            err_code = (*p_ia_process_api)(
+                pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR, &p_array);
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            err_code =
+                ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
+                               IA_CMD_TYPE_INIT_SET_BUFF_PTR, 0);
+
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            err_code = (*p_ia_process_api)(
+                pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                IA_ENHAACPLUS_DEC_CONFIG_NUM_ELE, &num_elements);
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            err_code = (*p_ia_process_api)(
+                pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                IA_ENHAACPLUS_DEC_CONFIG_NUM_CONFIG_EXT, &num_config_ext);
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            for (ii = 0; ii < num_config_ext; ii++) {
+              /*copy loudness bitstream*/
+              if (buf_sizes[0][ii] > 0) {
+                memcpy(drc_ip_buf, p_array[0][ii], buf_sizes[0][ii]);
+
+                /*Set bitstream_split_format */
+                err_code = ia_drc_dec_api(
+                    pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                    IA_DRC_DEC_CONFIG_PARAM_BITS_FORMAT, &bit_str_fmt);
+
+                /* Set number of bytes to be processed */
+                err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj,
+                                          IA_API_CMD_SET_INPUT_BYTES_IL_BS, 0,
+                                          &buf_sizes[0][ii]);
+
+                _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+                /* Execute process */
+                err_code =
+                    ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
+                                   IA_CMD_TYPE_INIT_CPY_IL_BSF_BUFF, NULL);
+
+                _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+                drc_flag = 1;
+              }
+            }
+
+            for (ii = 0; ii < num_elements; ii++) {
+              /*copy config bitstream*/
+              if (buf_sizes[1][ii] > 0) {
+                memcpy(drc_ip_buf, p_array[1][ii], buf_sizes[1][ii]);
+                /* Set number of bytes to be processed */
+
+                /*Set bitstream_split_format */
+                err_code = ia_drc_dec_api(
+                    pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                    IA_DRC_DEC_CONFIG_PARAM_BITS_FORMAT, &bit_str_fmt);
+
+                err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj,
+                                          IA_API_CMD_SET_INPUT_BYTES_IC_BS, 0,
+                                          &buf_sizes[1][ii]);
+
+                _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+                /* Execute process */
+                err_code =
+                    ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_INIT,
+                                   IA_CMD_TYPE_INIT_CPY_IC_BSF_BUFF, NULL);
+
+                _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+                drc_flag = 1;
+              }
+            }
+          }
+
+          memcpy(drc_ip_buf, pb_out_buf + preroll_frame_offset, i_out_bytes);
+          preroll_frame_offset += i_out_bytes;
 
           err_code =
               ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_EXECUTE,

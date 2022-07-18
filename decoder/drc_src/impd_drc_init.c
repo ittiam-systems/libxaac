@@ -412,6 +412,11 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
     if (err_code != IA_NO_ERROR) return err_code;
   }
 
+  if (!p_obj_drc->str_config.boost_set) p_obj_drc->str_config.boost = 1.0f;
+
+  if (!p_obj_drc->str_config.compress_set)
+    p_obj_drc->str_config.compress = 1.0f;
+
   err_code = impd_drc_dec_interface_add_effect_type(
       p_obj_drc->str_payload.pstr_drc_interface,
       p_obj_drc->str_config.effect_type, p_obj_drc->str_config.target_loudness,

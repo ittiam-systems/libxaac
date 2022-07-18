@@ -785,9 +785,12 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
         *ptri_value = i;
       } else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
+        ia_dec_data_struct *pstr_dec_data =
+            (ia_dec_data_struct *)
+                p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data;
         ia_audio_specific_config_struct *ptr_audio_specific_config =
-            ((ia_audio_specific_config_struct *)
-                 p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+            ((ia_audio_specific_config_struct *)&pstr_dec_data->str_frame_data
+                 .str_audio_specific_config);
 
         for (i = 0; i < ptr_audio_specific_config->str_usac_config
                             .str_usac_dec_config.num_config_extensions;
@@ -825,6 +828,10 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
                   .usac_ext_ele_payload_len[i];
         }
 
+      } else if (IA_ENHAACPLUS_DEC_DRC_IS_CONFIG_CHANGED == i_idx) {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->drc_config_changed;
+      } else if (IA_ENHAACPLUS_DEC_DRC_APPLY_CROSSFADE == i_idx) {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->apply_crossfade;
       } else if (IA_ENHAACPLUS_DEC_CONFIG_NUM_ELE == i_idx) {
         UWORD32 *ptri_value = (UWORD32 *)pv_value;
         ia_audio_specific_config_struct *ptr_audio_specific_config =
@@ -885,7 +892,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     case IA_API_CMD_SET_MEMTABS_PTR: {
       if (pv_value == NULL) return IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC;
       memset(pv_value, 0, (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) *
-                              (IA_ENHAACPDEC_NUM_MEMTABS));
+                 (IA_ENHAACPDEC_NUM_MEMTABS));
 
       p_obj_exhaacplus_dec->p_mem_info_aac = pv_value;
       p_obj_exhaacplus_dec->pp_mem_aac =
@@ -2326,7 +2333,7 @@ VOID ixheaacd_fill_prog_config_slots(
 
   ixheaacd_fill_slot_order(
       p_state_enhaacplus_dec, p_state_enhaacplus_dec->p_config->str_prog_config
-                                  .num_front_channel_elements,
+          .num_front_channel_elements,
       p_state_enhaacplus_dec->p_config->str_prog_config.front_element_is_cpe,
       p_state_enhaacplus_dec->p_config->str_prog_config
           .front_element_tag_select,
@@ -2334,14 +2341,14 @@ VOID ixheaacd_fill_prog_config_slots(
 
   ixheaacd_fill_slot_order(
       p_state_enhaacplus_dec, p_state_enhaacplus_dec->p_config->str_prog_config
-                                  .num_side_channel_elements,
+          .num_side_channel_elements,
       p_state_enhaacplus_dec->p_config->str_prog_config.side_element_is_cpe,
       p_state_enhaacplus_dec->p_config->str_prog_config.side_element_tag_select,
       &idx_no);
 
   ixheaacd_fill_slot_order(
       p_state_enhaacplus_dec, p_state_enhaacplus_dec->p_config->str_prog_config
-                                  .num_back_channel_elements,
+          .num_back_channel_elements,
       p_state_enhaacplus_dec->p_config->str_prog_config.back_element_is_cpe,
       p_state_enhaacplus_dec->p_config->str_prog_config.back_element_tag_select,
       &idx_no);

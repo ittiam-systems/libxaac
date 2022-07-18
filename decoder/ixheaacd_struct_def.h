@@ -237,6 +237,8 @@ typedef struct ia_aac_dec_state_struct {
   ia_peak_limiter_struct peak_limiter;
   UWORD8 sbr_present;
   UWORD8 slot_pos;
+  WORD32 drc_config_changed;
+  WORD32 apply_crossfade;
 
 } ia_aac_dec_state_struct;
 

@@ -84,8 +84,8 @@ VOID impd_gain_db_to_lin(ia_interp_params_struct* interp_params_str,
         (interp_params_str->clipping_flag == 1)) {
       *out_param_lin_gain *= (FLOAT32)pow(
           2.0, max(0.0, -interp_params_str->limiter_peak_target -
-                            interp_params_str->loudness_normalization_gain_db) /
-                   6.0);
+                  interp_params_str->loudness_normalization_gain_db) /
+              6.0);
       if (*out_param_lin_gain >= 1.0) {
         *out_param_lin_gain = 1.0;
         *out_param_lin_slope = 0.0;
@@ -400,8 +400,8 @@ impd_conv_to_linear_domain(ia_interp_params_struct* interp_params_str,
         (interp_params_str->clipping_flag == 1)) {
       *out_param_lin_gain *= (FLOAT32)pow(
           2.0, max(0.0, -interp_params_str->limiter_peak_target -
-                            interp_params_str->loudness_normalization_gain_db) /
-                   6.0);
+                  interp_params_str->loudness_normalization_gain_db) /
+              6.0);
       if (*out_param_lin_gain >= 1.0) {
         *out_param_lin_gain = 1.0;
         *out_param_lin_slope = 0.0;
@@ -551,7 +551,9 @@ WORD32
 impd_concatenate_segments(WORD32 drc_frame_size, WORD32 drc_band,
                           ia_interp_params_struct* interp_params_str,
                           ia_spline_nodes_struct* str_spline_nodes,
-                          ia_interp_buf_struct* buf_interpolation) {
+                          ia_interp_buf_struct* buf_interpolation,
+                          WORD32 sel_drc_index, WORD32 is_config_changed,
+                          WORD32 loudness_changed) {
   WORD32 timePrev, duration, n, err = 0;
   FLOAT32 loc_db_gain = 0.0f, prev_db_gain, slope = 0.0f, slopePrev;
 
@@ -561,12 +563,23 @@ impd_concatenate_segments(WORD32 drc_frame_size, WORD32 drc_band,
   for (n = 0; n < str_spline_nodes->num_nodes; n++) {
     duration = str_spline_nodes->str_node[n].time - timePrev;
     loc_db_gain = str_spline_nodes->str_node[n].loc_db_gain;
+    if (loudness_changed) {
+      if (sel_drc_index == 0 && is_config_changed == 1) {
+        loc_db_gain = str_spline_nodes->str_node[n].loc_db_gain +
+                      interp_params_str->loudness_normalization_gain_db;
+        if (prev_db_gain == 0) {
+          prev_db_gain = buf_interpolation->prev_node.loc_db_gain +
+                         interp_params_str->loudness_normalization_gain_db;
+        }
+      }
+    }
     slope = str_spline_nodes->str_node[n].slope;
 
-    err = impd_interpolate_drc_gain(
-        interp_params_str, drc_band, duration, prev_db_gain, loc_db_gain,
-        slopePrev, slope, buf_interpolation->lpcm_gains + MAX_SIGNAL_DELAY +
-                              drc_frame_size + timePrev);
+    err = impd_interpolate_drc_gain(interp_params_str, drc_band, duration,
+                                    prev_db_gain, loc_db_gain, slopePrev, slope,
+                                    buf_interpolation->lpcm_gains +
+                                        MAX_SIGNAL_DELAY + drc_frame_size +
+                                        timePrev);
     if (err) return (err);
 
     timePrev = str_spline_nodes->str_node[n].time;
@@ -688,7 +701,9 @@ impd_get_drc_gain(ia_drc_gain_dec_struct* p_drc_gain_dec_structs,
               ia_drc_params_struct->drc_frame_size, b, &interp_params_str,
               &(pstr_drc_gain->drc_gain_sequence[seq].str_spline_nodes[0]),
               &(drc_gain_buffers->pstr_gain_buf[sel_drc_index]
-                    .buf_interpolation[gainElementIndex]));
+                    .buf_interpolation[gainElementIndex]),
+              sel_drc_index, pstr_drc_config->is_config_changed,
+              pstr_drc_config->ln_gain_changed);
           if (err) return (err);
           gainElementIndex++;
         }
@@ -714,7 +729,9 @@ impd_get_drc_gain(ia_drc_gain_dec_struct* p_drc_gain_dec_structs,
                        [parametricDrcInstanceIndex]
                    .str_spline_nodes,
               &(drc_gain_buffers->pstr_gain_buf[sel_drc_index]
-                    .buf_interpolation[gainElementIndex]));
+                    .buf_interpolation[gainElementIndex]),
+              sel_drc_index, pstr_drc_config->is_config_changed,
+              pstr_drc_config->ln_gain_changed);
           if (err) return (err);
         } else if (ia_drc_params_struct->sub_band_domain_mode ==
                        SUBBAND_DOMAIN_MODE_OFF &&
@@ -757,7 +774,9 @@ impd_get_drc_gain(ia_drc_gain_dec_struct* p_drc_gain_dec_structs,
                        [parametricDrcInstanceIndex]
                    .str_spline_nodes,
               &(drc_gain_buffers->pstr_gain_buf[sel_drc_index]
-                    .buf_interpolation[gainElementIndex]));
+                    .buf_interpolation[gainElementIndex]),
+              sel_drc_index, pstr_drc_config->is_config_changed,
+              pstr_drc_config->ln_gain_changed);
           if (err) return (err);
 
         } else {
