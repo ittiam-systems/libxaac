@@ -33,136 +33,177 @@
 
 #include "ixheaacd_mps_hybfilter.h"
 
-extern const WORD32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
-extern const WORD32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
-extern const WORD32 ixheaacd_cosine[8][13];
-extern const WORD32 ixheaacd_sine[8][13];
-extern const WORD32 ixheaacd_cosine2[2][13];
+extern const FLOAT32 ixheaacd_ia_mps_hyb_filter_coeff_8[QMF_HYBRID_FILT_ORDER];
+extern const FLOAT32 ixheaacd_mps_hyb_filter_coeff_2[QMF_HYBRID_FILT_ORDER];
 
-static WORD32 ixheaacd_mps_mult32_local(WORD32 a, WORD32 b, WORD16 shift) {
-  WORD64 temp;
-
-  temp = (WORD64)a * (WORD64)b;
-  temp = temp >> shift;
-  return (WORD32)temp;
-}
+extern const FLOAT32 ixheaacd_sine[8][8];
+extern const FLOAT32 ixheaacd_cosine[8][8];
 
 static VOID ixheaacd_mps_hyb_filt_type1(
-    ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[8][MAX_TIME_SLOTS],
-    WORD32 num_samples, const WORD32 *filt_coeff)
+    ia_cmplx_flt_struct *input, ia_cmplx_flt_struct output[8][MAX_TIME_SLOTS],
+    WORD32 num_samples, const FLOAT32 *filt_coeff)
 
 {
   WORD32 i, n, q;
 
-  WORD32 modulation_fac_re, modulation_fac_im;
-  WORD32 in_re, in_im;
-  WORD32 temp;
-  WORD32 coeff;
-  WORD64 acc_re, acc_im;
-
-  WORD16 shift = 8;
+  FLOAT32 in_re, in_im;
+  FLOAT32 coeff;
+  FLOAT32 acc_re_l, acc_re_h, acc_im_l, acc_im_h;
 
   for (i = 0; i < num_samples; i++) {
-    for (q = 0; q < 8; q++) {
-      acc_re = 0;
-      acc_im = 0;
-      for (n = 0; n < QMF_HYBRID_FILT_ORDER; n++) {
-        modulation_fac_re = ixheaacd_cosine[q][n];
-        modulation_fac_im = ixheaacd_sine[q][n];
+    FLOAT32 x0_re[13], x0_im[13], x0_1_re[8], x0_1_im[8];
+    FLOAT32 acc_re_val[8], acc_im_val[8];
+    for (n = 0; n < QMF_HYBRID_FILT_ORDER; n++)  // x0 = x[n]*Cf[n]
+    {
+      in_re = input[n + i].re;
+      in_im = input[n + i].im;
 
-        in_re = (WORD32)(input[n + i].re);
-        in_im = (WORD32)(input[n + i].im);
+      coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
-        in_re = ixheaacd_shl32_sat(in_re, shift);
-        in_im = ixheaacd_shl32_sat(in_im, shift);
+      x0_re[n] = coeff * in_re;
+      x0_im[n] = coeff * in_im;
+    }
 
-        coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
+    // x0_2 series
 
-        temp = ixheaacd_sub32_sat(
-            ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30),
-            ixheaacd_mps_mult32_local(in_im, modulation_fac_im, 30));
+    x0_1_re[0] = x0_re[6];
+    x0_1_im[0] = x0_im[6];
 
-        if (temp >= 1073741823)
-          temp = 1073741823;
-        else if (temp <= -1073741824)
-          temp = -1073741824;
+    x0_1_re[1] = x0_re[7];
+    x0_1_im[1] = x0_im[7];
 
-        temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
-        acc_re = acc_re + (WORD64)temp;
+    x0_1_re[2] = x0_re[8] - x0_re[0];
+    x0_1_im[2] = x0_im[8] - x0_im[0];
 
-        temp = ixheaacd_add32_sat(
-            ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30),
-            ixheaacd_mps_mult32_local(in_re, modulation_fac_im, 30));
+    x0_1_re[3] = x0_re[9] - x0_re[1];
+    x0_1_im[3] = x0_im[9] - x0_im[1];
 
-        if (temp >= 1073741823)
-          temp = 1073741823;
-        else if (temp <= -1073741824)
-          temp = -1073741824;
+    x0_1_re[4] = x0_re[10] - x0_re[2];
+    x0_1_im[4] = x0_im[10] - x0_im[2];
 
-        temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
-        acc_im = acc_im + (WORD64)temp;
-      }
+    x0_1_re[5] = x0_re[11] - x0_re[3];
+    x0_1_im[5] = x0_im[11] - x0_im[3];
 
-      output[q][i].re = (WORD32)(acc_re >> shift);
-      output[q][i].im = (WORD32)(acc_im >> shift);
+    x0_1_re[6] = x0_re[12] - x0_re[4];
+    x0_1_im[6] = x0_im[12] - x0_im[4];
+
+    x0_1_re[7] = -(x0_re[5]);
+    x0_1_im[7] = -(x0_im[5]);
+
+    // acc_re_im_val
+    acc_re_val[0] = x0_1_re[0];
+    acc_re_val[1] = x0_1_re[1] - x0_1_re[7];
+    acc_re_val[2] = x0_1_re[2] - x0_1_re[6];
+    acc_re_val[3] = x0_1_re[3] - x0_1_re[5];
+    acc_re_val[4] = x0_1_im[1] + x0_1_im[7];
+    acc_re_val[5] = x0_1_im[2] + x0_1_im[6];
+    acc_re_val[6] = x0_1_im[3] + x0_1_im[5];
+    acc_re_val[7] = x0_1_im[4];
+
+    acc_im_val[0] = x0_1_im[0];
+    acc_im_val[1] = x0_1_im[1] - x0_1_im[7];
+    acc_im_val[2] = x0_1_im[2] - x0_1_im[6];
+    acc_im_val[3] = x0_1_im[3] - x0_1_im[5];
+    acc_im_val[4] = x0_1_re[1] + x0_1_re[7];
+    acc_im_val[5] = x0_1_re[2] + x0_1_re[6];
+    acc_im_val[6] = x0_1_re[3] + x0_1_re[5];
+    acc_im_val[7] = x0_1_re[4];
+
+    for (q = 0; q < 4; q++) {
+      acc_re_l = 0;
+      acc_im_l = 0;
+      acc_re_h = 0;
+      acc_im_h = 0;
+
+      // X_re
+      acc_re_l += acc_re_val[0];
+      acc_re_l += acc_re_val[1] * ixheaacd_cosine[q][1];
+      acc_re_l += acc_re_val[2] * ixheaacd_cosine[q][2];
+      acc_re_l += acc_re_val[3] * ixheaacd_cosine[q][3];
+
+      acc_re_h = acc_re_l;
+
+      acc_re_l -= acc_re_val[4] * ixheaacd_sine[q][1];
+      acc_re_l -= acc_re_val[5] * ixheaacd_sine[q][2];
+      acc_re_l -= acc_re_val[6] * ixheaacd_sine[q][3];
+      acc_re_l -= acc_re_val[7] * ixheaacd_sine[q][4];
+
+      acc_re_h = acc_re_h - (acc_re_l - acc_re_h);
+
+      // X_im
+      acc_im_l += acc_im_val[0];
+      acc_im_l += acc_im_val[1] * ixheaacd_cosine[q][1];
+      acc_im_l += acc_im_val[2] * ixheaacd_cosine[q][2];
+      acc_im_l += acc_im_val[3] * ixheaacd_cosine[q][3];
+
+      acc_im_h = acc_im_l;
+
+      acc_im_l += acc_im_val[4] * ixheaacd_sine[q][1];
+      acc_im_l += acc_im_val[5] * ixheaacd_sine[q][2];
+      acc_im_l += acc_im_val[6] * ixheaacd_sine[q][3];
+      acc_im_l += acc_im_val[7] * ixheaacd_sine[q][4];
+
+      acc_im_h = acc_im_h - (acc_im_l - acc_im_h);
+
+      output[q][i].re = acc_re_l;
+      output[q][i].im = acc_im_l;
+
+      output[7 - q][i].re = acc_re_h;
+      output[7 - q][i].im = acc_im_h;
     }
   }
 }
 
 static VOID ixheaacd_mps_hyb_filt_type2(
-    ia_cmplx_w32_struct *input, ia_cmplx_w32_struct output[2][MAX_TIME_SLOTS],
-    WORD32 num_samples, const WORD32 *filt_coeff)
+    ia_cmplx_flt_struct *input, ia_cmplx_flt_struct output[2][MAX_TIME_SLOTS],
+    WORD32 num_samples, const FLOAT32 *filt_coeff)
 
 {
-  WORD32 i, n, q;
+  WORD32 i, n;
 
-  WORD32 modulation_fac_re;
-  WORD32 in_re, in_im;
-  WORD32 temp;
-  WORD32 coeff;
-  WORD64 acc_re, acc_im;
-
-  WORD16 shift = 8;
+  FLOAT32 in_re, in_im;
+  FLOAT32 coeff;
+  FLOAT32 acc_re[2], acc_im[2];
 
   for (i = 0; i < num_samples; i++) {
-    for (q = 0; q < 2; q++) {
-      acc_re = 0;
-      acc_im = 0;
-      for (n = 0; n < QMF_HYBRID_FILT_ORDER; n++) {
-        modulation_fac_re = ixheaacd_cosine2[q][n];
+    FLOAT32 x_0_re[13], x_0_im[13];
 
-        in_re = (WORD32)(input[n + i].re);
-        in_im = (WORD32)(input[n + i].im);
+    for (n = 1; n < 6; n = n + 2) {
+      in_re = input[n + i].re;
+      in_im = input[n + i].im;
 
-        in_re = ixheaacd_shl32_sat(in_re, shift);
-        in_im = ixheaacd_shl32_sat(in_im, shift);
+      in_re += input[12 - n + i].re;
+      in_im += input[12 - n + i].im;
 
-        coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
+      coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
 
-        temp = ixheaacd_mps_mult32_local(in_re, modulation_fac_re, 30);
-
-        if (temp >= 1073741823)
-          temp = 1073741823;
-        else if (temp <= -1073741824)
-          temp = -1073741824;
-
-        temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
-        acc_re = acc_re + (WORD64)temp;
-
-        temp = ixheaacd_mps_mult32_local(in_im, modulation_fac_re, 30);
-
-        if (temp >= 1073741823)
-          temp = 1073741823;
-        else if (temp <= -1073741824)
-          temp = -1073741824;
-
-        temp = ixheaacd_mps_mult32_local(coeff, temp, 30);
-        acc_im = acc_im + (WORD64)temp;
-      }
-
-      output[q][i].re = (WORD32)(acc_re >> shift);
-      output[q][i].im = (WORD32)(acc_im >> shift);
+      x_0_re[n] = coeff * in_re;
+      x_0_im[n] = coeff * in_im;
     }
+
+    n = 6;
+    in_re = input[n + i].re;
+    in_im = input[n + i].im;
+
+    coeff = filt_coeff[QMF_HYBRID_FILT_ORDER - 1 - n];
+
+    x_0_re[n] = coeff * in_re;
+    x_0_im[n] = coeff * in_im;
+
+    x_0_re[1] = x_0_re[1] + x_0_re[3] + x_0_re[5];
+    x_0_im[1] = x_0_im[1] + x_0_im[3] + x_0_im[5];
+
+    acc_re[0] = x_0_re[6] + x_0_re[1];
+    acc_im[0] = x_0_im[6] + x_0_im[1];
+
+    acc_re[1] = x_0_re[6] - x_0_re[1];
+    acc_im[1] = x_0_im[6] - x_0_im[1];
+
+    output[0][i].re = acc_re[0];
+    output[0][i].im = acc_im[0];
+
+    output[1][i].re = acc_re[1];
+    output[1][i].im = acc_im[1];
   }
 }
 
@@ -173,17 +214,17 @@ VOID ixheaacd_mps_qmf_hybrid_analysis_init(ia_mps_hybrid_filt_struct *handle) {
                                    sizeof(ia_cmplx_flt_struct));
 }
 
-VOID ixheaacd_mps_qmf_hybrid_analysis(
+VOID ixheaacd_mps_qmf_hybrid_analysis_no_pre_mix(
     ia_mps_hybrid_filt_struct *handle,
-    ia_cmplx_flt_struct in_qmf[MAX_TIME_SLOTS][MAX_NUM_QMF_BANDS_MPS_NEW],
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
     WORD32 num_bands, WORD32 num_samples,
-    ia_cmplx_flt_struct hyb[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]) {
+    ia_cmplx_flt_struct v[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS]) {
   WORD32 lf_samples_shift;
   WORD32 hf_samples_shift;
   WORD32 lf_qmf_bands;
   WORD32 k, n;
 
-  ia_cmplx_w32_struct scratch[MAX_HYBRID_ONLY_BANDS_PER_QMF][MAX_TIME_SLOTS];
+  ia_cmplx_flt_struct scratch[MAX_HYBRID_ONLY_BANDS_PER_QMF][MAX_TIME_SLOTS];
 
   lf_samples_shift = BUFFER_LEN_LF_MPS - num_samples;
   hf_samples_shift = BUFFER_LEN_HF_MPS - num_samples;
@@ -191,33 +232,23 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
   lf_qmf_bands = QMF_BANDS_TO_HYBRID;
 
   for (k = 0; k < lf_qmf_bands; k++) {
-    for (n = 0; n < lf_samples_shift; n++) {
-      handle->lf_buffer[k][n].re = handle->lf_buffer[k][n + num_samples].re;
-      handle->lf_buffer[k][n].im = handle->lf_buffer[k][n + num_samples].im;
-    }
+    memmove(&handle->lf_buffer[k][0].re, &handle->lf_buffer[k][num_samples].re,
+            2 * lf_samples_shift * sizeof(FLOAT32));
   }
 
   for (k = 0; k < lf_qmf_bands; k++) {
-    for (n = 0; n < num_samples; n++) {
-      handle->lf_buffer[k][n + lf_samples_shift].re = (WORD32)(in_qmf[n][k].re);
-      handle->lf_buffer[k][n + lf_samples_shift].im = (WORD32)(in_qmf[n][k].im);
-    }
+    memcpy(&handle->lf_buffer[k][lf_samples_shift].re, &in_qmf[k][0].re,
+           2 * num_samples * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < MAX_NUM_QMF_BANDS_SAC / 2 - lf_qmf_bands; k++) {
+    memmove(&handle->hf_buffer[k][0].re, &handle->hf_buffer[k][num_samples].re,
+            2 * hf_samples_shift * sizeof(FLOAT32));
   }
 
   for (k = 0; k < num_bands - lf_qmf_bands; k++) {
-    for (n = 0; n < hf_samples_shift; n++) {
-      handle->hf_buffer[k][n].re = handle->hf_buffer[k][n + num_samples].re;
-      handle->hf_buffer[k][n].im = handle->hf_buffer[k][n + num_samples].im;
-    }
-  }
-
-  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
-    for (n = 0; n < num_samples; n++) {
-      handle->hf_buffer[k][n + hf_samples_shift].re =
-          (in_qmf[n][k + lf_qmf_bands].re);
-      handle->hf_buffer[k][n + hf_samples_shift].im =
-          (in_qmf[n][k + lf_qmf_bands].im);
-    }
+    memcpy(&handle->hf_buffer[k][hf_samples_shift].re,
+           &in_qmf[k + lf_qmf_bands][0].re, 2 * num_samples * sizeof(FLOAT32));
   }
 
   ixheaacd_mps_hyb_filt_type1(
@@ -226,15 +257,15 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k].re = (FLOAT32)scratch[k + 6][n].re;
-      hyb[n][k + 2].re = (FLOAT32)scratch[k][n].re;
-      hyb[n][k + 4].re = (FLOAT32)scratch[k + 2][n].re;
-      hyb[n][k + 4].re += (FLOAT32)scratch[5 - k][n].re;
+      v[n][k].re = scratch[k + 6][n].re;
+      v[n][k + 2].re = scratch[k][n].re;
+      v[n][k + 4].re = scratch[k + 2][n].re;
+      v[n][k + 4].re += scratch[5 - k][n].re;
 
-      hyb[n][k].im = (FLOAT32)scratch[k + 6][n].im;
-      hyb[n][k + 2].im = (FLOAT32)scratch[k][n].im;
-      hyb[n][k + 4].im = (FLOAT32)scratch[k + 2][n].im;
-      hyb[n][k + 4].im += (FLOAT32)scratch[5 - k][n].im;
+      v[n][k].im = scratch[k + 6][n].im;
+      v[n][k + 2].im = scratch[k][n].im;
+      v[n][k + 4].im = scratch[k + 2][n].im;
+      v[n][k + 4].im += scratch[5 - k][n].im;
     }
   }
 
@@ -244,8 +275,8 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 6].re = (FLOAT32)scratch[1 - k][n].re;
-      hyb[n][k + 6].im = (FLOAT32)scratch[1 - k][n].im;
+      v[n][k + 6].re = scratch[1 - k][n].re;
+      v[n][k + 6].im = scratch[1 - k][n].im;
     }
   }
 
@@ -255,16 +286,99 @@ VOID ixheaacd_mps_qmf_hybrid_analysis(
 
   for (k = 0; k < 2; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 8].re = (FLOAT32)scratch[k][n].re;
-      hyb[n][k + 8].im = (FLOAT32)scratch[k][n].im;
+      v[n][k + 8].re = scratch[k][n].re;
+      v[n][k + 8].im = scratch[k][n].im;
     }
   }
 
   for (k = 0; k < num_bands - lf_qmf_bands; k++) {
     for (n = 0; n < num_samples; n++) {
-      hyb[n][k + 10].re = (handle->hf_buffer[k][n + hf_samples_shift].re);
-      hyb[n][k + 10].im = (handle->hf_buffer[k][n + hf_samples_shift].im);
+      v[n][k + 10].re = (handle->hf_buffer[k][n + hf_samples_shift].re);
+      v[n][k + 10].im = (handle->hf_buffer[k][n + hf_samples_shift].im);
     }
+  }
+}
+
+VOID ixheaacd_mps_qmf_hybrid_analysis(
+    ia_mps_hybrid_filt_struct *handle,
+    ia_cmplx_flt_struct in_qmf[MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS],
+    WORD32 num_bands, WORD32 num_samples,
+    ia_cmplx_flt_struct hyb[MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS]) {
+  WORD32 lf_samples_shift;
+  WORD32 hf_samples_shift;
+  WORD32 lf_qmf_bands;
+  WORD32 k, n;
+
+  ia_cmplx_flt_struct scratch[MAX_HYBRID_ONLY_BANDS_PER_QMF][MAX_TIME_SLOTS];
+
+  lf_samples_shift = BUFFER_LEN_LF_MPS - num_samples;
+  hf_samples_shift = BUFFER_LEN_HF_MPS - num_samples;
+
+  lf_qmf_bands = QMF_BANDS_TO_HYBRID;
+
+  for (k = 0; k < lf_qmf_bands; k++) {
+    memmove(&handle->lf_buffer[k][0].re, &handle->lf_buffer[k][num_samples].re,
+            2 * lf_samples_shift * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < lf_qmf_bands; k++) {
+    memcpy(&handle->lf_buffer[k][lf_samples_shift].re, &in_qmf[k][0].re,
+           2 * num_samples * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < MAX_NUM_QMF_BANDS_SAC / 2 - lf_qmf_bands; k++) {
+    memmove(&handle->hf_buffer[k][0].re, &handle->hf_buffer[k][num_samples].re,
+            2 * hf_samples_shift * sizeof(FLOAT32));
+  }
+
+  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
+    memcpy(&handle->hf_buffer[k][hf_samples_shift].re,
+           &in_qmf[k + lf_qmf_bands][0].re, 2 * num_samples * sizeof(FLOAT32));
+  }
+
+  ixheaacd_mps_hyb_filt_type1(
+      &(handle->lf_buffer[0][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_ia_mps_hyb_filter_coeff_8);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k][n].re = scratch[k + 6][n].re;
+      hyb[k + 2][n].re = scratch[k][n].re;
+      hyb[k + 4][n].re = scratch[k + 2][n].re;
+      hyb[k + 4][n].re += scratch[5 - k][n].re;
+
+      hyb[k][n].im = scratch[k + 6][n].im;
+      hyb[k + 2][n].im = scratch[k][n].im;
+      hyb[k + 4][n].im = scratch[k + 2][n].im;
+      hyb[k + 4][n].im += scratch[5 - k][n].im;
+    }
+  }
+
+  ixheaacd_mps_hyb_filt_type2(
+      &(handle->lf_buffer[1][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_mps_hyb_filter_coeff_2);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k + 6][n].re = scratch[1 - k][n].re;
+      hyb[k + 6][n].im = scratch[1 - k][n].im;
+    }
+  }
+
+  ixheaacd_mps_hyb_filt_type2(
+      &(handle->lf_buffer[2][lf_samples_shift + 1 - QMF_HYBRID_FILT_ORDER]),
+      scratch, num_samples, ixheaacd_mps_hyb_filter_coeff_2);
+
+  for (k = 0; k < 2; k++) {
+    for (n = 0; n < num_samples; n++) {
+      hyb[k + 8][n].re = scratch[k][n].re;
+      hyb[k + 8][n].im = scratch[k][n].im;
+    }
+  }
+
+  for (k = 0; k < num_bands - lf_qmf_bands; k++) {
+    memcpy(&hyb[k + 10][0].re, &handle->hf_buffer[k][hf_samples_shift].re,
+           2 * num_samples * sizeof(FLOAT32));
   }
 }
 
@@ -289,9 +403,7 @@ VOID ixheaacd_mps_qmf_hybrid_synthesis(
     in_qmf[n][2].re = hyb[n][8].re + hyb[n][9].re;
     in_qmf[n][2].im = hyb[n][8].im + hyb[n][9].im;
 
-    for (k = 3; k < num_bands; k++) {
-      in_qmf[n][k].re = hyb[n][k - 3 + 10].re;
-      in_qmf[n][k].im = hyb[n][k - 3 + 10].im;
-    }
+    memcpy(&in_qmf[n][3].re, &hyb[n][10].re,
+           2 * (num_bands - 3) * sizeof(FLOAT32));
   }
 }

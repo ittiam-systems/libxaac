@@ -107,8 +107,8 @@ const int ixheaacd_ipd_de_quant_table_q28[] = {
     1264972288, 1370386688, 1475800960, 1581215360};
 static const int ixheaacd_smoothing_time_table[] = {64, 128, 256, 512};
 
-static const int ixheaacd_inverse_smoothing_time_table_q30[] = {
-    16777216, 8388608, 4194304, 2097152};
+static const FLOAT32 ixheaacd_inverse_smoothing_time_table[] = {
+    1.0f / 64.0f, 1.0f / 128.0f, 1.0f / 256.0f, 1.0f / 512.0f};
 
 static WORD32 bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
   var = min(var, upper_bound);
@@ -878,7 +878,7 @@ static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
     switch (frame->bs_smooth_mode[ps]) {
       case 0:
         self->smoothing_time[ps] = 256;
-        self->inv_smoothing_time[ps] = 4194304;
+        self->inv_smoothing_time[ps] = (FLOAT32)(1.0f / 256.0f);
 
         for (pb = 0; pb < self->bs_param_bands; pb++) {
           self->smoothing_data[ps][pb] = 0;
@@ -908,8 +908,7 @@ static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
         self->smoothing_time[ps] =
             ixheaacd_smoothing_time_table[frame->bs_smooth_time[ps]];
         self->inv_smoothing_time[ps] =
-            ixheaacd_inverse_smoothing_time_table_q30[frame
-                                                          ->bs_smooth_time[ps]];
+            ixheaacd_inverse_smoothing_time_table[frame->bs_smooth_time[ps]];
         for (pb = 0; pb < self->bs_param_bands; pb++) {
           self->smoothing_data[ps][pb] = 1;
         }
@@ -919,8 +918,7 @@ static VOID ixheaacd_mps_dec_and_mapframesmg(ia_mps_dec_state_struct *self) {
         self->smoothing_time[ps] =
             ixheaacd_smoothing_time_table[frame->bs_smooth_time[ps]];
         self->inv_smoothing_time[ps] =
-            ixheaacd_inverse_smoothing_time_table_q30[frame
-                                                          ->bs_smooth_time[ps]];
+            ixheaacd_inverse_smoothing_time_table[frame->bs_smooth_time[ps]];
 
         ch_fac = ixheaacd_mps_stride_table[frame->bs_freq_res_stride_smg[ps]];
         data_bands = (self->bs_param_bands - 1) / ch_fac + 1;
@@ -994,10 +992,9 @@ WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
 
 WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
   self->time_slots = self->frame_length;
-  self->frame_len = self->time_slots * self->qmf_band_count;
   self->bs_param_bands = ixheaacd_freq_res_table[self->config->bs_freq_res];
 
-  self->hyb_band_count = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
+  self->hyb_band_count_max = self->qmf_band_count - QMF_BANDS_TO_HYBRID + 10;
 
   switch (self->bs_param_bands) {
     case 4:

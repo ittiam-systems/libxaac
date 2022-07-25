@@ -38,6 +38,8 @@
 
 #define MAX_DECORR_FIL_ORDER (DECORR_FILT_0_ORD)
 
+#define NO_RES_BANDS -1
+
 typedef struct {
   FLOAT32 re;
   FLOAT32 im;
@@ -107,7 +109,7 @@ typedef struct ia_mps_decor_struct {
 
 typedef struct ia_mps_hybrid_filt_struct {
   ia_cmplx_flt_struct hf_buffer[MAX_NUM_QMF_BANDS_MPS][BUFFER_LEN_HF_MPS];
-  ia_cmplx_w32_struct lf_buffer[QMF_BANDS_TO_HYBRID][BUFFER_LEN_LF_MPS];
+  ia_cmplx_flt_struct lf_buffer[QMF_BANDS_TO_HYBRID][BUFFER_LEN_LF_MPS];
 } ia_mps_hybrid_filt_struct;
 
 typedef struct ia_mps_data_struct {
@@ -151,7 +153,7 @@ typedef struct ia_mps_bs_frame {
 
 typedef struct ia_mps_smoothing_struct {
   WORD32 prev_smg_time;
-  WORD32 inv_prev_smg_time;
+  FLOAT32 inv_prev_smg_time;
   WORD32 prev_smg_data[MAX_PARAMETER_BANDS];
 } ia_mps_smoothing_struct;
 
@@ -188,18 +190,18 @@ typedef struct ia_mps_dec_state_struct {
   WORD32 decor_sig_count;
 
   WORD32 time_slots;
-  WORD32 present_time_slot;
-  WORD32 frame_len;
-
+  WORD32 pre_mix_req;
   WORD32 temp_shape_enable_ch_stp[2];
   WORD32 temp_shape_enable_ch_ges[2];
 
   FLOAT32 env_shape_data[2][MAX_TIME_SLOTS];
 
   WORD8 parse_nxt_frame;
-
+  WORD32 band_count[MAX_M1_INPUT];
+  WORD32 synth_count;
   WORD32 qmf_band_count;
-  WORD32 hyb_band_count;
+  WORD32 hyb_band_count[MAX_M1_INPUT];
+  WORD32 hyb_band_count_max;
   const WORD32 *hyb_band_to_processing_band_table;
 
   WORD32 res_ch_count;
@@ -226,7 +228,7 @@ typedef struct ia_mps_dec_state_struct {
   ia_mps_bs_frame bs_frame;
 
   WORD32 smoothing_time[MAX_PARAMETER_SETS_MPS];
-  WORD32 inv_smoothing_time[MAX_PARAMETER_SETS_MPS];
+  FLOAT32 inv_smoothing_time[MAX_PARAMETER_SETS_MPS];
   WORD32 smoothing_data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS];
 
   WORD32 bs_tsd_enable;
@@ -248,32 +250,29 @@ typedef struct ia_mps_dec_state_struct {
   FLOAT32 phase_l_prev[MAX_PARAMETER_BANDS];
   FLOAT32 phase_r_prev[MAX_PARAMETER_BANDS];
 
-  WORD32 phase_l_fix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS];
-  WORD32 phase_r_fix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS];
+  FLOAT32 m1_param_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
+  FLOAT32 m1_param_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
+  FLOAT32 m2_decor_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
+  FLOAT32 m2_decor_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
+  FLOAT32 m2_resid_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
+  FLOAT32 m2_resid_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                     [MAX_M_INPUT];
 
-  WORD32 m1_param_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
-  WORD32 m1_param_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
-  WORD32 m2_decor_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
-  WORD32 m2_decor_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
-  WORD32 m2_resid_re[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
-  WORD32 m2_resid_im[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                    [MAX_M_INPUT];
+  FLOAT32 m1_param_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
+  FLOAT32 m1_param_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
+  FLOAT32 m2_decor_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
+  FLOAT32 m2_decor_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
+  FLOAT32 m2_resid_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
+  FLOAT32 m2_resid_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
 
-  WORD32 m1_param_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-  WORD32 m1_param_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-  WORD32 m2_decor_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-  WORD32 m2_decor_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-  WORD32 m2_resid_re_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-  WORD32 m2_resid_im_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT];
-
-  ia_cmplx_flt_struct qmf_in[2][MAX_TIME_SLOTS][MAX_NUM_QMF_BANDS_MPS_NEW];
-  ia_cmplx_flt_struct hyb_in[2][MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
-  ia_cmplx_flt_struct hyb_res[MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
+  ia_cmplx_flt_struct qmf_in[2][MAX_NUM_QMF_BANDS_MPS_NEW][MAX_TIME_SLOTS];
+  ia_cmplx_flt_struct hyb_in[2][MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS];
+  ia_cmplx_flt_struct hyb_res[MAX_HYBRID_BANDS_MPS][MAX_TIME_SLOTS];
   ia_cmplx_flt_struct v[MAX_M1_OUTPUT][MAX_TIME_SLOTS][MAX_HYBRID_BANDS_MPS];
   ia_cmplx_flt_struct w_diff[MAX_M2_INPUT][MAX_TIME_SLOTS]
                             [MAX_HYBRID_BANDS_MPS];
@@ -297,7 +296,7 @@ typedef struct ia_mps_dec_state_struct {
 
   WORD32 bs_high_rate_mode;
 
-  WORD32 tmp_buf[84 * MAX_NUM_QMF_BANDS_SAC];
+  FLOAT32 tmp_buf[84 * MAX_NUM_QMF_BANDS_SAC];
 
   FLOAT32 r_out_re_in_m1[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                         [MAX_M_INPUT];
@@ -340,11 +339,9 @@ typedef struct ia_mps_dec_state_struct {
 VOID ixheaacd_mps_init_pre_and_post_matrix(ia_mps_dec_state_struct *self);
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self);
 WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
-
-VOID ixheaacd_mps_config(ia_mps_dec_state_struct *self, WORD32 frame_len,
-                         WORD32 residual_coding,
-                         ia_usac_dec_mps_config_struct *mps212_config);
+WORD32 ixheaacd_mps_apply_mix_matrix_type1(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix_type2(ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self);
 
 WORD32 ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
 
@@ -359,25 +356,33 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self);
 WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct *self);
 
 VOID ixheaacd_mps_par2umx_ps(ia_mps_dec_state_struct *self,
-                             ia_mps_bs_frame *curr_bit_stream, WORD32 *h_real,
+                             ia_mps_bs_frame *curr_bit_stream, FLOAT32 *h_real,
                              WORD32 param_set_idx);
-
 VOID ixheaacd_mps_par2umx_ps_ipd_opd(ia_mps_dec_state_struct *self,
                                      ia_mps_bs_frame *curr_bit_stream,
-                                     WORD32 *h_real, WORD32 param_set_idx);
+                                     FLOAT32 *h_real, WORD32 param_set_idx);
 
 VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
-                               ia_mps_bs_frame *curr_bit_stream, WORD32 *h_imag,
-                               WORD32 *h_real, WORD32 param_set_idx,
-                               WORD32 res_bands);
+                               ia_mps_bs_frame *curr_bit_stream,
+                               FLOAT32 *h_imag, FLOAT32 *h_real,
+                               WORD32 param_set_idx, WORD32 res_bands);
 
-WORD32 ixheaacd_mps_upmix_interp(
-    WORD32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                   [MAX_M_INPUT],
-    WORD32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
-                   [MAX_M_INPUT],
-    WORD32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
-    WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self);
+WORD32 ixheaacd_mps_upmix_interp_type1(
+    FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
+    WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self,
+    WORD32 bs_high_rate_mode);
+
+WORD32 ixheaacd_mps_upmix_interp_type2(
+    FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
+                    [MAX_M_INPUT],
+    FLOAT32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
+    WORD32 num_rows, ia_mps_dec_state_struct *self, WORD32 col);
 
 VOID ixheaacd_mps_phase_interpolation(
     FLOAT32 pl[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS],

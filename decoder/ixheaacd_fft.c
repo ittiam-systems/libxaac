@@ -28,9 +28,10 @@
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32 ixheaacd_twiddle_table_fft_32x32[514];
+extern const FLOAT32 ixheaacd_twiddle_table_fft_flt[16];
 extern const WORD32 ixheaacd_twiddle_table_3pr[1155];
 extern const WORD32 ixheaacd_twiddle_table_3pi[1155];
-extern const WORD8 ixheaacd_mps_dig_rev[16];
+extern const WORD8 ixheaacd_mps_dig_rev[8];
 
 #define PLATFORM_INLINE __inline
 
@@ -61,59 +62,84 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32_sat(WORD32 a, WORD32 b, WORD32 c) {
   return (result);
 }
 
+static PLATFORM_INLINE FLOAT32 mult32X32float(FLOAT32 a, FLOAT32 b) {
+  FLOAT32 result;
 
-VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
-                                     WORD32 *fin_im, WORD32 nlength) {
-  WORD32 i, j, k, n_stages;
-  WORD32 h2, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
-  WORD32 del, nodespacing, in_loop_cnt;
-  WORD32 y[128];
-  WORD32 npoints = nlength;
-  WORD32 *ptr_y = y;
-  const WORD32 *ptr_w;
-  n_stages = 30 - ixheaacd_norm32(npoints);
+  result = a * b;
 
-  n_stages = n_stages >> 1;
+  return result;
+}
 
-  ptr_w = ixheaacd_twiddle_table_fft_32x32;
+static PLATFORM_INLINE FLOAT32 mac32X32float(FLOAT32 a, FLOAT32 b, FLOAT32 c) {
+  FLOAT32 result;
+
+  result = a + b * c;
+
+  return result;
+}
+
+VOID ixheaacd_mps_synth_calc_fft(FLOAT32 *ptr_xr, FLOAT32 *ptr_xi,
+                                 WORD32 npoints) {
+  WORD32 i, j, k;
+  FLOAT32 y[64], z[64];
+  FLOAT32 *ptr_y = y, *ptr_z = z;
+  const FLOAT32 *ptr_w = ixheaacd_twiddle_table_fft_flt;
 
   for (i = 0; i < npoints; i += 4) {
-    WORD32 *inp = ptr_x;
-    h2 = ixheaacd_mps_dig_rev[i >> 2];
+    FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+    FLOAT32 *inp = ptr_xr;
+    FLOAT32 tmk;
+
+    WORD32 h2 = ixheaacd_mps_dig_rev[i >> 2];
+
     inp += (h2);
 
     x0r = *inp;
     x0i = *(inp + 1);
-    inp += (npoints >> 1);
+    inp += 16;
 
     x1r = *inp;
     x1i = *(inp + 1);
-    inp += (npoints >> 1);
+    inp += 16;
 
     x2r = *inp;
     x2i = *(inp + 1);
-    inp += (npoints >> 1);
+    inp += 16;
 
     x3r = *inp;
     x3i = *(inp + 1);
 
-    x0r = ixheaacd_add32_sat(x0r, x2r);
-    x0i = ixheaacd_add32_sat(x0i, x2i);
-    x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-    x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-    x1r = ixheaacd_add32_sat(x1r, x3r);
-    x1i = ixheaacd_add32_sat(x1i, x3i);
-    x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-    x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
+    x0r = x0r + x2r;
+    x0i = x0i + x2i;
 
-    x0r = ixheaacd_add32_sat(x0r, x1r);
-    x0i = ixheaacd_add32_sat(x0i, x1i);
-    x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-    x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-    x2r = ixheaacd_add32_sat(x2r, x3i);
-    x2i = ixheaacd_sub32_sat(x2i, x3r);
-    x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-    x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
+    tmk = x0r - x2r;
+    x2r = tmk - x2r;
+    tmk = x0i - x2i;
+    x2i = tmk - x2i;
+
+    x1r = x1r + x3r;
+    x1i = x1i + x3i;
+
+    tmk = x1r - x3r;
+    x3r = tmk - x3r;
+    tmk = x1i - x3i;
+    x3i = tmk - x3i;
+
+    x0r = x0r + x1r;
+    x0i = x0i + x1i;
+
+    tmk = x0r - x1r;
+    x1r = tmk - x1r;
+    tmk = x0i - x1i;
+    x1i = tmk - x1i;
+
+    x2r = x2r + x3i;
+    x2i = x2i - x3r;
+
+    tmk = x2r - x3i;
+    x3i = tmk - x3i;
+    tmk = x2i + x3r;
+    x3r = tmk + x3r;
 
     *ptr_y++ = x0r;
     *ptr_y++ = x0i;
@@ -123,416 +149,719 @@ VOID ixheaacd_mps_complex_fft_64_dec(WORD32 *ptr_x, WORD32 *fin_re,
     *ptr_y++ = x1i;
     *ptr_y++ = x3i;
     *ptr_y++ = x3r;
+
+    inp = ptr_xi;
+
+    inp += (h2);
+
+    x0r = *inp;
+    x0i = *(inp + 1);
+    inp += 16;
+
+    x1r = *inp;
+    x1i = *(inp + 1);
+    inp += 16;
+
+    x2r = *inp;
+    x2i = *(inp + 1);
+    inp += 16;
+
+    x3r = *inp;
+    x3i = *(inp + 1);
+
+    x0r = x0r + x2r;
+    x0i = x0i + x2i;
+
+    tmk = x0r - x2r;
+    x2r = tmk - x2r;
+    tmk = x0i - x2i;
+    x2i = tmk - x2i;
+
+    x1r = x1r + x3r;
+    x1i = x1i + x3i;
+
+    tmk = x1r - x3r;
+    x3r = tmk - x3r;
+    tmk = x1i - x3i;
+    x3i = tmk - x3i;
+
+    x0r = x0r + x1r;
+    x0i = x0i + x1i;
+
+    tmk = x0r - x1r;
+    x1r = tmk - x1r;
+    tmk = x0i - x1i;
+    x1i = tmk - x1i;
+
+    x2r = x2r + x3i;
+    x2i = x2i - x3r;
+
+    tmk = x2r - x3i;
+    x3i = tmk - x3i;
+    tmk = x2i + x3r;
+    x3r = tmk + x3r;
+
+    *ptr_z++ = x0r;
+    *ptr_z++ = x0i;
+    *ptr_z++ = x2r;
+    *ptr_z++ = x2i;
+    *ptr_z++ = x1r;
+    *ptr_z++ = x1i;
+    *ptr_z++ = x3i;
+    *ptr_z++ = x3r;
   }
-  ptr_y -= 2 * npoints;
-  del = 4;
-  nodespacing = 64;
-  in_loop_cnt = npoints >> 4;
-  for (i = n_stages - 1; i > 0; i--) {
-    const WORD32 *twiddles = ptr_w;
-    WORD32 *data = ptr_y;
-    WORD32 w1h, w2h, w3h, w1l, w2l, w3l;
-    WORD32 sec_loop_cnt;
+  ptr_y -= 64;
+  ptr_z -= 64;
+  {
+    FLOAT32 *data_r = ptr_y;
+    FLOAT32 *data_i = ptr_z;
+    for (k = 2; k != 0; k--) {
+      FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-    for (k = in_loop_cnt; k != 0; k--) {
-      x0r = (*data);
-      x0i = (*(data + 1));
-      data += (del << 1);
+      x0r = (*data_r);
+      x0i = (*(data_r + 1));
+      data_r += 8;
 
-      x1r = (*data);
-      x1i = (*(data + 1));
-      data += (del << 1);
+      x1r = (*data_r);
+      x1i = (*(data_r + 1));
+      data_r += 8;
 
-      x2r = (*data);
-      x2i = (*(data + 1));
-      data += (del << 1);
+      x2r = (*data_r);
+      x2i = (*(data_r + 1));
+      data_r += 8;
 
-      x3r = (*data);
-      x3i = (*(data + 1));
-      data -= 3 * (del << 1);
+      x3r = (*data_r);
+      x3i = (*(data_r + 1));
+      data_r -= 24;
 
-      x0r = ixheaacd_add32_sat(x0r, x2r);
-      x0i = ixheaacd_add32_sat(x0i, x2i);
-      x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-      x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-      x1r = ixheaacd_add32_sat(x1r, x3r);
-      x1i = ixheaacd_add32_sat(x1i, x3i);
-      x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-      x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
+      x0r = x0r + x2r;
+      x0i = x0i + x2i;
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
 
-      x0r = ixheaacd_add32_sat(x0r, x1r);
-      x0i = ixheaacd_add32_sat(x0i, x1i);
-      x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-      x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-      x2r = ixheaacd_add32_sat(x2r, x3i);
-      x2i = ixheaacd_sub32_sat(x2i, x3r);
-      x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-      x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
+      x0r = x0r + x1r;
+      x0i = x0i + x1i;
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + x3i;
+      x2i = x2i - x3r;
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
 
-      *data = x0r;
-      *(data + 1) = x0i;
-      data += (del << 1);
+      *data_r = x0r;
+      *(data_r + 1) = x0i;
+      data_r += 8;
 
-      *data = x2r;
-      *(data + 1) = x2i;
-      data += (del << 1);
+      *data_r = x2r;
+      *(data_r + 1) = x2i;
+      data_r += 8;
 
-      *data = x1r;
-      *(data + 1) = x1i;
-      data += (del << 1);
+      *data_r = x1r;
+      *(data_r + 1) = x1i;
+      data_r += 8;
 
-      *data = x3i;
-      *(data + 1) = x3r;
-      data += (del << 1);
+      *data_r = x3i;
+      *(data_r + 1) = x3r;
+      data_r += 8;
+
+      x0r = (*data_i);
+      x0i = (*(data_i + 1));
+      data_i += 8;
+
+      x1r = (*data_i);
+      x1i = (*(data_i + 1));
+      data_i += 8;
+
+      x2r = (*data_i);
+      x2i = (*(data_i + 1));
+      data_i += 8;
+
+      x3r = (*data_i);
+      x3i = (*(data_i + 1));
+      data_i -= 24;
+
+      x0r = x0r + x2r;
+      x0i = x0i + x2i;
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
+
+      x0r = x0r + x1r;
+      x0i = x0i + x1i;
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + x3i;
+      x2i = x2i - x3r;
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
+
+      *data_i = x0r;
+      *(data_i + 1) = x0i;
+      data_i += 8;
+
+      *data_i = x2r;
+      *(data_i + 1) = x2i;
+      data_i += 8;
+
+      *data_i = x1r;
+      *(data_i + 1) = x1i;
+      data_i += 8;
+
+      *data_i = x3i;
+      *(data_i + 1) = x3r;
+      data_i += 8;
     }
-    data = ptr_y + 2;
+    data_r = ptr_y + 2;
+    data_i = ptr_z + 2;
 
-    sec_loop_cnt = (nodespacing * del);
-    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) -
-                   (sec_loop_cnt / 16) + (sec_loop_cnt / 32) -
-                   (sec_loop_cnt / 64) + (sec_loop_cnt / 128) -
-                   (sec_loop_cnt / 256);
-    j = nodespacing;
+    for (k = 2; k != 0; k--) {
+      FLOAT32 tmp;
+      FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-    for (j = nodespacing; j <= sec_loop_cnt; j += nodespacing) {
-      w1h = *(twiddles + 2 * j);
-      w1l = *(twiddles + 2 * j + 1);
-      w2h = *(twiddles + 2 * (j << 1));
-      w2l = *(twiddles + 2 * (j << 1) + 1);
-      w3h = *(twiddles + 2 * j + 2 * (j << 1));
-      w3l = *(twiddles + 2 * j + 2 * (j << 1) + 1);
+      data_r += 8;
 
-      for (k = in_loop_cnt; k != 0; k--) {
-        WORD32 tmp;
-        WORD32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+      x1r = *data_r;
+      x1i = *(data_r + 1);
+      data_r += 8;
 
-        data += (del << 1);
+      x2r = *data_r;
+      x2i = *(data_r + 1);
+      data_r += 8;
 
-        x1r = *data;
-        x1i = *(data + 1);
-        data += (del << 1);
+      x3r = *data_r;
+      x3i = *(data_r + 1);
+      data_r -= 24;
 
-        x2r = *data;
-        x2i = *(data + 1);
-        data += (del << 1);
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.923880f) -
+                      mult32X32float((FLOAT32)x1i, -0.382683f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.382683f),
+                                   (FLOAT32)x1i, 0.923880f);
+      x1r = tmp;
 
-        x3r = *data;
-        x3i = *(data + 1);
-        data -= 3 * (del << 1);
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x2r, 0.707107f) -
+                      mult32X32float((FLOAT32)x2i, -0.707107f));
+      x2i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x2r, -0.707107f),
+                                   (FLOAT32)x2i, 0.707107f);
+      x2r = tmp;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
-                                 ixheaacd_mult32_sat(x1i, w1h));
-        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
-        x1r = tmp;
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x3r, 0.382683f) -
+                      mult32X32float((FLOAT32)x3i, -0.923880f));
+      x3i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x3r, -0.923880f),
+                                   (FLOAT32)x3i, 0.382683f);
+      x3r = tmp;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
-                                 ixheaacd_mult32_sat(x2i, w2h));
-        x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
-        x2r = tmp;
+      x0r = (*data_r);
+      x0i = (*(data_r + 1));
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3r, w3l),
-                                 ixheaacd_mult32_sat(x3i, w3h));
-        x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
-        x3r = tmp;
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
 
-        x0r = (*data);
-        x0i = (*(data + 1));
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
 
-        x0r = ixheaacd_add32_sat(x0r, x2r);
-        x0i = ixheaacd_add32_sat(x0i, x2i);
-        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-        x1r = ixheaacd_add32_sat(x1r, x3r);
-        x1i = ixheaacd_add32_sat(x1i, x3i);
-        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
+      *data_r = x0r;
+      *(data_r + 1) = x0i;
+      data_r += 8;
 
-        x0r = ixheaacd_add32_sat(x0r, x1r);
-        x0i = ixheaacd_add32_sat(x0i, x1i);
-        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-        x2r = ixheaacd_add32_sat(x2r, x3i);
-        x2i = ixheaacd_sub32_sat(x2i, x3r);
-        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
+      *data_r = x2r;
+      *(data_r + 1) = x2i;
+      data_r += 8;
 
-        *data = x0r;
-        *(data + 1) = x0i;
-        data += (del << 1);
+      *data_r = x1r;
+      *(data_r + 1) = x1i;
+      data_r += 8;
 
-        *data = x2r;
-        *(data + 1) = x2i;
-        data += (del << 1);
+      *data_r = x3i;
+      *(data_r + 1) = x3r;
+      data_r += 8;
+      data_i += 8;
 
-        *data = x1r;
-        *(data + 1) = x1i;
-        data += (del << 1);
+      x1r = *data_i;
+      x1i = *(data_i + 1);
+      data_i += 8;
 
-        *data = x3i;
-        *(data + 1) = x3r;
-        data += (del << 1);
-      }
-      data -= 2 * npoints;
-      data += 2;
+      x2r = *data_i;
+      x2i = *(data_i + 1);
+      data_i += 8;
+
+      x3r = *data_i;
+      x3i = *(data_i + 1);
+      data_i -= 24;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.923880f) -
+                      mult32X32float((FLOAT32)x1i, -0.382683f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.382683f),
+                                   (FLOAT32)x1i, 0.923880f);
+      x1r = tmp;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x2r, 0.707107f) -
+                      mult32X32float((FLOAT32)x2i, -0.707107f));
+      x2i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x2r, -0.707107f),
+                                   (FLOAT32)x2i, 0.707107f);
+      x2r = tmp;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x3r, 0.382683f) -
+                      mult32X32float((FLOAT32)x3i, -0.923880f));
+      x3i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x3r, -0.923880f),
+                                   (FLOAT32)x3i, 0.382683f);
+      x3r = tmp;
+
+      x0r = (*data_i);
+      x0i = (*(data_i + 1));
+
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
+
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
+
+      *data_i = x0r;
+      *(data_i + 1) = x0i;
+      data_i += 8;
+
+      *data_i = x2r;
+      *(data_i + 1) = x2i;
+      data_i += 8;
+
+      *data_i = x1r;
+      *(data_i + 1) = x1i;
+      data_i += 8;
+
+      *data_i = x3i;
+      *(data_i + 1) = x3r;
+      data_i += 8;
     }
-    for (; j <= (nodespacing * del) >> 1; j += nodespacing) {
-      w1h = *(twiddles + 2 * j);
-      w2h = *(twiddles + 2 * (j << 1));
-      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 512);
-      w1l = *(twiddles + 2 * j + 1);
-      w2l = *(twiddles + 2 * (j << 1) + 1);
-      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 511);
+    data_r -= 62;
+    data_i -= 62;
+    for (k = 2; k != 0; k--) {
+      FLOAT32 tmp;
+      FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-      for (k = in_loop_cnt; k != 0; k--) {
-        WORD32 tmp;
-        WORD32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+      data_r += 8;
 
-        data += (del << 1);
+      x1r = *data_r;
+      x1i = *(data_r + 1);
+      data_r += 8;
 
-        x1r = *data;
-        x1i = *(data + 1);
-        data += (del << 1);
+      x2r = *data_r;
+      x2i = *(data_r + 1);
+      data_r += 8;
 
-        x2r = *data;
-        x2i = *(data + 1);
-        data += (del << 1);
+      x3r = *data_r;
+      x3i = *(data_r + 1);
+      data_r -= 24;
 
-        x3r = *data;
-        x3i = *(data + 1);
-        data -= 3 * (del << 1);
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.707107f) -
+                      mult32X32float((FLOAT32)x1i, -0.707107f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.707107f),
+                                   (FLOAT32)x1i, 0.707107f);
+      x1r = tmp;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
-                                 ixheaacd_mult32_sat(x1i, w1h));
-        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
-        x1r = tmp;
+      tmp = x2i;
+      x2i = -x2r;
+      x2r = tmp;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2r, w2l),
-                                 ixheaacd_mult32_sat(x2i, w2h));
-        x2i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x2r, w2h), x2i, w2l);
-        x2r = tmp;
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x3r, -0.707107f) +
+                      mult32X32float((FLOAT32)x3i, 0.707107f));
+      x3i = (FLOAT32)(-mult32X32float((FLOAT32)x3r, 0.707107f) +
+                      mult32X32float((FLOAT32)x3i, -0.707107f));
+      x3r = tmp;
 
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
-                                 ixheaacd_mult32_sat(x3i, w3l));
-        x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
-                                 ixheaacd_mult32_sat(x3r, w3l));
-        x3r = tmp;
+      x0r = (*data_r);
+      x0i = (*(data_r + 1));
 
-        x0r = (*data);
-        x0i = (*(data + 1));
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
 
-        x0r = ixheaacd_add32_sat(x0r, x2r);
-        x0i = ixheaacd_add32_sat(x0i, x2i);
-        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-        x1r = ixheaacd_add32_sat(x1r, x3r);
-        x1i = ixheaacd_add32_sat(x1i, x3i);
-        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
 
-        x0r = ixheaacd_add32_sat(x0r, x1r);
-        x0i = ixheaacd_add32_sat(x0i, x1i);
-        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-        x2r = ixheaacd_add32_sat(x2r, x3i);
-        x2i = ixheaacd_sub32_sat(x2i, x3r);
-        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
+      *data_r = x0r;
+      *(data_r + 1) = x0i;
+      data_r += 8;
 
-        *data = x0r;
-        *(data + 1) = x0i;
-        data += (del << 1);
+      *data_r = x2r;
+      *(data_r + 1) = x2i;
+      data_r += 8;
 
-        *data = x2r;
-        *(data + 1) = x2i;
-        data += (del << 1);
+      *data_r = x1r;
+      *(data_r + 1) = x1i;
+      data_r += 8;
 
-        *data = x1r;
-        *(data + 1) = x1i;
-        data += (del << 1);
+      *data_r = x3i;
+      *(data_r + 1) = x3r;
+      data_r += 8;
+      data_i += 8;
 
-        *data = x3i;
-        *(data + 1) = x3r;
-        data += (del << 1);
-      }
-      data -= 2 * npoints;
-      data += 2;
+      x1r = *data_i;
+      x1i = *(data_i + 1);
+      data_i += 8;
+
+      x2r = *data_i;
+      x2i = *(data_i + 1);
+      data_i += 8;
+
+      x3r = *data_i;
+      x3i = *(data_i + 1);
+      data_i -= 24;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.707107f) -
+                      mult32X32float((FLOAT32)x1i, -0.707107f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.707107f),
+                                   (FLOAT32)x1i, 0.707107f);
+      x1r = tmp;
+
+      tmp = x2i;
+      x2i = -x2r;
+      x2r = tmp;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x3r, -0.707107f) +
+                      mult32X32float((FLOAT32)x3i, 0.707107f));
+      x3i = (FLOAT32)(-mult32X32float((FLOAT32)x3r, 0.707107f) +
+                      mult32X32float((FLOAT32)x3i, -0.707107f));
+      x3r = tmp;
+
+      x0r = (*data_i);
+      x0i = (*(data_i + 1));
+
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
+
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
+
+      *data_i = x0r;
+      *(data_i + 1) = x0i;
+      data_i += 8;
+
+      *data_i = x2r;
+      *(data_i + 1) = x2i;
+      data_i += 8;
+
+      *data_i = x1r;
+      *(data_i + 1) = x1i;
+      data_i += 8;
+
+      *data_i = x3i;
+      *(data_i + 1) = x3r;
+      data_i += 8;
     }
-    for (; j <= sec_loop_cnt * 2; j += nodespacing) {
-      w1h = *(twiddles + 2 * j);
-      w2h = *(twiddles + 2 * (j << 1) - 512);
-      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 512);
-      w1l = *(twiddles + 2 * j + 1);
-      w2l = *(twiddles + 2 * (j << 1) - 511);
-      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 511);
+    data_r -= 62;
+    data_i -= 62;
+    for (k = 2; k != 0; k--) {
+      FLOAT32 tmp;
+      FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-      for (k = in_loop_cnt; k != 0; k--) {
-        WORD32 tmp;
-        WORD32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+      data_r += 8;
 
-        data += (del << 1);
+      x1r = *data_r;
+      x1i = *(data_r + 1);
+      data_r += 8;
 
-        x1r = *data;
-        x1i = *(data + 1);
-        data += (del << 1);
+      x2r = *data_r;
+      x2i = *(data_r + 1);
+      data_r += 8;
 
-        x2r = *data;
-        x2i = *(data + 1);
-        data += (del << 1);
+      x3r = *data_r;
+      x3i = *(data_r + 1);
+      data_r -= 24;
 
-        x3r = *data;
-        x3i = *(data + 1);
-        data -= 3 * (del << 1);
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.382683f) -
+                      mult32X32float((FLOAT32)x1i, -0.923880f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.923880f),
+                                   (FLOAT32)x1i, 0.382683f);
+      x1r = tmp;
 
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
-                                 ixheaacd_mult32_sat(x1i, w1h));
-        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
-        x1r = tmp;
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x2r, -0.707107f) +
+                      mult32X32float((FLOAT32)x2i, 0.707107f));
+      x2i = (FLOAT32)(-mult32X32float((FLOAT32)x2r, 0.707107f) +
+                      mult32X32float((FLOAT32)x2i, -0.707107f));
+      x2r = tmp;
 
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
-                                 ixheaacd_mult32_sat(x2i, w2l));
-        x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
-                                 ixheaacd_mult32_sat(x2r, w2l));
-        x2r = tmp;
+      tmp = (FLOAT32)(-mult32X32float((FLOAT32)x3r, 0.923880f) +
+                      mult32X32float((FLOAT32)x3i, -0.382683f));
+      x3i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x3r, -0.382683f),
+                                   (FLOAT32)x3i, 0.923880f);
+      x3r = tmp;
 
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x3r, w3h),
-                                 ixheaacd_mult32_sat(x3i, w3l));
-        x3i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
-                                 ixheaacd_mult32_sat(x3r, w3l));
-        x3r = tmp;
+      x0r = (*data_r);
+      x0i = (*(data_r + 1));
 
-        x0r = (*data);
-        x0i = (*(data + 1));
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i - x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i + (x3i * 2);
 
-        x0r = ixheaacd_add32_sat(x0r, x2r);
-        x0i = ixheaacd_add32_sat(x0i, x2i);
-        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-        x1r = ixheaacd_add32_sat(x1r, x3r);
-        x1i = ixheaacd_add32_sat(x1i, x3i);
-        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-        x3i = ixheaacd_sub32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
 
-        x0r = ixheaacd_add32_sat(x0r, x1r);
-        x0i = ixheaacd_add32_sat(x0i, x1i);
-        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-        x2r = ixheaacd_add32_sat(x2r, x3i);
-        x2i = ixheaacd_sub32_sat(x2i, x3r);
-        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
+      *data_r = x0r;
+      *(data_r + 1) = x0i;
+      data_r += 8;
 
-        *data = x0r;
-        *(data + 1) = x0i;
-        data += (del << 1);
+      *data_r = x2r;
+      *(data_r + 1) = x2i;
+      data_r += 8;
 
-        *data = x2r;
-        *(data + 1) = x2i;
-        data += (del << 1);
+      *data_r = x1r;
+      *(data_r + 1) = x1i;
+      data_r += 8;
 
-        *data = x1r;
-        *(data + 1) = x1i;
-        data += (del << 1);
+      *data_r = x3i;
+      *(data_r + 1) = x3r;
+      data_r += 8;
+      data_i += 8;
 
-        *data = x3i;
-        *(data + 1) = x3r;
-        data += (del << 1);
-      }
-      data -= 2 * npoints;
-      data += 2;
+      x1r = *data_i;
+      x1i = *(data_i + 1);
+      data_i += 8;
+
+      x2r = *data_i;
+      x2i = *(data_i + 1);
+      data_i += 8;
+
+      x3r = *data_i;
+      x3i = *(data_i + 1);
+      data_i -= 24;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, 0.382683f) -
+                      mult32X32float((FLOAT32)x1i, -0.923880f));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, -0.923880f),
+                                   (FLOAT32)x1i, 0.382683f);
+      x1r = tmp;
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x2r, -0.707107f) +
+                      mult32X32float((FLOAT32)x2i, 0.707107f));
+      x2i = (FLOAT32)(-mult32X32float((FLOAT32)x2r, 0.707107f) +
+                      mult32X32float((FLOAT32)x2i, -0.707107f));
+      x2r = tmp;
+
+      tmp = (FLOAT32)(-mult32X32float((FLOAT32)x3r, 0.923880f) +
+                      mult32X32float((FLOAT32)x3i, -0.382683f));
+      x3i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x3r, -0.382683f),
+                                   (FLOAT32)x3i, 0.923880f);
+      x3r = tmp;
+
+      x0r = (*data_i);
+      x0i = (*(data_i + 1));
+
+      x0r = x0r + (x2r);
+      x0i = x0i + (x2i);
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i - x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i + (x3i * 2);
+
+      x0r = x0r + (x1r);
+      x0i = x0i + (x1i);
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + (x3i);
+      x2i = x2i - (x3r);
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
+
+      *data_i = x0r;
+      *(data_i + 1) = x0i;
+      data_i += 8;
+
+      *data_i = x2r;
+      *(data_i + 1) = x2i;
+      data_i += 8;
+
+      *data_i = x1r;
+      *(data_i + 1) = x1i;
+      data_i += 8;
+
+      *data_i = x3i;
+      *(data_i + 1) = x3r;
+      data_i += 8;
     }
-    for (; j < nodespacing * del; j += nodespacing) {
-      w1h = *(twiddles + 2 * j);
-      w2h = *(twiddles + 2 * (j << 1) - 512);
-      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 1024);
-      w1l = *(twiddles + 2 * j + 1);
-      w2l = *(twiddles + 2 * (j << 1) - 511);
-      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 1023);
-
-      for (k = in_loop_cnt; k != 0; k--) {
-        WORD32 tmp;
-        WORD32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
-
-        data += (del << 1);
-
-        x1r = *data;
-        x1i = *(data + 1);
-        data += (del << 1);
-
-        x2r = *data;
-        x2i = *(data + 1);
-        data += (del << 1);
-
-        x3r = *data;
-        x3i = *(data + 1);
-        data -= 3 * (del << 1);
-
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x1r, w1l),
-                                 ixheaacd_mult32_sat(x1i, w1h));
-        x1i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x1r, w1h), x1i, w1l);
-        x1r = tmp;
-
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(x2r, w2h),
-                                 ixheaacd_mult32_sat(x2i, w2l));
-        x2i = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x2i, w2h),
-                                 ixheaacd_mult32_sat(x2r, w2l));
-        x2r = tmp;
-
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(x3i, w3h),
-                                 ixheaacd_mult32_sat(x3r, w3l));
-        x3i = ixheaacd_mac32_sat(ixheaacd_mult32_sat(x3r, w3h), x3i, w3l);
-        x3r = tmp;
-
-        x0r = (*data);
-        x0i = (*(data + 1));
-
-        x0r = ixheaacd_add32_sat(x0r, x2r);
-        x0i = ixheaacd_add32_sat(x0i, x2i);
-        x2r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x2r, 1));
-        x2i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x2i, 1));
-        x1r = ixheaacd_add32_sat(x1r, x3r);
-        x1i = ixheaacd_sub32_sat(x1i, x3i);
-        x3r = ixheaacd_sub32_sat(x1r, ixheaacd_shl32_sat(x3r, 1));
-        x3i = ixheaacd_add32_sat(x1i, ixheaacd_shl32_sat(x3i, 1));
-
-        x0r = ixheaacd_add32_sat(x0r, x1r);
-        x0i = ixheaacd_add32_sat(x0i, x1i);
-        x1r = ixheaacd_sub32_sat(x0r, ixheaacd_shl32_sat(x1r, 1));
-        x1i = ixheaacd_sub32_sat(x0i, ixheaacd_shl32_sat(x1i, 1));
-        x2r = ixheaacd_add32_sat(x2r, x3i);
-        x2i = ixheaacd_sub32_sat(x2i, x3r);
-        x3i = ixheaacd_sub32_sat(x2r, ixheaacd_shl32_sat(x3i, 1));
-        x3r = ixheaacd_add32_sat(x2i, ixheaacd_shl32_sat(x3r, 1));
-
-        *data = x0r;
-        *(data + 1) = x0i;
-        data += (del << 1);
-
-        *data = x2r;
-        *(data + 1) = x2i;
-        data += (del << 1);
-
-        *data = x1r;
-        *(data + 1) = x1i;
-        data += (del << 1);
-
-        *data = x3i;
-        *(data + 1) = x3r;
-        data += (del << 1);
-      }
-      data -= 2 * npoints;
-      data += 2;
-    }
-    nodespacing >>= 2;
-    del <<= 2;
-    in_loop_cnt >>= 2;
+    data_r -= 62;
+    data_i -= 62;
   }
+  {
+    const FLOAT32 *twiddles = ptr_w;
+    FLOAT32 x0r, x0i, x1r, x1i;
+    for (j = 8; j != 0; j--) {
+      FLOAT32 W1 = *twiddles;
+      twiddles++;
+      FLOAT32 W4 = *twiddles;
+      twiddles++;
+      FLOAT32 tmp;
 
-  for (i = 0; i < 2 * nlength; i += 2) {
-    fin_re[i] = y[i];
-    fin_im[i] = y[i + 1];
+      x0r = *ptr_y;
+      x0i = *(ptr_y + 1);
+      ptr_y += 32;
+      ptr_xr += 32;
+
+      x1r = *ptr_y;
+      x1i = *(ptr_y + 1);
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, W1) -
+                      mult32X32float((FLOAT32)x1i, W4));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, W4),
+                                   (FLOAT32)x1i, W1);
+      x1r = tmp;
+
+      *ptr_xr = (x0r) - (x1r);
+      *(ptr_xr + 1) = (x0i) - (x1i);
+      ptr_y -= 32;
+      ptr_xr -= 32;
+
+      *ptr_xr = (x0r) + (x1r);
+      *(ptr_xr + 1) = (x0i) + (x1i);
+      ptr_y += 2;
+      ptr_xr += 2;
+
+      x0r = *ptr_z;
+      x0i = *(ptr_z + 1);
+      ptr_z += 32;
+      ptr_xi += 32;
+
+      x1r = *ptr_z;
+      x1i = *(ptr_z + 1);
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, W1) -
+                      mult32X32float((FLOAT32)x1i, W4));
+      x1i = (FLOAT32)mac32X32float(mult32X32float((FLOAT32)x1r, W4),
+                                   (FLOAT32)x1i, W1);
+      x1r = tmp;
+
+      *ptr_xi = (x0r) - (x1r);
+      *(ptr_xi + 1) = (x0i) - (x1i);
+      ptr_z -= 32;
+      ptr_xi -= 32;
+
+      *ptr_xi = (x0r) + (x1r);
+      *(ptr_xi + 1) = (x0i) + (x1i);
+      ptr_z += 2;
+      ptr_xi += 2;
+    }
+    twiddles = ptr_w;
+    for (j = 8; j != 0; j--) {
+      FLOAT32 W1 = *twiddles;
+      twiddles++;
+      FLOAT32 W4 = *twiddles;
+      twiddles++;
+      FLOAT32 tmp;
+
+      x0r = *ptr_y;
+      x0i = *(ptr_y + 1);
+      ptr_y += 32;
+      ptr_xr += 32;
+
+      x1r = *ptr_y;
+      x1i = *(ptr_y + 1);
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, W4) +
+                      mult32X32float((FLOAT32)x1i, W1));
+      x1i = (FLOAT32)(-mult32X32float((FLOAT32)x1r, W1) +
+                      mult32X32float((FLOAT32)x1i, W4));
+      x1r = tmp;
+
+      *ptr_xr = (x0r) - (x1r);
+      *(ptr_xr + 1) = (x0i) - (x1i);
+      ptr_y -= 32;
+      ptr_xr -= 32;
+
+      *ptr_xr = (x0r) + (x1r);
+      *(ptr_xr + 1) = (x0i) + (x1i);
+      ptr_y += 2;
+      ptr_xr += 2;
+
+      x0r = *ptr_z;
+      x0i = *(ptr_z + 1);
+      ptr_z += 32;
+      ptr_xi += 32;
+
+      x1r = *ptr_z;
+      x1i = *(ptr_z + 1);
+
+      tmp = (FLOAT32)(mult32X32float((FLOAT32)x1r, W4) +
+                      mult32X32float((FLOAT32)x1i, W1));
+      x1i = (FLOAT32)(-mult32X32float((FLOAT32)x1r, W1) +
+                      mult32X32float((FLOAT32)x1i, W4));
+      x1r = tmp;
+
+      *ptr_xi = (x0r) - (x1r);
+      *(ptr_xi + 1) = (x0i) - (x1i);
+      ptr_z -= 32;
+      ptr_xi -= 32;
+
+      *ptr_xi = (x0r) + (x1r);
+      *(ptr_xi + 1) = (x0i) + (x1i);
+      ptr_z += 2;
+      ptr_xi += 2;
+    }
   }
-
-  return;
 }
 
 VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
@@ -1715,13 +2044,6 @@ VOID ixheaacd_complex_fft_p3(WORD32 *xr, WORD32 *xi, WORD32 nlength,
 
     if (fft_mode < 0) {
       for (i = 0; i < nlength; i += 3) {
-        tmp = ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1r)),
-                                 ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1i)));
-        ptr_x[2 * i + 1] =
-            ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1i)),
-                               ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1r)));
-        ptr_x[2 * i] = tmp;
-
         w1r++;
         w1i++;
 
@@ -1749,13 +2071,6 @@ VOID ixheaacd_complex_fft_p3(WORD32 *xr, WORD32 *xi, WORD32 nlength,
 
     else {
       for (i = 0; i < nlength; i += 3) {
-        tmp = ixheaacd_add32_sat(ixheaacd_mult32_sat(ptr_x[2 * i], (*w1r)),
-                                 ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1i)));
-        ptr_x[2 * i + 1] =
-            ixheaacd_sub32_sat(ixheaacd_mult32_sat(ptr_x[2 * i + 1], (*w1r)),
-                               ixheaacd_mult32_sat(ptr_x[2 * i], (*w1i)));
-        ptr_x[2 * i] = tmp;
-
         w1r++;
         w1i++;
 
@@ -1789,20 +2104,16 @@ VOID ixheaacd_complex_fft_p3(WORD32 *xr, WORD32 *xi, WORD32 nlength,
     ptr_y = ptr_y + 6;
   }
 
+  ptr_y = y;
   for (i = 0; i < mpass; i++) {
-    xr[i] = y[6 * i];
-    xi[i] = y[6 * i + 1];
+    xr[i] = *ptr_y++;
+    xi[i] = *ptr_y++;
+    xr[mpass + i] = *ptr_y++;
+    xi[mpass + i] = *ptr_y++;
+    xr[2 * mpass + i] = *ptr_y++;
+    xi[2 * mpass + i] = *ptr_y++;
   }
 
-  for (i = 0; i < mpass; i++) {
-    xr[mpass + i] = y[6 * i + 2];
-    xi[mpass + i] = y[6 * i + 3];
-  }
-
-  for (i = 0; i < mpass; i++) {
-    xr[2 * mpass + i] = y[6 * i + 4];
-    xi[2 * mpass + i] = y[6 * i + 5];
-  }
   return;
 }
 

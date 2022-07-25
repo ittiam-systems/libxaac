@@ -981,7 +981,7 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   WORD32 pre_proc_flag = ptr_header_data->pre_proc_flag;
   WORD32 is_usf_4 = ptr_header_data->is_usf_4;
   WORD32 fs = ptr_header_data->out_sampling_freq;
-
+  WORD32 cov_count;
   WORD32 lsb = f_master_tbl[0];
   WORD32 usb = f_master_tbl[num_mf_bands];
   WORD32 xover_offset = sub_band_start - f_master_tbl[0];
@@ -1023,9 +1023,16 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   }
 
   if (sbr_patching_mode || !hbe_flag) {
-    FLOAT32 alpha_real[64][2], alpha_imag[64][2];
+    FLOAT32 alpha_real[64][2] = {{0}}, alpha_imag[64][2] = {{0}};
+    if (ptr_frame_data->mps_sbr_flag) {
+      cov_count = (f_master_tbl[0] < ptr_frame_data->cov_count)
+                      ? f_master_tbl[0]
+                      : ptr_frame_data->cov_count;
+    } else {
+      cov_count = f_master_tbl[0];
+    }
 
-    for (k = 1; k < f_master_tbl[0]; k++) {
+    for (k = 1; k < cov_count; k++) {
       ixheaacd_esbr_calc_co_variance(&str_auto_corr, &ptr_src_buf_real[0],
                                      &ptr_src_buf_imag[0], k, co_var_len);
       if (str_auto_corr.det == 0.0f) {

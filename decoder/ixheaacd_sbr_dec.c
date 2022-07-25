@@ -285,10 +285,6 @@ VOID ixheaacd_esbr_analysis_filt_block(ia_sbr_dec_struct *ptr_sbr_dec,
       ptr_sbr_dec->qmf_buf_imag[op_delay + idx][z] =
           ((FLOAT32)ploc_qmf_buf_imag[z] * gain);
     }
-    for (z = core_syn_ch_index; z < num_columns; z++) {
-      ptr_sbr_dec->qmf_buf_real[op_delay + idx][z] = (FLOAT32)0.0f;
-      ptr_sbr_dec->qmf_buf_imag[op_delay + idx][z] = (FLOAT32)0.0f;
-    }
   }
 
   pstr_qmf_anal_bank->filter_pos_32 = ptr_win_coeffs_1;
@@ -735,7 +731,6 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
             ptr_sbr_dec->p_hbe_txposer->max_stretch);
       }
     }
-    ixheaacd_qmf_enrg_calc(ptr_sbr_dec, upsample_ratio_idx, low_pow_flag);
 
     if (!mps_sbr_flag && apply_processing) {
       WORD32 err_code = 0;
@@ -752,6 +747,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
       ptr_pvc_data->pvc_rate = ptr_header_data->upsamp_fac;
 
       if (sbr_mode == PVC_SBR) {
+        ixheaacd_qmf_enrg_calc(ptr_sbr_dec, upsample_ratio_idx, low_pow_flag);
         err_code = ixheaacd_pvc_process(
             ptr_pvc_data, ptr_header_data->pstr_freq_band_data->sub_band_start,
             ptr_frame_data->str_pvc_frame_info.border_vec[0],
@@ -787,6 +783,12 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
         memset(ptr_sbr_dec->sbr_qmf_out_imag[i], 0, 64 * sizeof(FLOAT32));
       }
     }
+
+    if (!mps_sbr_flag) {
+      ptr_sbr_dec->band_count =
+          ptr_header_data->pstr_freq_band_data->sub_band_end;
+    } else
+      ptr_sbr_dec->band_count = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
 
     ixheaacd_esbr_synthesis_filt_block(
         ptr_sbr_dec, ptr_header_data, ptr_frame_data, apply_processing,
@@ -1135,6 +1137,8 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
     memset(ptr_sbr_dec->sbr_qmf_out_imag[i], 0, 64 * sizeof(FLOAT32));
   }
 
+  ptr_sbr_dec->band_count = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
+
   ixheaacd_esbr_synthesis_filt_block(
       ptr_sbr_dec, ptr_header_data, ptr_frame_data, apply_processing,
       pp_qmf_buf_real, pp_qmf_buf_imag, stereo_config_idx, ptr_sbr_tables,
@@ -1168,6 +1172,8 @@ WORD32 ixheaacd_sbr_dec_from_mps(FLOAT32 *p_mps_qmf_output, VOID *p_sbr_dec,
 
   if (!mps_sbr_flag) {
     return 0;
+  } else {
+    ptr_frame_data->cov_count = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
   }
 
   no_bins = ptr_header_data->output_framesize / 64;

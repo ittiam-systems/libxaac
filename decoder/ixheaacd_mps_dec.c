@@ -69,7 +69,14 @@
 #include "ixheaacd_mps_hybfilter.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_huff_tab.h"
+
+#include "math.h"
+
+#include <assert.h>
+#include <string.h>
 #include "ixheaacd_error_standards.h"
+
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 extern const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
 extern const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;
@@ -126,7 +133,7 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
   if ((self->residual_coding) && (self->res_bands > 0))
     ixheaacd_mps_qmf_hybrid_analysis_init(&self->hyb_filt_state[1]);
 
-  err_code = ixheaacd_mps_decor_init(&(self->mps_decor), self->hyb_band_count,
+  err_code = ixheaacd_mps_decor_init(&(self->mps_decor), self->hyb_band_count_max,
                                      self->config->bs_decorr_config);
   if (err_code != IA_NO_ERROR) return err_code;
 
@@ -163,12 +170,12 @@ static const FLOAT32 ixheaacd_tsd_mul_im[] = {
 
 VOID ixheaacd_mps_qmf_hyb_analysis(ia_mps_dec_state_struct* self) {
   ixheaacd_mps_qmf_hybrid_analysis(&self->hyb_filt_state[0], self->qmf_in[0],
-                                   self->qmf_band_count, self->time_slots,
+                                   self->band_count[0], self->time_slots,
                                    self->hyb_in[0]);
 
   if ((self->residual_coding) && (self->res_bands > 0)) {
     ixheaacd_mps_qmf_hybrid_analysis(&self->hyb_filt_state[self->in_ch_count],
-                                     self->qmf_in[1], self->qmf_band_count,
+                                     self->qmf_in[1], self->band_count[1],
                                      self->time_slots, self->hyb_res);
   }
 }
@@ -178,7 +185,7 @@ VOID ixheaacd_mps_qmf_hyb_synthesis(ia_mps_dec_state_struct* self) {
 
   for (ch = 0; ch < self->out_ch_count; ch++) {
     ixheaacd_mps_qmf_hybrid_synthesis(self->hyb_dir_out[ch],
-                                      self->qmf_band_count, self->time_slots,
+                                      self->band_count[0], self->time_slots,
                                       self->qmf_out_dir[ch]);
   }
 }
@@ -209,7 +216,7 @@ VOID ixheaacd_mps_decor(ia_mps_dec_state_struct* self) {
     }
 
     ixheaacd_mps_decor_apply(&self->mps_decor, self->v[k], self->w_diff[k],
-                             self->time_slots);
+                             self->time_slots, NO_RES_BANDS);
 
     if (self->bs_tsd_enable) {
       for (sb_sample = 0; sb_sample < self->time_slots; sb_sample++) {
@@ -235,7 +242,7 @@ VOID ixheaacd_mps_mix_res_decor(ia_mps_dec_state_struct* self) {
   WORD32 ts, qs, row, indx;
 
   for (ts = 0; ts < self->time_slots; ts++) {
-    for (qs = 0; qs < self->hyb_band_count; qs++) {
+    for (qs = 0; qs < self->hyb_band_count_max; qs++) {
       indx = self->hyb_band_to_processing_band_table[qs];
 
       for (row = 0; row < self->dir_sig_count; row++) {
@@ -246,8 +253,8 @@ VOID ixheaacd_mps_mix_res_decor(ia_mps_dec_state_struct* self) {
       for (row = self->dir_sig_count;
            row < (self->dir_sig_count + self->decor_sig_count); row++) {
         if (indx < self->res_bands) {
-          self->w_dir[row][ts][qs].re = self->hyb_res[ts][qs].re;
-          self->w_dir[row][ts][qs].im = self->hyb_res[ts][qs].im;
+          self->w_dir[row][ts][qs].re = self->hyb_res[qs][ts].re;
+          self->w_dir[row][ts][qs].im = self->hyb_res[qs][ts].im;
         } else {
           self->w_dir[row][ts][qs].re = 0.0f;
           self->w_dir[row][ts][qs].im = 0.0f;
@@ -270,10 +277,54 @@ VOID ixheaacd_mps_mix_res_decor(ia_mps_dec_state_struct* self) {
   }
 }
 
+VOID ixheaacd_mps_mix_res_decor_residual_band(ia_mps_dec_state_struct* self) {
+  WORD32 ts, qs, indx;
+  for (qs = 0; qs < self->hyb_band_count_max; qs++) {
+    indx = self->hyb_band_to_processing_band_table[qs];
+    if (indx >= self->res_bands) {
+      if (qs < self->hyb_band_count[1]) {
+        for (ts = 0; ts < self->time_slots; ts++) {
+          self->w_dir[1][ts][qs].re = 0.0f;
+          self->w_dir[1][ts][qs].im = 0.0f;
+        }
+      }
+    } else {
+      for (ts = 0; ts < self->time_slots; ts++) {
+        self->w_diff[1][ts][qs].re = 0.0f;
+        self->w_diff[1][ts][qs].im = 0.0f;
+      }
+    }
+  }
+}
+
 VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct* self) {
   ixheaacd_mps_decor(self);
   ixheaacd_mps_mix_res_decor(self);
 }
+
+VOID ixheaacd_mps_qmf_hyb_analysis_no_pre_mix(ia_mps_dec_state_struct* self) {
+  ixheaacd_mps_qmf_hybrid_analysis_no_pre_mix(
+      &self->hyb_filt_state[0], self->qmf_in[0], self->band_count[0],
+      self->time_slots, self->w_dir[0]);
+
+  if (self->res_bands) {
+    ixheaacd_mps_qmf_hybrid_analysis_no_pre_mix(
+        &self->hyb_filt_state[1], self->qmf_in[1], self->band_count[1],
+        self->time_slots, self->w_dir[1]);
+
+    if (self->res_bands != 28) {
+      ixheaacd_mps_decor_apply(&self->mps_decor, self->w_dir[0],
+                               self->w_diff[1], self->time_slots,
+                               self->res_bands);
+
+      ixheaacd_mps_mix_res_decor_residual_band(self);
+    }
+  } else {
+    ixheaacd_mps_decor_apply(&self->mps_decor, self->w_dir[0], self->w_diff[1],
+                             self->time_slots, NO_RES_BANDS);
+  }
+}
+
 WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
                           FLOAT32** input_buffer[4],
                           FLOAT32 (*output_buffer)[4096]) {
@@ -281,43 +332,56 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
   WORD32 time_slots = self->time_slots;
   WORD32 in_ch_count = self->in_ch_count + self->res_ch_count;
   WORD32 err = 0;
-
+  self->hyb_band_count[0] = self->band_count[0] - QMF_BANDS_TO_HYBRID + 10;
+  self->hyb_band_count[1] = self->band_count[1] - QMF_BANDS_TO_HYBRID + 10;
+  self->hyb_band_count_max =
+      max(self->hyb_band_count[0], self->hyb_band_count[1]);
+  self->mps_decor.decor_nrg_smooth.num_bins = self->hyb_band_count_max;
+  self->mps_decor.num_bins = self->hyb_band_count_max;
   self->output_buffer = output_buffer;
-
-  assert(self->present_time_slot + time_slots <= self->time_slots);
-
-  for (ts = 0; ts < time_slots; ts++) {
-    for (ch = 0; ch < in_ch_count; ch++) {
-      for (qs = 0; qs < self->qmf_band_count; qs++) {
-        self->qmf_in[ch][self->present_time_slot + ts][qs].re =
-            self->input_gain * input_buffer[2 * ch][ts][qs];
-        self->qmf_in[ch][self->present_time_slot + ts][qs].im =
-            self->input_gain * input_buffer[2 * ch + 1][ts][qs];
-      }
-    }
-  }
-
-  self->present_time_slot += time_slots;
-
-  if (self->present_time_slot < self->time_slots) return 0;
-
-  self->present_time_slot = 0;
 
   err = ixheaacd_mps_frame_decode(self);
 
   if (err != 0) return err;
-  ixheaacd_mps_qmf_hyb_analysis(self);
 
   ixheaacd_pre_and_mix_matrix_calculation(self);
 
   ixheaacd_mps_pre_matrix_mix_matrix_smoothing(self);
 
-  err = ixheaacd_mps_apply_pre_matrix(self);
-  if (err < 0) return err;
+  for (ch = 0; ch < in_ch_count; ch++) {
+    for (ts = 0; ts < time_slots; ts++) {
+      for (qs = 0; qs < self->band_count[ch]; qs++) {
+        self->qmf_in[ch][qs][ts].re =
+            self->input_gain * input_buffer[2 * ch][ts][qs];
+        self->qmf_in[ch][qs][ts].im =
+            self->input_gain * input_buffer[2 * ch + 1][ts][qs];
+      }
+    }
+  }
 
-  ixheaacd_mps_create_w(self);
+  if (!(self->pre_mix_req | self->bs_tsd_enable)) {
+    ixheaacd_mps_qmf_hyb_analysis_no_pre_mix(self);
+  } else {
+    ixheaacd_mps_qmf_hyb_analysis(self);
 
-  err = ixheaacd_mps_apply_mix_matrix(self);
+    err = ixheaacd_mps_apply_pre_matrix(self);
+
+    if (err < 0) return err;
+
+    ixheaacd_mps_create_w(self);
+  }
+
+  if ((!(self->res_bands | self->pre_mix_req)) &&
+      (self->config->bs_phase_coding == 0)) {
+    err = ixheaacd_mps_apply_mix_matrix_type1(self);
+
+  } else if (self->pre_mix_req) {
+    err = ixheaacd_mps_apply_mix_matrix_type2(self);
+
+  } else {
+    err = ixheaacd_mps_apply_mix_matrix_type3(self);
+  }
+
   if (err < 0) return err;
 
   if (self->config->bs_temp_shape_config == 2) {

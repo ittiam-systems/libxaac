@@ -32,18 +32,20 @@
 VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
     ia_mps_dec_state_struct *self) {
   int smooth_band;
-  int delta, one_minus_delta;
-
+  FLOAT32 delta, one_minus_delta;
+#ifndef MULT
+#define MULT(a, b) (a * b)
+#endif
   int ps = 0, pb, row, col;
   int res_bands = 0;
   int *p_smoothing_data;
-
+  self->pre_mix_req = 0;
   if (self->residual_coding) res_bands = self->max_res_bands;
 
   p_smoothing_data = &self->smoothing_data[ps][res_bands];
 
   delta = self->param_slot_diff[ps] * self->inv_smoothing_time[ps];
-  one_minus_delta = 1073741824 - delta;
+  one_minus_delta = 1.0f - delta;
 
   for (pb = res_bands; pb < self->bs_param_bands; pb++) {
     smooth_band = *p_smoothing_data++;
@@ -51,43 +53,32 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
       for (row = 0; row < MAX_M_OUTPUT; row++) {
         for (col = 0; col < MAX_M_INPUT; col++) {
           self->m1_param_re[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m1_param_re[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m1_param_re_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m1_param_re[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m1_param_re_prev[pb][row][col]));
           self->m1_param_im[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m1_param_im[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m1_param_im_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m1_param_im[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m1_param_im_prev[pb][row][col]));
           self->m2_decor_re[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m2_decor_re[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m2_decor_re_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m2_decor_re[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m2_decor_re_prev[pb][row][col]));
           self->m2_decor_im[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m2_decor_im[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m2_decor_im_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m2_decor_im[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m2_decor_im_prev[pb][row][col]));
           self->m2_resid_re[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m2_resid_re[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m2_resid_re_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m2_resid_re[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m2_resid_re_prev[pb][row][col]));
           self->m2_resid_im[ps][pb][row][col] =
-              (ixheaacd_mult32(delta, self->m2_resid_im[ps][pb][row][col]) +
-               ixheaacd_mult32(one_minus_delta,
-                               self->m2_resid_im_prev[pb][row][col]))
-              << 2;
+              (MULT(delta, self->m2_resid_im[ps][pb][row][col]) +
+               MULT(one_minus_delta, self->m2_resid_im_prev[pb][row][col]));
         }
       }
+      self->pre_mix_req++;
     }
   }
 
   for (ps = 1; ps < self->num_parameter_sets; ps++) {
     delta = self->param_slot_diff[ps] * self->inv_smoothing_time[ps];
-    one_minus_delta = 1073741824 - delta;
+    one_minus_delta = 1.0f - delta;
 
     p_smoothing_data = &self->smoothing_data[ps][res_bands];
 
@@ -97,37 +88,32 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
         for (row = 0; row < MAX_M_OUTPUT; row++) {
           for (col = 0; col < MAX_M_INPUT; col++) {
             self->m1_param_re[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m1_param_re[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m1_param_re[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m1_param_re[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m1_param_re[ps - 1][pb][row][col]));
             self->m1_param_im[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m1_param_im[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m1_param_im[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m1_param_im[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m1_param_im[ps - 1][pb][row][col]));
             self->m2_resid_re[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m2_resid_re[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m2_resid_re[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m2_resid_re[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m2_resid_re[ps - 1][pb][row][col]));
             self->m2_decor_re[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m2_decor_re[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m2_decor_re[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m2_decor_re[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m2_decor_re[ps - 1][pb][row][col]));
             self->m2_decor_im[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m2_decor_im[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m2_decor_im[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m2_decor_im[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m2_decor_im[ps - 1][pb][row][col]));
             self->m2_resid_im[ps][pb][row][col] =
-                (ixheaacd_mult32(delta, self->m2_resid_im[ps][pb][row][col]) +
-                 ixheaacd_mult32(one_minus_delta,
-                                 self->m2_resid_im[ps - 1][pb][row][col]))
-                << 2;
+                (MULT(delta, self->m2_resid_im[ps][pb][row][col]) +
+                 MULT(one_minus_delta,
+                      self->m2_resid_im[ps - 1][pb][row][col]));
           }
         }
+        self->pre_mix_req++;
       }
     }
   }
@@ -145,10 +131,15 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
 
   if (self->opd_smoothing_mode == 0) {
     for (pb = 0; pb < self->bs_param_bands; pb++) {
+#define Q28_VALUE (1 << 28)
       self->opd_smooth.smooth_l_phase[pb] =
-          self->phase_l_fix[self->num_parameter_sets - 1][pb] >> 1;
+          ((WORD32)(self->phase_l[self->num_parameter_sets - 1][pb] *
+                    Q28_VALUE)) >>
+          1;
       self->opd_smooth.smooth_r_phase[pb] =
-          self->phase_r_fix[self->num_parameter_sets - 1][pb] >> 1;
+          ((WORD32)(self->phase_r[self->num_parameter_sets - 1][pb] *
+                    Q28_VALUE)) >>
+          1;
     }
     return;
   }
@@ -162,9 +153,10 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
 
     for (pb = 0; pb < self->bs_param_bands; pb++) {
       int ltemp, rtemp, tmp;
-
-      ltemp = self->phase_l_fix[ps][pb] >> 1;
-      rtemp = self->phase_r_fix[ps][pb] >> 1;
+#define Q28_FLOAT_VAL ((float)(1 << 28))
+#define ONE_BY_Q28_FLOAT_VAL (1.0 / Q28_FLOAT_VAL)
+      ltemp = ((WORD32)(self->phase_l[ps][pb] * Q28_FLOAT_VAL)) >> 1;
+      rtemp = ((WORD32)(self->phase_r[ps][pb] * Q28_FLOAT_VAL)) >> 1;
 
       while (ltemp > self->opd_smooth.smooth_l_phase[pb] + PI_IN_Q27)
         ltemp -= 2 * PI_IN_Q27;
@@ -204,9 +196,14 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
         self->opd_smooth.smooth_r_phase[pb] -= 2 * PI_IN_Q27;
       while (self->opd_smooth.smooth_r_phase[pb] < 0)
         self->opd_smooth.smooth_r_phase[pb] += 2 * PI_IN_Q27;
-
-      self->phase_l_fix[ps][pb] = self->opd_smooth.smooth_l_phase[pb] << 1;
-      self->phase_r_fix[ps][pb] = self->opd_smooth.smooth_r_phase[pb] << 1;
+#define Q28_FLOAT_VAL ((float)(1 << 28))
+#ifndef ONE_BY_Q28_FLOAT_VAL
+#define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
+#endif
+      self->phase_l[ps][pb] =
+          (self->opd_smooth.smooth_l_phase[pb] << 1) * ONE_BY_Q28_FLOAT_VAL;
+      self->phase_r[ps][pb] =
+          (self->opd_smooth.smooth_r_phase[pb] << 1) * ONE_BY_Q28_FLOAT_VAL;
     }
   }
 }

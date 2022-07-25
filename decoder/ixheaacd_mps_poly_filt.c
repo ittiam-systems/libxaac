@@ -32,22 +32,10 @@
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_function_selector.h"
 
-extern const WORD32
-    ixheaacd_mps_polyphase_filter_coeff_fix[10 * MAX_NUM_QMF_BANDS_SAC / 2];
-extern const WORD32 ixheaacd_mps_pre_re[64];
-extern const WORD32 ixheaacd_mps_pre_im[64];
-extern const WORD32 ixheaacd_mps_post_re[128];
-extern const WORD32 ixheaacd_mps_post_im[128];
-
-static PLATFORM_INLINE WORD32 ixheaacd_mult32(WORD32 a, WORD32 b) {
-  WORD32 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)a * (WORD64)b;
-  result = (WORD32)(temp_result >> 31);
-
-  return (result);
-}
+extern const FLOAT32
+    ixheaacd_mps_polyphase_filter_coeff[10 * MAX_NUM_QMF_BANDS_SAC / 2];
+extern const FLOAT32 ixheaacd_mps_post_twid[30];
+extern const FLOAT32 ixheaacd_mps_pre_twid[64];
 
 VOID ixheaacd_mps_synt_create(ia_mps_poly_phase_struct *kernel,
                               WORD32 resolution) {
@@ -55,65 +43,14 @@ VOID ixheaacd_mps_synt_create(ia_mps_poly_phase_struct *kernel,
 }
 
 VOID ixheaacd_mps_synt_init(ia_mps_poly_phase_synth_struct *self) {
-  memset(self->state, 0, sizeof(WORD32) * 64 * 20);
+  memset(self->state, 0, sizeof(FLOAT32) * POLY_PHASE_SYNTH_SIZE);
 }
 
-static VOID ixheaacd_float_to_int32(FLOAT32 *in, WORD32 *out, WORD32 q_factor,
-                                    WORD32 sample) {
-  WORD32 loop;
-  UWORD32 temp = (1 << q_factor);
-
-  for (loop = 0; loop < sample; loop++) out[loop] = (WORD32)(in[loop] * temp);
-}
-
-VOID ixheaacd_mps_synt_pre_twiddle_dec(WORD32 *ptr_in, const WORD32 *table_re,
-                                       const WORD32 *table_im,
-                                       WORD32 resolution) {
-  WORD32 tmp, k;
-  for (k = 0; k < 2 * resolution; k += 2) {
-    tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k >> 1]),
-                             ixheaacd_mult32(ptr_in[k + 1], table_im[k >> 1]));
-    ptr_in[k + 1] = ixheaacd_add32_sat(
-        ixheaacd_mult32(ixheaacd_negate32_sat(ptr_in[k]), table_im[k >> 1]),
-        ixheaacd_mult32(ptr_in[k + 1], table_re[k >> 1]));
-
-    ptr_in[k] = tmp;
-  }
-}
-
-VOID ixheaacd_mps_synt_post_twiddle_dec(WORD32 *ptr_in, const WORD32 *table_re,
-                                        const WORD32 *table_im,
-                                        WORD32 resolution) {
-  WORD32 tmp, k;
-  for (k = 0; k < 2 * resolution; k += 2) {
-    tmp = ixheaacd_add32_sat(ixheaacd_mult32(ptr_in[k], table_re[k]),
-                             ixheaacd_mult32(ptr_in[k + 1], table_im[k]));
-
-    ptr_in[k + 1] = ixheaacd_add32_sat(
-        ixheaacd_mult32(ixheaacd_negate32_sat(ptr_in[k]), table_im[k]),
-        ixheaacd_mult32(ptr_in[k + 1], table_re[k]));
-
-    ptr_in[k] = tmp;
-  }
-}
-
-VOID ixheaacd_mps_synt_post_fft_twiddle_dec(WORD32 resolution, WORD32 *fin_re,
-                                            WORD32 *fin_im,
-                                            const WORD32 *table_re,
-                                            const WORD32 *table_im,
-                                            WORD32 *state) {
-  WORD32 l;
-  for (l = 0; l < 2 * resolution; l++) {
-    state[2 * resolution - l - 1] =
-        ixheaacd_add32_sat(ixheaacd_mult32(fin_re[l], table_re[l]),
-                           ixheaacd_mult32(fin_im[l], table_im[l]));
-  }
-}
-
-VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, WORD32 *out,
-                                    WORD32 *state, const WORD32 *filter_coeff) {
+VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, FLOAT32 *out,
+                                    FLOAT32 *state,
+                                    const FLOAT32 *filter_coeff) {
   WORD32 l, k;
-  WORD32 *out1, *out2, *state1, *state2;
+  FLOAT32 *out1, *out2, *state1, *state2;
   out1 = out;
   out2 = out + resolution;
   state1 = state;
@@ -121,8 +58,8 @@ VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, WORD32 *out,
 
   for (k = 0; k < 5; k++) {
     for (l = 0; l < resolution; l++) {
-      *out1++ = (WORD32)(((WORD64)(*state1++) * (*filter_coeff++)) >> 31);
-      *out2++ = (WORD32)(((WORD64)(*state2++) * (*filter_coeff++)) >> 31);
+      *out1++ = (*state1++) * (*filter_coeff++);
+      *out2++ = (*state2++) * (*filter_coeff++);
     }
     out1 += resolution;
     out2 += resolution;
@@ -131,64 +68,163 @@ VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, WORD32 *out,
   }
 }
 
+VOID ixheaacd_mps_synth_pre_twidle(FLOAT32 *out_re, FLOAT32 *out_im,
+                                   FLOAT32 *c_in, WORD32 len) {
+  WORD32 i;
+  FLOAT32 *c_s = c_in;
+  FLOAT32 *p_re_s = out_re;
+  FLOAT32 *p_im_s = out_im;
+  FLOAT32 *c_e = c_in + (len << 1) - 1;
+  FLOAT32 *p_im_e = out_im + len - 1;
+  FLOAT32 *p_re_e = out_re + len - 1;
+  const FLOAT32 *prtw = ixheaacd_mps_pre_twid;
+
+  for (i = 0; i < len; i += 4) {
+    *p_re_s = ((*c_s++) * (*prtw));
+    p_re_s++;
+    *p_im_s = -((*c_s--) * (*prtw));
+    p_im_s++;
+    *p_im_s = ((*c_e--) * (*prtw));
+    p_im_s--;
+    *p_re_s = ((*c_e++) * (*prtw++));
+    p_re_s--;
+    *p_im_s += ((*c_e--) * (*prtw));
+    p_im_s++;
+    *p_re_s += ((*c_e--) * (*prtw));
+    p_re_s++;
+    *p_re_s -= ((*c_s++) * (*prtw));
+    p_re_s++;
+    *p_im_s += ((*c_s++) * (*prtw++));
+    p_im_s++;
+    *p_im_e = ((*c_e--) * (*prtw));
+    p_im_e--;
+    *p_re_e = -((*c_e++) * (*prtw));
+    p_re_e--;
+    *p_re_e = ((*c_s++) * (*prtw));
+    p_re_e++;
+    *p_im_e = ((*c_s--) * (*prtw++));
+    p_im_e++;
+    *p_re_e += ((*c_s++) * (*prtw));
+    p_re_e--;
+    *p_im_e += ((*c_s++) * (*prtw));
+    p_im_e--;
+    *p_im_e -= ((*c_e--) * (*prtw));
+    p_im_e--;
+    *p_re_e += ((*c_e--) * (*prtw++));
+    p_re_e--;
+  }
+}
+
+VOID ixheaacd_mps_synth_post_twidle(FLOAT32 *state, FLOAT32 *out_re,
+                                    FLOAT32 *out_im, WORD32 len) {
+  WORD32 i;
+  {
+    FLOAT32 x_0, x_1, x_2, x_3;
+    FLOAT32 *p_re_e, *p_im_e;
+    const FLOAT32 *potw = ixheaacd_mps_post_twid;
+    FLOAT32 *p_re_s = out_re;
+    FLOAT32 *p_im_s = out_im;
+
+    p_re_e = p_re_s + (len - 2);
+    p_im_e = p_im_s + (len - 2);
+    x_0 = *p_re_e;
+    x_1 = *(p_re_e + 1);
+    x_2 = *p_im_e;
+    x_3 = *(p_im_e + 1);
+
+    *(p_re_e + 1) = -*(p_re_s + 1);
+    *(p_im_e + 1) = -*p_im_s;
+    *p_im_s = *(p_im_s + 1);
+
+    for (i = 5; i < len; i += 4) {
+      FLOAT32 twdr = *potw++;
+      FLOAT32 twdi = *potw++;
+      FLOAT32 tmp;
+
+      *p_re_e = (x_0 * twdi);
+      *p_re_e += (x_1 * twdr);
+      p_re_e--;
+      p_re_s++;
+      *p_re_s = (x_0 * twdr);
+      *p_re_s -= (x_1 * twdi);
+      p_re_s++;
+      x_1 = *p_re_e--;
+      x_0 = *p_re_e++;
+      *p_re_e = (*p_re_s++ * twdi);
+      *p_re_e += -(*p_re_s * twdr);
+      p_re_e--;
+      tmp = (*p_re_s-- * twdi);
+      *p_re_s = tmp + (*p_re_s * twdr);
+
+      *p_im_e = -(x_2 * twdr);
+      *p_im_e += (x_3 * twdi);
+      p_im_e--;
+      p_im_s++;
+      *p_im_s = -(x_2 * twdi);
+      *p_im_s -= (x_3 * twdr);
+      p_im_s++;
+      x_3 = *p_im_e--;
+      x_2 = *p_im_e++;
+      *p_im_e = -(*p_im_s++ * twdr);
+      *p_im_e -= (*p_im_s * twdi);
+      p_im_e--;
+      tmp = (*p_im_s-- * twdr);
+      *p_im_s = tmp - (*p_im_s * twdi);
+    }
+
+    *p_re_e = 0.7071067f * (x_1 + x_0);
+    *p_im_e = 0.7071067f * (x_3 - x_2);
+    *(p_re_s + 1) = -0.7071067f * (x_1 - x_0);
+    *(p_im_s + 1) = -0.7071067f * (x_3 + x_2);
+  }
+
+  for (i = 0; i < len; i++) {
+    state[i] = out_im[i] - out_re[i];
+    state[len + i] = out_im[len - i - 1] + out_re[len - i - 1];
+    state[len - i - 1] = out_im[len - i - 1] - out_re[len - i - 1];
+    state[2 * len - i - 1] = out_im[i] + out_re[i];
+  }
+}
+
 VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
   WORD32 k, l, ts, ch;
-  WORD64 acc;
-  WORD32 ptr_in[128];
-  WORD32 fin_re[128];
-  WORD32 fin_im[128];
-  FLOAT32 temp;
-  WORD32 *state, *tmp_state, *out;
-  const WORD32 *filt_coeff;
-  WORD32 *tmp_buf = self->tmp_buf;
+  FLOAT32 *state, *tmp_state, *out;
+  const FLOAT32 *filt_coeff;
+  FLOAT32 *tmp_buf = self->tmp_buf;
+  FLOAT32 fin_re[64] = {0};
+  FLOAT32 fin_im[64] = {0};
 
   ia_mps_poly_phase_struct kernel = self->poly_phase_filt_kernel;
   WORD32 resolution = kernel.resolution;
+  WORD32 m_resolution = resolution >> 1;
   for (ch = 0; ch < self->out_ch_count; ch++) {
     tmp_state = (&self->qmf_filt_state[ch])->state;
     state = &tmp_buf[self->time_slots * 2 * resolution];
-    memcpy(state, tmp_state, sizeof(WORD32) * 20 * resolution);
+    memcpy(state, tmp_state, sizeof(FLOAT32) * 18 * resolution);
     out = &tmp_buf[74 * MAX_NUM_QMF_BANDS_SAC];
 
     for (ts = 0; ts < self->time_slots; ts++) {
-      ixheaacd_float_to_int32(&self->qmf_out_dir[ch][ts][0].re, ptr_in, 10,
-                              resolution * 2);
-
-      filt_coeff = ixheaacd_mps_polyphase_filter_coeff_fix;
+      filt_coeff = ixheaacd_mps_polyphase_filter_coeff;
 
       state -= (2 * resolution);
-      (*ixheaacd_mps_synt_pre_twiddle)(ptr_in, ixheaacd_mps_pre_re,
-                                       ixheaacd_mps_pre_im, resolution);
 
-      (*ixheaacd_mps_complex_fft_64)(ptr_in, fin_re, fin_im, resolution);
+      ixheaacd_mps_synth_pre_twidle(
+          fin_re, fin_im, &self->qmf_out_dir[ch][ts][0].re, resolution);
 
-      (*ixheaacd_mps_synt_post_twiddle)(ptr_in, ixheaacd_mps_post_re,
-                                        ixheaacd_mps_post_im, resolution);
+      ixheaacd_mps_synth_calc_fft(fin_re, fin_im, m_resolution);
 
-      (*ixheaacd_mps_complex_fft_64)(ptr_in, &fin_re[1], &fin_im[1],
-                                     resolution);
+      ixheaacd_mps_synth_post_twidle(state, fin_re, fin_im, resolution);
 
-      (*ixheaacd_mps_synt_post_fft_twiddle)(resolution, fin_re, fin_im,
-                                            ixheaacd_mps_post_re,
-                                            ixheaacd_mps_post_im, state);
       (*ixheaacd_mps_synt_out_calc)(resolution, out, state, filt_coeff);
 
       for (k = 0; k < resolution; k++) {
-        acc = 0;
-        for (l = 0; l < 10; l++) {
-          acc = acc + out[resolution * l + k];
+        FLOAT32 acc = out[k];
+        for (l = 1; l < 10; l++) {
+          acc += out[resolution * l + k];
         }
-        if (acc >= 2147483647)
-          temp = 1.0;
-        else if (acc <= -2147483647 - 1)
-          temp = -1.0f;
-        else
-          temp = (FLOAT32)((WORD32)acc) / ((FLOAT32)(1 << 10));
-
-        self->output_buffer[ch][self->qmf_band_count * ts + k] = (FLOAT32)temp;
+        self->output_buffer[ch][self->qmf_band_count * ts + k] = acc;
       }
     }
-
-    memcpy(tmp_state, state, sizeof(WORD32) * 20 * resolution);
+    memcpy(tmp_state, state, sizeof(FLOAT32) * 18 * resolution);
   }
 }
