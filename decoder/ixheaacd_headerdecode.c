@@ -490,6 +490,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
   WORD32 cnt_bits = it_bit_buff->cnt_bits;
   WORD32 dummy = 0;
   UWORD32 aot_init;
+  UWORD32 tmp_aot;
 
   ia_audio_specific_config_struct *pstr_audio_specific_config;
 
@@ -506,14 +507,20 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
   aot_init = aac_state_struct->audio_object_type;
 
-  aac_state_struct->audio_object_type = ixheaacd_read_bits_buf(it_bit_buff, 5);
+  tmp_aot = ixheaacd_read_bits_buf(it_bit_buff, 5);
 
-  if (aac_state_struct->audio_object_type == 31) {
+  if (tmp_aot == 31) {
     tmp = ixheaacd_read_bits_buf(it_bit_buff, 6);
-    aac_state_struct->audio_object_type = 32 + tmp;
+    tmp_aot = 32 + tmp;
   }
+
+  if (aac_state_struct->header_dec_done || aac_state_struct->ui_init_done) {
+    if (tmp_aot != aot_init && tmp_aot != AOT_SBR && tmp_aot != AOT_PS)
+      return IA_FATAL_ERROR;
+  }
+
   pstr_audio_specific_config->audio_object_type =
-      aac_state_struct->audio_object_type;
+      aac_state_struct->audio_object_type = tmp_aot;
 
   tmp = ixheaacd_get_samp_rate(it_bit_buff, pstr_samp_rate_info,
                                pstr_audio_specific_config);
