@@ -1577,6 +1577,7 @@ IA_ERRORCODE ixheaacd_dec_init(
               p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_OUTPUT_IDX];
           WORD32 out_bytes = 0;
           WORD32 frames_done = p_obj_exhaacplus_dec->p_state_aac->frame_counter;
+          p_obj_exhaacplus_dec->p_state_aac->decode_create_done = 0;
 
           if (p_obj_exhaacplus_dec->p_state_aac->ui_input_over == 0) {
             error_code = ixheaacd_dec_main(
