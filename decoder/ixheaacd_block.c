@@ -1129,6 +1129,7 @@ WORD ixheaacd_huffman_dec_word2(ia_bit_buf_struct *it_bit_buff, WORD32 cb_no,
       it_bit_buff->bit_pos = it_bit_buff->bit_pos & 0x7;
       if ((SIZE_T)(it_bit_buff->ptr_read_next) > (SIZE_T)(it_bit_buff->ptr_bit_buf_end + 1))
       {
+        it_bit_buff->ptr_read_next = it_bit_buff->ptr_bit_buf_end + 1;
         return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
       }
 
