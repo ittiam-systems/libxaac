@@ -1410,6 +1410,10 @@ IA_ERRORCODE ixheaacd_dec_init(
           ->huffman_code_book_scl_index;
 
   p_state_enhaacplus_dec->pstr_aac_tables = &p_obj_exhaacplus_dec->aac_tables;
+  if (p_obj_exhaacplus_dec->p_state_aac->header_dec_done == 0)
+  {
+    p_obj_exhaacplus_dec->aac_config.header_dec_done = 0;
+  }
   if (p_obj_exhaacplus_dec->aac_config.header_dec_done == 0) {
     WORD32 channels;
 
