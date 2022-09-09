@@ -74,6 +74,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                              FLOAT32 input_imag1[][64],
                              WORD32 x_over_qmf[MAX_NUM_PATCHES],
                              FLOAT32 *scratch_buff, FLOAT32 *env_out) {
+  WORD32 error_code = 0;
   WORD8 harmonics[64];
   FLOAT32(*env_tmp)[48];
   FLOAT32(*noise_level_pvc)[48];
@@ -732,7 +733,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           memcpy((*noise_buf)[4], temp, 64 * sizeof(FLOAT32));
         }
 
-        ixheaacd_apply_inter_tes(
+        error_code = ixheaacd_apply_inter_tes(
             *(input_real1 + rate * p_frame_info->border_vec[i]),
             *(input_imag1 + rate * p_frame_info->border_vec[i]),
             *(input_real + rate * p_frame_info->border_vec[i]),
@@ -740,6 +741,10 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
             rate * p_frame_info->border_vec[i + 1] -
                 rate * p_frame_info->border_vec[i],
             sub_band_start, num_subbands, frame_data->inter_temp_shape_mode[i]);
+        if (error_code != 0)
+        {
+          return error_code;
+        }
 
         for (l = rate * p_frame_info->border_vec[i];
              l < rate * p_frame_info->border_vec[i + 1]; l++) {
@@ -911,10 +916,10 @@ IA_ERRORCODE ixheaacd_createlimiterbands(
   return IA_NO_ERROR;
 }
 
-VOID ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
-                              FLOAT32 *qmf_real, FLOAT32 *qmf_imag,
-                              WORD32 num_sample, WORD32 sub_band_start,
-                              WORD32 num_subband, WORD32 gamma_idx) {
+WORD32 ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
+                                FLOAT32 *qmf_real, FLOAT32 *qmf_imag,
+                                WORD32 num_sample, WORD32 sub_band_start,
+                                WORD32 num_subband, WORD32 gamma_idx) {
   WORD32 sub_band_end = sub_band_start + num_subband;
   FLOAT32 subsample_power_high[TIMESLOT_BUFFER_SIZE],
       subsample_power_low[TIMESLOT_BUFFER_SIZE];
@@ -925,6 +930,10 @@ VOID ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
   FLOAT32 gamma = ixheaacd_q_gamma_table[gamma_idx];
   WORD32 i, j;
 
+  if (num_sample > TIMESLOT_BUFFER_SIZE)
+  {
+    return IA_FATAL_ERROR;
+  }
   if (gamma > 0) {
     for (i = 0; i < num_sample; i++) {
       memcpy(&qmf_real[64 * i], &qmf_real1[64 * i],
@@ -978,4 +987,5 @@ VOID ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
       }
     }
   }
+  return 0;
 }
