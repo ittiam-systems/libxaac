@@ -818,6 +818,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
               aac_dec_handle->pstr_aac_tables, object_type, slot_element);
 
           if (slot_pos != NULL) *slot_pos = slot_element;
+          if (p_obj_exhaacplus_dec->p_state_aac->qshift_cnt > 15)
+          {
+            return IA_FATAL_ERROR;
+          }
 
           p_obj_exhaacplus_dec->p_state_aac
               ->qshift_adj[p_obj_exhaacplus_dec->p_state_aac->qshift_cnt++] =

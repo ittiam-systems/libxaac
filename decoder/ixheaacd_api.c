@@ -1410,6 +1410,10 @@ IA_ERRORCODE ixheaacd_dec_init(
           ->huffman_code_book_scl_index;
 
   p_state_enhaacplus_dec->pstr_aac_tables = &p_obj_exhaacplus_dec->aac_tables;
+  if (p_obj_exhaacplus_dec->p_state_aac->header_dec_done == 0)
+  {
+    p_obj_exhaacplus_dec->aac_config.header_dec_done = 0;
+  }
   if (p_obj_exhaacplus_dec->aac_config.header_dec_done == 0) {
     WORD32 channels;
 
@@ -1573,6 +1577,7 @@ IA_ERRORCODE ixheaacd_dec_init(
               p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_OUTPUT_IDX];
           WORD32 out_bytes = 0;
           WORD32 frames_done = p_obj_exhaacplus_dec->p_state_aac->frame_counter;
+          p_obj_exhaacplus_dec->p_state_aac->decode_create_done = 0;
 
           if (p_obj_exhaacplus_dec->p_state_aac->ui_input_over == 0) {
             error_code = ixheaacd_dec_main(
