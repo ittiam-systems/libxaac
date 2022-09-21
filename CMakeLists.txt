@@ -158,7 +158,12 @@ list(APPEND XAACDEC_SRCS
 
 add_executable(xaacdec ${XAACDEC_SRCS})
 
-target_link_libraries(xaacdec libxaacdec m)
+if(MSVC)
+  target_link_libraries(xaacdec libxaacdec)
+else()
+  target_link_libraries(xaacdec libxaacdec m)
+endif()
+
 set_target_properties(
   xaacdec
   PROPERTIES
