@@ -506,6 +506,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
       it_bit_buff->bit_pos;
 
   aot_init = aac_state_struct->audio_object_type;
+  aac_state_struct->frame_length = FRAME_SIZE;
 
   tmp_aot = ixheaacd_read_bits_buf(it_bit_buff, 5);
 
@@ -537,7 +538,6 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
   pstr_audio_specific_config->channel_configuration =
       aac_state_struct->ch_config;
-  aac_state_struct->frame_length = FRAME_SIZE;
 
   if (aac_state_struct->audio_object_type == AOT_SBR ||
       aac_state_struct->audio_object_type == AOT_PS) {
