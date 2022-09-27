@@ -515,8 +515,8 @@ static VOID ixheaacd_cplx_pred_upmixing(
     for (grp = 0, i = 0; grp < pstr_sfb_info->num_groups; grp++) {
       for (grp_len = 0; grp_len < pstr_sfb_info->group_len[grp]; grp_len++) {
         for (sfb = 0; sfb < pstr_sfb_info->sfb_per_sbk; sfb++) {
-          alpha_q_re_temp = alpha_q_re[grp][sfb] * 1677722;
-          alpha_q_im_temp = alpha_q_im[grp][sfb] * 1677722;
+          alpha_q_re_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
+          alpha_q_im_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_im[grp][sfb], 1677722));
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
               WORD32 mid_side = ixheaacd_sub32_sat(
@@ -542,7 +542,7 @@ static VOID ixheaacd_cplx_pred_upmixing(
     for (grp = 0, i = 0; grp < pstr_sfb_info->num_groups; grp++) {
       for (grp_len = 0; grp_len < pstr_sfb_info->group_len[grp]; grp_len++) {
         for (sfb = 0; sfb < pstr_sfb_info->sfb_per_sbk; sfb++) {
-          alpha_q_re_temp = alpha_q_re[grp][sfb] * 1677722;
+          alpha_q_re_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
               WORD32 mid_side = ixheaacd_sub32_sat(
