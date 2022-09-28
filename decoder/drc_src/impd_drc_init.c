@@ -113,6 +113,8 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
   p_obj_drc->str_config.target_loudness = -24;
   p_obj_drc->str_config.loud_norm_flag = 0;
   p_obj_drc->str_config.album_mode = 0;
+  p_obj_drc->str_config.boost = 1.0f;
+  p_obj_drc->str_config.compress = 1.0f;
   memset(&p_obj_drc->str_bit_handler, 0, sizeof(p_obj_drc->str_bit_handler));
 
   return IA_NO_ERROR;
