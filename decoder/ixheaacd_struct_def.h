@@ -24,29 +24,9 @@
 #include <stdbool.h>
 #include "ixheaacd_peak_limiter_struct_def.h"
 
-#define MAX_OUTPUT_CHANNELS (8)
-#define MAX_NUM_OTT (1)
-
-#define MAX_ARBITRARY_TREE_LEVELS (2)
-#define MAX_PARAMETER_SETS (8)
-#define MAX_ARBITRARY_TREE_INDEX ((1 << (MAX_ARBITRARY_TREE_LEVELS + 1)) - 1)
-#define MAX_NUM_QMF_BANDS (64)
-#define MAX_NUM_OTT_AT \
-  (MAX_OUTPUT_CHANNELS * ((1 << MAX_ARBITRARY_TREE_LEVELS) - 1))
-#define MAX_PARAMETER_BANDS (28)
 #define MAX_DECOR_CONFIG_IDX (2)
-
-#define MAX_HYBRID_BANDS (MAX_NUM_QMF_BANDS - 3 + 10)
-
+#define MAX_PARAMETER_BANDS_MPS (28)
 #define MAX_TIME_SLOTS (72)
-
-#define MAX_M2_OUTPUT (8)
-#define QMF_BANDS_TO_HYBRID (3)
-#define PROTO_LEN (13)
-#define BUFFER_LEN_LF (PROTO_LEN - 1 + MAX_TIME_SLOTS)
-#define BUFFER_LEN_HF ((PROTO_LEN - 1) / 2)
-#define MAX_TIME_SLOTS (72)
-#define MAX_NO_TIME_SLOTS_DELAY (14)
 
 #define MAX_PREROLL_FRAME_OFFSET 4
 // max of escapedValue(4, 4, 8) i.e. 2^4 -1 + 2^4 -1 + 2^8 -1;
@@ -244,6 +224,7 @@ typedef struct ia_aac_dec_state_struct {
   ia_sbr_header_data_struct str_sbr_config;
   jmp_buf xaac_jmp_buf;
   WORD32 decode_create_done;
+  WORD32 ldmps_present;
   WORD32 fatal_err_present;
   WORD8 *pers_mem_ptr;
   bool preroll_config_present;
@@ -283,7 +264,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
     WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
     WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy, UWORD8 *slot_pos);
+    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos);
 
 WORD ixheaacd_get_channel_mask(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec);

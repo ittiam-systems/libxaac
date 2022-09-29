@@ -76,6 +76,7 @@
 #include "ixheaacd_aacdec.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_polyphase.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 
@@ -600,8 +601,6 @@ static WORD32 ixheaacd_drc_element_read(
     ia_handle_bit_buf_struct bs, ixheaac_drc_bs_data_struct *pstr_bs_data) {
   WORD32 ich, idrc, nbyte = 1;
   WORD32 pce_tag_present, drc_bands_present;
-  WORD32 pce_instance_tag, drc_tag_reserved_bits;
-  WORD32 prog_ref_level_reserved_bits;
   WORD32 excluded_chns_present;
   UWORD8 drc_band_incr;
   WORD8 max_dyn_rng_dlbl = -128;
@@ -610,8 +609,8 @@ static WORD32 ixheaacd_drc_element_read(
 
   pce_tag_present = ixheaacd_read_bits_buf(bs, 1);
   if (pce_tag_present) {
-    pce_instance_tag = ixheaacd_read_bits_buf(bs, 4);
-    drc_tag_reserved_bits = ixheaacd_read_bits_buf(bs, 4);
+    ixheaacd_read_bits_buf(bs, 4);/*pce_instance_tag*/
+    ixheaacd_read_bits_buf(bs, 4);/*drc_tag_reserved_bits*/
     nbyte++;
   }
 
@@ -645,7 +644,7 @@ static WORD32 ixheaacd_drc_element_read(
   if (pstr_bs_data->prog_ref_level_present) {
     pstr_bs_data->prog_ref_level = ixheaacd_read_bits_buf(bs, 7);
 
-    prog_ref_level_reserved_bits = ixheaacd_read_bits_buf(bs, 1);
+    ixheaacd_read_bits_buf(bs, 1);/*prog_ref_level_reserved_bits*/
     nbyte++;
   }
 
@@ -764,13 +763,12 @@ WORD32 ixheaacd_dec_drc_read_element(ia_drc_dec_struct *pstr_drc_dec,
                                      ia_drc_dec_struct *drc_dummy,
                                      ia_handle_bit_buf_struct bs) {
   WORD32 bits_read = 0;
-  WORD32 bits_parse = 0;
   if (pstr_drc_dec->num_drc_elements < pstr_drc_dec->max_audio_channels) {
     bits_read = ixheaacd_drc_element_read(
         bs, &pstr_drc_dec->str_drc_bs_data[pstr_drc_dec->num_drc_elements]);
 
     if (pstr_drc_dec->dvb_anc_data_present) {
-      bits_parse = ixheaacd_drc_read_compression(
+      ixheaacd_drc_read_compression(
           bs, pstr_drc_dec, pstr_drc_dec->dvb_anc_data_pos);
     }
     pstr_drc_dec->num_drc_elements++;
@@ -780,7 +778,7 @@ WORD32 ixheaacd_dec_drc_read_element(ia_drc_dec_struct *pstr_drc_dec,
 
     bits_read = ixheaacd_drc_element_read(bs, &drc_ele_dummy);
     if (pstr_drc_dec->dvb_anc_data_present) {
-      bits_parse = ixheaacd_drc_read_compression(
+      ixheaacd_drc_read_compression(
           bs, drc_dummy, pstr_drc_dec->dvb_anc_data_pos);
     }
   }

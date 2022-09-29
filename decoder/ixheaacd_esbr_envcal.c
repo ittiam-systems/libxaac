@@ -73,7 +73,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                              FLOAT32 input_real1[][64],
                              FLOAT32 input_imag1[][64],
                              WORD32 x_over_qmf[MAX_NUM_PATCHES],
-                             FLOAT32 *scratch_buff, FLOAT32 *env_out) {
+                             FLOAT32 *scratch_buff, FLOAT32 *env_out,
+                             WORD32 ldmps_present) {
   WORD32 error_code = 0;
   WORD8 harmonics[64];
   FLOAT32(*env_tmp)[48];
@@ -152,6 +153,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
 
   WORD32 rate = upsamp_4_flag ? 4 : 2;
 
+  if (ldmps_present == 1) rate = 1;
+
   env_tmp = frame_data->env_tmp;
   noise_level_pvc = frame_data->noise_level_pvc;
   nrg_est_pvc = frame_data->nrg_est_pvc;
@@ -164,10 +167,10 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
   freq_band_table[1] =
       frame_data->pstr_sbr_header->pstr_freq_band_data->freq_band_table[1];
 
-  if (reset) {
+  if (reset || (ldmps_present == 1)) {
     esbr_start_up = 1;
     esbr_start_up_pvc = 1;
-    phase_index = 0;
+    if (reset) phase_index = 0;
     if (ixheaacd_createlimiterbands(
             (*lim_table), (*gate_mode),
             frame_data->pstr_sbr_header->pstr_freq_band_data->freq_band_tbl_lo,
@@ -687,7 +690,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           }
         }
 
-        if (esbr_start_up) {
+        if (esbr_start_up && (ldmps_present != 1)) {
           for (n = 0; n < 4; n++) {
             memcpy((*e_gain)[n], nrg_gain, num_subbands * sizeof(FLOAT32));
             memcpy((*noise_buf)[n], noise_level,
@@ -702,6 +705,9 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           ptr_real_buf = *(input_real + l) + sub_band_start;
           ptr_imag_buf = *(input_imag + l) + sub_band_start;
 
+          freq_inv = 1;
+          if ((ldmps_present == 1) && (sub_band_start & 1)) freq_inv = -1;
+
           for (k = 0; k < num_subbands; k++) {
             (*e_gain)[4][k] = nrg_gain[k];
             (*noise_buf)[4][k] = noise_level[k];
@@ -714,14 +720,27 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
             phase_index = (phase_index + 1) & 511;
             sb_noise = (nrg_tone[k] != 0 || noise_absc_flag) ? 0 : sb_noise;
 
-            *ptr_real_buf = *ptr_real_buf * sb_gain +
+            if (ldmps_present == 1) {
+              *ptr_real_buf = *ptr_real_buf * sb_gain +
+                              sb_noise * ixheaacd_random_phase[phase_index][0] +
+                              nrg_tone[k] * ixheaacd_hphase_tbl[0][harm_index];
+              *ptr_imag_buf =
+                  *ptr_imag_buf * sb_gain +
+                  sb_noise * ixheaacd_random_phase[phase_index][1] +
+                  nrg_tone[k] * freq_inv * ixheaacd_hphase_tbl[1][harm_index];
+
+              freq_inv = -freq_inv;
+            } else {
+                *ptr_real_buf = *ptr_real_buf * sb_gain +
                             sb_noise * ixheaacd_random_phase[phase_index][0];
-            *ptr_imag_buf = *ptr_imag_buf * sb_gain +
+                *ptr_imag_buf = *ptr_imag_buf * sb_gain +
                             sb_noise * ixheaacd_random_phase[phase_index][1];
+            }
 
             ptr_real_buf++;
             ptr_imag_buf++;
           }
+          if (ldmps_present == 1) harm_index = (harm_index + 1) & 3;
 
           memcpy(temp, (*e_gain)[0], 64 * sizeof(FLOAT32));
           for (n = 0; n < 4; n++)
@@ -733,7 +752,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           memcpy((*noise_buf)[4], temp, 64 * sizeof(FLOAT32));
         }
 
-        error_code = ixheaacd_apply_inter_tes(
+        if (ldmps_present != 1) {
+          error_code = ixheaacd_apply_inter_tes(
             *(input_real1 + rate * p_frame_info->border_vec[i]),
             *(input_imag1 + rate * p_frame_info->border_vec[i]),
             *(input_real + rate * p_frame_info->border_vec[i]),
@@ -767,6 +787,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
       }
     }
   }
+}
 
   for (i = 0; i < 64; i++) {
     (*harm_flag_varlen_prev)[i] = (*harm_flag_prev)[i];
@@ -782,6 +803,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
     frame_data->env_short_flag_prev = -1;
   }
 
+  if (ldmps_present != 1) {
   memcpy((VOID *)&frame_data->str_frame_info_prev,
          (VOID *)&frame_data->str_frame_info_details,
          sizeof(ia_frame_info_struct));
@@ -803,6 +825,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
                  num_nf_bands +
              i];
   }
+}
 
   frame_data->harm_index = harm_index;
   frame_data->phase_index = phase_index;

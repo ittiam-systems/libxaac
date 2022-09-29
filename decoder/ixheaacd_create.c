@@ -369,9 +369,6 @@ WORD32 ixheaacd_dec_data_init(VOID *handle,
                               ia_usac_data_struct *usac_data) {
   ia_audio_specific_config_struct *pstr_stream_config, *layer_config;
   WORD32 err_code = 0;
-
-  WORD32 num_out_chan = 0;
-
   WORD32 i_ch, i, ele_id;
   WORD32 num_elements;
 
@@ -421,8 +418,6 @@ WORD32 ixheaacd_dec_data_init(VOID *handle,
   usac_data->sbr_ratio_idx = sbr_ratio_idx;
   usac_data->esbr_bit_str[0].no_elements = 0;
   usac_data->esbr_bit_str[1].no_elements = 0;
-
-  num_out_chan = ptr_usac_config->num_out_channels;
 
   if (usac_data->ccfl == 768)
     pstr_frame_data->str_layer.sample_rate_layer =
@@ -579,7 +574,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
             handle->aac_config.ui_sbr_mode = 0;
         }
 
-
         break;
 
       default:
@@ -602,9 +596,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
     ia_usac_config_struct *ptr_usac_config =
         &(pstr_frame_data->str_audio_specific_config.str_usac_config);
 
-    WORD32 inter_tes[MAX_NUM_ELEMENTS] = {0};
-    WORD32 bs_pvc[MAX_NUM_ELEMENTS] = {0};
-    WORD32 harmonic_sbr[MAX_NUM_ELEMENTS] = {0};
     WORD32 inter_test_flag = 0;
     WORD32 bs_pvc_flag = 0;
     WORD32 harmonic_Sbr_flag = 0;
@@ -626,12 +617,6 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
       ia_usac_dec_sbr_config_struct *ptr_usac_sbr_config =
           &(ptr_usac_dec_config->str_usac_element_config[elem_idx]
                 .str_usac_sbr_config);
-      inter_tes[elem_idx] =
-          (ptr_usac_sbr_config != NULL) ? ptr_usac_sbr_config->bs_inter_tes : 0;
-      bs_pvc[elem_idx] =
-          (ptr_usac_sbr_config != NULL) ? ptr_usac_sbr_config->bs_pvc : 0;
-      harmonic_sbr[elem_idx] =
-          (ptr_usac_sbr_config != NULL) ? ptr_usac_sbr_config->harmonic_sbr : 0;
 
       if (ptr_usac_sbr_config->bs_inter_tes) inter_test_flag = 1;
       if (ptr_usac_sbr_config->bs_pvc) bs_pvc_flag = 1;
@@ -686,7 +671,7 @@ WORD32 ixheaacd_decode_create(ia_exhaacplus_dec_api_struct *handle,
             pstr_dec_data->str_usac_data.sbr_ratio_idx,
             pstr_dec_data->str_usac_data.output_samples, &harmonic_Sbr_flag,
             (void *)&usac_def_header, aac_dec_handle->str_sbr_config,
-            pstr_dec_data->str_usac_data.audio_object_type);
+            pstr_dec_data->str_usac_data.audio_object_type, 0, 0);
         pstr_dec_data->str_usac_data.sbr_scratch_mem_base =
             aac_dec_handle->sbr_scratch_mem_u;
         if (num_ele)

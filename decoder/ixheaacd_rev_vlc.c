@@ -63,10 +63,15 @@
 #include "ixheaacd_latmdemux.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 
 #include "ixheaacd_cnst.h"
+
+#include "ixheaacd_error_standards.h"
 
 #define RVLC_ERROR_ALL_ESCAPE_WORDS_INVALID 0x80000000
 #define RVLC_ERROR_RVL_SUM_BIT_COUNTER_BELOW_ZERO_FWD 0x40000000
@@ -699,7 +704,7 @@ static VOID ixheaacd_rvlc_decode_backward(
     ia_rvlc_info_struct *ptr_rvlc,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_bit_buf_struct *it_bit_buff) {
-  WORD16 band, group, dpcm, ixheaacd_drc_offset;
+  WORD16 band, group, dpcm;
   WORD16 bnds = ptr_rvlc->max_sfb_transmitted - 1;
 
   WORD16 factor = ptr_rvlc->rev_global_gain;
@@ -752,10 +757,6 @@ static VOID ixheaacd_rvlc_decode_backward(
   for (group = ptr_rvlc->num_wind_grps - 1; group >= 0; group--) {
     for (band = ptr_rvlc->max_sfb_transmitted - 1; band >= 0; band--) {
       bnds = 16 * group + band;
-      if ((band == 0) && (ptr_rvlc->num_wind_grps != 1))
-        ixheaacd_drc_offset = 16 - ptr_rvlc->max_sfb_transmitted + 1;
-      else
-        ixheaacd_drc_offset = 1;
 
       switch (ptr_aac_dec_channel_info->ptr_code_book[bnds]) {
         case ZERO_HCB:
@@ -955,7 +956,7 @@ VOID ixheaacd_hcr_read(ia_bit_buf_struct *it_bit_buff,
   }
 }
 
-static WORD32 ixheaacd_rvlc_init(
+static IA_ERRORCODE ixheaacd_rvlc_init(
     ia_rvlc_info_struct *ptr_rvlc,
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_bit_buf_struct *it_bit_buff) {
@@ -1009,7 +1010,7 @@ static WORD32 ixheaacd_rvlc_init(
   if (it_bit_buff->cnt_bits < 0) {
     return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
   } else
-    return 0;
+    return IA_NO_ERROR;
 }
 
 VOID ixheaacd_bi_dir_est_scf_prev_frame_reference(
@@ -1377,13 +1378,6 @@ VOID ixheaacd_statistical_estimation(
   WORD32 sum_nrg_fwd, sum_nrg_bwd;
   WORD32 sum_scf_fwd, sum_scf_bwd;
   WORD32 use_fwd, use_nrg_fwd, use_scf_fwd;
-  WORD32 max_scf_bands;
-
-  if (ptr_aac_dec_channel_info->str_ics_info.window_sequence ==
-      EIGHT_SHORT_SEQUENCE)
-    max_scf_bands = 16;
-  else
-    max_scf_bands = 64;
 
   sum_fwd = sum_bwd = sum_nrg_fwd = sum_nrg_bwd = sum_scf_fwd = sum_scf_bwd = 0;
   use_fwd = use_nrg_fwd = use_scf_fwd = 0;
@@ -1464,14 +1458,7 @@ VOID ixheaacd_predictive_interpolation(
     ia_aac_dec_overlap_info *ptr_aac_dec_static_channel_info) {
   ia_rvlc_info_struct *ptr_rvlc = &ptr_aac_dec_channel_info->ptr_rvlc_info;
   WORD32 band, bnds, group;
-  WORD32 max_scf_bands;
   WORD32 common_min;
-
-  if (ptr_aac_dec_channel_info->str_ics_info.window_sequence ==
-      EIGHT_SHORT_SEQUENCE)
-    max_scf_bands = 16;
-  else
-    max_scf_bands = 64;
 
   for (group = 0; group < ptr_rvlc->num_wind_grps; group++) {
     for (band = 0; band < ptr_rvlc->max_sfb_transmitted; band++) {

@@ -185,11 +185,9 @@ WORD32 impd_process_drc_bitstream_dec_gain(
     WORD32* num_bits_read) {
   WORD32 err_code = 0;
 
-  WORD32 dummy;
-
   impd_create_init_bit_buf(it_bit_buff, bitstream_gain, num_bytes);
 
-  dummy = impd_read_bits_buf(it_bit_buff, num_bits_offset);
+  impd_read_bits_buf(it_bit_buff, num_bits_offset);
   if (it_bit_buff->error) return it_bit_buff->error;
 
   err_code = impd_drc_uni_gain_read(it_bit_buff, p_drc_bs_dec_struct,

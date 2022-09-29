@@ -64,6 +64,8 @@
 #define ROUNDING_SPECTRA 1
 #define HQ_SHIFT_VAL 4
 
+extern const WORD32 ixheaacd_ldmps_polyphase_filter_coeff_fix[1280];
+
 VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
                       const WORD16 *main_twidle_fwd, const WORD16 *post_tbl,
                       const WORD16 *w_16, const WORD32 *p_table) {
@@ -302,15 +304,16 @@ VOID ixheaacd_cos_sin_mod(WORD32 *subband,
 VOID ixheaacd_fwd_modulation(const WORD32 *p_time_in1, WORD32 *real_subband,
                              WORD32 *imag_subband,
                              ia_sbr_qmf_filter_bank_struct *qmf_bank,
-                             ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
+                             ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                             WORD32 ld_mps_flag) {
   WORD32 i;
-  const WORD32 *p_time_in2 = &p_time_in1[2 * NO_ANALYSIS_CHANNELS - 1];
+  const WORD32 *p_time_in2 = &p_time_in1[2 * qmf_bank->no_channels - 1];
   WORD32 temp1, temp2;
   WORD32 *t_real_subband = real_subband;
   WORD32 *t_imag_subband = imag_subband;
   const WORD16 *tcos;
 
-  for (i = NO_ANALYSIS_CHANNELS - 1; i >= 0; i--) {
+  for (i = qmf_bank->no_channels - 1; i >= 0; i--) {
     temp1 = ixheaacd_shr32(*p_time_in1++, HQ_SHIFT_VAL);
     temp2 = ixheaacd_shr32(*p_time_in2--, HQ_SHIFT_VAL);
 
@@ -326,18 +329,33 @@ VOID ixheaacd_fwd_modulation(const WORD32 *p_time_in1, WORD32 *real_subband,
 
   tcos = qmf_bank->t_cos;
 
-  for (i = (qmf_bank->usb - qmf_bank->lsb - 1); i >= 0; i--) {
-    WORD16 cosh, sinh;
-    WORD32 re, im;
+  if (ld_mps_flag == 0) {
+    for (i = (qmf_bank->usb - qmf_bank->lsb - 1); i >= 0; i--) {
+      WORD16 cosh, sinh;
+      WORD32 re, im;
 
-    re = *real_subband;
-    im = *imag_subband;
-    cosh = *tcos++;
-    sinh = *tcos++;
-    *real_subband++ = ixheaacd_add32_sat(ixheaacd_mult32x16in32_shl(re, cosh),
-                                         ixheaacd_mult32x16in32_shl(im, sinh));
-    *imag_subband++ = ixheaacd_sub32_sat(ixheaacd_mult32x16in32_shl(im, cosh),
-                                         ixheaacd_mult32x16in32_shl(re, sinh));
+      re = *real_subband;
+      im = *imag_subband;
+      cosh = *tcos++;
+      sinh = *tcos++;
+      *real_subband++ =
+          ixheaacd_add32_sat(ixheaacd_mult32x16in32_shl(re, cosh),
+                             ixheaacd_mult32x16in32_shl(im, sinh));
+      *imag_subband++ =
+          ixheaacd_sub32_sat(ixheaacd_mult32x16in32_shl(im, cosh),
+                             ixheaacd_mult32x16in32_shl(re, sinh));
+    }
+  } else {
+    WORD32 i_band;
+    for (i = 0; i < min(64, qmf_bank->no_channels); i += 2) {
+      i_band = real_subband[i];
+      real_subband[i] = -imag_subband[i];
+      imag_subband[i] = i_band;
+
+      i_band = -real_subband[i + 1];
+      real_subband[i + 1] = imag_subband[i + 1];
+      imag_subband[i + 1] = i_band;
+    }
   }
 }
 
@@ -347,7 +365,7 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
                                 ia_sbr_qmf_filter_bank_struct *qmf_bank,
                                 ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
                                 WORD32 ch_fac, WORD32 low_pow_flag,
-                                WORD audio_object_type) {
+                                WORD audio_object_type, WORD32 ldmps_present) {
   WORD32 i, k;
   WORD32 num_time_slots = qmf_bank->num_time_slots;
 
@@ -464,7 +482,7 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
 
     if (!low_pow_flag) {
       ixheaacd_fwd_modulation(analysis_buffer, qmf_real[i], qmf_imag[i],
-                              qmf_bank, qmf_dec_tables_ptr);
+                              qmf_bank, qmf_dec_tables_ptr, ldmps_present);
     } else {
       ixheaacd_dct3_32(
           (WORD32 *)analysis_buffer, qmf_real[i], qmf_dec_tables_ptr->dct23_tw,
@@ -483,6 +501,115 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
     qmf_bank->fp2_anal = fp2;
     qmf_bank->filter_2 = filter_2;
   }
+}
+
+VOID ixheaacd_cplx_anal_qmffilt_32(const WORD32 *time_sample_buf,
+                                   ia_sbr_scale_fact_struct *sbr_scale_factor,
+                                   WORD32 **qmf_real, WORD32 **qmf_imag,
+                                   ia_sbr_qmf_filter_bank_struct *qmf_bank,
+                                   ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                                   WORD32 ch_fac, WORD32 ldsbr_present) {
+  WORD32 i, k;
+  WORD32 num_time_slots = qmf_bank->num_time_slots;
+
+  WORD32 analysis_buffer[4 * NO_ANALYSIS_CHANNELS];
+  WORD32 *filter_states = qmf_bank->core_samples_buffer_32;
+
+  WORD32 *fp1, *fp2, *tmp;
+
+  WORD32 *filter_1;
+  WORD32 *filter_2;
+  WORD32 *filt_ptr;
+  WORD32 start_slot = 2;
+
+  if (ldsbr_present) {
+    qmf_bank->filter_pos_32 +=
+        (qmf_dec_tables_ptr->qmf_c_ldsbr_mps - qmf_bank->analy_win_coeff_32);
+    qmf_bank->analy_win_coeff_32 = qmf_dec_tables_ptr->qmf_c_ldsbr_mps;
+  } else {
+    qmf_bank->filter_pos_32 += (ixheaacd_ldmps_polyphase_filter_coeff_fix -
+                                qmf_bank->analy_win_coeff_32);
+    qmf_bank->analy_win_coeff_32 =
+        (WORD32 *)ixheaacd_ldmps_polyphase_filter_coeff_fix;
+  }
+
+  filter_1 = qmf_bank->filter_pos_32;
+  filter_2 = filter_1 + qmf_bank->no_channels;
+
+  sbr_scale_factor->st_lb_scale = 0;
+  sbr_scale_factor->lb_scale = -10;
+
+  sbr_scale_factor->lb_scale = -9;
+  if (qmf_bank->no_channels != 64) {
+    qmf_bank->cos_twiddle =
+        (WORD16 *)qmf_dec_tables_ptr->sbr_sin_cos_twiddle_l32;
+    qmf_bank->alt_sin_twiddle =
+        (WORD16 *)qmf_dec_tables_ptr->sbr_alt_sin_twiddle_l32;
+  } else {
+    qmf_bank->cos_twiddle =
+        (WORD16 *)qmf_dec_tables_ptr->sbr_sin_cos_twiddle_l64;
+    qmf_bank->alt_sin_twiddle =
+        (WORD16 *)qmf_dec_tables_ptr->sbr_alt_sin_twiddle_l64;
+  }
+  qmf_bank->t_cos =
+      (WORD16 *)qmf_dec_tables_ptr->ixheaacd_sbr_t_cos_sin_l32_eld;
+
+  fp1 = qmf_bank->anal_filter_states_32;
+  fp2 = qmf_bank->anal_filter_states_32 + qmf_bank->no_channels;
+
+  filter_2 = qmf_bank->filter_2_32;
+  fp1 = qmf_bank->fp1_anal_32;
+  fp2 = qmf_bank->fp2_anal_32;
+
+  for (i = start_slot; i < num_time_slots + start_slot; i++) {
+    for (k = 0; k < qmf_bank->no_channels; k++)
+      filter_states[qmf_bank->no_channels - 1 - k] =
+          time_sample_buf[ch_fac * k];
+
+    if (ldsbr_present) {
+      ixheaacd_sbr_qmfanal32_winadd_eld_32(fp1, fp2, filter_1, filter_2,
+                                           analysis_buffer);
+    } else {
+      ixheaacd_sbr_qmfanal32_winadd_eld_mps(fp1, fp2, filter_1, filter_2,
+                                            analysis_buffer);
+    }
+
+    time_sample_buf += qmf_bank->no_channels * ch_fac;
+
+    filter_states -= qmf_bank->no_channels;
+
+    if (filter_states < qmf_bank->anal_filter_states_32) {
+      filter_states = qmf_bank->anal_filter_states_32 +
+                      ((qmf_bank->no_channels * 10) - qmf_bank->no_channels);
+    }
+
+    tmp = fp1;
+    fp1 = fp2;
+    fp2 = tmp;
+
+    filter_1 += qmf_bank->no_channels;
+    filter_2 += qmf_bank->no_channels;
+
+    filt_ptr = filter_1;
+    filter_1 = filter_2;
+    filter_2 = filt_ptr;
+
+    if (filter_2 >
+        (qmf_bank->analy_win_coeff_32 + (qmf_bank->no_channels * 10))) {
+      filter_1 = (WORD32 *)qmf_bank->analy_win_coeff_32;
+      filter_2 = (WORD32 *)qmf_bank->analy_win_coeff_32 + qmf_bank->no_channels;
+    }
+
+    ixheaacd_fwd_modulation(analysis_buffer, qmf_real[i], qmf_imag[i], qmf_bank,
+                            qmf_dec_tables_ptr, 1);
+  }
+
+  qmf_bank->filter_pos_32 = filter_1;
+  qmf_bank->core_samples_buffer_32 = filter_states;
+
+  qmf_bank->fp1_anal_32 = fp1;
+  qmf_bank->fp2_anal_32 = fp2;
+  qmf_bank->filter_2_32 = filter_2;
 }
 
 VOID ixheaacd_inv_modulation_lp(WORD32 *qmf_real, WORD16 *filter_states,

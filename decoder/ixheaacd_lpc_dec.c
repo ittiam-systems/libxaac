@@ -65,7 +65,7 @@ VOID ixheaacd_lsf_weight_2st_flt(FLOAT32 *lsfq, FLOAT32 *w, WORD32 mode) {
 }
 
 static WORD32 ixheaacd_decoding_avq_tool(WORD32 *read_arr, WORD32 *nvecq) {
-  WORD32 i, k, n, qn, nk, kv[8] = {0};
+  WORD32 i, k, qn, kv[8] = {0};
   WORD32 code_book_idx;
   WORD32 *ptr_kv = &kv[0];
 
@@ -73,13 +73,6 @@ static WORD32 ixheaacd_decoding_avq_tool(WORD32 *read_arr, WORD32 *nvecq) {
 
   for (k = 0; k < 2; k++) {
     qn = read_arr[k];
-
-    nk = 0;
-    n = qn;
-    if (qn > 4) {
-      nk = (qn - 3) >> 1;
-      n = qn - nk * 2;
-    }
 
     if (qn > 0) {
       code_book_idx = read_arr[position++];
@@ -104,7 +97,7 @@ static WORD32 ixheaacd_avq_first_approx_abs(FLOAT32 *lsf, WORD32 *indx) {
   extern const FLOAT32 ixheaacd_weight_table_avq[];
   WORD32 position = 0;
   WORD32 avq[ORDER];
-  FLOAT32 d[ORDER + 1], lsf_min;
+  FLOAT32 lsf_min;
   const FLOAT32 *ptr_w;
 
   ptr_w = &ixheaacd_weight_table_avq[(indx[0] * ORDER)];
@@ -116,12 +109,6 @@ static WORD32 ixheaacd_avq_first_approx_abs(FLOAT32 *lsf, WORD32 *indx) {
   }
 
   position += ixheaacd_decoding_avq_tool(&indx[position], avq);
-
-  d[0] = lsf[0];
-  d[ORDER] = FREQ_MAX - lsf[ORDER - 1];
-  for (i = 1; i < ORDER; i++) {
-    d[i] = lsf[i] - lsf[i - 1];
-  }
 
   lsf_min = LSF_GAP;
   for (i = 0; i < ORDER; i++) {

@@ -815,7 +815,7 @@ VOID ixheaacd_low_pow_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
   stop_patch = hf_generator->pstr_settings->stop_patch;
 
   for (low_band = start_patch; low_band < stop_patch; low_band++) {
-    WORD32 src_start_band, src_end_band, dst_start_band, dst_end_band;
+    WORD32 src_start_band, src_end_band, dst_start_band;
     patch = 0;
 
     while (patch < num_patches) {
@@ -824,7 +824,6 @@ VOID ixheaacd_low_pow_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
       src_start_band = ptr_loc_patch_param->src_start_band;
       src_end_band = ptr_loc_patch_param->src_end_band;
       dst_start_band = ptr_loc_patch_param->dst_start_band;
-      dst_end_band = ptr_loc_patch_param->dst_end_band;
 
       high_band = (low_band + ptr_loc_patch_param->dst_end_band);
 

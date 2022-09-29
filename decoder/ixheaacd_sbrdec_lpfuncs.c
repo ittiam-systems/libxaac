@@ -955,7 +955,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
                             FLOAT32 ptr_dst_buf_real[][64],
                             FLOAT32 ptr_dst_buf_imag[][64],
                             ia_sbr_frame_info_data_struct *ptr_frame_data,
-                            ia_sbr_header_data_struct *ptr_header_data) {
+                            ia_sbr_header_data_struct *ptr_header_data,
+                            WORD32 ldmps_present, WORD32 time_slots) {
   WORD32 bw_index, i, k, k2, patch = 0;
   WORD32 co_var_len;
   WORD32 start_sample, end_sample, goal_sb;
@@ -999,6 +1000,11 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   FLOAT32 *bw_array_prev = ptr_frame_data->bw_array_prev;
 
   end_slot_offs = p_frame_info->border_vec[p_frame_info->num_env] - 16;
+
+  if (ldmps_present == 1)
+    end_slot_offs =
+        p_frame_info->border_vec[p_frame_info->num_env] - time_slots;
+
   if (is_usf_4) {
     start_sample = first_slot_offset * 4;
     end_sample = 64 + end_slot_offs * 4;
@@ -1007,6 +1013,12 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
     start_sample = first_slot_offset * 2;
     end_sample = 32 + end_slot_offs * 2;
     co_var_len = 38;
+  }
+
+  if (ldmps_present == 1) {
+    start_sample = 0;
+    end_sample = time_slots;
+    co_var_len = time_slots;
   }
 
   if (pre_proc_flag) {

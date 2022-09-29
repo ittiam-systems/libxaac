@@ -123,6 +123,8 @@ cc_library_static {
         "decoder/ixheaacd_huff_code_reorder.c",
         "decoder/ixheaacd_rev_vlc.c",
         "decoder/ixheaacd_qmf_dec.c",
+        "decoder/ixheaacd_ld_mps_config.c",
+        "decoder/ixheaacd_ld_mps_dec.c",
         "decoder/drc_src/impd_drc_api.c",
         "decoder/drc_src/impd_drc_bitbuffer.c",
         "decoder/drc_src/impd_drc_dec.c",

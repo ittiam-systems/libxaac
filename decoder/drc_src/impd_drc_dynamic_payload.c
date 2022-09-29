@@ -353,7 +353,7 @@ WORD32 impd_parse_uni_drc_gain_ext(
     ia_bit_buf_struct* it_bit_buff,
     ia_uni_drc_gain_ext_struct* uni_drc_gain_ext) {
   WORD32 k;
-  WORD32 bit_size_len, ext_size_bits, bit_size, other_bit;
+  WORD32 bit_size_len, ext_size_bits, bit_size;
 
   k = 0;
   uni_drc_gain_ext->uni_drc_gain_ext_type[k] =
@@ -369,7 +369,6 @@ WORD32 impd_parse_uni_drc_gain_ext(
     if (it_bit_buff->error) return it_bit_buff->error;
     uni_drc_gain_ext->ext_bit_size[k] = bit_size + 1;
 
-    other_bit =
         impd_skip_bits_buf(it_bit_buff, uni_drc_gain_ext->ext_bit_size[k]);
     if (it_bit_buff->error) return it_bit_buff->error;
     k++;

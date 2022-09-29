@@ -576,13 +576,14 @@ VOID ixheaacd_sbr_env_dequant_coup(
                   (1 + pow(2, temp_r - pan_offset[1])));
   }
 }
-WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
-                            ia_sbr_header_data_struct *ptr_header_data_ch_1,
-                            ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_0,
-                            ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
-                            ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_1,
-                            ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-                            ixheaacd_misc_tables *ptr_common_tables) {
+IA_ERRORCODE ixheaacd_dec_sbrdata(
+    ia_sbr_header_data_struct *ptr_header_data_ch_0,
+    ia_sbr_header_data_struct *ptr_header_data_ch_1,
+    ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_0,
+    ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
+    ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_1,
+    ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
+    ixheaacd_misc_tables *ptr_common_tables, WORD32 ldmps_present) {
   FLAG error_code;
   WORD32 err = 0;
   WORD32 usac_flag = ptr_header_data_ch_0->usac_flag;
@@ -595,10 +596,8 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
   err = ixheaacd_calc_noise_floor(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                                   ptr_prev_data_ch_0);
-
-  if (err == (WORD32)IA_FATAL_ERROR) return (WORD32)IA_FATAL_ERROR;
-
-  if (!ptr_sbr_data_ch_0->coupling_mode && usac_flag) {
+  if (err) return err;
+  if ((!ptr_sbr_data_ch_0->coupling_mode && usac_flag) || ldmps_present) {
     ptr_sbr_data_ch_0->num_noise_sfac =
         ptr_header_data_ch_0->pstr_freq_band_data->num_nf_bands *
         ptr_sbr_data_ch_0->str_frame_info_details.num_noise_env;
@@ -656,18 +655,20 @@ WORD32 ixheaacd_dec_sbrdata(ia_sbr_header_data_struct *ptr_header_data_ch_0,
 
   return 0;
 }
-WORD32 ixheaacd_dec_envelope(ia_sbr_header_data_struct *ptr_header_data,
-                             ia_sbr_frame_info_data_struct *ptr_sbr_data,
-                             ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
-                             ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-                             ixheaacd_misc_tables *pstr_common_tables) {
+IA_ERRORCODE ixheaacd_dec_envelope(
+    ia_sbr_header_data_struct *ptr_header_data,
+    ia_sbr_frame_info_data_struct *ptr_sbr_data,
+    ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
+    ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
+    ixheaacd_misc_tables *pstr_common_tables) {
   FLAG error_code;
   WORD32 err;
   WORD16 env_sf_local_arr[MAX_FREQ_COEFFS];
   WORD32 usac_flag = ptr_header_data->usac_flag;
   WORD32 temp_1 =
       ptr_prev_data_ch_0->end_position - ptr_header_data->num_time_slots;
-  if (temp_1 < 0) return -1;
+
+  if (temp_1 < 0) return IA_FATAL_ERROR;
   temp_1 = ptr_sbr_data->str_frame_info_details.border_vec[0] - temp_1;
 
   if ((!ptr_header_data->err_flag_prev) && (!ptr_header_data->err_flag) &&

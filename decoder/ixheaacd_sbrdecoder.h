@@ -70,7 +70,8 @@ IA_ERRORCODE ixheaacd_applysbr(
     WORD16 *codec_num_channels, FLAG frame_status, FLAG down_samp_flag,
     FLAG down_mix_flag, ia_sbr_scr_struct *sbr_scratch_struct, WORD32 ps_enable,
     WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
-    ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag, WORD audio_object_type);
+    ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag, WORD audio_object_type,
+    WORD32 init_flag, WORD32 ldmps_present);
 
 WORD32 ixheaacd_getsize_sbr_persistent();
 

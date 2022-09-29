@@ -64,6 +64,10 @@ typedef struct {
   WORD16 *fp1_syn;
   WORD16 *fp2_syn;
   WORD16 sixty4;
+  WORD32 *core_samples_buffer_32;
+  WORD32 *fp1_anal_32;
+  WORD32 *fp2_anal_32;
+  WORD32 *filter_2_32;
 
 } ia_sbr_qmf_filter_bank_struct;
 
@@ -73,7 +77,14 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_inp,
                                 ia_sbr_qmf_filter_bank_struct *qmf_bank,
                                 ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
                                 WORD ch_fac, WORD32 low_pow_flag,
-                                WORD audio_object_type);
+                                WORD audio_object_type, WORD32 ldmps_present);
+
+VOID ixheaacd_cplx_anal_qmffilt_32(const WORD32 *time_inp,
+                                   ia_sbr_scale_fact_struct *sbr_scale_factor,
+                                   WORD32 **qmf_real, WORD32 **qmf_imag,
+                                   ia_sbr_qmf_filter_bank_struct *qmf_bank,
+                                   ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                                   WORD ch_fac, WORD32 ldsbr_present);
 
 VOID ixheaacd_cplx_synt_qmffilt(
     WORD32 **qmf_real, WORD32 **qmf_im, WORD32 split_slot,
@@ -119,7 +130,8 @@ VOID ixheaacd_sbr_qmfanal32_winadds_eld(WORD16 *fp1, WORD16 *fp2,
 VOID ixheaacd_fwd_modulation(const WORD32 *p_time_in1, WORD32 *real_subband,
                              WORD32 *imag_subband,
                              ia_sbr_qmf_filter_bank_struct *qmf_bank,
-                             ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+                             ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                             WORD32 ld_mps_flag);
 VOID ixheaacd_dct3_32(WORD32 *input, WORD32 *output,
                       const WORD16 *main_twidle_fwd, const WORD16 *post_tbl,
                       const WORD16 *w_16, const WORD32 *p_table);
@@ -199,8 +211,16 @@ VOID ixheaacd_inv_emodulation(WORD32 *qmf_real,
 VOID ixheaacd_pretwdct2(WORD32 *inp, WORD32 *out_fwd);
 
 VOID ixheaacd_sbr_qmfanal32_winadd_eld(WORD16 *inp1, WORD16 *inp2,
-                                       WORD16 *p_qmf1, WORD16 *p_qmf2,
-                                       WORD32 *p_out);
+                                       const WORD16 *p_qmf1,
+                                       const WORD16 *p_qmf2, WORD32 *p_out);
+
+VOID ixheaacd_sbr_qmfanal32_winadd_eld_32(WORD32 *inp1, WORD32 *inp2,
+                                          const WORD32 *p_qmf1,
+                                          const WORD32 *p_qmf2, WORD32 *p_out);
+
+VOID ixheaacd_sbr_qmfanal32_winadd_eld_mps(WORD32 *inp1, WORD32 *inp2,
+                                           const WORD32 *p_qmf1,
+                                           const WORD32 *p_qmf2, WORD32 *p_out);
 
 VOID ixheaacd_dct2_32(WORD32 *inp, WORD32 *out,
                       ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
