@@ -2954,7 +2954,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
     if (p_state_enhaacplus_dec->mps_dec_handle.ldmps_config
                 .ldmps_present_flag == 1 &&
-        p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+        p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] &&
+        p_state_enhaacplus_dec->mps_dec_handle.mps_init_done == 1) {
       ixheaacd_ld_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer);
     }
     if (sample_rate < sample_rate_dec) {
@@ -2977,7 +2978,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
     p_state_enhaacplus_dec->num_of_out_samples = num_of_out_samples;
 
     if (p_state_enhaacplus_dec->mps_dec_handle.ldmps_config
-            .ldmps_present_flag == 1) {
+            .ldmps_present_flag == 1 &&
+        p_state_enhaacplus_dec->mps_dec_handle.mps_init_done == 1) {
       ixheaacd_samples_sat(
           (WORD8 *)actual_out_buffer, num_of_out_samples,
           p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz,

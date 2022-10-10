@@ -341,6 +341,7 @@ typedef struct ia_mps_dec_state_struct {
   VOID *p_sbr_header[MAXNRSBRCHANNELS];
 
   WORD32 object_type;
+  WORD32 mps_init_done;
   ia_sbr_qmf_filter_bank_struct str_mps_qmf_bank;
   ia_qmf_dec_tables_struct *qmf_dec_tables_ptr;
   ia_sbr_tables_struct *sbr_tables_ptr;

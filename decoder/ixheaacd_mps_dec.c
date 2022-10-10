@@ -171,6 +171,7 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
          MAX_PARAMETER_BANDS * sizeof(WORD32));
   memset(self->opd_smooth.smooth_r_phase, 0,
          MAX_PARAMETER_BANDS * sizeof(WORD32));
+  self->mps_init_done = 1;
 
   return 0;
 }
