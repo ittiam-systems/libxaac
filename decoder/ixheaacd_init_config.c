@@ -334,7 +334,7 @@ IA_ERRORCODE ixheaacd_mps212_config(
     pstr_usac_mps212_config->bs_residual_bands =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
 
-    if (pstr_usac_mps212_config->bs_residual_bands > MAX_PARAMETER_BANDS)
+    if (pstr_usac_mps212_config->bs_residual_bands > MAX_PARAMETER_BANDS_MPS)
       return IA_FATAL_ERROR;
 
     pstr_usac_mps212_config->bs_ott_bands_phase =
