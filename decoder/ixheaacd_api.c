@@ -1420,6 +1420,11 @@ IA_ERRORCODE ixheaacd_dec_init(
   p_obj_exhaacplus_dec->p_state_aac =
       p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_PERSIST_IDX];
 
+  if (p_obj_exhaacplus_dec->p_state_aac->ui_init_done)
+  {
+    return IA_NO_ERROR;
+  }
+
   p_obj_exhaacplus_dec->p_state_aac->preroll_config_present = 0;
 
   if (p_obj_exhaacplus_dec->p_state_aac != NULL) {
