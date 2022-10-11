@@ -39,9 +39,6 @@ WORD16 ixheaacd_rand_gen(WORD16 *seed) {
 VOID ixheaacd_preemphsis_tool(WORD32 *signal, WORD32 mu, WORD32 len,
                               WORD32 mem) {
   WORD32 i;
-  WORD32 temp;
-
-  temp = signal[len - 1];
   for (i = len - 1; i > 0; i--) {
     signal[i] -= (WORD32)ixheaacd_mul32_sh(mu, signal[i - 1], 16);
   }
@@ -52,8 +49,6 @@ VOID ixheaacd_preemphsis_tool(WORD32 *signal, WORD32 mu, WORD32 len,
 VOID ixheaacd_preemphsis_tool_float(FLOAT32 *signal, FLOAT32 mu, WORD32 len,
                                     FLOAT32 mem) {
   WORD32 i;
-  FLOAT32 temp;
-  temp = signal[len - 1];
   for (i = len - 1; i > 0; i--) {
     signal[i] = signal[i] - mu * signal[i - 1];
   }

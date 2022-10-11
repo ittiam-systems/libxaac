@@ -32,9 +32,12 @@ ixheaacd_fwd_modulation:
     LDR             r2, [sp, #0x24]
     MOV             lr, r1
     MOV             r4, r1
-    MOV             r1, #0x1f
+    LDR             r1, [r3]
+    SUB             r1, r1, #1
+    CMP             r1, #0x3f
     MOV             r7, r5
     ADD             r8, r0, #0xfc
+    ADDEQ           r8, r8, #0x100
     MOV             r6, r3
 LOOP1:
     LDR             r3, [r0], #4
@@ -70,12 +73,16 @@ LOOP1:
 
     BL              ixheaacd_cos_sin_mod
 
+    LDR             r1, [sp, #0x28]
+    LDRSH           r2, [r6]
+    CMP             r1, #1
+    BEQ             LOOP3
     LDRSH           r1, [r6, #0x2c]
     LDRSH           r2, [r6, #0x2a]
     LDR             r0, [r6, #0x18]
     SUBS            r2, r1, r2
 
-@    LDMLEFD     sp!, {r3-r9, r12, pc}
+@   LDMLEFD         sp!, {r3-r9, r12, pc}
     LDMFDLE         sp!, {r3-r9, r12, pc}
 LOOP2:
     LDR             r1, [r0], #4
@@ -99,5 +106,29 @@ LOOP2:
     SUBS            r2, r2, #1
     STR             r1, [r5], #4
     BGT             LOOP2
+    B               END
+LOOP3:
+    LDR             r12, [r5, #0]
+    LDR             r3, [r4, #0]
 
+    MOV             r1, r3
+    MOV             r3, #0
+    SUB             r3, r3, r12
+
+    STR             r3, [r4], #4
+    STR             r1, [r5], #4
+
+    LDR             r12, [r5, #0]
+    LDR             r3, [r4, #0]
+
+    MOV             r1, r12
+    MOV             r12, #0
+    SUB             r12, r12, r3
+
+    STR             r12, [r5], #4
+    STR             r1, [r4], #4
+
+    SUBS            r2, r2, #2
+    BGT             LOOP3
+END:
     LDMFD           sp!, {r3-r9, r12, pc}

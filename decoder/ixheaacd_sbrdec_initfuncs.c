@@ -71,6 +71,8 @@
 
 #include "ixheaacd_audioobjtypes.h"
 
+extern const WORD32 ixheaacd_ldmps_polyphase_filter_coeff_fix[1280];
+
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
 WORD32 ixheaacd_getsize_sbr_persistent() {
@@ -500,7 +502,8 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
     VOID *sbr_persistent_mem_v, WORD32 *ptr_overlap_buf, WORD32 channel,
     WORD32 ps_enable, WORD32 sbr_ratio_idx, WORD32 output_frame_size,
     WORD32 *use_hbe, VOID *p_usac_dflt_header,
-    ia_sbr_header_data_struct str_sbr_config, WORD32 audio_object_type) {
+    ia_sbr_header_data_struct str_sbr_config, WORD32 audio_object_type,
+    WORD32 ldmps_present, WORD32 ldsbr_present) {
   WORD16 i;
   WORD16 err;
   ia_sbr_header_data_struct *ptr_header_data[MAXNRSBRCHANNELS];
@@ -540,7 +543,7 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
         sbr_persistent_mem->str_sbr_dec_inst.pstr_common_tables,
         sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_channel[i],
         ptr_header_data[i], i, *down_sample_flag, sbr_persistent_mem, ps_enable,
-        audio_object_type);
+        audio_object_type, ldmps_present, ldsbr_present);
 
     ptr_header_data[i]->status = 1;
     ptr_sbr_dec[i]->band_count = 64;
@@ -792,7 +795,7 @@ static PLATFORM_INLINE VOID ixheaacd_init_sbr_prev_framedata(
 static PLATFORM_INLINE VOID
 ixheaacd_create_hyb_filterbank(ia_hybrid_struct *ptr_hybrid, WORD32 **p_ptr,
                                ia_sbr_tables_struct *sbr_tables_ptr) {
-  WORD16 i, ptr_step;
+  WORD16 i;
   WORD32 *ptr = (WORD32 *)*p_ptr;
 
   ptr_hybrid->ptr_resol = sbr_tables_ptr->ps_tables_ptr->hyb_resol;
@@ -806,7 +809,6 @@ ixheaacd_create_hyb_filterbank(ia_hybrid_struct *ptr_hybrid, WORD32 **p_ptr,
   memset(ptr_hybrid->ptr_temp_re, 0,
          2 * NO_HYBRID_CHANNELS_HIGH * sizeof(WORD32));
 
-  ptr_step = ixheaacd_add16(1, ptr_hybrid->ptr_qmf_buf);
   ptr_hybrid->ptr_work_re = ptr;
   ptr += 16;
   ptr_hybrid->ptr_work_im = ptr;
@@ -850,8 +852,10 @@ static PLATFORM_INLINE VOID ixheaacd_create_hf_generator(
   }
 
   for (i = 0; i < LPC_ORDER; i++) {
-    memset(ptr_hf_gen_str->lpc_filt_states_real[i], 0,
-           NO_ANALYSIS_CHANNELS * sizeof(WORD32));
+    if (ptr_hf_gen_str->lpc_filt_states_real[i] != NULL) {
+      memset(ptr_hf_gen_str->lpc_filt_states_real[i], 0,
+             NO_ANALYSIS_CHANNELS * sizeof(WORD32));
+    }
 
     if (ps_enable)
       memset(ptr_hf_gen_str->lpc_filt_states_imag[i], 0,
@@ -957,19 +961,25 @@ static PLATFORM_INLINE VOID ixheaacd_create_cplx_anal_qmfbank(
     ia_sbr_qmf_filter_bank_struct *ptr_sbr_qmf,
     ia_sbr_scale_fact_struct *sbr_scale_factor, WORD16 no_bins, WORD16 usb,
     WORD16 chan, WORD16 *sbr_qmf_analy_states, WORD32 *sbr_qmf_analy_states_32,
-    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr, WORD32 audio_object_type) {
+    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr, WORD32 audio_object_type,
+    WORD32 ldmps_present, WORD32 no_ldsbr) {
   memset(ptr_sbr_qmf, 0, sizeof(ia_sbr_qmf_filter_bank_struct));
 
+  ptr_sbr_qmf->analy_win_coeff_32 = qmf_dec_tables_ptr->esbr_qmf_c;
   if (audio_object_type != AOT_ER_AAC_ELD &&
       audio_object_type != AOT_ER_AAC_LD) {
     ptr_sbr_qmf->analy_win_coeff = qmf_dec_tables_ptr->qmf_c;
   } else {
     ptr_sbr_qmf->analy_win_coeff = qmf_dec_tables_ptr->qmf_c_eld3;
+    if (ldmps_present == 1)
+      ptr_sbr_qmf->analy_win_coeff_32 = qmf_dec_tables_ptr->qmf_c_ldsbr_mps;
+    if (no_ldsbr == 1)
+      ptr_sbr_qmf->analy_win_coeff_32 =
+          (WORD32 *)ixheaacd_ldmps_polyphase_filter_coeff_fix;
   }
 
-  ptr_sbr_qmf->analy_win_coeff_32 = qmf_dec_tables_ptr->esbr_qmf_c;
-
   ptr_sbr_qmf->no_channels = NO_ANALYSIS_CHANNELS;
+  if (no_ldsbr) ptr_sbr_qmf->no_channels = 64;
   ptr_sbr_qmf->num_time_slots = no_bins;
 
   ptr_sbr_qmf->lsb = 0;
@@ -988,7 +998,9 @@ static PLATFORM_INLINE VOID ixheaacd_create_cplx_anal_qmfbank(
          sizeof(WORD32) * QMF_FILTER_STATE_ANA_SIZE);
 
   ptr_sbr_qmf->core_samples_buffer = ptr_sbr_qmf->anal_filter_states;
+  ptr_sbr_qmf->core_samples_buffer_32 = ptr_sbr_qmf->anal_filter_states_32;
 
+  ptr_sbr_qmf->filter_pos_32 = (WORD32 *)qmf_dec_tables_ptr->esbr_qmf_c;
   ptr_sbr_qmf->state_new_samples_pos_low_32 =
       ptr_sbr_qmf->anal_filter_states_32;
   if (audio_object_type != AOT_ER_AAC_ELD &&
@@ -996,9 +1008,13 @@ static PLATFORM_INLINE VOID ixheaacd_create_cplx_anal_qmfbank(
     ptr_sbr_qmf->filter_pos = (WORD16 *)qmf_dec_tables_ptr->qmf_c;
   } else {
     ptr_sbr_qmf->filter_pos = (WORD16 *)qmf_dec_tables_ptr->qmf_c_eld3;
+    if (ldmps_present == 1)
+      ptr_sbr_qmf->filter_pos_32 =
+          (WORD32 *)qmf_dec_tables_ptr->qmf_c_ldsbr_mps;
+    if (no_ldsbr == 1)
+      ptr_sbr_qmf->filter_pos_32 =
+          (WORD32 *)ixheaacd_ldmps_polyphase_filter_coeff_fix;
   }
-
-  ptr_sbr_qmf->filter_pos_32 = (WORD32 *)qmf_dec_tables_ptr->esbr_qmf_c;
 
   sbr_scale_factor->st_lb_scale = 0;
 
@@ -1006,10 +1022,16 @@ static PLATFORM_INLINE VOID ixheaacd_create_cplx_anal_qmfbank(
 
   if (audio_object_type == AOT_ER_AAC_ELD ||
       audio_object_type == AOT_ER_AAC_LD) {
-    ptr_sbr_qmf->filter_2 = ptr_sbr_qmf->filter_pos + 32;
+    ptr_sbr_qmf->filter_2_32 =
+        ptr_sbr_qmf->filter_pos_32 + ptr_sbr_qmf->no_channels;
+    ptr_sbr_qmf->fp1_anal_32 = ptr_sbr_qmf->anal_filter_states_32;
+    ptr_sbr_qmf->fp2_anal_32 =
+        ptr_sbr_qmf->anal_filter_states_32 + ptr_sbr_qmf->no_channels;
+
+    ptr_sbr_qmf->filter_2 = ptr_sbr_qmf->filter_pos + ptr_sbr_qmf->no_channels;
     ptr_sbr_qmf->fp1_anal = ptr_sbr_qmf->anal_filter_states;
     ptr_sbr_qmf->fp2_anal =
-        ptr_sbr_qmf->anal_filter_states + NO_ANALYSIS_CHANNELS;
+        ptr_sbr_qmf->anal_filter_states + ptr_sbr_qmf->no_channels;
   }
 
   return;
@@ -1025,13 +1047,14 @@ static PLATFORM_INLINE VOID ixheaacd_create_cplx_synt_qmfbank(
   WORD32 qmf_filter_state_size;
 
   memset(ptr_sbr_qmf, 0, sizeof(ia_sbr_qmf_filter_bank_struct));
-  qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
 
   if (down_sample_flag) {
     L = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
+    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE_DOWN_SAMPLED;
     ptr_sbr_qmf->usb = NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED;
   } else {
     L = NO_SYNTHESIS_CHANNELS;
+    qmf_filter_state_size = QMF_FILTER_STATE_SYN_SIZE;
     ptr_sbr_qmf->usb = usb;
   }
 
@@ -1080,7 +1103,8 @@ WORD16 ixheaacd_create_sbrdec(ixheaacd_misc_tables *pstr_common_table,
                               ia_sbr_header_data_struct *ptr_header_data,
                               WORD16 chan, FLAG down_sample_flag,
                               VOID *sbr_persistent_mem_v, WORD ps_enable,
-                              WORD audio_object_type)
+                              WORD audio_object_type, WORD32 ldmps_present,
+                              WORD32 ldsbr_present)
 
 {
   WORD16 err;
@@ -1116,7 +1140,7 @@ WORD16 ixheaacd_create_sbrdec(ixheaacd_misc_tables *pstr_common_table,
       sbr_persistent_mem->sbr_qmf_analy_states,
       sbr_persistent_mem->sbr_qmf_analy_states_32,
       sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_tables->qmf_dec_tables_ptr,
-      audio_object_type);
+      audio_object_type, ldmps_present, ldsbr_present);
 
   ixheaacd_create_cplx_synt_qmfbank(
       &hs->str_synthesis_qmf_bank, no_bins,

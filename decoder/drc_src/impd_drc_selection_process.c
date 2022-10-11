@@ -541,7 +541,6 @@ WORD32 impd_match_eq_set(ia_drc_config* drc_config, WORD32 downmix_id,
                          WORD32* matching_eq_set_idx) {
   ia_eq_instructions_struct* str_eq_instructions = NULL;
   WORD32 i, k, n;
-  WORD32 match = 0;
   *matching_eq_set_count = 0;
   for (i = 0; i < drc_config->str_drc_config_ext.eq_instructions_count; i++) {
     str_eq_instructions =
@@ -557,7 +556,6 @@ WORD32 impd_match_eq_set(ia_drc_config* drc_config, WORD32 downmix_id,
         for (n = 0; n < str_eq_instructions->drc_set_id_count; n++) {
           if ((str_eq_instructions->drc_set_id[n] == ID_FOR_ANY_DRC) ||
               (drc_set_id == str_eq_instructions->drc_set_id[n])) {
-            match = 1;
             matching_eq_set_idx[*matching_eq_set_count] = i;
             (*matching_eq_set_count)++;
           }

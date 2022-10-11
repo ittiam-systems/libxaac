@@ -40,13 +40,13 @@ VOID impd_apply_gains_and_add(
 
     FLOAT32* channel_audio[], WORD32 impd_apply_gains) {
   WORD32 c, b, g, i;
-  WORD32 offset = 0, signalIndex = 0;
-  WORD32 gainIndexForGroup[CHANNEL_GROUP_COUNT_MAX];
-  WORD32 signalIndexForChannel[MAX_CHANNEL_COUNT];
+  WORD32 offset = 0, signal_index = 0;
+  WORD32 gain_index_for_group[CHANNEL_GROUP_COUNT_MAX];
+  WORD32 signal_index_for_channel[MAX_CHANNEL_COUNT];
   FLOAT32* lpcm_gains;
   FLOAT32 sum;
-  FLOAT32 drc_gain_last, gainThr;
-  WORD32 iEnd, iStart;
+  FLOAT32 drc_gain_last = 0, gain_thr;
+  WORD32 i_end, i_start;
   ia_drc_instructions_struct* str_drc_instruction_str =
       &(pstr_drc_instruction_arr[drc_instructions_index]);
 
@@ -58,21 +58,21 @@ VOID impd_apply_gains_and_add(
         if (ia_drc_params_struct->delay_mode == DELAY_MODE_LOW_DELAY) {
           offset = ia_drc_params_struct->drc_frame_size;
         }
-        gainIndexForGroup[0] = 0;
+        gain_index_for_group[0] = 0;
         for (g = 0; g < str_drc_instruction_str->num_drc_ch_groups - 1; g++) {
-          gainIndexForGroup[g + 1] =
-              gainIndexForGroup[g] +
+          gain_index_for_group[g + 1] =
+              gain_index_for_group[g] +
               str_drc_instruction_str->band_count_of_ch_group[g];
         }
-        signalIndexForChannel[0] = 0;
+        signal_index_for_channel[0] = 0;
         for (c = 0; c < str_drc_instruction_str->audio_num_chan - 1; c++) {
           if (str_drc_instruction_str->channel_group_of_ch[c] >= 0) {
-            signalIndexForChannel[c + 1] =
-                signalIndexForChannel[c] +
+            signal_index_for_channel[c + 1] =
+                signal_index_for_channel[c] +
                 str_drc_instruction_str->band_count_of_ch_group
                     [str_drc_instruction_str->channel_group_of_ch[c]];
           } else {
-            signalIndexForChannel[c + 1] = signalIndexForChannel[c] + 1;
+            signal_index_for_channel[c + 1] = signal_index_for_channel[c] + 1;
           }
         }
 
@@ -81,59 +81,59 @@ VOID impd_apply_gains_and_add(
                b++) {
             if (str_drc_instruction_str->ch_group_parametric_drc_flag[g] == 0) {
               lpcm_gains =
-                  pstr_gain_buf->buf_interpolation[gainIndexForGroup[g] + b]
+                  pstr_gain_buf->buf_interpolation[gain_index_for_group[g] + b]
                       .lpcm_gains +
                   MAX_SIGNAL_DELAY - ia_drc_params_struct->gain_delay_samples -
                   ia_drc_params_struct->audio_delay_samples + offset;
             } else {
               lpcm_gains =
-                  pstr_gain_buf->buf_interpolation[gainIndexForGroup[g] + b]
+                  pstr_gain_buf->buf_interpolation[gain_index_for_group[g] + b]
                       .lpcm_gains +
                   MAX_SIGNAL_DELAY +
                   str_drc_instruction_str
                       ->parametric_drc_look_ahead_samples[g] -
                   ia_drc_params_struct->audio_delay_samples;
             }
-            iEnd = 0;
-            iStart = 0;
-            while (iEnd < ia_drc_params_struct->drc_frame_size) {
+            i_end = 0;
+            i_start = 0;
+            while (i_end < ia_drc_params_struct->drc_frame_size) {
               if (shape_filter_block[g].shape_flter_block_flag) {
                 drc_gain_last = shape_filter_block[g].drc_gain_last;
-                gainThr = 0.0001f * drc_gain_last;
-                while ((iEnd < ia_drc_params_struct->drc_frame_size) &&
-                       (fabs(lpcm_gains[iEnd] - drc_gain_last) <= gainThr))
-                  iEnd++;
+                gain_thr = 0.0001f * drc_gain_last;
+                while ((i_end < ia_drc_params_struct->drc_frame_size) &&
+                       (fabs(lpcm_gains[i_end] - drc_gain_last) <= gain_thr))
+                  i_end++;
               } else {
-                iEnd = ia_drc_params_struct->drc_frame_size;
+                i_end = ia_drc_params_struct->drc_frame_size;
               }
 
               for (c = 0; c < str_drc_instruction_str->audio_num_chan; c++)
 
               {
                 if (g == str_drc_instruction_str->channel_group_of_ch[c]) {
-                  signalIndex = signalIndexForChannel[c] + b;
+                  signal_index = signal_index_for_channel[c] + b;
 
                   if (impd_apply_gains == 1) {
                     impd_shape_filt_block_time_process(
-                        &shape_filter_block[g], &lpcm_gains[0], signalIndex,
-                        &deinterleaved_audio[signalIndex][0], iStart, iEnd);
+                        &shape_filter_block[g], &lpcm_gains[0], signal_index,
+                        &deinterleaved_audio[signal_index][0], i_start, i_end);
 
                   } else {
-                    for (i = iStart; i < iEnd; i++) {
-                      deinterleaved_audio[signalIndex][i] = lpcm_gains[i];
+                    for (i = i_start; i < i_end; i++) {
+                      deinterleaved_audio[signal_index][i] = lpcm_gains[i];
                     }
                   }
                 }
               }
-              if ((iEnd < ia_drc_params_struct->drc_frame_size) &&
+              if ((i_end < ia_drc_params_struct->drc_frame_size) &&
                   (shape_filter_block[g].shape_flter_block_flag)) {
-                impd_shape_filt_block_adapt(lpcm_gains[iEnd],
+                impd_shape_filt_block_adapt(lpcm_gains[i_end],
                                             &shape_filter_block[g]);
               }
-              if ((iEnd == iStart) &&
+              if ((i_end == i_start) &&
                   (drc_gain_last == shape_filter_block[g].drc_gain_last))
                 break;
-              iStart = iEnd;
+              i_start = i_end;
             }
           }
         }
@@ -141,7 +141,7 @@ VOID impd_apply_gains_and_add(
     }
   }
 
-  signalIndex = 0;
+  signal_index = 0;
 
   if (str_drc_instruction_str->drc_set_id > 0) {
     for (c = 0; c < str_drc_instruction_str->audio_num_chan; c++)
@@ -153,17 +153,17 @@ VOID impd_apply_gains_and_add(
           sum = 0.0f;
           for (b = 0; b < str_drc_instruction_str->band_count_of_ch_group[g];
                b++) {
-            sum += deinterleaved_audio[signalIndex + b][i];
+            sum += deinterleaved_audio[signal_index + b][i];
           }
 
           channel_audio[c][i] = sum;
         }
-        signalIndex += str_drc_instruction_str->band_count_of_ch_group[g];
+        signal_index += str_drc_instruction_str->band_count_of_ch_group[g];
       } else {
         for (i = 0; i < ia_drc_params_struct->drc_frame_size; i++) {
-          channel_audio[c][i] = deinterleaved_audio[signalIndex][i];
+          channel_audio[c][i] = deinterleaved_audio[signal_index][i];
         }
-        signalIndex++;
+        signal_index++;
       }
     }
   } else {

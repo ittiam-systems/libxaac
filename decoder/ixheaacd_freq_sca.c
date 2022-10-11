@@ -661,7 +661,7 @@ WORD32 ixheaacd_derive_noise_freq_bnd_tbl(
 WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
                                   ixheaacd_misc_tables *pstr_common_tables) {
   WORD32 err;
-  WORD16 num_lf_bands, num_hf_bands, lsb, usb;
+  WORD16 num_lf_bands, lsb, usb;
   ia_freq_band_data_struct *pstr_freq_band_data =
       ptr_header_data->pstr_freq_band_data;
 
@@ -676,7 +676,6 @@ WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
   ixheaacd_derive_hi_lo_freq_bnd_tbls(pstr_freq_band_data, ptr_header_data);
 
   num_lf_bands = pstr_freq_band_data->num_sf_bands[LOW];
-  num_hf_bands = pstr_freq_band_data->num_sf_bands[HIGH];
 
   if ((num_lf_bands <= 0) ||
       (num_lf_bands > ixheaacd_shr16(MAX_FREQ_COEFFS, 1))) {

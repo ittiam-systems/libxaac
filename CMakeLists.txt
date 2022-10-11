@@ -113,6 +113,8 @@ list(
     "${XAAC_ROOT}/decoder/ixheaacd_huff_code_reorder.c"
     "${XAAC_ROOT}/decoder/ixheaacd_rev_vlc.c"
     "${XAAC_ROOT}/decoder/ixheaacd_qmf_dec.c"
+    "${XAAC_ROOT}/decoder/ixheaacd_ld_mps_dec.c"
+    "${XAAC_ROOT}/decoder/ixheaacd_ld_mps_config.c"
     "${XAAC_ROOT}/decoder/drc_src/impd_drc_api.c"
     "${XAAC_ROOT}/decoder/drc_src/impd_drc_bitbuffer.c"
     "${XAAC_ROOT}/decoder/drc_src/impd_drc_dec.c"

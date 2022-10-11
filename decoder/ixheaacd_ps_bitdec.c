@@ -240,7 +240,6 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec) {
 
     if (ptr_ps_dec->border_position[ptr_ps_dec->num_env] < MAX_NUM_COLUMNS) {
       ptr_ps_dec->num_env++;
-      add_d(ptr_ps_dec->num_env, 1);
       ptr_ps_dec->border_position[ptr_ps_dec->num_env] = MAX_NUM_COLUMNS;
 
       memcpy(ptr_ps_dec->iid_par_table[ptr_ps_dec->num_env - 1],

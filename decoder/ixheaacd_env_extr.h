@@ -178,8 +178,8 @@ IA_ERRORCODE ixheaacd_createlimiterbands(
     struct ixheaacd_lpp_trans_patch *patch_param);
 
 WORD32 ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
-                                FLOAT32 *qmf_real, FLOAT32 *qmf_imag,
-                                WORD32 num_sample, WORD32 sub_band_start,
-                                WORD32 num_subband, WORD32 gamma_idx);
+                              FLOAT32 *qmf_real, FLOAT32 *qmf_imag,
+                              WORD32 num_sample, WORD32 sub_band_start,
+                              WORD32 num_subband, WORD32 gamma_idx);
 
 #endif

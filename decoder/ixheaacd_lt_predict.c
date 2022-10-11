@@ -218,13 +218,12 @@ VOID ixheaacd_filter_bank_ltp(ia_aac_dec_tables_struct *aac_tables_ptr,
         }
 
       } else {
-        WORD32 *win1, *win2, *win3;
+        WORD32 *win1, *win2;
         WORD32 *ptr_in1, *ptr_in2;
         win1 = (WORD32 *)window_long_prev;
         win2 = (WORD32 *)window_long;
         ptr_in1 = &in_data[0];
         ptr_in2 = &in_data[nlong];
-        win3 = win2 + nlong - 1;
 
         for (i = nlong - 1; i >= 0; i--) {
           WORD32 temp1 = ixheaacd_mult32_shl(*ptr_in1, *win1++);

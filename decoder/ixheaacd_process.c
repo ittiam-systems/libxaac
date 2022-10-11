@@ -41,6 +41,7 @@
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_channel.h"
 #include "ixheaacd_sbrdecoder.h"
+#include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_audioobjtypes.h"
 #include "ixheaacd_latmdemux.h"
 #include "ixheaacd_aacdec.h"
@@ -48,6 +49,9 @@
 
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
+#include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_struct_def.h"
@@ -98,14 +102,6 @@ VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct,
                                WORD8 *p_qshift_arr, UWORD8 slot_element,
                                WORD32 channel);
 
-IA_ERRORCODE ixheaacd_applysbr(
-    ia_handle_sbr_dec_inst_struct self,
-    ia_aac_dec_sbr_bitstream_struct *p_sbr_bit_stream, WORD16 *core_sample_buf,
-    WORD16 *codec_num_channels, FLAG frame_status, FLAG down_samp_flag,
-    FLAG down_mix_flag, ia_sbr_scr_struct *sbr_scratch_struct, WORD32 ps_enable,
-    WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
-    ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag, WORD32 object_type);
-
 IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                                    ia_bit_buf_struct *it_bit_buff,
                                    WORD32 stereo_config_idx,
@@ -139,7 +135,7 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
 
   err_code = ixheaacd_applysbr(self, esbr_bit_str, NULL, &num_channels, 1, 0, 0,
                                &sbr_scratch_struct, 0, 1, 0, it_bit_buff, NULL,
-                               0, audio_object_type);
+                               0, audio_object_type, 0, 0);
 
   usac_data->sbr_mode = self->sbr_mode;
 
@@ -181,7 +177,7 @@ static WORD32 ixheaacd_read_ext_element(
     ia_usac_decoder_config_struct *pstr_usac_dec_config, WORD32 elem_idx) {
   UWORD32 usac_ext_element_present;
   UWORD32 usac_ext_element_use_dft_length;
-  UWORD32 pay_load_length, tmp;
+  UWORD32 pay_load_length;
   WORD32 i;
   usac_ext_element_present = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
@@ -203,7 +199,7 @@ static WORD32 ixheaacd_read_ext_element(
       return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
     if (pay_load_length > 0) {
       if (usac_ext_element_payload_frag)
-        tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
+        ixheaacd_read_bits_buf(it_bit_buff, 2);
 
       if (pstr_usac_dec_config->usac_ext_ele_payload_present[elem_idx]) {
         WORD32 preroll_counter = pstr_usac_dec_config->preroll_counter;

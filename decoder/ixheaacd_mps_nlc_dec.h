@@ -52,7 +52,7 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct strm,
                                   WORD32 a_history[MAXBANDS], WORD32 data_type,
                                   WORD32 set_idx, WORD32 data_bands,
                                   WORD32 pair_flag, WORD32 coarse_flag,
-                                  WORD32 independency_flag);
+                                  WORD32 independency_flag, WORD32 ldmps_flag);
 
 VOID ixheaacd_mps_huff_decode(ia_handle_bit_buf_struct strm, WORD32 *out_data,
                               WORD32 num_val);

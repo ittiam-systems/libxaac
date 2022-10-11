@@ -244,22 +244,22 @@ impd_map_gain(
     ia_split_drc_characteristic_struct* split_drc_characteristic_source,
     ia_split_drc_characteristic_struct* split_drc_characteristic_target,
     FLOAT32 gain_in_db, FLOAT32* gain_out_db) {
-  FLOAT32 inLevel;
+  FLOAT32 in_level=0;
   WORD32 err = 0;
 
   switch (split_drc_characteristic_source->characteristic_format) {
     case CHARACTERISTIC_SIGMOID:
       err = impd_compressor_io_sigmoid_inv(split_drc_characteristic_source,
-                                           gain_in_db, &inLevel);
+                                           gain_in_db, &in_level);
       if (err) return (err);
       break;
     case CHARACTERISTIC_NODES:
       impd_compressor_io_nodes_inverse(split_drc_characteristic_source,
-                                       gain_in_db, &inLevel);
+                                       gain_in_db, &in_level);
 
       break;
     case CHARACTERISTIC_PASS_THRU:
-      inLevel = gain_in_db;
+      in_level = gain_in_db;
       break;
     default:
       return (UNEXPECTED_ERROR);
@@ -267,23 +267,23 @@ impd_map_gain(
   }
   switch (split_drc_characteristic_target->characteristic_format) {
     case CHARACTERISTIC_SIGMOID:
-      err = impd_compressor_io_sigmoid(split_drc_characteristic_target, inLevel,
+      err = impd_compressor_io_sigmoid(split_drc_characteristic_target, in_level,
                                        gain_out_db);
       if (err) return (err);
       break;
     case CHARACTERISTIC_NODES:
-      if (inLevel < DRC_INPUT_LOUDNESS_TARGET) {
+      if (in_level < DRC_INPUT_LOUDNESS_TARGET) {
         err = impd_compressor_io_nodes_lt(split_drc_characteristic_target,
-                                          inLevel, gain_out_db);
+                                          in_level, gain_out_db);
         if (err) return (err);
       } else {
         err = impd_compressor_io_nodes_rt(split_drc_characteristic_target,
-                                          inLevel, gain_out_db);
+                                          in_level, gain_out_db);
         if (err) return (err);
       }
       break;
     case CHARACTERISTIC_PASS_THRU:
-      *gain_out_db = inLevel;
+      *gain_out_db = in_level;
       break;
     default:
       break;

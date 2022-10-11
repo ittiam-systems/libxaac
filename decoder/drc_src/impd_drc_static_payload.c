@@ -574,7 +574,7 @@ static WORD32 impd_parse_parametric_drc_instructions(
     ia_bit_buf_struct* it_bit_buff, WORD32 parametric_drc_frame_size,
     ia_parametric_drc_instructions_struct* str_parametric_drc_instructions) {
   WORD32 i = 0, err = 0, temp;
-  WORD32 bit_size_len, bit_size, other_bit;
+  WORD32 bit_size_len, bit_size;
 
   str_parametric_drc_instructions->drc_characteristic = 0;
   str_parametric_drc_instructions->disable_paramteric_drc = 0;
@@ -678,7 +678,7 @@ static WORD32 impd_parse_parametric_drc_instructions(
         default:
           str_parametric_drc_instructions->disable_paramteric_drc = 1;
           for (i = 0; i < str_parametric_drc_instructions->len_bit_size; i++) {
-            other_bit = impd_read_bits_buf(it_bit_buff, 1);
+            impd_read_bits_buf(it_bit_buff, 1);
             if (it_bit_buff->error) return it_bit_buff->error;
           }
           break;
@@ -908,7 +908,7 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
                           ia_drc_config* drc_config,
                           ia_drc_config_ext* str_drc_config_ext) {
   WORD32 err = 0, i, k;
-  WORD32 bit_size_len, ext_size_bits, bit_size, other_bit;
+  WORD32 bit_size_len, ext_size_bits, bit_size;
 
   k = 0;
   str_drc_config_ext->drc_config_ext_type[k] =
@@ -955,7 +955,7 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
         break;
       default:
         for (i = 0; i < str_drc_config_ext->ext_bit_size[k]; i++) {
-          other_bit = impd_read_bits_buf(it_bit_buff, 1);
+          impd_read_bits_buf(it_bit_buff, 1);
           if (it_bit_buff->error) return it_bit_buff->error;
         }
         break;
@@ -1622,7 +1622,7 @@ impd_parse_loudness_info_set_ext(
     ia_bit_buf_struct* it_bit_buff,
     ia_drc_loudness_info_set_struct* loudness_info_set) {
   WORD32 err = 0, i, k;
-  WORD32 bit_size_len, ext_size_bits, bit_size, other_bit;
+  WORD32 bit_size_len, ext_size_bits, bit_size;
 
   k = 0;
   loudness_info_set->str_loudness_info_set_ext.loudness_info_set_ext_type[k] =
@@ -1649,7 +1649,7 @@ impd_parse_loudness_info_set_ext(
         for (i = 0;
              i < loudness_info_set->str_loudness_info_set_ext.ext_bit_size[k];
              i++) {
-          other_bit = impd_read_bits_buf(it_bit_buff, 1);
+          impd_read_bits_buf(it_bit_buff, 1);
           if (it_bit_buff->error) return it_bit_buff->error;
         }
         break;
@@ -2199,9 +2199,9 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_parameters_cnt += 1;
-        if ((c + repeat_parameters_cnt) > MAX_CHANNEL_COUNT)
-          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_parameters_cnt; k++) {
+          if (c > (MAX_CHANNEL_COUNT-1))
+            return (UNEXPECTED_ERROR);
           str_drc_instruction_str->gain_set_index[c] =
               str_drc_instruction_str->gain_set_index[c - 1];
           str_drc_instruction_str->str_ducking_modifiers_for_channel[c] =
@@ -2343,9 +2343,9 @@ impd_parse_drc_instructions_uni_drc(
         if (it_bit_buff->error) return it_bit_buff->error;
 
         repeat_gain_set_idx_cnt += 1;
-        if ((c + repeat_gain_set_idx_cnt) > MAX_CHANNEL_COUNT)
-          return (UNEXPECTED_ERROR);
         for (k = 0; k < repeat_gain_set_idx_cnt; k++) {
+          if (c > (MAX_CHANNEL_COUNT - 1))
+            return (UNEXPECTED_ERROR);
           str_drc_instruction_str->gain_set_index[c] = bs_gain_set_idx - 1;
           c++;
         }

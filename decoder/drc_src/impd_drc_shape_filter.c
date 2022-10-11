@@ -41,7 +41,7 @@ VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
                                  shape_filter_block* shape_filter_block) {
   //    WORD32 err = 0;
   WORD32 i;
-  FLOAT32 warpedGain, x1, y1;
+  FLOAT32 warped_gain = 0, x1 = 0, y1;
   shape_filter_block->drc_gain_last = drc_gain;
   for (i = 0; i < 4; i++) {
     if (shape_filter_block->shape_filter[i].type == SHAPE_FILTER_TYPE_OFF)
@@ -51,9 +51,9 @@ VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
              shape_filter_block->shape_filter[i].type ==
                  SHAPE_FILTER_TYPE_HF_CUT) {
       if (drc_gain < 1.0f)
-        warpedGain = -1.0f;
+        warped_gain = -1.0f;
       else
-        warpedGain =
+        warped_gain =
             (drc_gain - 1.0f) /
             (drc_gain - 1.0f + shape_filter_block->shape_filter[i].gain_offset);
       x1 = shape_filter_block->shape_filter[i].a1;
@@ -62,9 +62,9 @@ VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
                shape_filter_block->shape_filter[i].type ==
                    SHAPE_FILTER_TYPE_HF_BOOST) {
       if (drc_gain >= 1.0f)
-        warpedGain = -1.0f;
+        warped_gain = -1.0f;
       else
-        warpedGain =
+        warped_gain =
             (1.0f - drc_gain) /
             (1.0f +
              drc_gain *
@@ -72,11 +72,11 @@ VOID impd_shape_filt_block_adapt(const FLOAT32 drc_gain,
       x1 = shape_filter_block->shape_filter[i].b1;
     }
 
-    if (warpedGain <= 0.0f) {
+    if (warped_gain <= 0.0f) {
       y1 = x1;
-    } else if (warpedGain <
+    } else if (warped_gain <
                shape_filter_block->shape_filter[i].warped_gain_max) {
-      y1 = x1 + shape_filter_block->shape_filter[i].factor * warpedGain;
+      y1 = x1 + shape_filter_block->shape_filter[i].factor * warped_gain;
     } else {
       y1 = shape_filter_block->shape_filter[i].y1_bound;
     }

@@ -28,6 +28,7 @@
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32 ixheaacd_twiddle_table_fft_32x32[514];
+extern const FLOAT32 ixheaacd_twiddle_table_fft[514];
 extern const FLOAT32 ixheaacd_twiddle_table_fft_flt[16];
 extern const WORD32 ixheaacd_twiddle_table_3pr[1155];
 extern const WORD32 ixheaacd_twiddle_table_3pi[1155];
@@ -862,6 +863,550 @@ VOID ixheaacd_mps_synth_calc_fft(FLOAT32 *ptr_xr, FLOAT32 *ptr_xi,
       ptr_xi += 2;
     }
   }
+}
+
+VOID ixheaacd_mps_complex_fft(FLOAT32 *xr, FLOAT32 *xi, WORD32 nlength) {
+  WORD32 i, j, k, n_stages, h2;
+  FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+  WORD32 del, nodespacing, in_loop_cnt;
+  WORD32 dig_rev_shift;
+  WORD32 not_power_4;
+  FLOAT32 ptr_x[256];
+  FLOAT32 y[256];
+  WORD32 npoints = nlength;
+  FLOAT32 *ptr_y = y;
+  const FLOAT32 *ptr_w;
+  dig_rev_shift = ixheaacd_norm32(npoints) + 1 - 16;
+  n_stages = 30 - ixheaacd_norm32(npoints);
+  not_power_4 = n_stages & 1;
+
+  n_stages = n_stages >> 1;
+
+
+  for (i = 0; i<nlength; i++)
+  {
+    ptr_x[2 * i] = xr[i];
+    ptr_x[2 * i + 1] = xi[i];
+  }
+
+  ptr_w = ixheaacd_twiddle_table_fft;
+
+  for (i = 0; i<npoints; i += 4)
+  {
+    FLOAT32 *inp = ptr_x;
+
+    DIG_REV(i, dig_rev_shift, h2);
+    if (not_power_4)
+    {
+      h2 += 1;
+      h2 &= ~1;
+    }
+    inp += (h2);
+
+    x0r = *inp;
+    x0i = *(inp + 1);
+    inp += (npoints >> 1);
+
+    x1r = *inp;
+    x1i = *(inp + 1);
+    inp += (npoints >> 1);
+
+    x2r = *inp;
+    x2i = *(inp + 1);
+    inp += (npoints >> 1);
+
+    x3r = *inp;
+    x3i = *(inp + 1);
+
+    x0r = x0r + x2r;
+    x0i = x0i + x2i;
+    x2r = x0r - (x2r * 2);
+    x2i = x0i - (x2i * 2);
+    x1r = x1r + x3r;
+    x1i = x1i + x3i;
+    x3r = x1r - (x3r * 2);
+    x3i = x1i - (x3i * 2);
+
+    x0r = x0r + x1r;
+    x0i = x0i + x1i;
+    x1r = x0r - (x1r * 2);
+    x1i = x0i - (x1i * 2);
+    x2r = x2r + x3i;
+    x2i = x2i - x3r;
+    x3i = x2r - (x3i * 2);
+    x3r = x2i + (x3r * 2);
+
+    *ptr_y++ = x0r;
+    *ptr_y++ = x0i;
+    *ptr_y++ = x2r;
+    *ptr_y++ = x2i;
+    *ptr_y++ = x1r;
+    *ptr_y++ = x1i;
+    *ptr_y++ = x3i;
+    *ptr_y++ = x3r;
+  }
+  ptr_y -= 2 * npoints;
+  del = 4;
+  nodespacing = 64;
+  in_loop_cnt = npoints >> 4;
+  for (i = n_stages - 1; i>0; i--)
+  {
+    const FLOAT32 *twiddles = ptr_w;
+    FLOAT32 *data = ptr_y;
+    FLOAT32 w1h, w2h, w3h, w1l, w2l, w3l;
+    WORD32 sec_loop_cnt;
+
+    for (k = in_loop_cnt; k != 0; k--)
+    {
+      x0r = (*data);
+      x0i = (*(data + 1));
+      data += (del << 1);
+
+      x1r = (*data);
+      x1i = (*(data + 1));
+      data += (del << 1);
+
+      x2r = (*data);
+      x2i = (*(data + 1));
+      data += (del << 1);
+
+      x3r = (*data);
+      x3i = (*(data + 1));
+      data -= 3 * (del << 1);
+
+      x0r = x0r + x2r;
+      x0i = x0i + x2i;
+      x2r = x0r - (x2r * 2);
+      x2i = x0i - (x2i * 2);
+      x1r = x1r + x3r;
+      x1i = x1i + x3i;
+      x3r = x1r - (x3r * 2);
+      x3i = x1i - (x3i * 2);
+
+      x0r = x0r + x1r;
+      x0i = x0i + x1i;
+      x1r = x0r - (x1r * 2);
+      x1i = x0i - (x1i * 2);
+      x2r = x2r + x3i;
+      x2i = x2i - x3r;
+      x3i = x2r - (x3i * 2);
+      x3r = x2i + (x3r * 2);
+
+      *data = x0r;
+      *(data + 1) = x0i;
+      data += (del << 1);
+
+      *data = x2r;
+      *(data + 1) = x2i;
+      data += (del << 1);
+
+      *data = x1r;
+      *(data + 1) = x1i;
+      data += (del << 1);
+
+      *data = x3i;
+      *(data + 1) = x3r;
+      data += (del << 1);
+    }
+    data = ptr_y + 2;
+
+    sec_loop_cnt = (nodespacing * del);
+    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) - (sec_loop_cnt / 16) \
+            + (sec_loop_cnt / 32) - (sec_loop_cnt / 64) + (sec_loop_cnt / 128) \
+            - (sec_loop_cnt / 256);
+    j = nodespacing;
+
+    for (j = nodespacing; j <= sec_loop_cnt; j += nodespacing)
+    {
+      w1h = *(twiddles + 2 * j);
+      w1l = *(twiddles + 2 * j + 1);
+      w2h = *(twiddles + 2 * (j << 1));
+      w2l = *(twiddles + 2 * (j << 1) + 1);
+      w3h = *(twiddles + 2 * j + 2 * (j << 1));
+      w3l = *(twiddles + 2 * j + 2 * (j << 1) + 1);
+
+      for (k = in_loop_cnt; k != 0; k--)
+      {
+        FLOAT32 tmp;
+        FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+
+        data += (del << 1);
+
+        x1r = *data;
+        x1i = *(data + 1);
+        data += (del << 1);
+
+        x2r = *data;
+        x2i = *(data + 1);
+        data += (del << 1);
+
+        x3r = *data;
+        x3i = *(data + 1);
+        data -= 3 * (del << 1);
+
+        tmp = (mult32X32float(x1r, w1l) - mult32X32float(x1i, w1h));
+        x1i = mac32X32float(mult32X32float(x1r, w1h), x1i, w1l);
+        x1r = tmp;
+
+        tmp = (mult32X32float(x2r, w2l) - mult32X32float(x2i, w2h));
+        x2i = mac32X32float(mult32X32float(x2r, w2h), x2i, w2l);
+        x2r = tmp;
+
+        tmp = (mult32X32float(x3r, w3l) - mult32X32float(x3i, w3h));
+        x3i = mac32X32float(mult32X32float(x3r, w3h), x3i, w3l);
+        x3r = tmp;
+
+        x0r = (*data);
+        x0i = (*(data + 1));
+
+        x0r = x0r + (x2r);
+        x0i = x0i + (x2i);
+        x2r = x0r - (x2r * 2);
+        x2i = x0i - (x2i * 2);
+        x1r = x1r + x3r;
+        x1i = x1i + x3i;
+        x3r = x1r - (x3r * 2);
+        x3i = x1i - (x3i * 2);
+
+        x0r = x0r + (x1r);
+        x0i = x0i + (x1i);
+        x1r = x0r - (x1r * 2);
+        x1i = x0i - (x1i * 2);
+        x2r = x2r + (x3i);
+        x2i = x2i - (x3r);
+        x3i = x2r - (x3i * 2);
+        x3r = x2i + (x3r * 2);
+
+        *data = x0r;
+        *(data + 1) = x0i;
+        data += (del << 1);
+
+        *data = x2r;
+        *(data + 1) = x2i;
+        data += (del << 1);
+
+        *data = x1r;
+        *(data + 1) = x1i;
+        data += (del << 1);
+
+        *data = x3i;
+        *(data + 1) = x3r;
+        data += (del << 1);
+      }
+      data -= 2 * npoints;
+      data += 2;
+    }
+    for (; j <= (nodespacing * del) >> 1; j += nodespacing)
+    {
+      w1h = *(twiddles + 2 * j);
+      w2h = *(twiddles + 2 * (j << 1));
+      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 512);
+      w1l = *(twiddles + 2 * j + 1);
+      w2l = *(twiddles + 2 * (j << 1) + 1);
+      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 511);
+
+      for (k = in_loop_cnt; k != 0; k--)
+      {
+        FLOAT32 tmp;
+        FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+
+        data += (del << 1);
+
+        x1r = *data;
+        x1i = *(data + 1);
+        data += (del << 1);
+
+        x2r = *data;
+        x2i = *(data + 1);
+        data += (del << 1);
+
+        x3r = *data;
+        x3i = *(data + 1);
+        data -= 3 * (del << 1);
+
+        tmp = (mult32X32float(x1r, w1l) - mult32X32float(x1i, w1h));
+        x1i = mac32X32float(mult32X32float(x1r, w1h), x1i, w1l);
+        x1r = tmp;
+
+        tmp = (mult32X32float(x2r, w2l) - mult32X32float(x2i, w2h));
+        x2i = mac32X32float(mult32X32float(x2r, w2h), x2i, w2l);
+        x2r = tmp;
+
+        tmp = (mult32X32float(x3r, w3h) + mult32X32float(x3i, w3l));
+        x3i = -mult32X32float(x3r, w3l) + mult32X32float(x3i, w3h);
+        x3r = tmp;
+
+        x0r = (*data);
+        x0i = (*(data + 1));
+
+        x0r = x0r + (x2r);
+        x0i = x0i + (x2i);
+        x2r = x0r - (x2r * 2);
+        x2i = x0i - (x2i * 2);
+        x1r = x1r + x3r;
+        x1i = x1i + x3i;
+        x3r = x1r - (x3r * 2);
+        x3i = x1i - (x3i * 2);
+
+        x0r = x0r + (x1r);
+        x0i = x0i + (x1i);
+        x1r = x0r - (x1r * 2);
+        x1i = x0i - (x1i * 2);
+        x2r = x2r + (x3i);
+        x2i = x2i - (x3r);
+        x3i = x2r - (x3i * 2);
+        x3r = x2i + (x3r * 2);
+
+        *data = x0r;
+        *(data + 1) = x0i;
+        data += (del << 1);
+
+        *data = x2r;
+        *(data + 1) = x2i;
+        data += (del << 1);
+
+        *data = x1r;
+        *(data + 1) = x1i;
+        data += (del << 1);
+
+        *data = x3i;
+        *(data + 1) = x3r;
+        data += (del << 1);
+      }
+      data -= 2 * npoints;
+      data += 2;
+    }
+    for (; j <= sec_loop_cnt * 2; j += nodespacing)
+    {
+      w1h = *(twiddles + 2 * j);
+      w2h = *(twiddles + 2 * (j << 1) - 512);
+      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 512);
+      w1l = *(twiddles + 2 * j + 1);
+      w2l = *(twiddles + 2 * (j << 1) - 511);
+      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 511);
+
+      for (k = in_loop_cnt; k != 0; k--)
+      {
+        FLOAT32 tmp;
+        FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+
+        data += (del << 1);
+
+        x1r = *data;
+        x1i = *(data + 1);
+        data += (del << 1);
+
+        x2r = *data;
+        x2i = *(data + 1);
+        data += (del << 1);
+
+        x3r = *data;
+        x3i = *(data + 1);
+        data -= 3 * (del << 1);
+
+        tmp = (mult32X32float(x1r, w1l) - mult32X32float(x1i, w1h));
+        x1i = mac32X32float(mult32X32float(x1r, w1h), x1i, w1l);
+        x1r = tmp;
+
+        tmp = (mult32X32float(x2r, w2h) + mult32X32float(x2i, w2l));
+        x2i = -mult32X32float(x2r, w2l) + mult32X32float(x2i, w2h);
+        x2r = tmp;
+
+        tmp = (mult32X32float(x3r, w3h) + mult32X32float(x3i, w3l));
+        x3i = -mult32X32float(x3r, w3l) + mult32X32float(x3i, w3h);
+        x3r = tmp;
+
+        x0r = (*data);
+        x0i = (*(data + 1));
+
+        x0r = x0r + (x2r);
+        x0i = x0i + (x2i);
+        x2r = x0r - (x2r * 2);
+        x2i = x0i - (x2i * 2);
+        x1r = x1r + x3r;
+        x1i = x1i + x3i;
+        x3r = x1r - (x3r * 2);
+        x3i = x1i - (x3i * 2);
+
+        x0r = x0r + (x1r);
+        x0i = x0i + (x1i);
+        x1r = x0r - (x1r * 2);
+        x1i = x0i - (x1i * 2);
+        x2r = x2r + (x3i);
+        x2i = x2i - (x3r);
+        x3i = x2r - (x3i * 2);
+        x3r = x2i + (x3r * 2);
+
+        *data = x0r;
+        *(data + 1) = x0i;
+        data += (del << 1);
+
+        *data = x2r;
+        *(data + 1) = x2i;
+        data += (del << 1);
+
+        *data = x1r;
+        *(data + 1) = x1i;
+        data += (del << 1);
+
+        *data = x3i;
+        *(data + 1) = x3r;
+        data += (del << 1);
+      }
+      data -= 2 * npoints;
+      data += 2;
+    }
+    for (; j<nodespacing * del; j += nodespacing)
+    {
+      w1h = *(twiddles + 2 * j);
+      w2h = *(twiddles + 2 * (j << 1) - 512);
+      w3h = *(twiddles + 2 * j + 2 * (j << 1) - 1024);
+      w1l = *(twiddles + 2 * j + 1);
+      w2l = *(twiddles + 2 * (j << 1) - 511);
+      w3l = *(twiddles + 2 * j + 2 * (j << 1) - 1023);
+
+      for (k = in_loop_cnt; k != 0; k--)
+      {
+        FLOAT32 tmp;
+        FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+
+        data += (del << 1);
+
+        x1r = *data;
+        x1i = *(data + 1);
+        data += (del << 1);
+
+        x2r = *data;
+        x2i = *(data + 1);
+        data += (del << 1);
+
+        x3r = *data;
+        x3i = *(data + 1);
+        data -= 3 * (del << 1);
+
+        tmp = (mult32X32float(x1r, w1l) - mult32X32float(x1i, w1h));
+        x1i = mac32X32float(mult32X32float(x1r, w1h), x1i, w1l);
+        x1r = tmp;
+
+        tmp = (mult32X32float(x2r, w2h) + mult32X32float(x2i, w2l));
+        x2i = -mult32X32float(x2r, w2l) + mult32X32float(x2i, w2h);
+        x2r = tmp;
+
+        tmp = (-mult32X32float(x3r, w3l) + mult32X32float(x3i, w3h));
+        x3i = mac32X32float(mult32X32float(x3r, w3h), x3i, w3l);
+        x3r = tmp;
+
+        x0r = (*data);
+        x0i = (*(data + 1));
+
+        x0r = x0r + (x2r);
+        x0i = x0i + (x2i);
+        x2r = x0r - (x2r * 2);
+        x2i = x0i - (x2i * 2);
+        x1r = x1r + x3r;
+        x1i = x1i - x3i;
+        x3r = x1r - (x3r * 2);
+        x3i = x1i + (x3i * 2);
+
+        x0r = x0r + (x1r);
+        x0i = x0i + (x1i);
+        x1r = x0r - (x1r * 2);
+        x1i = x0i - (x1i * 2);
+        x2r = x2r + (x3i);
+        x2i = x2i - (x3r);
+        x3i = x2r - (x3i * 2);
+        x3r = x2i + (x3r * 2);
+
+        *data = x0r;
+        *(data + 1) = x0i;
+        data += (del << 1);
+
+        *data = x2r;
+        *(data + 1) = x2i;
+        data += (del << 1);
+
+        *data = x1r;
+        *(data + 1) = x1i;
+        data += (del << 1);
+
+        *data = x3i;
+        *(data + 1) = x3r;
+        data += (del << 1);
+      }
+      data -= 2 * npoints;
+      data += 2;
+    }
+    nodespacing >>= 2;
+    del <<= 2;
+    in_loop_cnt >>= 2;
+  }
+  if (not_power_4)
+  {
+    const FLOAT32 *twiddles = ptr_w;
+    nodespacing <<= 1;
+
+    for (j = del / 2; j != 0; j--)
+    {
+      FLOAT32 w1h = *twiddles;
+      FLOAT32 w1l = *(twiddles + 1);
+      FLOAT32 tmp;
+      twiddles += nodespacing * 2;
+
+      x0r = *ptr_y;
+      x0i = *(ptr_y + 1);
+      ptr_y += (del << 1);
+
+      x1r = *ptr_y;
+      x1i = *(ptr_y + 1);
+
+      tmp = (mult32X32float(x1r, w1l) - mult32X32float(x1i, w1h));
+      x1i = mac32X32float(mult32X32float(x1r, w1h), x1i, w1l);
+      x1r = tmp;
+
+      *ptr_y = (x0r) - (x1r);
+      *(ptr_y + 1) = (x0i) - (x1i);
+      ptr_y -= (del << 1);
+
+      *ptr_y = (x0r) + (x1r);
+      *(ptr_y + 1) = (x0i) + (x1i);
+      ptr_y += 2;
+    }
+    twiddles = ptr_w;
+    for (j = del / 2; j != 0; j--)
+    {
+      FLOAT32 w1h = *twiddles;
+      FLOAT32 w1l = *(twiddles + 1);
+      FLOAT32 tmp;
+      twiddles += nodespacing * 2;
+
+      x0r = *ptr_y;
+      x0i = *(ptr_y + 1);
+      ptr_y += (del << 1);
+
+      x1r = *ptr_y;
+      x1i = *(ptr_y + 1);
+
+      tmp = (mult32X32float(x1r, w1h) + mult32X32float(x1i, w1l));
+      x1i = -mult32X32float(x1r, w1l) + mult32X32float(x1i, w1h);
+      x1r = tmp;
+
+      *ptr_y = (x0r) - (x1r);
+      *(ptr_y + 1) = (x0i) - (x1i);
+      ptr_y -= (del << 1);
+
+      *ptr_y = (x0r) + (x1r);
+      *(ptr_y + 1) = (x0i) + (x1i);
+      ptr_y += 2;
+    }
+  }
+
+  for (i = 0; i<nlength; i++)
+  {
+    xr[i] = y[2 * i];
+    xi[i] = y[2 * i + 1];
+  }
+
+  return;
 }
 
 VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
