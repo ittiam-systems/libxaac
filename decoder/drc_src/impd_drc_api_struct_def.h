@@ -58,7 +58,11 @@ typedef struct ia_drc_config_struct {
   WORD32 album_mode;
   FLOAT32 boost;
   FLOAT32 compress;
-
+  UWORD8 boost_set;
+  UWORD8 compress_set;
+  WORD32 apply_crossfade;
+  WORD32 is_config_changed;
+  WORD32 ln_dbgain_prev;
 } ia_drc_config_struct;
 
 /* DRC bitsteam handler */
@@ -128,7 +132,7 @@ typedef struct IA_PSM_API_Struct {
   ia_mem_info_struct *p_mem_info;
   pVOID *pp_mem;
   struct ia_bit_buf_struct str_bit_buf, *pstr_bit_buf;
-
+  WORD32 frame_count;
 } ia_drc_api_struct;
 
 #endif

@@ -121,7 +121,8 @@ VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
 /* audio pre roll frame parsing*/
 static WORD32 ixheaacd_audio_preroll_parsing(
     ia_dec_data_struct *pstr_dec_data, UWORD8 *conf_buf, WORD32 *preroll_units,
-    WORD32 *preroll_frame_offset, ia_aac_dec_state_struct *aac_dec_handle) {
+    WORD32 *preroll_frame_offset, ia_aac_dec_state_struct *aac_dec_handle,
+    WORD32 *config_changed, WORD32 *apply_crossfade) {
   ia_bit_buf_struct *temp_buff =
       (ia_bit_buf_struct *)&(pstr_dec_data->dec_bit_buf);
 
@@ -173,15 +174,21 @@ static WORD32 ixheaacd_audio_preroll_parsing(
 
       if (aac_dec_handle->preroll_config_present == 1) {
         if (!(memcmp(aac_dec_handle->preroll_config_prev, conf_buf,
-                     sizeof(aac_dec_handle->preroll_config_prev)))) {
+                     sizeof(UWORD8) * config_len))) {
           config_len = 0;
+        }
+        if (memcmp(aac_dec_handle->preroll_config_prev, conf_buf,
+                   sizeof(UWORD8) * config_len) != 0) {
+          *config_changed = 1;
+        } else {
+          *config_changed = 0;
         }
       }
       aac_dec_handle->preroll_config_present = 1;
       memcpy(aac_dec_handle->preroll_config_prev, conf_buf,
-             sizeof(aac_dec_handle->preroll_config_prev));
+             sizeof(UWORD8) * config_len);
 
-      ixheaacd_read_bits_buf(temp_buff, 1);
+      *apply_crossfade = ixheaacd_read_bits_buf(temp_buff, 1);
       ixheaacd_read_bits_buf(temp_buff, 1);
 
       num_pre_roll_frames = ixheaacd_read_bits_buf(temp_buff, 2);
@@ -297,7 +304,8 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
               .preroll_flag) {
         config_len = ixheaacd_audio_preroll_parsing(
             pstr_dec_data, &config[0], &preroll_units, &preroll_frame_offset[0],
-            aac_dec_handle);
+            aac_dec_handle, &aac_dec_handle->drc_config_changed,
+            &aac_dec_handle->apply_crossfade);
 
         if (config_len == IA_FATAL_ERROR) return IA_FATAL_ERROR;
       }
