@@ -788,7 +788,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       } else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
-                 p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
+                p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
 
         for (i = 0; i < ptr_audio_specific_config->str_usac_config
                             .str_usac_dec_config.num_config_extensions;
@@ -826,6 +826,10 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
                   .usac_ext_ele_payload_len[i];
         }
 
+      } else if (IA_ENHAACPLUS_DEC_DRC_IS_CONFIG_CHANGED == i_idx) {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->drc_config_changed;
+      } else if (IA_ENHAACPLUS_DEC_DRC_APPLY_CROSSFADE == i_idx) {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->apply_crossfade;
       } else if (IA_ENHAACPLUS_DEC_CONFIG_NUM_ELE == i_idx) {
         UWORD32 *ptri_value = (UWORD32 *)pv_value;
         ia_audio_specific_config_struct *ptr_audio_specific_config =

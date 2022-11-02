@@ -618,6 +618,8 @@ typedef struct ia_drc_config {
   ia_channel_layout_struct channel_layout;
   ia_downmix_instructions_struct
       dwnmix_instructions[DOWNMIX_INSTRUCTION_COUNT_MAX];
+  WORD32 is_config_changed;
+  WORD32 ln_gain_changed;
 } ia_drc_config;
 
 typedef struct {

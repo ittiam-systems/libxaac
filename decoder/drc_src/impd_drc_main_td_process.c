@@ -40,6 +40,8 @@
 #include "impd_drc_api_struct_def.h"
 #include "impd_drc_hashdefines.h"
 #include "impd_drc_peak_limiter.h"
+IA_ERRORCODE impd_drc_set_default_bitstream_config(
+    ia_drc_config *pstr_drc_config);
 
 static IA_ERRORCODE impd_down_mix(
     ia_drc_sel_proc_output_struct *uni_drc_sel_proc_output,
@@ -84,12 +86,61 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
     return IA_NO_ERROR;
   }
 
+  p_obj_drc->str_payload.pstr_loudness_info->loudness_info_album_count = 0;
+  p_obj_drc->str_payload.pstr_loudness_info->loudness_info_count = 0;
+  p_obj_drc->str_payload.pstr_loudness_info->loudness_info_set_ext_present = 0;
+  p_obj_drc->str_payload.pstr_drc_config->is_config_changed =
+      p_obj_drc->str_config.is_config_changed;
+
+  if (p_obj_drc->str_config.is_config_changed == 1) {
+    err_code = impd_process_drc_bitstream_dec_loudness_info_set(
+        p_obj_drc->pstr_bit_buf, p_obj_drc->str_payload.pstr_loudness_info,
+        &p_obj_drc->str_bit_handler.bitstream_loudness_info[0],
+        p_obj_drc->str_bit_handler.num_bytes_bs_loudness_info);
+    if (err_code != IA_NO_ERROR) return err_code;
+
+    err_code = impd_drc_uni_sel_proc_process(
+        p_obj_drc->str_payload.pstr_selection_proc,
+        p_obj_drc->str_payload.pstr_drc_config,
+        p_obj_drc->str_payload.pstr_loudness_info,
+        p_obj_drc->str_payload.pstr_drc_sel_proc_output);
+    if (err_code != IA_NO_ERROR) return err_code;
+
+    err_code = impd_process_drc_bitstream_dec_config(
+        p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
+        p_obj_drc->str_payload.pstr_drc_config,
+        &p_obj_drc->str_bit_handler.bitstream_drc_config[0],
+        p_obj_drc->str_bit_handler.num_bytes_bs_drc_config);
+    if (err_code == 1) {
+      memset(p_obj_drc->str_payload.pstr_drc_config, 0, sizeof(ia_drc_config));
+      err_code = impd_drc_set_default_bitstream_config(
+          p_obj_drc->str_payload.pstr_drc_config);
+      p_obj_drc->str_payload.pstr_drc_config->channel_layout
+          .base_channel_count = p_obj_drc->str_config.num_ch_in;
+    }
+
+    if (err_code != IA_NO_ERROR) return err_code;
+  }
+
+  if (p_obj_drc->frame_count == 0) {
+    p_obj_drc->str_config.ln_dbgain_prev =
+        (WORD32)p_obj_drc->str_payload.pstr_drc_sel_proc_output
+            ->loudness_normalization_gain_db;
+  }
+
+  if (!p_obj_drc->str_payload.pstr_drc_config->ln_gain_changed) {
+    if (p_obj_drc->str_payload.pstr_drc_sel_proc_output
+            ->loudness_normalization_gain_db !=
+        p_obj_drc->str_config.ln_dbgain_prev) {
+      p_obj_drc->str_payload.pstr_drc_config->ln_gain_changed = 1;
+    }
+  }
+
   err_code = impd_process_drc_bitstream_dec_gain(
       p_obj_drc->str_payload.pstr_bitstream_dec, p_obj_drc->pstr_bit_buf,
       p_obj_drc->str_payload.pstr_drc_config,
       p_obj_drc->str_payload.pstr_drc_gain,
-      &p_obj_drc->str_bit_handler
-           .it_bit_buf[p_obj_drc->str_bit_handler.byte_index_bs],
+      p_obj_drc->str_bit_handler.it_bit_buf,
       p_obj_drc->str_bit_handler.num_bytes_bs,
       p_obj_drc->str_bit_handler.num_bits_offset_bs,
       &p_obj_drc->str_bit_handler.num_bits_read_bs);
@@ -202,15 +253,19 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
 
   if (err_code != IA_NO_ERROR) return err_code;
 
-  if (p_obj_drc->str_payload.pstr_drc_sel_proc_output
+  if (p_obj_drc->str_payload.pstr_drc_config->apply_drc == 0 ||
+      p_obj_drc->str_payload.pstr_drc_config->is_config_changed == 0 ||
+      p_obj_drc->str_payload.pstr_drc_config->ln_gain_changed == 0) {
+    if (p_obj_drc->str_payload.pstr_drc_sel_proc_output
           ->loudness_normalization_gain_db != 0.0f) {
-    FLOAT32 gain_value =
-        (FLOAT32)pow(10.0, p_obj_drc->str_payload.pstr_drc_sel_proc_output
+      FLOAT32 gain_value =
+          (FLOAT32)pow(10.0, p_obj_drc->str_payload.pstr_drc_sel_proc_output
                                    ->loudness_normalization_gain_db /
                                20.0);
-    for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
-      for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
-        audio_buff[i][j] *= gain_value;
+      for (i = 0; i < p_obj_drc->str_config.num_ch_out; i++) {
+        for (j = 0; j < p_obj_drc->str_config.frame_size; j++) {
+          audio_buff[i][j] *= gain_value;
+        }
       }
     }
   }
@@ -320,5 +375,6 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
                                          p_obj_drc->str_config.num_ch_out *
                                          (p_obj_drc->str_config.pcm_size >> 3);
   }
+  p_obj_drc->frame_count++;
   return err_code;
 }
