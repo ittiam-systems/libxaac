@@ -444,6 +444,25 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
         pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config
             .str_usac_dec_config.preroll_counter = preroll_counter;
+
+        ia_usac_decoder_config_struct *pstr_usac_dec_config_state =
+            &pstr_audio_specific_config->str_usac_config.str_usac_dec_config;
+        ia_usac_decoder_config_struct *pstr_usac_dec_config_dec_data =
+            &pstr_dec_data->str_frame_data.str_audio_specific_config.str_usac_config
+            .str_usac_dec_config;
+        pstr_usac_dec_config_state->num_config_extensions =
+            pstr_usac_dec_config_dec_data->num_config_extensions;
+        pstr_usac_dec_config_state->num_elements =
+            pstr_usac_dec_config_dec_data->num_elements;
+        memcpy(pstr_usac_dec_config_state->usac_cfg_ext_info_buf,
+            pstr_usac_dec_config_dec_data->usac_cfg_ext_info_buf,
+            sizeof(pstr_usac_dec_config_state->usac_cfg_ext_info_buf));
+        memcpy(pstr_usac_dec_config_state->usac_ext_ele_payload_present,
+            pstr_usac_dec_config_dec_data->usac_ext_ele_payload_present,
+            sizeof(pstr_usac_dec_config_dec_data->usac_ext_ele_payload_present));
+        memcpy(pstr_usac_dec_config_state->usac_ext_ele_payload_buf,
+            pstr_usac_dec_config_dec_data->usac_ext_ele_payload_buf,
+            sizeof(pstr_usac_dec_config_state->usac_ext_ele_payload_buf));
       }
 
       access_units++;

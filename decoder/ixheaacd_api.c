@@ -786,12 +786,9 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
         *ptri_value = i;
       } else if (IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR == i_idx) {
-        ia_dec_data_struct *pstr_dec_data =
-            (ia_dec_data_struct *)
-                p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data;
         ia_audio_specific_config_struct *ptr_audio_specific_config =
-            ((ia_audio_specific_config_struct *)&pstr_dec_data->str_frame_data
-                 .str_audio_specific_config);
+            ((ia_audio_specific_config_struct *)
+                p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config);
 
         for (i = 0; i < ptr_audio_specific_config->str_usac_config
                             .str_usac_dec_config.num_config_extensions;
