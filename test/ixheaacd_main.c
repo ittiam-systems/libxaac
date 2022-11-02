@@ -788,8 +788,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* Initialize memory tables                          */
   /* Get memory information and allocate memory        */
 
-  UWORD8 drc_ip_buf[8192 * 4];
-  UWORD8 drc_op_buf[8192 * 4];
+  UWORD8 drc_ip_buf[4096 * 4 * 8];
+  UWORD8 drc_op_buf[4096 * 4 * 8];
 
   /* Memory variables */
   UWORD32 n_mems, ui_rem;
