@@ -244,7 +244,7 @@ IA_ERRORCODE ixheaacd_applysbr(
     FLAG down_mix_flag, ia_sbr_scr_struct *sbr_scratch_struct, WORD32 ps_enable,
     WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
     ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag,
-    WORD32 audio_object_type, WORD32 init_flag, WORD32 ldmps_present) {
+    WORD32 audio_object_type, WORD32 init_flag, WORD32 ldmps_present, WORD32 frame_size) {
   WORD32 k;
   FLAG prev_ps_flag = 0;
   FLAG ps_flag = 0;
@@ -597,7 +597,7 @@ IA_ERRORCODE ixheaacd_applysbr(
     if (ptr_header_data[0]->channel_mode == PS_STEREO &&
         (audio_object_type != AOT_ER_AAC_ELD &&
          audio_object_type != AOT_ER_AAC_LD)) {
-      ixheaacd_decode_ps_data(self->pstr_ps_stereo_dec);
+      ixheaacd_decode_ps_data(self->pstr_ps_stereo_dec, frame_size);
       ps_flag = 1;
       self->ps_present = ps_flag;
     }

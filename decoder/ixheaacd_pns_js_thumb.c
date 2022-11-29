@@ -113,6 +113,7 @@ VOID ixheaacd_pns_process(
       &ptr_aac_dec_channel_info[channel]->str_pns_info;
   ia_ics_info_struct *ptr_ics_info =
       &ptr_aac_dec_channel_info[channel]->str_ics_info;
+  WORD16 maximum_bins_short = ptr_ics_info->frame_length >> 3;
   WORD32 *ptr_scale_mant_tab =
       ptr_aac_tables->pstr_block_tables->scale_mant_tab;
 
@@ -181,7 +182,10 @@ VOID ixheaacd_pns_process(
           }
         }
 
-        spec += 128;
+        if (maximum_bins_short == 120)
+          spec += maximum_bins_short;
+        else
+          spec += 128;
       }
     }
   }
@@ -252,6 +256,7 @@ VOID ixheaacd_aac_tns_process(
   WORD win, filt, start, stop, size, scale_spec;
   ia_ics_info_struct *ptr_ics_info = &ptr_aac_dec_channel_info->str_ics_info;
   WORD num_window, tns_max_bands, win_seq;
+  WORD16 maximum_bins_short = ptr_ics_info->frame_length >> 3;
   WORD position;
 
   WORD32 parcor_coef[MAX_ORDER + 1];
@@ -261,6 +266,8 @@ VOID ixheaacd_aac_tns_process(
   WORD16 lpc_coef_16[MAX_ORDER + 1];
 
   const WORD16 *ptr_sfb_table;
+
+  WORD16 max_bin_long = ptr_ics_info->frame_length;
 
   win_seq = ptr_ics_info->window_sequence == 0
                 ? 0
@@ -348,16 +355,36 @@ VOID ixheaacd_aac_tns_process(
       }
 
       {
-        WORD32 *ptr_tmp = spec + (win << 7) + start;
+        WORD32 *ptr_tmp;
+
+        if (maximum_bins_short == 120)
+          ptr_tmp = spec + (win * maximum_bins_short) + start;
+        else
+          ptr_tmp = spec + (win << 7) + start;
+
         scale_spec = (*ixheaacd_calc_max_spectral_line)(ptr_tmp, size);
       }
 
       if (filter->direction == -1) {
         position = stop - 1;
-        if (((win << 7) + position) < filter->order) continue;
+
+        if (maximum_bins_short == 120)
+        {
+          if (((win * maximum_bins_short) + position) < filter->order) continue;
+        }
+        else
+        {
+          if (((win << 7) + position) < filter->order) continue;
+        }
+
       } else {
         position = start;
-        if ((((win << 7) + position) + filter->order) > MAX_BINS_LONG) continue;
+        if (maximum_bins_short == 120) {
+          if ((((win * maximum_bins_short) + position) + filter->order) > max_bin_long)
+            continue;
+        } else {
+          if ((((win << 7) + position) + filter->order) > MAX_BINS_LONG) continue;
+        }
       }
 
       if ((num_ch <= 2) &&
@@ -378,28 +405,52 @@ VOID ixheaacd_aac_tns_process(
         if ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_AAC_LTP) ||
             (num_ch > 2)) {
           if (ar_flag)
-            (*ixheaacd_tns_ar_filter_fixed)(&spec[(win << 7) + position], size,
-                                            filter->direction,
-                                            (WORD32 *)lpc_coef, filter->order,
-                                            (WORD32)scale_lpc, scale_spec);
-          else
-            ixheaacd_tns_ma_filter_fixed_ld(&spec[(win << 7) + position], size,
-                                            filter->direction, lpc_coef,
-                                            filter->order, scale_lpc);
-
+          {
+            if (maximum_bins_short == 120) {
+              (*ixheaacd_tns_ar_filter_fixed)(&spec[(win * maximum_bins_short) + position],
+                                              size, filter->direction,
+                                              (WORD32 *)lpc_coef, filter->order,
+                                              (WORD32)scale_lpc, scale_spec);
+            } else {
+              (*ixheaacd_tns_ar_filter_fixed)(&spec[(win << 7) + position], size,
+                                              filter->direction,
+                                              (WORD32 *)lpc_coef, filter->order,
+                                              (WORD32)scale_lpc, scale_spec);
+            }
+          } else {
+            if (maximum_bins_short == 120) {
+              ixheaacd_tns_ma_filter_fixed_ld(&spec[(win * maximum_bins_short) + position],
+                                              size, filter->direction, lpc_coef,
+                                              filter->order, scale_lpc);
+            } else {
+              ixheaacd_tns_ma_filter_fixed_ld(&spec[(win << 7) + position], size,
+                                              filter->direction, lpc_coef,
+                                              filter->order, scale_lpc);
+            }
+          }
         } else {
           if (object_type == AOT_ER_AAC_ELD) scale_spec = scale_spec - 1;
-
-          (*ixheaacd_tns_ar_filter)(&spec[(win << 7) + position], size,
-                                    filter->direction, lpc_coef_16,
-                                    filter->order, (WORD32)scale_lpc,
-                                    scale_spec, scratch_buf);
+          if (maximum_bins_short == 120) {
+            (*ixheaacd_tns_ar_filter)(&spec[(win * maximum_bins_short) + position], size,
+                                      filter->direction, lpc_coef_16,
+                                      filter->order, (WORD32)scale_lpc,
+                                      scale_spec, scratch_buf);
+          } else {
+            (*ixheaacd_tns_ar_filter)(&spec[(win << 7) + position], size,
+                                      filter->direction, lpc_coef_16,
+                                      filter->order, (WORD32)scale_lpc,
+                                      scale_spec, scratch_buf);
+          }
         }
-
       }
 
       else {
-        WORD32 *ptr_tmp = spec + (win << 7) + start;
+        WORD32 *ptr_tmp;
+
+        if (maximum_bins_short == 120)
+          ptr_tmp = spec + (win * maximum_bins_short) + start;
+        else
+          ptr_tmp = spec + (win >> 7) + start;
 
         scale_spec = -scale_spec;
         scale_spec = ixheaacd_min32(scale_spec, 31);
@@ -411,25 +462,47 @@ VOID ixheaacd_aac_tns_process(
 
         if ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_AAC_LTP) ||
             num_ch > 2) {
-          if (ar_flag)
-            (*ixheaacd_tns_ar_filter_fixed)(
-                &spec[(win << 7) + position], size, filter->direction,
-                (WORD32 *)lpc_coef, filter->order, scale_lpc, 0);
-
-          else
-            ixheaacd_tns_ma_filter_fixed_ld(&spec[(win << 7) + position], size,
-                                            filter->direction, lpc_coef,
-                                            filter->order, scale_lpc);
+          if (ar_flag) {
+            if (maximum_bins_short == 120) {
+              (*ixheaacd_tns_ar_filter_fixed)(
+                  &spec[(win * maximum_bins_short) + position], size, filter->direction,
+                  (WORD32 *)lpc_coef, filter->order, scale_lpc, 0);
+            } else {
+              (*ixheaacd_tns_ar_filter_fixed)(
+                  &spec[(win << 7) + position], size, filter->direction,
+                  (WORD32 *)lpc_coef, filter->order, scale_lpc, 0);
+            }
+          } else {
+            if (maximum_bins_short == 120) {
+              ixheaacd_tns_ma_filter_fixed_ld(&spec[(win * maximum_bins_short) + position],
+                                              size, filter->direction, lpc_coef,
+                                              filter->order, scale_lpc);
+            } else {
+              ixheaacd_tns_ma_filter_fixed_ld(&spec[(win << 7) + position], size,
+                                              filter->direction, lpc_coef,
+                                              filter->order, scale_lpc);
+            }
+          }
         } else {
           if (object_type == AOT_ER_AAC_ELD) {
             scale_lpc = scale_lpc - 1;
           }
-          (*ixheaacd_tns_ar_filter)(&spec[(win << 7) + position], size,
-                                    filter->direction, lpc_coef_16,
-                                    filter->order, scale_lpc, 0, scratch_buf);
+
+          if (maximum_bins_short == 120) {
+            (*ixheaacd_tns_ar_filter)(&spec[(win * maximum_bins_short) + position], size,
+                                      filter->direction, lpc_coef_16,
+                                      filter->order, scale_lpc, 0, scratch_buf);
+          } else {
+            (*ixheaacd_tns_ar_filter)(&spec[(win << 7) + position], size,
+                                      filter->direction, lpc_coef_16,
+                                      filter->order, scale_lpc, 0, scratch_buf);
+          }
         }
 
-        ptr_tmp = spec + (win << 7) + start;
+        if (maximum_bins_short == 120)
+          ptr_tmp = spec + (win * maximum_bins_short) + start;
+        else
+          ptr_tmp = spec + (win << 7) + start;
 
         for (i = size; i != 0; i--) {
           *ptr_tmp = (*ptr_tmp << scale_spec);

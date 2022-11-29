@@ -68,11 +68,11 @@
 WORD32 (*ixheaacd_fix_div)(WORD32, WORD32) = &ixheaacd_fix_div_armv7;
 
 VOID(*ixheaacd_covariance_matrix_calc)
-(WORD32 *, ixheaacd_lpp_trans_cov_matrix *,
+(WORD32 *, ia_lpp_trans_cov_matrix *,
  WORD32) = &ixheaacd_covariance_matrix_calc_armv7;
 
 VOID(*ixheaacd_covariance_matrix_calc_2)
-(ixheaacd_lpp_trans_cov_matrix *, WORD32 *, WORD32,
+(ia_lpp_trans_cov_matrix *, WORD32 *, WORD32,
  WORD16) = &ixheaacd_covariance_matrix_calc_2_armv7;
 
 VOID(*ixheaacd_over_lap_add1)
@@ -232,3 +232,16 @@ VOID(*ixheaacd_scale_factor_process)
 (WORD32 *x_invquant, WORD16 *scale_fact, WORD no_band, WORD8 *width,
  WORD32 *scale_tables_ptr, WORD32 total_channels, WORD32 object_type,
  WORD32 aac_sf_data_resil_flag) = &ixheaacd_scale_factor_process_armv7;
+
+VOID(*ixheaacd_covariance_matrix_calc_960)
+(WORD32 *, ia_lpp_trans_cov_matrix *,
+ WORD32, WORD32) = &ixheaacd_covariance_matrix_calc_dec_960;
+
+VOID(*ixheaacd_aac_ld_dec_rearrange_960)
+(WORD32 *ip, WORD32 *op, WORD32 mdct_len_2,
+ WORD16 *re_arr_tab) = &ixheaacd_dec_rearrange_short;
+
+VOID(*ixheaacd_pretwiddle_compute_960)
+(WORD32 *spec_data1, WORD32 *spec_data2, WORD32 *out_ptr,
+ ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints4,
+ WORD32 neg_expo) = &ixheaacd_pretwiddle_compute_960_dec;

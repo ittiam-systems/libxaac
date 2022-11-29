@@ -42,6 +42,9 @@
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
 
+#define Q28_FLOAT_VAL ((float)(1 << 28))
+#define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
+
 VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
     ia_mps_dec_state_struct *self) {
   WORD32 smooth_band;
@@ -166,8 +169,6 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
 
     for (pb = 0; pb < self->bs_param_bands; pb++) {
       WORD32 ltemp, rtemp, tmp;
-#define Q28_FLOAT_VAL ((float)(1 << 28))
-#define ONE_BY_Q28_FLOAT_VAL (1.0 / Q28_FLOAT_VAL)
       ltemp = ((WORD32)(self->phase_l[ps][pb] * Q28_FLOAT_VAL)) >> 1;
       rtemp = ((WORD32)(self->phase_r[ps][pb] * Q28_FLOAT_VAL)) >> 1;
 
@@ -209,10 +210,7 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
         self->opd_smooth.smooth_r_phase[pb] -= 2 * PI_IN_Q27;
       while (self->opd_smooth.smooth_r_phase[pb] < 0)
         self->opd_smooth.smooth_r_phase[pb] += 2 * PI_IN_Q27;
-#define Q28_FLOAT_VAL ((float)(1 << 28))
-#ifndef ONE_BY_Q28_FLOAT_VAL
-#define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
-#endif
+
       self->phase_l[ps][pb] =
           (self->opd_smooth.smooth_l_phase[pb] << 1) * ONE_BY_Q28_FLOAT_VAL;
       self->phase_r[ps][pb] =

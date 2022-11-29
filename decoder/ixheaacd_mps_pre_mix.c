@@ -64,6 +64,9 @@
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880
 
+#define Q28_FLOAT_VAL ((FLOAT32)(1 << 28))
+#define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
+
 extern const WORD32 ixheaacd_atan_table_Q28[16][8][31];
 extern const WORD32 ixheaacd_ipd_de_quant_table_q28[16];
 
@@ -270,8 +273,6 @@ VOID ixheaacd_mps_par2umx_ps_ipd_opd(ia_mps_dec_state_struct *self,
       WORD32 ipd_idx = curr_bit_stream->ipd_idx[param_set_idx][band] & 15;
       WORD32 ipd = ixheaacd_ipd_de_quant_table_q28[ipd_idx];
 
-#define Q28_FLOAT_VAL ((float)(1 << 28))
-#define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
       self->phase_l[param_set_idx][band] =
           ixheaacd_mps_phase_wraping(opd[band]) * ONE_BY_Q28_FLOAT_VAL;
       self->phase_r[param_set_idx][band] =
@@ -428,7 +429,7 @@ WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self) {
     return err;
 
   if (complex_m2 && !phase_interpolation) {
-      err = ixheaacd_mps_upmix_interp(self->m2_decor_im, self->r_out_diff_im_in_m2,
+    err = ixheaacd_mps_upmix_interp(self->m2_decor_im, self->r_out_diff_im_in_m2,
                               self->m2_decor_im_prev, self->out_ch_count,
                               (self->dir_sig_count + self->decor_sig_count),
                               self, 1);

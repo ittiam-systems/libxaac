@@ -149,7 +149,7 @@ WORD32 ixheaacd_pvc_time_freq_grid_info(
 WORD16 ixheaacd_sbr_time_freq_grid_info(
     ia_bit_buf_struct *it_bit_buff,
     ia_sbr_frame_info_data_struct *ptr_frame_data,
-    ia_env_extr_tables_struct *env_extr_tables_ptr);
+    ia_env_extr_tables_struct *env_extr_tables_ptr, WORD16 number_of_timeslots);
 
 WORD16 ixheaacd_read_sbr_env_data(
     ia_sbr_header_data_struct *ptr_header_data,

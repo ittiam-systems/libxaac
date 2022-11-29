@@ -183,23 +183,43 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
     pstr_imdct_tables = aac_dec_handle->pstr_aac_tables->pstr_imdct_tables;
 
-    aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[0] =
-        pstr_imdct_tables->only_long_window_sine;
-    aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[0] =
-        pstr_imdct_tables->only_short_window_sine;
-    aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[1] =
-        pstr_imdct_tables->only_long_window_kbd;
-    aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[1] =
-        pstr_imdct_tables->only_short_window_kbd;
+    if (960 != frame_length) {
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[0] =
+          pstr_imdct_tables->only_long_window_sine;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[0] =
+          pstr_imdct_tables->only_short_window_sine;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[1] =
+          pstr_imdct_tables->only_long_window_kbd;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[1] =
+          pstr_imdct_tables->only_short_window_kbd;
 
-    aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[0] =
-        pstr_imdct_tables->only_long_window_sine;
-    aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[0] =
-        pstr_imdct_tables->only_short_window_sine;
-    aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[1] =
-        pstr_imdct_tables->only_long_window_kbd;
-    aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[1] =
-        pstr_imdct_tables->only_short_window_kbd;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[0] =
+          pstr_imdct_tables->only_long_window_sine;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[0] =
+          pstr_imdct_tables->only_short_window_sine;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[1] =
+          pstr_imdct_tables->only_long_window_kbd;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[1] =
+          pstr_imdct_tables->only_short_window_kbd;
+    } else {
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[0] =
+          pstr_imdct_tables->only_long_window_sine_960;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[0] =
+          pstr_imdct_tables->only_short_window_sine_120;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_long_window[1] =
+          pstr_imdct_tables->only_long_window_kbd_960;
+      aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_short_window[1] =
+          pstr_imdct_tables->only_short_window_kbd_120;
+
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[0] =
+          pstr_imdct_tables->only_long_window_sine_960;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[0] =
+          pstr_imdct_tables->only_short_window_sine_120;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_long_window[1] =
+          pstr_imdct_tables->only_long_window_kbd_960;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ptr_short_window[1] =
+          pstr_imdct_tables->only_short_window_kbd_120;
+    }
 
     if (object_type == AOT_ER_AAC_ELD || object_type == AOT_ER_AAC_LD ||
         object_type == AOT_AAC_LTP) {
@@ -642,6 +662,9 @@ WORD32 ixheaacd_aacdec_decodeframe(
                     object_type, pstr_aac_dec_ch_info->common_window,
                     aac_dec_handle->samples_per_frame);
                 if (error_code) {
+                  aac_dec_handle->pstr_aac_dec_ch_info[RIGHT]->str_ics_info =
+                      aac_dec_handle->pstr_aac_dec_ch_info[LEFT]->str_ics_info;
+
                   if (it_bit_buff->cnt_bits < 0) {
                     error_code = (WORD16)(
                         (WORD32)

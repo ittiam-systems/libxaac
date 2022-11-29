@@ -57,10 +57,15 @@
 
 extern WORD32 (*ixheaacd_fix_div)(WORD32, WORD32);
 extern VOID (*ixheaacd_covariance_matrix_calc)(WORD32 *,
-                                               ixheaacd_lpp_trans_cov_matrix *,
-                                               WORD32);
+                                               ia_lpp_trans_cov_matrix *,
+                                               WORD32, WORD32);
+
+extern VOID(*ixheaacd_covariance_matrix_calc_960)(WORD32 *,
+                                                  ia_lpp_trans_cov_matrix *,
+                                                  WORD32, WORD32);
+
 extern VOID (*ixheaacd_covariance_matrix_calc_2)(
-    ixheaacd_lpp_trans_cov_matrix *, WORD32 *, WORD32, WORD16);
+    ia_lpp_trans_cov_matrix *, WORD32 *, WORD32, WORD16);
 extern VOID (*ixheaacd_over_lap_add1)(WORD32 *, WORD32 *, WORD32 *,
                                       const WORD16 *, WORD16, WORD16, WORD16);
 extern VOID (*ixheaacd_over_lap_add2)(WORD32 *, WORD32 *, WORD32 *,
@@ -132,11 +137,15 @@ extern VOID (*ixheaacd_overlap_buf_out)(WORD32 *, WORD32 *, WORD32,
                                         const WORD16);
 
 extern VOID (*ixheaacd_overlap_out_copy)(WORD32 *, WORD32 *, WORD32 *,
-                                         const WORD16);
+                                         const WORD16, WORD16);
 
 extern VOID (*ixheaacd_pretwiddle_compute)(WORD32 *, WORD32 *, WORD32 *,
                                            ia_aac_dec_imdct_tables_struct *,
                                            WORD, WORD32);
+
+extern VOID(*ixheaacd_pretwiddle_compute_960)(WORD32 *, WORD32 *, WORD32 *,
+                                              ia_aac_dec_imdct_tables_struct *,
+                                              WORD, WORD32);
 
 extern VOID (*ixheaacd_imdct_using_fft)(ia_aac_dec_imdct_tables_struct *,
                                         WORD32, WORD32 *, WORD32 *);
@@ -161,15 +170,26 @@ extern VOID (*ixheaacd_mps_synt_out_calc)(WORD32 resolution, FLOAT32 *out,
 extern VOID (*ixheaacd_fft_15_ld)(WORD32 *inp, WORD32 *op, WORD32 *fft3out,
                                   UWORD8 *re_arr_tab_sml_240_ptr);
 
+extern VOID(*ixheaacd_fft_15_960_dec)(WORD32 *inp, WORD32 *op, WORD32 *fft3out,
+                                      UWORD8 *re_arr_tab_sml_480_ptr);
+
 extern VOID (*ixheaacd_aac_ld_dec_rearrange)(WORD32 *ip, WORD32 *op,
                                              WORD32 mdct_len_2,
                                              UWORD8 *re_arr_tab);
+
+extern VOID(*ixheaacd_aac_ld_dec_rearrange_960)(WORD32 *ip, WORD32 *op,
+                                                WORD32 mdct_len_2,
+                                                WORD16 *re_arr_tab);
 
 extern VOID (*ixheaacd_fft32x32_ld)(
     ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 npoints,
     WORD32 *ptr_x, WORD32 *ptr_y);
 
 extern VOID (*ixheaacd_fft32x32_ld2)(
+    ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 npoints,
+    WORD32 *ptr_x, WORD32 *ptr_y);
+
+extern VOID(*ixheaacd_fft32_points_960)(
     ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 npoints,
     WORD32 *ptr_x, WORD32 *ptr_y);
 

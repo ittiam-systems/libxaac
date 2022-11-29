@@ -1008,7 +1008,7 @@ VOID ixheaacd_cplx_synt_qmffilt(
 
         ixheaacd_apply_ps(ptr_ps_dec, &qmf_real[i], &qmf_imag[i], qmf_real_tmp,
                           qmf_imag_tmp, sbr_scale_factor, (WORD16)i,
-                          sbr_tables_ptr);
+                          sbr_tables_ptr, num_time_slots);
       }
       if (1 == drc_on) {
         WORD32 loop_val;

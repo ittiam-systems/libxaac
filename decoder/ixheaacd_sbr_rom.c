@@ -1972,6 +1972,34 @@ const ia_env_extr_tables_struct ixheaacd_aac_dec_env_extr_tables = {
          {1, 1, 1, 1, 1, 1, 1, 1},
          {0, 8, 16}},
 
+        //960 Adding new tables for 960 frame length implementation
+        //const ia_frame_info_struct sbr_frame_info1_16_960 =
+        {0,
+         1,
+         -1,
+         1,
+         {0, 15, 0, 0, 0, 0},
+         {1, 0, 0, 0, 0},
+         {0, 15, 0}},
+
+        //const ia_frame_info_struct sbr_frame_info2_16_960 =
+        {0,
+         2,
+         -1,
+         2,
+         {0, 8, 15, 0, 0, 0},
+         {1, 1, 0, 0, 0},
+         {0, 8, 15}},
+
+        //const ia_frame_info_struct sbr_frame_info4_16_960 =
+        {0,
+         4,
+         -1,
+         2,
+         {0, 4, 8, 12, 15},
+         {1, 1, 1, 1},
+         {0, 8, 15}},
+
     },
 
     // const ia_sbr_header_data_struct sbr_default_header =

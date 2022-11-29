@@ -34,7 +34,7 @@ typedef struct {
   WORD32 phi_02_im;
   WORD32 phi_12_im;
   WORD32 d;
-} ixheaacd_lpp_trans_cov_matrix;
+} ia_lpp_trans_cov_matrix;
 
 typedef struct {
   WORD16 src_start_band;
@@ -88,19 +88,23 @@ struct ixheaacd_lpp_trans_patch {
 };
 
 VOID ixheaacd_covariance_matrix_calc_dec(
-    WORD32 *sub_sign_xlow, ixheaacd_lpp_trans_cov_matrix *cov_matrix,
-    WORD32 count);
+    WORD32 *sub_sign_xlow, ia_lpp_trans_cov_matrix *cov_matrix,
+    WORD32 count, WORD32 auto_corr_length);
+
+VOID ixheaacd_covariance_matrix_calc_dec_960(
+    WORD32 *sub_sign_xlow, ia_lpp_trans_cov_matrix *cov_matrix,
+    WORD32 count, WORD32 auto_corr_length);
 
 VOID ixheaacd_covariance_matrix_calc_armv7(
-    WORD32 *sub_sign_xlow, ixheaacd_lpp_trans_cov_matrix *cov_matrix,
+    WORD32 *sub_sign_xlow, ia_lpp_trans_cov_matrix *cov_matrix,
     WORD32 count);
 
 VOID ixheaacd_covariance_matrix_calc_2_dec(
-    ixheaacd_lpp_trans_cov_matrix *cov_matrix, WORD32 *real_buffer,
+    ia_lpp_trans_cov_matrix *cov_matrix, WORD32 *real_buffer,
     WORD32 ixheaacd_num_bands, WORD16 slots);
 
 VOID ixheaacd_covariance_matrix_calc_2_armv7(
-    ixheaacd_lpp_trans_cov_matrix *cov_matrix, WORD32 *real_buffer,
+    ia_lpp_trans_cov_matrix *cov_matrix, WORD32 *real_buffer,
     WORD32 ixheaacd_num_bands, WORD16 slots);
 
 #endif /* IXHEAACD_LPP_TRAN_H */

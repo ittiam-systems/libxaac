@@ -101,7 +101,7 @@ typedef struct {
 extern const ia_qmf_dec_tables_struct ixheaacd_aac_qmf_dec_tables;
 
 typedef struct {
-  ia_frame_info_struct sbr_frame_info1_2_4_16[3 + 1];
+  ia_frame_info_struct sbr_frame_info1_2_4_16[3 + 1 + 3];
 
   ia_sbr_header_data_struct str_sbr_default_header;
   WORD16 ixheaacd_t_huffman_env_bal_1_5db_inp_table[50];

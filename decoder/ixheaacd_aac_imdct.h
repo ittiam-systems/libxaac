@@ -25,6 +25,11 @@ WORD32 ixheaacd_inverse_transform(
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD32 expo,
     WORD32 npoints);
 
+VOID ixheaacd_inverse_transform_960(
+    WORD32 spec_data[], WORD32 scratch[],
+    ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD32 expo,
+    WORD32 *imdct_scale);
+
 VOID ixheaacd_post_twiddle_dec(WORD32 out_ptr[], WORD32 spec_data[],
                                ia_aac_dec_imdct_tables_struct *ptr_imdct_tables,
                                WORD32 npoints);
@@ -60,6 +65,11 @@ VOID ixheaacd_pretwiddle_compute_dec(
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints4,
     WORD32 neg_expo);
 
+VOID ixheaacd_pretwiddle_compute_960_dec(
+    WORD32 *spec_data1, WORD32 *spec_data2, WORD32 *out_ptr,
+    ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints4,
+    WORD32 neg_expo);
+
 VOID ixheaacd_pretwiddle_compute_armv7(
     WORD32 *spec_data1, WORD32 *spec_data2, WORD32 *out_ptr,
     ia_aac_dec_imdct_tables_struct *ptr_imdct_tables, WORD npoints4,
@@ -85,11 +95,45 @@ VOID ixheaacd_imdct_using_fft_armv8(
 VOID ixheaacd_fft_480_ld(WORD32 *inp, WORD32 *op,
                          ia_aac_dec_imdct_tables_struct *imdct_tables_ptr);
 
+VOID ixheaacd_fft_5(WORD32 *inp, WORD32 *op);
+
+VOID ixheaacd_fft_3(WORD32 *inp, WORD32 *op);
+
+VOID ixheaacd_fft_960_15(WORD32 *inp, WORD32 *op,
+                         ia_aac_dec_imdct_tables_struct *imdct_tables_ptr);
+
+VOID ixheaacd_fft_960(WORD32 *inp, WORD32 *op,
+                      ia_aac_dec_imdct_tables_struct *imdct_tables_ptr);
+
+VOID ixheaacd_fft_120(ia_aac_dec_imdct_tables_struct *imdct_tables_ptr,
+                      WORD32 npoints, WORD32* ptr_x, WORD32* ptr_y);
+
+VOID ixheaacd_fft_32_points(WORD16 *ptr_w, WORD32 npoints,
+                            WORD32* ptr_x, WORD32* ptr_y);
+
+VOID ixheaacd_ld_dec_fft_15_opt(WORD32 *inp, WORD32 *op, WORD32 *fft3out,
+                                WORD16 *re_arr_tab_sml_240_ptr);
+
+VOID ixheaacd_dec_rearrange_short(WORD32 *ip, WORD32 *op, WORD32 n,
+                                  WORD16 *re_arr_tab);
+
 VOID ixheaacd_pre_twiddle(WORD32 *xptr, WORD32 *data, WORD32 n,
                           WORD32 *cos_array_ptr, WORD32 neg_expo);
 
+VOID ixheaacd_pre_twiddle_960(WORD32 *xptr, WORD32 *data, WORD32 n,
+                              WORD32 *cos_array_ptr, WORD32 neg_expo);
+
+VOID ixheaacd_pre_twiddle_120(WORD32 *xptr, WORD32 *data, WORD32 n,
+                              WORD16 *cos_array_ptr, WORD32 neg_expo);
+
 VOID ixheaacd_post_twiddle_ld(WORD32 out[], WORD32 x[],
                               const WORD32 *cos_sin_ptr, WORD m);
+
+VOID ixheaacd_post_twiddle_960(WORD32 out[], WORD32 x[],
+                               const WORD32 *cos_sin_ptr, WORD m);
+
+VOID ixheaacd_post_twiddle_120(WORD32 out[], WORD32 x[],
+                               const WORD16 *cos_sin_ptr, WORD m);
 
 VOID ixheaacd_post_twiddle_eld(WORD32 out[], WORD32 x[],
                                const WORD32 *cos_sin_ptr, WORD m);
@@ -124,6 +168,10 @@ VOID ixheaacd_fft_15_ld_armv7(WORD32 *inp, WORD32 *op, WORD32 *fft3out,
 VOID ixheaacd_inverse_transform_512(
     WORD32 data[], WORD32 temp[], WORD32 *imdct_scale, WORD32 *cos_sin_ptr,
     ia_aac_dec_imdct_tables_struct *imdct_tables_ptr, WORD32 object_type);
+
+VOID ixheaacd_mdct_960(WORD32 *inp, WORD32 *scratch, WORD32 *mdct_scale,
+                       WORD32 mdct_flag,
+                       ia_aac_dec_imdct_tables_struct *imdct_tables_ptr);
 
 VOID ixheaacd_mdct_480_ld(WORD32 *inp, WORD32 *scratch, WORD32 *mdct_scale,
                           WORD32 mdct_flag,

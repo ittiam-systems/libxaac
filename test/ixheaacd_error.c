@@ -36,12 +36,7 @@
 pWORD8 ixheaacd_ppb_api_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "No Error",
     (pWORD8) "API Command not supported",
-    (pWORD8) "API Command type not supported",
-    (pWORD8) "DRC Unexpected Error",
-    (pWORD8) "DRC Param Error",
-    (pWORD8) "DRC External Error",
-    (pWORD8) "DRC Errorhandling",
-    (pWORD8) "DRC Bitstream Error"};
+    (pWORD8) "API Command type not supported"};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_api_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Memory Table Index",
@@ -59,8 +54,6 @@ pWORD8 ixheaacd_ppb_api_fatal[IA_MAX_ERROR_SUB_CODE] = {
 pWORD8 ixheaacd_ppb_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Output PCM WORD Size. Setting to default, 16 ",
     (pWORD8) "Invalid Down-mix flag option. Setting to default, 0 ",
-    (pWORD8) "Invalid 8 khz output flag option. Setting to default, 0 ",
-    (pWORD8) "Invalid 16 khz output flag option. Setting to default, 0 ",
     (pWORD8) "Invalid interleave to stereo flag option. Setting to default, 1 ",
     (pWORD8) "Invalid downsample flag option. Setting to default, 0 ",
     (pWORD8) "Invalid Frame OK option. Setting to default, 1 ",
@@ -76,13 +69,16 @@ pWORD8 ixheaacd_ppb_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid DRC boost value",
     (pWORD8) "Invalid DRC target",
     (pWORD8) "Invalid Frame size",
+    (pWORD8) "Invalid LD testing flag option. Setting to default 0",
     (pWORD8) "Invalid delay mode",
     (pWORD8) "Invalid decode type",
     (pWORD8) "Invalid peak limiter flag",
     (pWORD8) "Invalid control param index",
     (pWORD8) "Inalid gain delay",
     (pWORD8) "Invalid constant delay mode",
-    (pWORD8) "Invalid effect type"};
+    (pWORD8) "Invalid effect type",
+    (pWORD8) "Invalid target loudness value",
+    (pWORD8) "Invalid frame length flag option. Setting to default 0"};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Sample rate specified for RAW decoding"};

@@ -1405,7 +1405,7 @@ WORD32 ixheaacd_mps_header_decode(ia_mps_dec_state_struct *self) {
             ixheaacd_hybrid_band_71_to_processing_band_7_map;
         break;
       case 10:
-          self->hyb_band_to_processing_band_table =
+        self->hyb_band_to_processing_band_table =
             ixheaacd_hybrid_band_71_to_processing_band_10_map;
         break;
       case 14:

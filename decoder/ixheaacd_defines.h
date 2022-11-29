@@ -42,21 +42,7 @@
 #define CHANNELS 2
 
 #define SIZE01 (MAX_BINS_LONG / 16)
-#define SIZE02 2 * SIZE01
-#define SIZE03 3 * SIZE01
-#define SIZE04 4 * SIZE01
-#define SIZE05 5 * SIZE01
-#define SIZE06 6 * SIZE01
 #define SIZE07 7 * SIZE01
-#define SIZE08 8 * SIZE01
-#define SIZE09 9 * SIZE01
-#define SIZE10 10 * SIZE01
-#define SIZE11 11 * SIZE01
-#define SIZE12 12 * SIZE01
-#define SIZE13 13 * SIZE01
-#define SIZE14 14 * SIZE01
-#define SIZE15 15 * SIZE01
-#define SIZE16 16 * SIZE01
 
 typedef struct { WORD32 sampling_frequency; } ia_sampling_rate_info_struct;
 

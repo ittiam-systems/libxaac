@@ -590,6 +590,13 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 
   FLOAT32 *pvc_qmf_enrg_arr = (FLOAT32 *)ptr_sbr_dec->pvc_qmf_enrg_arr;
 
+  WORD32 esbr_hbe_delay_offsets;
+
+  if (ptr_header_data->num_time_slots == 15)
+    esbr_hbe_delay_offsets = ESBR_HBE_DELAY_OFFSET_960;
+  else
+    esbr_hbe_delay_offsets = ESBR_HBE_DELAY_OFFSET;
+
   memset(pvc_dec_out_buf, 0, 1024 * sizeof(FLOAT32));
   memset(pvc_qmf_enrg_arr, 0, 512 * sizeof(FLOAT32));
   if (audio_object_type == AOT_ER_AAC_ELD) {
@@ -615,9 +622,16 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     WORD32 *ptr_pers_qmf_real = ptr_sbr_dec->ptr_sbr_overlap_buf;
     WORD32 *p_scr_qmf_real = ptr_work_buf_core + (2 << (6 + !low_pow_flag));
 
-    if ((no_bins < LPC_ORDER) ||
-        ((no_bins + op_delay + add_slot) > MAX_ENV_COLS))
-      return -1;
+    if (ptr_header_data->num_time_slots != 15)
+    {
+      if ((no_bins < LPC_ORDER) || ((no_bins + op_delay) > MAX_ENV_COLS))
+        return -1;
+    }
+    else
+    {
+      if ((no_bins < LPC_ORDER) || ((no_bins + op_delay) > MAX_ENV_COLS_960))
+        return -1;
+    }
 
     if (!low_pow_flag) {
       num = num << 1;
@@ -654,14 +668,21 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
     if (hbe_flag) {
-      codec_x_delay = ESBR_HBE_DELAY_OFFSET;
+      codec_x_delay = esbr_hbe_delay_offsets;
     }
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       codec_x_delay = 2 * codec_x_delay;
     }
     /* fixed decoder delay for bitstreams with SBR 4:1 and stereoConfigIndex 3
      */
-    if (mps_sbr_flag) op_delay = MPS_SBR_DELAY;
+    if (ptr_header_data->num_time_slots != 15)
+    {
+      if (mps_sbr_flag) op_delay = MPS_SBR_DELAY;
+    }
+    else
+    {
+      if (mps_sbr_flag) op_delay = MPS_SBR_DELAY_960;
+    }
 
     frame_move = 9 * num_anal_bands;
 
@@ -712,9 +733,9 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
       err_code = ixheaacd_qmf_hbe_apply(
           ptr_sbr_dec->p_hbe_txposer,
           ptr_sbr_dec->qmf_buf_real + (op_delay + SBR_HF_ADJ_OFFSET) +
-              ESBR_HBE_DELAY_OFFSET,
+          esbr_hbe_delay_offsets,
           ptr_sbr_dec->qmf_buf_imag + (op_delay + SBR_HF_ADJ_OFFSET) +
-              ESBR_HBE_DELAY_OFFSET,
+          esbr_hbe_delay_offsets,
           ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
           ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),

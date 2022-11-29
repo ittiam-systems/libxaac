@@ -111,7 +111,7 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
       tmp = 0.0f;
       for (j = 0; j < num_channels; j++) {
         FLOAT32 gain_t = (FLOAT32)(1 << *(qshift_adj + j));
-        tmp = MAX(tmp, fabs((samples[i * num_channels + j] * gain_t)));
+        tmp = (FLOAT32)MAX(tmp, fabs((samples[i * num_channels + j] * gain_t)));
       }
       max_buf[peak_limiter->cir_buf_pnt] = tmp;
 
@@ -167,14 +167,14 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
 
         tmp *= gain;
 
-        tmp_fix = tmp;
+        tmp_fix = (WORD64)tmp;
 
         if (tmp_fix > limit_threshold)
           tmp_fix = limit_threshold;
         else if (tmp_fix < -limit_threshold)
           tmp_fix = -limit_threshold;
 
-        samples[i * num_channels + j] = tmp_fix;
+        samples[i * num_channels + j] = (WORD32)tmp_fix;
       }
 
       delayed_input_index++;
@@ -189,7 +189,7 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
         FLOAT32 gain_t = (FLOAT32)(1 << *(qshift_adj + j));
         delayed_input[delayed_input_index * num_channels + j] =
             samples[i * num_channels + j] * gain_t;
-        samples[i * num_channels + j] = tmp;
+        samples[i * num_channels + j] = (WORD32)tmp;
       }
 
       delayed_input_index++;

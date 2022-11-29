@@ -689,7 +689,11 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
   }
 
   if (ptr_ps_dec->enable_ext) {
-    WORD32 cnt = ixheaacd_read_bits_buf(it_bit_buff, 4);
+    WORD32 cnt;
+    if (it_bit_buff->cnt_bits < 4)
+      cnt = ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+    else
+      cnt = ixheaacd_read_bits_buf(it_bit_buff, 4);
 
     if (cnt == 15) {
       cnt += ixheaacd_read_bits_buf(it_bit_buff, 8);

@@ -74,6 +74,9 @@
 
 #define LPC_SCALE_FACTOR 2
 
+#define AUTO_CORR_LEN_1024 38
+#define AUTO_CORR_LEN_960  36
+
 #define SHIFT 5
 
 static PLATFORM_INLINE WORD32 ixheaacd_mult32x16hin32(WORD32 a, WORD32 b) {
@@ -171,17 +174,17 @@ VOID ixheaacd_filterstep3(WORD16 a0r, WORD16 a0i, WORD16 a1r, WORD16 a1i,
   }
 }
 
-VOID ixheaacd_covariance_matrix_calc_dec(
-    WORD32 *sub_sign_xlow, ixheaacd_lpp_trans_cov_matrix *cov_matrix,
-    WORD32 count) {
+VOID ixheaacd_covariance_matrix_calc_dec_960(
+    WORD32 *sub_sign_xlow, ia_lpp_trans_cov_matrix *cov_matrix,
+    WORD32 count, WORD32 len) {
   WORD32 j, k;
   WORD32 ixheaacd_drc_offset = 2;
-  WORD32 len = 38;
   WORD32 factor;
   WORD32 max_val, q_factor;
   WORD32 temp1, temp2, temp3, temp4;
   WORD32 *temp_buf_ptr = sub_sign_xlow;
 
+  temp3 = 0;
   for (k = count; k > 0; k--) {
     WORD32 t_phi_01 = 0, t_phi_02 = 0, t_phi_11 = 0;
     WORD32 t_phi_12 = 0, t_phi_22 = 0;
@@ -196,7 +199,7 @@ VOID ixheaacd_covariance_matrix_calc_dec(
     temp2 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
     sub_sign_xlow += 64;
 
-    for (; (j = j + 3) < ixheaacd_drc_offset + len;) {
+    for (; (j = j + 3) <= ixheaacd_drc_offset + len;) {
       temp3 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
       sub_sign_xlow += 64;
 
@@ -219,19 +222,128 @@ VOID ixheaacd_covariance_matrix_calc_dec(
       t_phi_11 += ixheaacd_mult32x16hin32(temp1, temp1);
     }
 
-    temp3 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
-    sub_sign_xlow += 64;
+    if (AUTO_CORR_LEN_1024 == len) {
+      temp3 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
 
-    t_phi_01 += ixheaacd_mult32x16hin32(temp3, temp2);
-    t_phi_02 += ixheaacd_mult32x16hin32(temp3, temp1);
-    t_phi_11 += ixheaacd_mult32x16hin32(temp2, temp2);
+      t_phi_01 += ixheaacd_mult32x16hin32(temp3, temp2);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp3, temp1);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp2, temp2);
+
+      temp1 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp1, temp3);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp1, temp2);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp3, temp3);
+    }
+
+    temp2 = ixheaacd_shl32_dir(*temp_buf_ptr, factor);
+    temp4 = ixheaacd_shl32_dir(*(temp_buf_ptr + 64), factor);
+
+    if (AUTO_CORR_LEN_960 == len) {
+      temp3 = ixheaacd_shl32_dir(sub_sign_xlow[-128], factor);
+      temp1 = ixheaacd_shl32_dir(sub_sign_xlow[-64], factor);
+    }
+
+    t_phi_12 = (t_phi_01 - ixheaacd_mult32x16hin32(temp1, temp3) +
+        ixheaacd_mult32x16hin32(temp4, temp2));
+
+    t_phi_22 = (t_phi_11 - ixheaacd_mult32x16hin32(temp3, temp3) +
+        ixheaacd_mult32x16hin32(temp2, temp2));
+
+    max_val = ixheaacd_abs32_nrm(t_phi_01);
+    max_val = max_val | ixheaacd_abs32_nrm(t_phi_02);
+    max_val = max_val | ixheaacd_abs32_nrm(t_phi_12);
+    max_val = max_val | (t_phi_11);
+    max_val = max_val | (t_phi_22);
+
+    q_factor = ixheaacd_pnorm32(max_val);
+
+    cov_matrix->phi_11 = (t_phi_11 << q_factor);
+    cov_matrix->phi_22 = (t_phi_22 << q_factor);
+    cov_matrix->phi_01 = (t_phi_01 << q_factor);
+    cov_matrix->phi_02 = (t_phi_02 << q_factor);
+    cov_matrix->phi_12 = (t_phi_12 << q_factor);
+
+    cov_matrix->d = ixheaacd_sub32_sat(
+        ixheaacd_mult32(cov_matrix->phi_22, cov_matrix->phi_11),
+        ixheaacd_mult32(cov_matrix->phi_12, cov_matrix->phi_12));
+
+    cov_matrix++;
+    temp_buf_ptr++;
+  }
+  return;
+}
+
+VOID ixheaacd_covariance_matrix_calc_dec(
+    WORD32 *sub_sign_xlow, ia_lpp_trans_cov_matrix *cov_matrix,
+    WORD32 count, WORD32 len) {
+  WORD32 j, k;
+  WORD32 ixheaacd_drc_offset = 2;
+  WORD32 factor;
+  WORD32 max_val, q_factor;
+  WORD32 temp1, temp2, temp3, temp4;
+  WORD32 *temp_buf_ptr = sub_sign_xlow;
+
+  for (k = count; k > 0; k--) {
+    WORD32 t_phi_01 = 0, t_phi_02 = 0, t_phi_11 = 0;
+    WORD32 t_phi_12 = 0, t_phi_22 = 0;
+
+    factor = -3;
+    j = ixheaacd_drc_offset;
+    sub_sign_xlow = temp_buf_ptr;
 
     temp1 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
     sub_sign_xlow += 64;
 
-    t_phi_01 += ixheaacd_mult32x16hin32(temp1, temp3);
-    t_phi_02 += ixheaacd_mult32x16hin32(temp1, temp2);
-    t_phi_11 += ixheaacd_mult32x16hin32(temp3, temp3);
+    temp2 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+    sub_sign_xlow += 64;
+
+    for (; (j = j + 3) <= ixheaacd_drc_offset + len;) {
+      temp3 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp3, temp2);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp3, temp1);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp2, temp2);
+
+      temp1 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp1, temp3);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp1, temp2);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp3, temp3);
+
+      temp2 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp2, temp1);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp2, temp3);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp1, temp1);
+    }
+
+    if (AUTO_CORR_LEN_960 != len) {
+      temp3 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp3, temp2);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp3, temp1);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp2, temp2);
+
+      temp1 = ixheaacd_shl32_dir(*sub_sign_xlow, factor);
+      sub_sign_xlow += 64;
+
+      t_phi_01 += ixheaacd_mult32x16hin32(temp1, temp3);
+      t_phi_02 += ixheaacd_mult32x16hin32(temp1, temp2);
+      t_phi_11 += ixheaacd_mult32x16hin32(temp3, temp3);
+    }
+    if (AUTO_CORR_LEN_960 == len) {
+      temp3 = ixheaacd_shl32_dir(sub_sign_xlow[-128], factor);
+
+      temp3 = ixheaacd_shl32_dir(sub_sign_xlow[-64], factor);
+
+    }
 
     temp2 = ixheaacd_shl32_dir(*temp_buf_ptr, factor);
     temp4 = ixheaacd_shl32_dir(*(temp_buf_ptr + 64), factor);
@@ -268,13 +380,13 @@ VOID ixheaacd_covariance_matrix_calc_dec(
 }
 
 VOID ixheaacd_covariance_matrix_calc_2_dec(
-    ixheaacd_lpp_trans_cov_matrix *cov_matrix,
+    ia_lpp_trans_cov_matrix *cov_matrix,
 
     WORD32 *real_buffer, WORD32 num_bands, WORD16 slots) {
   WORD32 k;
   WORD32 *img_buffer;
   WORD32 *ptr_real = real_buffer;
-  ixheaacd_lpp_trans_cov_matrix *pac_arr = cov_matrix;
+  ia_lpp_trans_cov_matrix *pac_arr = cov_matrix;
 
   for (k = 0; k < num_bands; k++) {
     WORD32 t_phi_11 = 0, t_phi_01 = 0, t_phi_01_i = 0;
@@ -561,7 +673,7 @@ static PLATFORM_INLINE VOID ixheaacd_filt_step3_lp(WORD len, WORD32 coef1,
 }
 
 VOID ixheaacd_filter1_lp(ia_sbr_hf_generator_struct *hf_generator,
-                         ixheaacd_lpp_trans_cov_matrix *cov_matrix_seq,
+                         ia_lpp_trans_cov_matrix *cov_matrix_seq,
                          WORD32 *bw_array, WORD16 *degree_alias,
                          WORD32 start_idx, WORD32 stop_idx,
                          WORD32 max_qmf_subband, WORD32 start_patch,
@@ -582,7 +694,7 @@ VOID ixheaacd_filter1_lp(ia_sbr_hf_generator_struct *hf_generator,
   memset(bw_index, 0, sizeof(WORD32) * num_patches);
 
   for (low_band = start_patch; low_band < stop_patch; low_band++) {
-    ixheaacd_lpp_trans_cov_matrix *p_cov_matrix = &cov_matrix_seq[low_band];
+    ia_lpp_trans_cov_matrix *p_cov_matrix = &cov_matrix_seq[low_band];
 
     alpha_real[1] = 0;
     alpha_real[0] = 0;
@@ -751,10 +863,11 @@ VOID ixheaacd_low_pow_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
   ia_patch_param_struct *patch_param =
       hf_generator->pstr_settings->str_patch_param;
   WORD32 patch;
-  ixheaacd_lpp_trans_cov_matrix cov_matrix_seq[MAX_COLS];
+  ia_lpp_trans_cov_matrix cov_matrix_seq[MAX_COLS];
 
   WORD32 actual_stop_band;
   WORD32 num_patches = hf_generator->pstr_settings->num_patches;
+  WORD32 auto_corr_length = hf_generator->pstr_settings->num_columns + 6;
 
   stop_idx = (hf_generator->pstr_settings->num_columns + stop_idx);
 
@@ -798,13 +911,20 @@ VOID ixheaacd_low_pow_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
     }
   }
   if (norm_max != 30) {
-    (*ixheaacd_covariance_matrix_calc)(sub_sig_x + start_patch,
-                                       &cov_matrix_seq[start_patch],
-                                       (stop_patch - start_patch));
-
+    if (30 == hf_generator->pstr_settings->num_columns) {
+      (*ixheaacd_covariance_matrix_calc_960)(sub_sig_x + start_patch,
+                                             &cov_matrix_seq[start_patch],
+                                             (stop_patch - start_patch),
+                                             auto_corr_length);
+     }
+     else
+      (*ixheaacd_covariance_matrix_calc)(sub_sig_x + start_patch,
+                                         &cov_matrix_seq[start_patch],
+                                         (stop_patch - start_patch),
+                                         auto_corr_length);
   } else {
     memset(&cov_matrix_seq[0], 0,
-           sizeof(ixheaacd_lpp_trans_cov_matrix) * stop_patch);
+           sizeof(ia_lpp_trans_cov_matrix) * stop_patch);
   }
 
   ixheaacd_filter1_lp(hf_generator, cov_matrix_seq, bw_array, degree_alias,
@@ -867,12 +987,14 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
 
   WORD16 bw = 0;
 
-  ixheaacd_lpp_trans_cov_matrix cov_matrix;
-  ixheaacd_lpp_trans_cov_matrix cov_matrix_seq[MAX_COLS];
+  ia_lpp_trans_cov_matrix cov_matrix;
+  ia_lpp_trans_cov_matrix cov_matrix_seq[MAX_COLS];
 
   WORD32 common_scale;
   WORD32 actual_stop_band;
   WORD32 num_patches = hf_generator->pstr_settings->num_patches;
+
+  WORD32  auto_corr_length = hf_generator->pstr_settings->num_columns + 6;
 
   start_idx = (start_idx * factor);
 
@@ -915,15 +1037,31 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
   }
   if (audio_object_type != AOT_ER_AAC_ELD &&
       audio_object_type != AOT_ER_AAC_LD) {
-    (*ixheaacd_covariance_matrix_calc_2)(
-        &cov_matrix_seq[start_patch],
-        (sub_sig_x + start_patch + LPC_ORDER * 128), (stop_patch - start_patch),
-        38);
+    if (auto_corr_length == 36) {
+      (*ixheaacd_covariance_matrix_calc_2)(
+          &cov_matrix_seq[start_patch],
+          (sub_sig_x + start_patch + LPC_ORDER * 128),
+          (stop_patch - start_patch), auto_corr_length);
+     } else {
+      (*ixheaacd_covariance_matrix_calc_2)(
+          &cov_matrix_seq[start_patch],
+          (sub_sig_x + start_patch + LPC_ORDER * 128),
+          (stop_patch - start_patch), 38);
+    }
   } else {
-    (*ixheaacd_covariance_matrix_calc_2)(
-        &cov_matrix_seq[start_patch],
-        (sub_sig_x + start_patch + LPC_ORDER * 128), (stop_patch - start_patch),
-        16);
+    if (hf_generator->pstr_settings->num_columns == 15)
+    {
+      (*ixheaacd_covariance_matrix_calc_2)(
+          &cov_matrix_seq[start_patch],
+          (sub_sig_x + start_patch + LPC_ORDER * 128),
+          (stop_patch - start_patch),
+          hf_generator->pstr_settings->num_columns);
+     } else {
+      (*ixheaacd_covariance_matrix_calc_2)(
+          &cov_matrix_seq[start_patch],
+          (sub_sig_x + start_patch + LPC_ORDER * 128),
+          (stop_patch - start_patch), 16);
+    }
   }
 
   for (low_band = start_patch; low_band < stop_patch; low_band++) {

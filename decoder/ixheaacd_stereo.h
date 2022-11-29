@@ -30,6 +30,6 @@ VOID ixheaacd_ms_stereo_process(
 VOID ixheaacd_intensity_stereo_process(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[2],
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 object_type,
-    WORD32 aac_sf_data_resil_flag);
+    WORD32 aac_sf_data_resil_flag, WORD16 framelength);
 
 #endif /* #ifndef IXHEAACD_STEREO_H */

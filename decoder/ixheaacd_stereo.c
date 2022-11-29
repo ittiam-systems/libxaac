@@ -56,6 +56,8 @@ VOID ixheaacd_ms_stereo_process(
   WORD32 win_grp, grp_len, k;
   WORD32 *l_spec = ptr_aac_dec_channel_info[LEFT]->ptr_spec_coeff;
   WORD32 *r_spec = ptr_aac_dec_channel_info[RIGHT]->ptr_spec_coeff;
+  WORD16 maximum_bins_short =
+      (ptr_aac_dec_channel_info[LEFT]->str_ics_info.frame_length) >> 3;
   WORD8 *ptr_group_len =
       ptr_aac_dec_channel_info[LEFT]->str_ics_info.window_group_length;
   const WORD8 *ptr_sfb_width =
@@ -96,8 +98,17 @@ VOID ixheaacd_ms_stereo_process(
         }
       }
       ptr_ms_used -= ptr_aac_dec_channel_info[LEFT]->str_ics_info.max_sfb;
-      l_spec = l_spec + 128 - ixheaacd_drc_offset;
-      r_spec = r_spec + 128 - ixheaacd_drc_offset;
+
+      if (maximum_bins_short == 120)
+      {
+        l_spec = l_spec + maximum_bins_short - ixheaacd_drc_offset;
+        r_spec = r_spec + maximum_bins_short - ixheaacd_drc_offset;
+      }
+      else
+      {
+        l_spec = l_spec + 128 - ixheaacd_drc_offset;
+        r_spec = r_spec + 128 - ixheaacd_drc_offset;
+      }
     }
 
     ptr_ms_used += JOINT_STEREO_MAX_BANDS;
@@ -118,7 +129,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32l(WORD32 a, WORD32 b) {
 VOID ixheaacd_intensity_stereo_process(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[2],
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 object_type,
-    WORD32 aac_sf_data_resil_flag) {
+    WORD32 aac_sf_data_resil_flag, WORD16 framelength) {
   UWORD8 *ptr_ms_used =
       &ptr_aac_dec_channel_info[LEFT]->pstr_stereo_info->ms_used[0][0];
   WORD8 *ptr_code_book = &ptr_aac_dec_channel_info[RIGHT]->ptr_code_book[0];
@@ -126,6 +137,8 @@ VOID ixheaacd_intensity_stereo_process(
       &ptr_aac_dec_channel_info[RIGHT]->ptr_scale_factor[0];
   WORD32 *r_spec = &ptr_aac_dec_channel_info[RIGHT]->ptr_spec_coeff[0];
   WORD32 *l_spec = &ptr_aac_dec_channel_info[LEFT]->ptr_spec_coeff[0];
+  WORD16 maximum_bins_short =
+      (ptr_aac_dec_channel_info[LEFT]->str_ics_info.frame_length) >> 3;
   WORD8 *ptr_group_len =
       ptr_aac_dec_channel_info[RIGHT]->str_ics_info.window_group_length;
   const WORD8 *ptr_sfb_width =
@@ -133,7 +146,14 @@ VOID ixheaacd_intensity_stereo_process(
           ->str_aac_sfb_info[ptr_aac_dec_channel_info[RIGHT]
                                  ->str_ics_info.window_sequence]
           .sfb_width;
-  WORD32 *ptr_scale_table = ptr_aac_tables->pstr_block_tables->scale_table;
+
+  WORD32 *ptr_scale_table;
+
+  if (960 == framelength)
+    ptr_scale_table = ptr_aac_tables->pstr_block_tables->scale_table_960;
+  else
+    ptr_scale_table = ptr_aac_tables->pstr_block_tables->scale_table;
+
   WORD32 win_grp, grp_len, k;
 
   for (win_grp = 0;
@@ -194,8 +214,17 @@ VOID ixheaacd_intensity_stereo_process(
           r_spec += ptr_sfb_width[sfb];
         }
       }
-      l_spec += 128 - ixheaacd_drc_offset;
-      r_spec += 128 - ixheaacd_drc_offset;
+
+      if (maximum_bins_short == 120)
+      {
+        l_spec += maximum_bins_short - ixheaacd_drc_offset;
+        r_spec += maximum_bins_short - ixheaacd_drc_offset;
+      }
+      else
+      {
+        l_spec += 128 - ixheaacd_drc_offset;
+        r_spec += 128 - ixheaacd_drc_offset;
+      }
     }
     ptr_ms_used += 64;
     ptr_code_book += 16;

@@ -67,10 +67,19 @@ VOID ixheaacd_apply_ps(ia_ps_dec_struct *ptr_ps_dec, WORD32 **p_buf_left_real,
                        WORD32 **p_buf_left_imag, WORD32 *p_buf_right_real,
                        WORD32 *p_buf_right_imag,
                        ia_sbr_scale_fact_struct *sbr_scale_factor, WORD16 slot,
-                       ia_sbr_tables_struct *sbr_tables_ptr) {
-  WORD16 shiftdelay =
-      (WORD16)((slot < (32 - MAX_OV_COLS)) ? 0 : (sbr_scale_factor->lb_scale -
-                                                  sbr_scale_factor->ps_scale));
+                       ia_sbr_tables_struct *sbr_tables_ptr, WORD no_col) {
+
+  WORD16 shiftdelay;
+
+  if (no_col != 30) {
+    shiftdelay =
+        (WORD16)((slot < (32 - MAX_OV_COLS)) ? 0 : (sbr_scale_factor->lb_scale -
+            sbr_scale_factor->ps_scale));
+  } else {
+  shiftdelay =
+      (WORD16)((slot < (no_col - MAX_OV_COLS)) ? 0 : (sbr_scale_factor->lb_scale -
+          sbr_scale_factor->ps_scale));
+  }
 
   ixheaacd_hybrid_analysis(p_buf_left_real[HYBRID_FILTER_DELAY],
                            ptr_ps_dec->ptr_hyb_left_re,

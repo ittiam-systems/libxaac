@@ -474,7 +474,7 @@ static PLATFORM_INLINE VOID ixheaacd_adapt_noise_gain_calc(
     WORD32 sub_band_start, WORD32 lb_scale, FLAG noise_absc_flag,
     WORD32 smooth_length, WORD32 **anal_buf_real_mant,
     WORD32 **anal_buf_imag_mant, WORD32 low_pow_flag,
-    ia_sbr_tables_struct *ptr_sbr_tables) {
+    ia_sbr_tables_struct *ptr_sbr_tables, WORD16 max_cols) {
   WORD32 l, k;
   WORD32 scale_change;
   WORD32 bands = num_sub_bands - skip_bands;
@@ -506,15 +506,35 @@ static PLATFORM_INLINE VOID ixheaacd_adapt_noise_gain_calc(
   }
 
   for (l = start_pos; l < end_pos; l++) {
-    if ((l < MAX_COLS)) {
-      scale_change = (adj_e - input_e);
-    } else {
-      scale_change = (final_e - input_e);
 
-      if (((l == MAX_COLS)) && ((start_pos < MAX_COLS))) {
-        WORD32 diff = final_e - noise_e;
-        noise_e = final_e;
-        ixheaacd_noise_level_rescaling(noise_level_mant, diff, bands, 2);
+    if (max_cols != 30)
+    {
+      if ((l < MAX_COLS)) {
+        scale_change = (adj_e - input_e);
+      }
+      else {
+        scale_change = (final_e - input_e);
+
+        if (((l == MAX_COLS)) && ((start_pos < MAX_COLS))) {
+          WORD32 diff = final_e - noise_e;
+          noise_e = final_e;
+          ixheaacd_noise_level_rescaling(noise_level_mant, diff, bands, 2);
+        }
+      }
+    }
+    else
+    {
+      if ((l < max_cols)) {
+        scale_change = (adj_e - input_e);
+      }
+      else {
+        scale_change = (final_e - input_e);
+
+        if (((l == max_cols)) && ((start_pos < max_cols))) {
+          WORD32 diff = final_e - noise_e;
+          noise_e = final_e;
+          ixheaacd_noise_level_rescaling(noise_level_mant, diff, bands, 2);
+        }
       }
     }
 
@@ -694,6 +714,10 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
 
   WORD32 sub_band_start = pstr_freq_band_data->sub_band_start;
   WORD32 sub_band_end = pstr_freq_band_data->sub_band_end;
+
+  WORD16 num_timeslots = ptr_header_data->num_time_slots;
+  WORD16 max_cols = ptr_header_data->num_time_slots * 2;
+
   WORD32 num_sub_bands;
   WORD32 skip_bands;
   WORD32 bands;
@@ -783,15 +807,32 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
 
       temp_val = ((max_sfb_nrg_exp + 13) >> 1);
 
-      if ((ptr_border_vec[i] < SBR_TIME_SLOTS)) {
-        if ((temp_val > adj_e)) {
-          adj_e = (WORD16)temp_val;
+      if (num_timeslots != 15)
+      {
+        if ((ptr_border_vec[i] < SBR_TIME_SLOTS)) {
+          if ((temp_val > adj_e)) {
+            adj_e = (WORD16)temp_val;
+          }
+        }
+
+        if ((ptr_border_vec[i + 1] > SBR_TIME_SLOTS)) {
+          if ((temp_val > final_e)) {
+            final_e = (WORD16)temp_val;
+          }
         }
       }
+      else
+      {
+        if ((ptr_border_vec[i] < num_timeslots)) {
+          if ((temp_val > adj_e)) {
+            adj_e = (WORD16)temp_val;
+          }
+        }
 
-      if ((ptr_border_vec[i + 1] > SBR_TIME_SLOTS)) {
-        if ((temp_val > final_e)) {
-          final_e = (WORD16)temp_val;
+        if ((ptr_border_vec[i + 1] > num_timeslots)) {
+          if ((temp_val > final_e)) {
+            final_e = (WORD16)temp_val;
+          }
         }
       }
     }
@@ -867,10 +908,23 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
                                pstr_common_tables);
     }
 
-    if ((start_pos < MAX_COLS)) {
-      noise_e = adj_e;
-    } else {
-      noise_e = final_e;
+    if (max_cols != 30)
+    {
+      if ((start_pos < MAX_COLS)) {
+        noise_e = adj_e;
+      }
+      else {
+        noise_e = final_e;
+      }
+    }
+    else
+    {
+      if ((start_pos < max_cols)) {
+        noise_e = adj_e;
+      }
+      else {
+        noise_e = final_e;
+      }
     }
 
     bands = num_sub_bands - skip_bands;
@@ -894,7 +948,7 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
         noise_level_mant, nrg_sine, start_pos, end_pos, input_e, adj_e, final_e,
         ptr_frame_data->max_qmf_subband_aac, lb_scale, noise_absc_flag,
         smooth_length, anal_buf_real_mant, anal_buf_imag_mant, low_pow_flag,
-        ptr_sbr_tables);
+        ptr_sbr_tables, max_cols);
   }
 
   first_start = ptr_border_vec[0] * SBR_TIME_STEP;
@@ -910,10 +964,20 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
             ptr_frame_data->max_qmf_subband_aac, sub_band_end, 0, first_start,
             low_pow_flag);
 
-        reserve = (*ixheaacd_ixheaacd_expsubbandsamples)(
+        if (max_cols != 30)
+        {
+          reserve = (*ixheaacd_ixheaacd_expsubbandsamples)(
             anal_buf_real_mant, anal_buf_imag_mant,
             ptr_frame_data->max_qmf_subband_aac, sub_band_end, first_start,
             MAX_COLS, low_pow_flag);
+        }
+        else
+        {
+          reserve = (*ixheaacd_ixheaacd_expsubbandsamples)(
+            anal_buf_real_mant, anal_buf_imag_mant,
+            ptr_frame_data->max_qmf_subband_aac, sub_band_end, first_start,
+            max_cols, low_pow_flag);
+        }
       }
     }
 

@@ -127,6 +127,8 @@ typedef struct {
   WORD32 i_loud_ref_level;
   UWORD8 dup_stereo_flag;
 
+  UWORD32 ui_frame_size;
+
 } ia_aac_dec_config_struct;
 
 typedef struct ia_aac_dec_state_struct {

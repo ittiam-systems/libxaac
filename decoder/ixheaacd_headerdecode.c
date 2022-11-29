@@ -493,7 +493,6 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
                            struct ia_bit_buf_struct *it_bit_buff) {
   WORD32 tmp;
   WORD32 cnt_bits = it_bit_buff->cnt_bits;
-  WORD32 dummy = 0;
   UWORD32 aot_init;
   UWORD32 tmp_aot;
 
@@ -663,7 +662,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 }
 
 {
-  dummy = ixheaacd_skip_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
+  ixheaacd_skip_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
 
   if ((SIZE_T)it_bit_buff->ptr_read_next ==
       (SIZE_T)it_bit_buff->ptr_bit_buf_base) {

@@ -536,6 +536,17 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
                               &ui_auto_sbr_upsample);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
+    /* To indicate frame length for a RAW bit-stream. */
+    if (!strncmp((pCHAR8)argv[i], "-flflag:", 8)) {
+        pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 8);
+        UWORD32 ui_fl_flag = atoi(pb_arg_val);
+        err_code =
+            (*p_ia_process_api)(p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                                IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMELENGTH_FLAG,
+                                &ui_fl_flag);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+
     /* To indicate sample rate for a RAW bit-stream. */
     if (!strncmp((pCHAR8)argv[i], "-fs:", 4)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 4);
@@ -817,6 +828,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 current_samples = 0;
   WORD32 samples_written = 0;
   WORD32 init_iteration = 1;
+
+  WORD32 fatal_error_chk;
 
 #ifdef ARM_PROFILE_HW
   int frame_count_b = 0;
@@ -1680,6 +1693,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
+    fatal_error_chk = err_code & IA_FATAL_ERROR;
+
     /* Checking for end of processing */
     err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_EXECUTE,
                                    IA_CMD_TYPE_DONE_QUERY, &ui_exec_done);
@@ -2009,7 +2024,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
 
     /* Do till the process execution is done */
-  } while (!ui_exec_done);
+  } while (!ui_exec_done && !fatal_error_chk);
 
 #ifdef ARM_PROFILE_HW
   fprintf(stdout, "\n Peak MCPS = %f\n", Peak_b);
@@ -2077,6 +2092,7 @@ void print_usage() {
   printf("\n[-sbrup:<auto_sbr_upsample>]");
 
   printf("\n[-maxchannel:<maximum_num_channels>]");
+  printf("\n[-flflag:<framelength_flag>}");
 #ifdef MULTICHANNEL_ENABLE
   printf("\n[-coupchannel:<coupling_channel>]");
   printf("\n[-downmix:<down_mix_stereo>]");
@@ -2107,8 +2123,14 @@ void print_usage() {
   printf(
       "\n    in case of stream changing from SBR present to SBR not present. "
       "Default 1");
+
   printf("\n  <maximum_num_channels> is the number of maxiumum ");
   printf("\n    channels the input may have. Default is 6 (5.1)");
+
+  printf("\n  <framelength_flag> is flag for Decoding framelength of 1024 or 960.");
+  printf("\n    1 to decode 960 frame length, 0 to decode 1024 frame length");
+  printf("\n    Frame length value in the GA header will override this option.");
+  printf("\n    Default 0  ");
 
 #ifdef MULTICHANNEL_ENABLE
   printf("\n  <coupling_channel> is element instance tag of ");
@@ -2141,6 +2163,7 @@ void print_usage() {
 /*                                                                             */
 /*        DD MM YYYY       Author                Changes */
 /*        04 09 2005       Ittiam                Created */
+/*                                                                             */
 /*                                                                             */
 /*******************************************************************************/
 

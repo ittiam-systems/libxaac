@@ -47,13 +47,14 @@ VOID ixheaacd_scale_factor_process_armv8(WORD32 *x_invquant, WORD16 *scale_fact,
                                          WORD32 object_type,
                                          WORD32 aac_sf_data_resil_flag);
 
-void ixheaacd_right_shift_block(WORD32 *p_spectrum, WORD length,
+VOID ixheaacd_right_shift_block(WORD32 *p_spectrum, WORD length,
                                 WORD shift_val);
 
 WORD ixheaacd_decode_huffman(ia_bit_buf_struct *it_bit_buff, WORD32 cb_no,
                              WORD32 *spec_coef, WORD16 *sfb_offset, WORD start,
                              WORD sfb, WORD group_len,
-                             ia_aac_dec_tables_struct *ptr_aac_tables);
+                             ia_aac_dec_tables_struct *ptr_aac_tables,
+                             WORD32 maximum_bins_short);
 
 WORD ixheaacd_huffman_dec_word2(ia_bit_buf_struct *it_bit_buff, WORD32 cb_no,
                                 WORD32 width,
@@ -140,6 +141,9 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
 VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                  WORD16 ch_fac);
 
+VOID ixheaacd_nolap_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
+                        WORD16 ch_fac, WORD16 size_01);
+
 VOID ixheaacd_neg_shift_spec_armv7(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                    WORD16 ch_fac);
 
@@ -147,11 +151,11 @@ VOID ixheaacd_neg_shift_spec_armv8(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                    WORD16 ch_fac);
 
 VOID ixheaacd_nolap1_32(WORD32 *coef, WORD32 *out, WORD16 cu_scale,
-                        WORD16 stride);
+                        WORD16 stride, WORD16 size_01);
 
 VOID ixheaacd_overlap_out_copy_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
                                    WORD32 *ptr_overlap_buf1,
-                                   const WORD16 ch_fac);
+                                   const WORD16 ch_fac, WORD16 size_01);
 
 VOID ixheaacd_overlap_out_copy_armv7(WORD32 *out_samples,
                                      WORD32 *ptr_overlap_buf,
@@ -162,7 +166,7 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD32 *out,
                                  const WORD16 *short_window,
                                  const WORD16 *short_window_prev,
                                  const WORD16 *long_window_prev, WORD16 q_shift,
-                                 WORD16 ch_fac);
+                                 WORD16 ch_fac, WORD16 size_01);
 
 WORD32 ixheaacd_cnt_leading_ones(WORD32 a);
 
@@ -170,12 +174,12 @@ VOID ixheaacd_huffman_decode(WORD32 it_bit_buff, WORD16 *huff_index,
                              WORD16 *len, const UWORD16 *input_table,
                              const UWORD32 *idx_table);
 
-void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *ptr_win,
+VOID ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *ptr_win,
                                 WORD32 framesize, WORD16 q_shift,
                                 WORD32 *ptr_overlap_buf, const WORD16 stride,
                                 VOID *out_samples, WORD slot_element);
 
-void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
+VOID ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
                                       const WORD16 *ptr_win, WORD32 framesize,
                                       WORD16 q_shift, WORD32 *ptr_overlap_buf,
                                       const WORD16 stride, WORD32 *out_samples);
@@ -185,8 +189,11 @@ VOID ixheaacd_process_single_scf(WORD32 scale_factor, WORD32 *x_invquant,
                                  WORD32 total_channels, WORD32 object_type,
                                  WORD32 aac_sf_data_resil_flag);
 
-void ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, VOID *out_tmp,
+VOID ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, VOID *out_tmp,
                            const WORD16 *window, WORD16 q_shift, WORD16 size,
                            WORD16 stride, WORD slot_element);
+
+VOID ixheaacd_dec_copy_outsample(WORD32 *out_samples, WORD32 *p_overlap_buffer,
+                                 WORD32 size, WORD16 stride);
 
 #endif /* #ifndef IXHEAACD_BLOCK_H */

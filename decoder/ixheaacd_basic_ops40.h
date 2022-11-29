@@ -72,7 +72,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32_shl(WORD32 a, WORD16 b) {
   return (result << 1);
 }
 
-static PLATFORM_INLINE WORD32 mult32x16hin32_shl(WORD32 a, WORD32 b) {
+static PLATFORM_INLINE WORD32 mult32x32hin32_shl(WORD32 a, WORD32 b) {
   WORD32 product;
   WORD64 temp_product;
 
@@ -83,6 +83,17 @@ static PLATFORM_INLINE WORD32 mult32x16hin32_shl(WORD32 a, WORD32 b) {
 }
 
 static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32(WORD32 a, WORD16 b) {
+  WORD32 result;
+  WORD64 temp_result;
+
+  temp_result = (WORD64)a * (WORD64)b;
+
+  result = (WORD32)(temp_result >> 16);
+
+  return (result);
+}
+
+static PLATFORM_INLINE WORD32 ixheaacd_mult32x32in32(WORD32 a, WORD32 b) {
   WORD32 result;
   WORD64 temp_result;
 

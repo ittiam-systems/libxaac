@@ -95,12 +95,18 @@ WORD16 ixheaacd_divideby3(WORD op) {
   return (WORD16)ret;
 }
 
-VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec) {
+VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
   WORD e, i, temp;
   WORD16 iid_mode = (WORD16)((ptr_ps_dec->iid_mode) ? 1 : 2);
   WORD16 icc_mode = (WORD16)((ptr_ps_dec->icc_mode) ? 1 : 2);
   WORD16 num_iid_levels =
       (WORD16)(ptr_ps_dec->iid_quant ? NUM_IID_LEVELS_FINE : NUM_IID_LEVELS);
+  WORD32 max_num_columns;
+
+  if (frame_size == 960)
+    max_num_columns = MAX_NUM_COLUMNS_960;
+  else
+    max_num_columns = MAX_NUM_COLUMNS;
 
   if (!ptr_ps_dec->ps_data_present) {
     ptr_ps_dec->num_env = 0;
@@ -231,16 +237,16 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec) {
     env_count = 0;
 
     for (e = 1; e < ptr_ps_dec->num_env; e++) {
-      env_count = add_d(env_count, MAX_NUM_COLUMNS);
+      env_count = add_d(env_count, max_num_columns);
       ptr_ps_dec->border_position[e] = (WORD16)(env_count >> shift);
     }
-    ptr_ps_dec->border_position[ptr_ps_dec->num_env] = MAX_NUM_COLUMNS;
+    ptr_ps_dec->border_position[ptr_ps_dec->num_env] = max_num_columns;
   } else {
     ptr_ps_dec->border_position[0] = 0;
 
-    if (ptr_ps_dec->border_position[ptr_ps_dec->num_env] < MAX_NUM_COLUMNS) {
+    if (ptr_ps_dec->border_position[ptr_ps_dec->num_env] < max_num_columns) {
       ptr_ps_dec->num_env++;
-      ptr_ps_dec->border_position[ptr_ps_dec->num_env] = MAX_NUM_COLUMNS;
+      ptr_ps_dec->border_position[ptr_ps_dec->num_env] = max_num_columns;
 
       memcpy(ptr_ps_dec->iid_par_table[ptr_ps_dec->num_env - 1],
              ptr_ps_dec->iid_par_table[ptr_ps_dec->num_env - 2],
@@ -253,7 +259,7 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec) {
 
     for (e = 1; e < ptr_ps_dec->num_env; e++) {
       WORD threshold;
-      threshold = sub_d(MAX_NUM_COLUMNS, sub_d(ptr_ps_dec->num_env, e));
+      threshold = sub_d(max_num_columns, sub_d(ptr_ps_dec->num_env, e));
 
       if (ptr_ps_dec->border_position[e] > threshold) {
         ptr_ps_dec->border_position[e] = threshold;

@@ -21,6 +21,8 @@
 #define IXHEAACD_PS_DEC_H
 
 #define MAX_NUM_COLUMNS 32
+
+#define MAX_NUM_COLUMNS_960 30
 #define NUM_OF_QUAD_MIRROR_FILTER_CHNLS 64
 #define NUM_OF_ALL_PASS_CHNLS 23
 #define NUM_OF_DEL_CHNLS \
@@ -39,6 +41,8 @@
 #define PSC_SQRT05F (0x5a82)
 #define NUM_OF_BINS (20)
 #define NUM_BANDS_FINE (34)
+
+#define NUM_SUB_SAMPLES_960 30
 
 typedef WORD16((*REVERB_BUFFERS_RI)[NUM_SER_AP_LINKS])[32 * 2];
 typedef WORD16((REVERB_BUFFERS_CH_RI[5])[NUM_SER_AP_LINKS])[16 * 2];
@@ -160,7 +164,7 @@ VOID ixheaacd_apply_ps(ia_ps_dec_struct *ptr_ps_dec, WORD32 **real_buf_left,
                        WORD32 **imag_buf_left, WORD32 *real_buf_right,
                        WORD32 *imag_buf_right,
                        ia_sbr_scale_fact_struct *sbr_scale_factor, WORD16 slot,
-                       ia_sbr_tables_struct *sbr_tables_ptr);
+                       ia_sbr_tables_struct *sbr_tables_ptr, WORD no_col);
 
 VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
                             WORD32 *p_qmf_left_im, WORD32 *p_qmf_right_re,
