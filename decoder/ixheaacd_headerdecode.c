@@ -568,6 +568,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
        aac_state_struct->audio_object_type == AOT_TWIN_VQ ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LD ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_ELD ||
+       aac_state_struct->audio_object_type == AOT_ER_AAC_SCAL ||
        aac_state_struct->audio_object_type == AOT_ER_AAC_LC) &&
       aac_state_struct->audio_object_type != AOT_USAC)
 
@@ -592,7 +593,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
       }
     }
     if (aac_state_struct->audio_object_type == AOT_ER_AAC_ELD ||
-        aac_state_struct->audio_object_type == AOT_ER_AAC_LD) {
+        aac_state_struct->audio_object_type == AOT_ER_AAC_LD ||
+        aac_state_struct->audio_object_type == AOT_ER_AAC_LC ||
+        aac_state_struct->audio_object_type == AOT_ER_AAC_SCAL) {
       aac_state_struct->eld_specific_config.aac_sect_data_resil_flag = 0;
       aac_state_struct->eld_specific_config.aac_sf_data_resil_flag = 0;
       aac_state_struct->eld_specific_config.aac_spect_data_resil_flag = 0;
@@ -606,10 +609,10 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
               ixheaacd_read_bits_buf(it_bit_buff, 1);
           aac_state_struct->eld_specific_config.aac_spect_data_resil_flag =
               ixheaacd_read_bits_buf(it_bit_buff, 1);
-          if (aac_state_struct->audio_object_type != AOT_ER_AAC_ELD)
+          if (aac_state_struct->audio_object_type == AOT_ER_AAC_LD)
             aac_state_struct->eld_specific_config.ep_config =
                 ixheaacd_read_bits_buf(it_bit_buff, 2);
-          else
+          if (aac_state_struct->audio_object_type == AOT_ER_AAC_ELD)
             aac_state_struct->eld_specific_config.ld_sbr_flag_present =
                 ixheaacd_read_bits_buf(it_bit_buff, 1);
         }
@@ -760,7 +763,9 @@ if (aac_state_struct->audio_object_type == AOT_ER_AAC_ELD) {
   ixheaacd_read_bits_buf(it_bit_buff, 1);
 }
 if (!((aac_state_struct->ldmps_present == 1) && !(it_bit_buff->cnt_bits > 0))) {
-  if (aac_state_struct->audio_object_type == AOT_ER_AAC_ELD) {
+  if (aac_state_struct->audio_object_type == AOT_ER_AAC_ELD ||
+      aac_state_struct->audio_object_type == AOT_ER_AAC_LC ||
+      aac_state_struct->audio_object_type == AOT_ER_AAC_SCAL) {
     WORD32 ep_config = ixheaacd_read_bits_buf(it_bit_buff, 2);
     if (ep_config == 2 || ep_config == 3) {
     }

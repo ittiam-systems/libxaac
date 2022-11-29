@@ -1138,23 +1138,23 @@ ixheaacd_persistent_buffer_sizes(WORD32 num_channel) {
     max_channels = 2;
   }
   size_buffers +=
-      (max_channels)*2 * ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct));
+      (max_channels) * 2 * ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct));
 
   size_buffers += ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8);
 
-  size_buffers += num_channel *
+  size_buffers += 2 * num_channel *
                   (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) *
                   sizeof(WORD16);
 
-  size_buffers += num_channel *
+  size_buffers += 2 * num_channel *
                   (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) *
                   sizeof(WORD32);
 
-  size_buffers += num_channel *
+  size_buffers += 2 * num_channel *
                   (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) *
                   sizeof(WORD16);
 
-  size_buffers += num_channel *
+  size_buffers += 2 * num_channel *
                   (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) *
                   sizeof(WORD32);
 
@@ -1174,12 +1174,12 @@ ixheaacd_persistent_buffer_sizes(WORD32 num_channel) {
         LPC_ORDER * num_channel * NO_ANALYSIS_CHANNELS * sizeof(WORD32);
   }
 
-  size_buffers += num_channel * 3 * MAX_FREQ_COEFFS * sizeof(WORD16);
+  size_buffers += num_channel * 3 * 2 * MAX_FREQ_COEFFS * sizeof(WORD16);
 
   temp = sizeof(ia_freq_band_data_struct) +
          sizeof(ia_sbr_prev_frame_data_struct) + sizeof(ia_sbr_channel_struct) +
          sizeof(ia_sbr_header_data_struct);
-  size_buffers += num_channel * ALIGN_SIZE64(temp);
+  size_buffers += 2 * num_channel * ALIGN_SIZE64(temp);
 
   size_buffers += MAX_BS_ELEMENT * sizeof(ixheaac_drc_bs_data_struct *);
 
@@ -1597,7 +1597,8 @@ IA_ERRORCODE ixheaacd_dec_init(
           aac_persistent_mem->str_aac_decoder.pstr_aac_tables
               ->pstr_huffmann_tables);
       if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD ||
-          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD) {
+          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD ||
+          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LC) {
         *sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[0] =
             p_obj_exhaacplus_dec->p_state_aac->str_sbr_config;
         *sbr_persistent_mem->str_sbr_dec_inst.pstr_sbr_header[1] =
@@ -2112,7 +2113,8 @@ IA_ERRORCODE ixheaacd_dec_init(
 
       if (p_state_enhaacplus_dec->audio_object_type >= ER_OBJECT_START &&
           (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD ||
-           p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD))
+          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD ||
+          p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LC))
         break;
     }
 
@@ -2594,6 +2596,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
       p_state_enhaacplus_dec->frame_size = p_state_enhaacplus_dec->ui_in_bytes;
   }
 
+  if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LC) {
+    if (p_obj_exhaacplus_dec->aac_config.ui_mp4_flag)
+      p_state_enhaacplus_dec->frame_size = 1024;
+  }
+
   {
     ixheaacd_create_init_bit_buf(it_bit_buff, in_buffer,
                                  p_state_enhaacplus_dec->ui_in_bytes);
@@ -2711,6 +2718,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
       p_state_enhaacplus_dec->frame_size = adts.aac_frame_length;
   }
 
+  if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LC) {
+    if (p_state_enhaacplus_dec->s_adts_hdr_present)
+      p_state_enhaacplus_dec->frame_size = 1024;
+  }
+
   if (p_state_enhaacplus_dec->pstr_drc_dec) {
     p_state_enhaacplus_dec->pstr_drc_dec->num_drc_elements = 0;
 
@@ -2729,7 +2741,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
     if (p_state_enhaacplus_dec->audio_object_type < ER_OBJECT_START ||
         (p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_LD &&
-         p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_ELD)) {
+         p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_ELD &&
+         p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_LC)) {
       error_code = ixheaacd_get_element_index_tag(
           p_obj_exhaacplus_dec, ch_idx1, &ch_idx, &channel,
           p_obj_exhaacplus_dec->aac_config.element_instance_order,
@@ -2850,7 +2863,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
       if (p_state_enhaacplus_dec->audio_object_type < ER_OBJECT_START ||
           (p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_LD &&
-           p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_ELD)) {
+           p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_ELD &&
+           p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_LC)) {
         if ((error_code == 0) && ((ch_idx1 + 1) == total_elements) &&
             (type != ID_END)) {
           {
@@ -2997,7 +3011,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
     if (p_state_enhaacplus_dec->mps_dec_handle.ldmps_config
             .ldmps_present_flag == 1 &&
-        p_state_enhaacplus_dec->mps_dec_handle.mps_init_done == 1) {
+        p_state_enhaacplus_dec->mps_dec_handle.mps_init_done == 1 &&
+        p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
       ixheaacd_samples_sat(
           (WORD8 *)actual_out_buffer, num_of_out_samples,
           p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz,
@@ -3006,9 +3021,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
       num_ch = p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle.out_ch_count;
       p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = mps_out_samples;
     } else {
-      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] != 2)
-
-      {
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] != 2) {
         if (p_obj_exhaacplus_dec->aac_config.flag_to_stereo == 1 &&
           channel == 1 && total_elements == 1 && num_ch == 1 &&
             (!p_state_enhaacplus_dec->mps_dec_handle.ldmps_config

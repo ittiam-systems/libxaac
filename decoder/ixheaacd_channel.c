@@ -125,6 +125,11 @@ WORD8 *ixheaacd_getscalefactorbandwidth(
         WORD8 *)(&ptr_aac_tables
                       ->scale_fac_bands_512[ptr_ics_info->sampling_rate_index]
                                            [0]);
+  } else if (ptr_ics_info->frame_length == 1024) {
+    return (
+        WORD8 *)(&ptr_aac_tables
+                      ->scale_factor_bands_long[ptr_ics_info->sampling_rate_index]
+                                               [0]);
   } else {
     return (
         WORD8 *)(&ptr_aac_tables
@@ -141,30 +146,33 @@ void ixheaacd_cblock_scale_spect_data(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info,
     ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
     WORD32 object_type, WORD32 aac_sf_data_resil_flag) {
-  int grp_win, group = 0;
   WORD32 *ptr_spect_coeff = ptr_aac_dec_channel_info->ptr_spec_coeff;
   WORD8 *ptr_sfb_width = (WORD8 *)(ixheaacd_getscalefactorbandwidth(
       &(ptr_aac_dec_channel_info->str_ics_info), ptr_aac_tables));
   WORD16 *ptr_scale_fac = ptr_aac_dec_channel_info->ptr_scale_factor;
   WORD tot_bands = ptr_aac_dec_channel_info->str_ics_info.max_sfb;
-  WORD tot_groups = ptr_aac_dec_channel_info->str_ics_info.num_window_groups;
-  WORD32 *scale_table_ptr = ptr_aac_tables->pstr_block_tables->scale_table;
 
-  do {
-    grp_win =
-        ptr_aac_dec_channel_info->str_ics_info.window_group_length[group++];
-    do {
-      (*ixheaacd_scale_factor_process)(&ptr_spect_coeff[0], &ptr_scale_fac[0],
-                                       tot_bands, (WORD8 *)ptr_sfb_width,
-                                       scale_table_ptr, total_channels,
+  WORD num_win_grp, group_len;
+  WORD32 *ptr_scale_table = ptr_aac_tables->pstr_block_tables->scale_table;
+  ia_ics_info_struct *ptr_ics_info = &ptr_aac_dec_channel_info->str_ics_info;
+
+  if (object_type == AOT_ER_AAC_LC)
+    ptr_sfb_width = ptr_aac_tables->str_aac_sfb_info[ptr_ics_info->window_sequence]
+      .sfb_width;
+  for (num_win_grp = 0; num_win_grp < ptr_ics_info->num_window_groups;
+      num_win_grp++) {
+    for (group_len = 0;
+        group_len < ptr_ics_info->window_group_length[num_win_grp];
+        group_len++) {
+      (*ixheaacd_scale_factor_process)(
+          &ptr_spect_coeff[0], &ptr_scale_fac[0], tot_bands,
+          (WORD8 *)ptr_sfb_width, ptr_scale_table, total_channels,
                                        object_type, aac_sf_data_resil_flag);
-      ptr_spect_coeff += 128;
-      grp_win--;
-    } while (grp_win != 0);
 
-    ptr_scale_fac += 16;
-    tot_groups--;
-  } while (tot_groups != 0);
+      ptr_spect_coeff += MAX_BINS_SHORT;
+    }
+    ptr_scale_fac += MAX_SCALE_FACTOR_BANDS_SHORT;
+  }
 }
 
 WORD32 ixheaacd_read_pulse_data(ia_bit_buf_struct *it_bit_buff,
@@ -277,7 +285,8 @@ static IA_ERRORCODE ixheaacd_read_block_data(
   }
 
   if (aac_spect_data_resil_flag &&
-      ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)))
+      ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)
+      || (object_type == AOT_ER_AAC_LC)))
     ixheaacd_hcr_read(it_bit_buff, ptr_aac_dec_channel_info, ele_type);
 
   if (aac_sf_data_resil_flag &&
@@ -289,7 +298,7 @@ static IA_ERRORCODE ixheaacd_read_block_data(
     it_bit_buff->bit_pos = 7 - it_bit_buff->bit_pos;
   }
 
-  if (object_type == AOT_ER_AAC_LD) {
+  if (object_type == AOT_ER_AAC_LD || object_type == AOT_ER_AAC_LC) {
     if (ptr_aac_dec_channel_info->str_tns_info.tns_data_present)
       error_code =
           ixheaacd_read_tns_data(it_bit_buff, ptr_aac_dec_channel_info);
@@ -595,7 +604,8 @@ IA_ERRORCODE ixheaacd_channel_pair_process(
   IA_ERRORCODE err = IA_NO_ERROR;
   ia_aac_decoder_struct *self = self_ptr;
   if (aac_spect_data_resil_flag &&
-      ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_ER_AAC_ELD))) {
+      ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_ER_AAC_ELD) ||
+      (object_type == AOT_ER_AAC_LC))) {
     for (channel = 0; channel < num_ch; channel++) {
       err = ixheaacd_cblock_inv_quant_spect_data(
           ptr_aac_dec_channel_info[channel], ptr_aac_tables);
@@ -742,7 +752,7 @@ IA_ERRORCODE ixheaacd_read_spectral_data(
   WORD num_win_grp, group_len, grp_offset;
 
   WORD index;
-  WORD8 *ptr_code_book, *ptr_code_book_no;
+  WORD8 *ptr_code_book;
   WORD16 *ptr_scale_factor;
   WORD32 *ptr_spec_coef;
   ia_ics_info_struct *ptr_ics_info = &ptr_aac_dec_channel_info->str_ics_info;
@@ -781,7 +791,8 @@ IA_ERRORCODE ixheaacd_read_spectral_data(
         WORD32 sfb_width;
         WORD32 sect_cb = ptr_code_book[sfb];
         WORD start = sfb;
-        if ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)) {
+        if ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)
+            || (object_type == AOT_ER_AAC_LC)) {
           if ((sect_cb >= 16) && (sect_cb <= 31)) {
             ptr_code_book[sfb] = sect_cb = 11;
           }
@@ -830,21 +841,27 @@ IA_ERRORCODE ixheaacd_read_spectral_data(
       for (num_win_grp = 0; num_win_grp < ptr_ics_info->num_window_groups;
            num_win_grp++) {
         WORD grp_len = ptr_ics_info->window_group_length[num_win_grp];
-        ptr_code_book_no =
-            &ptr_code_book[num_win_grp * MAX_SCALE_FACTOR_BANDS_SHORT];
 
         if (maximum_bins_short == 120)
           ptr_spec_coef_out = &ptr_spec_coef[grp_offset * maximum_bins_short];
         else
           ptr_spec_coef_out = &ptr_spec_coef[grp_offset * MAX_BINS_SHORT];
 
+        WORD bands = num_win_grp * MAX_SCALE_FACTOR_BANDS_SHORT;
         for (sfb = 0; sfb < max_sfb;) {
-          WORD sect_cb = *ptr_code_book_no;
+          WORD sect_cb = ptr_code_book[bands];
           WORD start = sfb;
           WORD ret_val;
 
-          for (; sfb < max_sfb && (*ptr_code_book_no == sect_cb);
-               sfb++, ptr_code_book_no++)
+          if ((object_type == AOT_ER_AAC_ELD) || (object_type == AOT_ER_AAC_LD)
+              || (object_type == AOT_ER_AAC_LC)) {
+            if ((sect_cb >= 16) && (sect_cb <= 31)) {
+              ptr_code_book[bands] = sect_cb = 11;
+            }
+          }
+
+          for (; sfb < max_sfb && (ptr_code_book[bands] == sect_cb);
+               sfb++, bands++)
             ;
 
           if (sect_cb > ZERO_HCB && (sect_cb < NOISE_HCB)) {

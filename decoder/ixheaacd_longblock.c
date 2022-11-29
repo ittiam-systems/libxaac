@@ -245,7 +245,7 @@ VOID ixheaacd_read_scale_factor_data(
           }
 
           if ((object_type != AOT_ER_AAC_ELD) &&
-              (object_type != AOT_ER_AAC_LD)) {
+              (object_type != AOT_ER_AAC_LD) && (object_type != AOT_ER_AAC_LC)) {
             if (sfb_cb > NOISE_HCB) {
               position = position + norm_value;
               *ptr_scale_fact_short++ = -position;

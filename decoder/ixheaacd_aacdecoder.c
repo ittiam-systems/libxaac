@@ -318,6 +318,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
         0;
   }
 
+  for (ch = 0; ch < channel; ch++) {
+    if (object_type == AOT_ER_AAC_ELD || object_type == AOT_ER_AAC_LD)
+      aac_dec_handle->pstr_aac_dec_ch_info[ch]->granule_len =
+          aac_dec_handle->samples_per_frame;
+    if (object_type == AOT_ER_AAC_LC)
+      aac_dec_handle->pstr_aac_dec_ch_info[ch]->granule_len =
+          aac_dec_handle->samples_per_frame / 8;
+  }
   previous_element = ID_END;
 
   aac_dec_handle->pstr_sbr_bitstream->no_elements = 0;
@@ -326,8 +334,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
   cnt_bits = it_bit_buff->cnt_bits;
 
-  if (((object_type != AOT_ER_AAC_ELD) && (object_type != AOT_ER_AAC_LD)) ||
-      (object_type < ER_OBJECT_START)) {
+  if (((object_type != AOT_ER_AAC_ELD) && (object_type != AOT_ER_AAC_LD) &&
+      (object_type != AOT_ER_AAC_LC)) || (object_type < ER_OBJECT_START)) {
     while (ele_type != ID_END && aac_dec_handle->frame_status) {
       ele_type = (WORD)ixheaacd_read_bits_buf(it_bit_buff, 3);
       ixheaacd_read_bidirection(it_bit_buff, -3);
@@ -736,11 +744,34 @@ WORD32 ixheaacd_aacdec_decodeframe(
           break;
       }
 
-      if ((object_type != AOT_ER_AAC_ELD) || (!eld_sbr_flag)) {
+      if ((object_type == AOT_ER_AAC_LC) || (!eld_sbr_flag)) {
+        WORD32 cnt_bits;
+        cnt_bits = it_bit_buff->cnt_bits;
+        p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle.ldmps_config.no_ldsbr_present = 1;
+
+        if (cnt_bits >= 8) {
+          error_code = ixheaacd_extension_payload(
+              it_bit_buff, &cnt_bits,
+              &p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle);
+          if (error_code) return error_code;
+        }
+
+        if (it_bit_buff->cnt_bits) {
+           WORD32 alignment = it_bit_buff->bit_pos & 0x07;
+           it_bit_buff->cnt_bits = (it_bit_buff->cnt_bits + alignment) & 7;
+           it_bit_buff->bit_pos = 7;
+           it_bit_buff->ptr_read_next++;
+        }
+      }
+
+      else  if ((object_type != AOT_ER_AAC_ELD) || (!eld_sbr_flag)) {
         WORD32 bits_decoded, cnt_bits;
         bits_decoded = (it_bit_buff->size - it_bit_buff->cnt_bits);
 
         cnt_bits = (frame_size * 8 - bits_decoded);
+
+        if (object_type == AOT_ER_AAC_LC)
+          cnt_bits = it_bit_buff->cnt_bits;
 
         p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle.ldmps_config
             .no_ldsbr_present = 1;
@@ -921,7 +952,10 @@ WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 *cnt,
 
       if (fill_nibble == 0) {
         for (i = 0; i < (*cnt >> 3) - 1; i++) {
+          if (it_bit_buff->cnt_bits >= 8)
           ixheaacd_read_bits_buf(it_bit_buff, 8);
+          else
+            ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
         }
 
       } else
