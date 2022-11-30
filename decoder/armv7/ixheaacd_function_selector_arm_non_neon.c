@@ -61,11 +61,11 @@
 WORD32 (*ixheaacd_fix_div)(WORD32, WORD32) = &ixheaacd_fix_div_armv7;
 
 VOID(*ixheaacd_covariance_matrix_calc)
-(WORD32 *, ixheaacd_lpp_trans_cov_matrix *,
+(WORD32 *, ia_lpp_trans_cov_matrix *,
  WORD32) = &ixheaacd_covariance_matrix_calc_armv7;
 
 VOID(*ixheaacd_covariance_matrix_calc_2)
-(ixheaacd_lpp_trans_cov_matrix *, WORD32 *, WORD32,
+(ia_lpp_trans_cov_matrix *, WORD32 *, WORD32,
  WORD16) = &ixheaacd_covariance_matrix_calc_2_armv7;
 
 VOID(*ixheaacd_over_lap_add1)

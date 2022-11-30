@@ -135,7 +135,7 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
 
   err_code = ixheaacd_applysbr(self, esbr_bit_str, NULL, &num_channels, 1, 0, 0,
                                &sbr_scratch_struct, 0, 1, 0, it_bit_buff, NULL,
-                               0, audio_object_type, 0, 0);
+                               0, audio_object_type, 0, 0, 1024);
 
   usac_data->sbr_mode = self->sbr_mode;
 

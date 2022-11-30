@@ -40,7 +40,7 @@ typedef struct {
 
   WORD8 tns_max_bands_tbl_ld[12];
   WORD8 tns_max_bands_tbl_480[12];
-
+  WORD32 scale_table_960[4];
 } ia_aac_dec_block_tables_struct;
 
 extern const ia_aac_dec_block_tables_struct ixheaacd_aac_block_tables;
@@ -95,6 +95,17 @@ typedef struct {
   WORD8 ixheaacd_sfb_32_480[38];
   WORD8 ixheaacd_sfb_24_480[31];
 
+  WORD8 ixheaacd_sfb_96_960[41];
+  WORD8 ixheaacd_sfb_96_120[13];
+  WORD8 ixheaacd_sfb_64_960[47];
+  WORD8 ixheaacd_sfb_48_960[50];
+  WORD8 ixheaacd_sfb_48_120[15];
+  WORD8 ixheaacd_sfb_24_960[47];
+  WORD8 ixheaacd_sfb_24_120[16];
+  WORD8 ixheaacd_sfb_16_960[43];
+  WORD8 ixheaacd_sfb_16_120[16];
+  WORD8 ixheaacd_sfb_8_960[41];
+  WORD8 ixheaacd_sfb_8_120[16];
 } ia_aac_dec_huffman_tables_struct;
 
 extern const ia_aac_dec_huffman_tables_struct ixheaacd_aac_huffmann_tables;
@@ -133,6 +144,26 @@ typedef struct {
   WORD16 window_sine_480_eld[1920];
   WORD16 window_sine_512_eld[2048];
 
+  WORD16 only_long_window_sine_960[960];
+  WORD16 only_long_window_kbd_960[960];
+  WORD16 only_short_window_sine_120[120];
+  WORD16 only_short_window_kbd_120[120];
+
+  WORD16 re_arr_tab_32[480];
+  WORD16 re_arr_tab_sml[16];
+  WORD16 re_arr_tab_4[60];
+  WORD16 re_arr_tab_15_4[60];
+  WORD16 re_arr_tab_120[60];
+  WORD16 re_arr_tab_5[16];
+  WORD16 re_arr_tab_3[16];
+
+  WORD16 re_arr_tab_sml_480[480];
+
+  WORD32 cosine_array_1920[960];
+
+  WORD16 w_512[2 * 510];
+  WORD16 w_32[60];
+  WORD16 cosine_array_240[120];
 } ia_aac_dec_imdct_tables_struct;
 
 extern const ia_aac_dec_imdct_tables_struct ixheaacd_imdct_tables;
@@ -149,8 +180,8 @@ typedef struct {
   ia_aac_dec_imdct_tables_struct *pstr_imdct_tables;
 
   ia_aac_sfb_info str_aac_sfb_info[4];
-  WORD8 *scale_factor_bands_long[12];
-  WORD8 *scale_factor_bands_short[12];
+  WORD8 *scale_factor_bands_long[24];
+  WORD8 *scale_factor_bands_short[24];
   WORD16 sfb_long_table[52];
   WORD16 sfb_short_table[16];
 
