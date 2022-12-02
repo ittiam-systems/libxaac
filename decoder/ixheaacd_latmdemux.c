@@ -145,8 +145,8 @@ static UWORD32 ixheaacd_latm_get_value(ia_bit_buf_struct *it_bit_buff) {
   if (bytes_read <= 3)
     return ixheaacd_read_bits_buf(it_bit_buff, 8 * bytes_read);
   else
-    return (ixheaacd_read_bits_buf(it_bit_buff, 24) << 8) +
-           ixheaacd_read_bits_buf(it_bit_buff, 8);
+    return ixheaacd_add32_sat(ixheaacd_shl32_sat(ixheaacd_read_bits_buf(it_bit_buff, 24), 8),
+                              ixheaacd_read_bits_buf(it_bit_buff, 8));
 }
 
 IA_ERRORCODE ixheaacd_latm_stream_mux_config(
