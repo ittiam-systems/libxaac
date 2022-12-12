@@ -147,7 +147,11 @@ set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/decoder ${XAAC_ROOT}/decoder/drc_src)
 
 set(LIBXAACDEC_C_FLAGS "${LIBXAACDEC_X86_C_FLAGS}")
 
-include_directories(${LIBXAACDEC_INCLUDES} ${LIBXAACDEC_X86_INCLUDES})
+set(LIBISOMEDIA_INCLUDES $(XAAC_ROOT)/../isobmff/IsoLib/libisomediafile/src)
+
+set(LIBISOOSW32_INCLUDES $(XAAC_ROOT)/../isobmff/IsoLib/libisomediafile/w32)
+
+include_directories(${LIBXAACDEC_INCLUDES} ${LIBXAACDEC_X86_INCLUDES} ${LIBISOMEDIA_INCLUDES} ${LIBISOOSW32_INCLUDES})
 add_library(libxaacdec ${LIBXAACDEC_SRCS} ${LIBXAACDEC_X86_SRCS})
 set_target_properties(libxaacdec
                       PROPERTIES COMPILE_FLAGS "${LIBXAACDEC_C_FLAGS}")
@@ -160,6 +164,11 @@ list(APPEND XAACDEC_SRCS
 
 add_executable(xaacdec ${XAACDEC_SRCS})
 
+include_external_msproject(libisomediafile
+    ${XAAC_ROOT}/../isobmff/build/IsoLib/libisomediafile/libisomediafile.vcxproj)
+
+add_dependencies(xaacdec libisomediafile)
+
 if(MSVC)
   target_link_libraries(xaacdec libxaacdec)
 else()
@@ -170,5 +179,5 @@ set_target_properties(
   xaacdec
   PROPERTIES
     COMPILE_FLAGS
-    "-UARM_PROFILE_HW -UARM_PROFILE_BOARD -DECLIPSE -DDRC_ENABLE -DMULTICHANNEL_ENABLE -DENABLE_DRC"
+    "-UARM_PROFILE_HW -UARM_PROFILE_BOARD -DECLIPSE -DDRC_ENABLE -DMULTICHANNEL_ENABLE -DENABLE_DRC -DSUPPORT_MP4"
   )
