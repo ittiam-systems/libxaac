@@ -2070,6 +2070,10 @@ IA_ERRORCODE ixheaacd_dec_init(
         }
         if (num_channels_1_t == 1 && num_channels_1 == 2) ps_detected = 1;
       }
+      else
+      {
+        p_state_enhaacplus_dec->mps_dec_handle.ldmps_config.no_ldsbr_present = 1;
+      }
 
       p_state_enhaacplus_dec->i_bytes_consumed = 0;
       p_state_enhaacplus_dec->pstr_bit_buf = it_bit_buff;
