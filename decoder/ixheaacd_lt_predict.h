@@ -46,7 +46,7 @@ typedef struct {
 
 VOID ixheaacd_init_ltp_object(ltp_info *ltp);
 
-VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, void *time, WORD32 *overlap,
+VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, VOID *time, WORD32 *overlap,
                               WORD32 frame_len, WORD32 object_type,
                               WORD32 stride, WORD16 window_sequence,
                               WORD16 *p_window_next, WORD slot_element);

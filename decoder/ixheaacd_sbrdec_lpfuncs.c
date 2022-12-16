@@ -70,6 +70,7 @@
 #include "ixheaacd_function_selector.h"
 
 #include "ixheaacd_audioobjtypes.h"
+#include "ixheaacd_error_codes.h"
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
@@ -610,8 +611,19 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
 
     if (ptr_ps_dec->icc_mode > 2) {
       ptr_ps_dec->icc_mode -= 3;
+      ptr_ps_dec->use_pca_rot_flg = 1;
+    } else {
+      ptr_ps_dec->use_pca_rot_flg = 0;
+    }
+    ptr_ps_dec->freq_res_ipd = ptr_ps_dec->iid_mode;
+    if (ptr_ps_dec->freq_res_ipd > 2) {
+      longjmp(*(it_bit_buff->xaac_jmp_buf),
+        IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
   }
+
+  ptr_ps_dec->use_34_st_bands = 0;
+  ptr_ps_dec->use_pca_rot_flg = 0;
 
   if ((ptr_ps_dec->enable_iid && ptr_ps_dec->iid_mode > 2) ||
       (ptr_ps_dec->enable_icc && ptr_ps_dec->icc_mode > 2)) {
@@ -1146,9 +1158,8 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
 
         break;
       }
-
-      if (num_bands_in_patch <= 0) {
-        return -1;
+      if (num_bands_in_patch < 0) {
+        continue;
       }
 
       for (k2 = sb; k2 < sb + num_bands_in_patch; k2++) {

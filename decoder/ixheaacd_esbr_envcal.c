@@ -523,6 +523,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
         slot_idx = (WORD32)l / rate;
         if (sub_band_start & 1) {
           freq_inv = -1;
+        } else {
+          freq_inv = 1;
         }
 
         for (k = 0; k < num_subbands; k++) {
@@ -772,6 +774,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data,
           ptr_imag_buf = *(input_imag + l) + sub_band_start;
           if (sub_band_start & 1) {
             freq_inv = -1;
+          } else {
+            freq_inv = 1;
           }
           for (k = 0; k < num_subbands; k++) {
             *ptr_real_buf += nrg_tone[k] * ixheaacd_hphase_tbl[0][harm_index];

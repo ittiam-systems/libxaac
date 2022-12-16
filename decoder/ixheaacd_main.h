@@ -178,6 +178,10 @@ typedef struct ia_usac_data_main_struct {
   ia_usac_lpd_decoder arr_str_tddec[MAX_NUM_CHANNELS];
   ia_tns_frame_info_struct arr_str_tns[MAX_NUM_CHANNELS];
 
+  WORD32 enh_sbr;
+  WORD32 esbr_hq;
+  WORD32 enh_sbr_ps;
+
 } ia_usac_data_struct;
 
 IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,

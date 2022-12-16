@@ -19,6 +19,7 @@
 */
 #include <math.h>
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -38,10 +39,6 @@
 
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
-
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
-#define min(a, b) ((a) < (b) ? (a) : (b))
 
 #define DIR_DIFF_IN 0
 #define DOWNMIX_IN 1

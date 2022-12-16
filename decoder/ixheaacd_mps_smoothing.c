@@ -42,16 +42,22 @@
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
 
-#define Q28_FLOAT_VAL ((float)(1 << 28))
+#ifndef MULT
+#define MULT(a, b) (a * b)
+#endif
+#define ONE_BY_128_IN_Q30 (8388608)
+#define ONE_IN_Q30 (1073741824)
+#define PI_IN_Q27 (421657440)
+#define FIFTY_X_PI_BY_180_Q27 (117127067)
+#define TWENTY_FIVE_X_PI_BY_180_Q27 (58563533)
+#define Q28_VALUE (1 << 28)
+#define Q28_FLOAT_VAL ((FLOAT32)(1 << 28))
 #define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
 
 VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
     ia_mps_dec_state_struct *self) {
   WORD32 smooth_band;
   FLOAT32 delta, one_minus_delta;
-#ifndef MULT
-#define MULT(a, b) (a * b)
-#endif
   WORD32 ps = 0, pb, row, col;
   WORD32 res_bands = 0;
   WORD32 *p_smoothing_data;
@@ -135,19 +141,12 @@ VOID ixheaacd_mps_pre_matrix_mix_matrix_smoothing(
   }
 }
 
-#define ONE_BY_128_IN_Q30 (8388608)
-#define ONE_IN_Q30 (1073741824)
-#define PI_IN_Q27 (421657440)
-#define FIFTY_X_PI_BY_180_Q27 (117127067)
-#define TWENTY_FIVE_X_PI_BY_180_Q27 (58563533)
-
 VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
   WORD32 ps, pb;
   WORD32 delta, one_minus_delta;
 
   if (self->opd_smoothing_mode == 0) {
     for (pb = 0; pb < self->bs_param_bands; pb++) {
-#define Q28_VALUE (1 << 28)
       self->opd_smooth.smooth_l_phase[pb] =
           ((WORD32)(self->phase_l[self->num_parameter_sets - 1][pb] *
                     Q28_VALUE)) >>

@@ -118,13 +118,15 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                             audio_object_type, 0, NULL, 0, 0);
 
   self->usac_independency_flag = usac_data->usac_independency_flg;
-
   self->time_sample_buf[0] = usac_data->time_sample_vector[0];
   self->time_sample_buf[1] = usac_data->time_sample_vector[1];
   self->stereo_config_idx = stereo_config_idx;
 
   self->sbr_mode = usac_data->sbr_mode;
   self->aot_usac_flag = usac_data->usac_flag;
+  self->esbr_hq = usac_data->esbr_hq;
+  self->enh_sbr = usac_data->enh_sbr;
+  self->enh_sbr_ps = usac_data->enh_sbr_ps;
 
   for (ch = 0; ch < num_channels; ch++) {
     if ((self->pstr_sbr_channel[ch]
@@ -364,7 +366,7 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           err_code = ixheaacd_esbr_process(
               pstr_usac_data, it_bit_buff, stereo_config_index,
               nr_core_coder_channels,
-              pstr_dec_data->str_usac_data.audio_object_type);
+              pstr_dec_data->str_frame_data.str_audio_specific_config.audio_object_type);
           if (err_code < 0) return err_code;
         }
 

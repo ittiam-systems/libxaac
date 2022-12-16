@@ -128,6 +128,10 @@ typedef struct {
   UWORD8 dup_stereo_flag;
 
   UWORD32 ui_frame_size;
+  WORD32 ui_enh_sbr;
+  WORD32 ui_hq_esbr;
+  WORD32 ui_enh_sbr_ps;
+  WORD32 ui_usac_flag;
 
 } ia_aac_dec_config_struct;
 
@@ -229,7 +233,7 @@ typedef struct ia_aac_dec_state_struct {
   WORD32 ldmps_present;
   WORD32 fatal_err_present;
   WORD8 *pers_mem_ptr;
-  bool preroll_config_present;
+  UWORD8 preroll_config_present;
   UWORD8 preroll_config_prev[MAX_PREROLL_SIZE];
 
   UWORD8 qshift_cnt;

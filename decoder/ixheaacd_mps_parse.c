@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -46,10 +47,6 @@
 #include "ixheaacd_error_standards.h"
 
 #include "ixheaacd_error_standards.h"
-
-#define min(a, b) ((a) < (b) ? (a) : (b))
-
-#define max(a, b) ((a) > (b) ? (a) : (b))
 
 static const WORD32 ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
 

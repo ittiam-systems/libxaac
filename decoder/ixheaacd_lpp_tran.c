@@ -916,8 +916,7 @@ VOID ixheaacd_low_pow_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
                                              &cov_matrix_seq[start_patch],
                                              (stop_patch - start_patch),
                                              auto_corr_length);
-     }
-     else
+     } else
       (*ixheaacd_covariance_matrix_calc)(sub_sig_x + start_patch,
                                          &cov_matrix_seq[start_patch],
                                          (stop_patch - start_patch),
@@ -1049,8 +1048,7 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
           (stop_patch - start_patch), 38);
     }
   } else {
-    if (hf_generator->pstr_settings->num_columns == 15)
-    {
+    if (hf_generator->pstr_settings->num_columns == 15) {
       (*ixheaacd_covariance_matrix_calc_2)(
           &cov_matrix_seq[start_patch],
           (sub_sig_x + start_patch + LPC_ORDER * 128),

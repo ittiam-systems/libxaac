@@ -21,7 +21,7 @@
 #define IXHEAACD_MPS_POLYPHASE_H
 
 #define MAX_NUM_QMF_BANDS_SAC (128)
-#define POLY_PHASE_SYNTH_SIZE (1152)
+#define POLY_PHASE_SYNTH_SIZE (1280)
 
 typedef struct ia_mps_poly_phase_synth_struct {
   FLOAT32 state[POLY_PHASE_SYNTH_SIZE];

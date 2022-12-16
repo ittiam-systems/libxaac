@@ -555,7 +555,10 @@ VOID ixheaacd_drc_dec_create(ia_drc_dec_struct *pstr_drc_dec,
 
     for (j = 0; j < 64; j++)
       for (k = 0; k < 64; k++)
+      {
         pstr_drc_data->drc_factors_sbr[j][k] = DRC_SBR_ONE_Q25;
+        pstr_drc_data->drc_factors_sbr_lat[j][k] = DRC_SBR_ONE_Q25;
+      }
     for (j = 0; j < MAX_DRC_BANDS; j++) pstr_drc_data->drc_fac[j] = 0;
 
     pstr_drc_data->n_mdct_bands[0] = FRAME_SIZE;
@@ -869,7 +872,7 @@ static WORD32 ixheaacd_drc_get_bottom_qmf(WORD32 bottom, WORD32 frame_size) {
 
 VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
                         WORD32 *ptr_spectral_coef, WORD32 win_seq,
-                        WORD32 channel, WORD32 frame_size) {
+                        WORD32 channel, WORD32 frame_size, WORD32 audio_object_type) {
   WORD32 drc_band, spec_pos, start_pos, end_pos;
   WORD32 low_hi, drc_norm, drc_freq_fac;
   WORD32 drc_fac, div_val, mod_val, ret_val, offset_value;
@@ -883,9 +886,31 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
   WORD32 qmf_start_pos, qmf_stop_pos, qmf_start, i, j;
   WORD32 prev_frame_drc_sbr_factors[64];
   WORD32 *ptr_drc_fac;
-  ptr_drc_fac =
-      &pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr[0][0];
 
+  if ((audio_object_type != AOT_ER_AAC_ELD) && (audio_object_type != AOT_ER_AAC_LD))
+  {
+    for (i = 0; i < SBR_QMF_SUB_SAMPLES; i++)
+    {
+      for (j = 0; j < SBR_QMF_SUB_BANDS; j++)
+      {
+        pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr[i][j] =
+          pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr_lat[i][j];
+      }
+    }
+    for (j = 0; j < 32; j++)
+    {
+      memcpy(pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr_lat[j],
+             pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr_lat[j + 32],
+             SBR_QMF_SUB_BANDS * sizeof(WORD32));
+    }
+    ptr_drc_fac =
+      &pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr_lat[0][0];
+  }
+  else
+  {
+    ptr_drc_fac =
+      &pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr[0][0];
+  }
   for (i = 0; i < 64; i++) {
     drc_sbr_factors[i] = ptr_drc_fac;
     ptr_drc_fac += 64;

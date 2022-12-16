@@ -301,12 +301,9 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word1(
         idx -= 2;
       } while (idx != 0);
 
-      if (maximum_bins_short == 120)
-      {
+      if (maximum_bins_short == 120) {
         spec_coef += (maximum_bins_short - offsets[1]);
-      }
-      else
-      {
+      } else {
         spec_coef += (MAX_BINS_SHORT - offsets[1]);
       }
 
@@ -315,12 +312,9 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_word1(
 
     offsets++;
 
-    if (maximum_bins_short == 120)
-    {
+    if (maximum_bins_short == 120) {
       spec_coef -= (maximum_bins_short * group_len);
-    }
-    else
-    {
+    } else {
       spec_coef -= (MAX_BINS_SHORT * group_len);
     }
 
@@ -625,12 +619,9 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_quad(
         idx -= 4;
       } while (idx != 0);
 
-      if (maximum_bins_short == 120)
-      {
+      if (maximum_bins_short == 120) {
         spec_coef += (maximum_bins_short - offsets[1]);
-      }
-      else
-      {
+      } else {
         spec_coef += (MAX_BINS_SHORT - offsets[1]);
       }
 
@@ -816,9 +807,7 @@ static PLATFORM_INLINE WORD ixheaacd_huffman_dec_pair(
     ia_bit_buf_struct *it_bit_buff, WORD32 *spec_coef, WORD16 *offsets,
     WORD no_bands, WORD group_len, const UWORD16 *code_book_tbl,
     WORD32 *ixheaacd_pow_table_Q13, WORD32 tbl_sign, const UWORD32 *idx_table,
-    WORD32 huff_mode, WORD32 maximum_bins_short)
-
-{
+    WORD32 huff_mode, WORD32 maximum_bins_short) {
   WORD idx, grp_idx;
   WORD len_idx;
   WORD16 index, length;

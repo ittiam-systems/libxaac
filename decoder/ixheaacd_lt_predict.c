@@ -395,7 +395,7 @@ VOID ixheaacd_filter_bank_ltp(ia_aac_dec_tables_struct *aac_tables_ptr,
   }
 }
 
-VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, void *time_t,
+VOID ixheaacd_lt_update_state(WORD16 *lt_pred_stat, VOID *time_t,
                               WORD32 *overlap, WORD32 frame_len,
                               WORD32 object_type, WORD32 stride,
                               WORD16 window_sequence, WORD16 *p_window_next,

@@ -114,6 +114,7 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
         ixheaacd_start_subband2kL_tbl[ptr_hbe_txposer->start_band];
 
     ptr_hbe_txposer->upsamp_4_flag = upsamp_4_flag;
+    ptr_hbe_txposer->esbr_hq = 0;
 
     if (upsamp_4_flag) {
       if (ptr_hbe_txposer->k_start + ptr_hbe_txposer->synth_size > 16)
@@ -225,7 +226,8 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                               FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
                               FLOAT32 pv_qmf_buf_real[][64],
                               FLOAT32 pv_qmf_buf_imag[][64],
-                              WORD32 pitch_in_bins) {
+                              WORD32 pitch_in_bins,
+                              ia_sbr_header_data_struct *ptr_header_data) {
   WORD32 i, qmf_band_idx;
   WORD32 qmf_voc_columns = ptr_hbe_txposer->no_bins / 2;
   WORD32 err_code = 0;
@@ -234,6 +236,16 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
          ptr_hbe_txposer->ptr_input_buf +
              ptr_hbe_txposer->no_bins * ptr_hbe_txposer->synth_size,
          ptr_hbe_txposer->synth_size * sizeof(FLOAT32));
+
+  if (ptr_hbe_txposer->ixheaacd_cmplx_anal_fft == NULL) {
+    WORD32 err = ixheaacd_qmf_hbe_data_reinit(
+        ptr_hbe_txposer,
+        ptr_header_data->pstr_freq_band_data->freq_band_table,
+        ptr_header_data->pstr_freq_band_data->num_sf_bands,
+        ptr_header_data->is_usf_4);
+    if (err)
+      return err;
+  }
 
   err_code = ixheaacd_real_synth_filt(ptr_hbe_txposer, num_columns,
                                       qmf_buf_real, qmf_buf_imag);

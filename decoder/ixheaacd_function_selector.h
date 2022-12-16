@@ -153,6 +153,19 @@ extern VOID (*ixheaacd_imdct_using_fft)(ia_aac_dec_imdct_tables_struct *,
 extern VOID (*ixheaacd_complex_fft_p2)(WORD32 *xr, WORD32 *xi, WORD32 nlength,
                                        WORD32 fft_mode, WORD32 *preshift);
 
+extern VOID(*ixheaacd_mps_complex_fft_64)(WORD32 *ptr_x, WORD32 *fin_re,
+                                          WORD32 *fin_im, WORD32 nlength);
+
+extern VOID(*ixheaacd_mps_synt_pre_twiddle)(FLOAT32 *ptr_in,
+                                            const FLOAT32 *table_re,
+                                            const FLOAT32 *table_im,
+                                            WORD32 resolution);
+
+extern VOID(*ixheaacd_mps_synt_post_twiddle)(WORD32 *ptr_in,
+                                             const WORD32 *table_re,
+                                             const WORD32 *table_im,
+                                             WORD32 resolution);
+
 extern VOID (*ixheaacd_calc_pre_twid)(WORD32 *ptr_x, WORD32 *r_ptr,
                                       WORD32 *i_ptr, WORD32 nlength,
                                       const WORD32 *cos_ptr,
@@ -162,6 +175,10 @@ extern VOID (*ixheaacd_calc_post_twid)(WORD32 *ptr_x, WORD32 *r_ptr,
                                        WORD32 *i_ptr, WORD32 nlength,
                                        const WORD32 *cos_ptr,
                                        const WORD32 *sin_ptr);
+
+extern VOID(*ixheaacd_mps_synt_post_fft_twiddle)(
+    WORD32 resolution, FLOAT32 *fin_re, FLOAT32 *fin_im, const FLOAT32 *table_re,
+    const FLOAT32 *table_im, FLOAT32 *state);
 
 extern VOID (*ixheaacd_mps_synt_out_calc)(WORD32 resolution, FLOAT32 *out,
                                           FLOAT32 *state,

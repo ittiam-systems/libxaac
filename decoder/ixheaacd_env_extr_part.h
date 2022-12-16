@@ -92,6 +92,11 @@ typedef struct {
   WORD32 usac_flag;
   UWORD8 pvc_mode;
 
+  FLAG enh_sbr;
+  FLAG esbr_hq;
+  FLAG enh_sbr_ps;
+  FLAG eld_sbr;
+
 } ia_sbr_header_data_struct;
 
 typedef struct {

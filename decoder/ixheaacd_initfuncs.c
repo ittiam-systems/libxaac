@@ -110,6 +110,16 @@ WORD32 ixheaacd_set_aac_persistent_buffers(VOID *aac_persistent_mem_v,
 
   persistent_used += ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8);
 
+  aac_persistent_mem->prev_sbr_payload_buffer =
+      (WORD8 *)((WORD8 *)aac_persistent_mem_v + persistent_used);
+
+  memset((WORD8 *)aac_persistent_mem->prev_sbr_payload_buffer, 0,
+         ALIGN_SIZE64(MAXSBRBYTES) * num_channel *
+         sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer)));
+
+  persistent_used += ALIGN_SIZE64(MAXSBRBYTES) * num_channel *
+         sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer));
+
   {
     WORD32 i;
 
@@ -405,8 +415,11 @@ ia_aac_decoder_struct *ixheaacd_aac_decoder_init(
     ptr_sbr_bitstream->no_elements = 0;
     ptr_sbr_bitstream->str_sbr_ele[0].ptr_sbr_data =
         &aac_persistent_mem->sbr_payload_buffer[ALIGN_SIZE64(MAXSBRBYTES) * i];
+    ptr_sbr_bitstream->str_sbr_ele[0].ptr_prev_sbr_data =
+        &aac_persistent_mem->prev_sbr_payload_buffer[ALIGN_SIZE64(MAXSBRBYTES) * i];
     ptr_sbr_bitstream->str_sbr_ele[0].sbr_ele_id = ID_SCE;
     ptr_sbr_bitstream->str_sbr_ele[0].size_payload = 0;
+    ptr_sbr_bitstream->str_sbr_ele[0].prev_size_payload = 0;
   }
 
   {

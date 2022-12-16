@@ -445,18 +445,11 @@ VOID ixheaacd_esbr_synthesis_filt_block(
     ia_sbr_dec_struct *ptr_sbr_dec, ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_frame_data, WORD32 apply_processing,
     FLOAT32 **qmf_buf_real, FLOAT32 **qmf_buf_imag, WORD32 stereo_config_idx,
-    ia_sbr_tables_struct *sbr_tables_ptr, WORD32 mps_sbr_flag, WORD32 ch_fac) {
-  if (!mps_sbr_flag) {
-    ixheaacd_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
-                                  ptr_sbr_dec, ptr_frame_data, ptr_header_data,
-                                  stereo_config_idx, apply_processing);
-  } else {
-    ixheaacd_mps_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
-                                      ptr_sbr_dec, stereo_config_idx);
-  }
+    ia_sbr_tables_struct *sbr_tables_ptr, WORD32 mps_sbr_flag, WORD32 ch_fac,
+    WORD32 ps_enable, WORD32 skip_re_grouping, ia_ps_dec_struct *ptr_ps_dec,
+    FLAG drc_on, WORD32 drc_sbr_factors[][64]) {
 
-  if (stereo_config_idx <= 0) {
-    WORD32 i, k, p1;
+    WORD32 i, k;
     WORD32 *ptr_filt_states;
     WORD32 *ptr_filt_states_1;
     WORD32 *ptr_filt_states_2;
@@ -464,38 +457,131 @@ VOID ixheaacd_esbr_synthesis_filt_block(
     WORD32 *ploc_qmf_buf_real;
     WORD32 *ploc_qmf_buf_imag;
     WORD32 out_scalefactor;
-    WORD32 sixty4;
+    WORD32 sixty4, thrity2;
     WORD32 no_synthesis_channels;
     WORD32 ixheaacd_drc_offset;
     FLOAT32 *syn_buffer;
     WORD32 *local_qmf_buffer = ptr_sbr_dec->sbr_scratch_local;
     WORD32 *time_out = &(ptr_sbr_dec->sbr_scratch_local[128]);
+  FLOAT32 *time_sample_buf;
+  if (ps_enable) {
+    time_sample_buf = ptr_ps_dec->time_sample_buf[0];
+  } else {
+    time_sample_buf = ptr_sbr_dec->time_sample_buf;
+  }
     ia_sbr_qmf_filter_bank_struct *qmf_bank =
         &ptr_sbr_dec->str_synthesis_qmf_bank;
     ia_qmf_dec_tables_struct *qmf_dec_tables_ptr =
         sbr_tables_ptr->qmf_dec_tables_ptr;
+
+  if (!skip_re_grouping) {
+    if (!mps_sbr_flag) {
+      ixheaacd_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
+                                    ptr_sbr_dec, ptr_frame_data, ptr_header_data,
+                                    stereo_config_idx, apply_processing);
+      if (ps_enable) {
+        FLOAT32 factor = 1.0f;
+        for (i = ptr_ps_dec->num_sub_samples;i < (WORD32)ptr_ps_dec->num_sub_samples + 6;i++) {
+          for (k = 0; k < 5; k++)
+          {
+            if (drc_on)
+            {
+              if (ptr_sbr_dec->str_codec_qmf_bank.num_time_slots == 30)
+              {
+                factor = (FLOAT32)drc_sbr_factors[i + 30 - 25][k] / Q25;
+              }
+              else
+              {
+                factor = (FLOAT32)drc_sbr_factors[i + 32 - 26][k] / Q25;
+              }
+            }
+            ptr_ps_dec->pp_qmf_buf_real[0][i][k] =
+              factor * ptr_sbr_dec->qmf_buf_real[SBR_HF_ADJ_OFFSET + i][k];
+            ptr_ps_dec->pp_qmf_buf_imag[0][i][k] =
+              factor * ptr_sbr_dec->qmf_buf_imag[SBR_HF_ADJ_OFFSET + i][k];
+          }
+        }
+      }
+      if (ps_enable && apply_processing) {
+        WORD32 usb = ptr_header_data->pstr_freq_band_data->sub_band_end;
+
+        ixheaacd_esbr_apply_ps(ptr_ps_dec,
+                               ptr_ps_dec->pp_qmf_buf_real[0],
+                               ptr_ps_dec->pp_qmf_buf_imag[0],
+                               ptr_ps_dec->pp_qmf_buf_real[1],
+                               ptr_ps_dec->pp_qmf_buf_imag[1],
+                               usb, sbr_tables_ptr->ps_tables_ptr,
+                               ptr_header_data->num_time_slots);
+      } else if (ps_enable) {
+        for (i = 0; i < (ptr_header_data->num_time_slots * 2); i++) {
+          for (k = 0; k < 64; k++) {
+            ptr_ps_dec->pp_qmf_buf_real[1][i][k] = ptr_ps_dec->pp_qmf_buf_real[0][i][k];
+            ptr_ps_dec->pp_qmf_buf_imag[1][i][k] = ptr_ps_dec->pp_qmf_buf_imag[0][i][k];
+          }
+        }
+      }
+    } else {
+      ixheaacd_mps_esbr_synthesis_regrp(&qmf_buf_real[0][0], &qmf_buf_imag[0][0],
+                                        ptr_sbr_dec, stereo_config_idx);
+    }
+  } else {
+    if (ps_enable) {
+      time_sample_buf = ptr_ps_dec->time_sample_buf[1];
+    }
+  }
+
+  if (drc_on)
+  {
+    FLOAT32 factor = 1.0f;
+    for (i = 0; i < ptr_sbr_dec->str_codec_qmf_bank.num_time_slots; i++)
+    {
+      for (k = 0; k < 64; k++)
+      {
+        if (ptr_sbr_dec->str_codec_qmf_bank.num_time_slots == 30)
+        {
+          factor = (FLOAT32)drc_sbr_factors[i + 30 - 25][k] / Q25;
+        }
+        else
+        {
+          factor = (FLOAT32)drc_sbr_factors[i + 32 - 26][k] / Q25;
+        }
+        qmf_buf_real[i][k] *= factor;
+        qmf_buf_imag[i][k] *= factor;
+      }
+    }
+  }
+
+  if (stereo_config_idx <= 0) {
     out_scalefactor = 5;
-    qmf_bank->no_channels = 64;
-    qmf_bank->esbr_cos_twiddle =
+    no_synthesis_channels = qmf_bank->no_channels;
+    sixty4 = NO_SYNTHESIS_CHANNELS;
+    thrity2 = qmf_bank->no_channels;
+
+    if (no_synthesis_channels == NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED)
+    {
+        qmf_bank->esbr_cos_twiddle =
+          (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l32;
+        qmf_bank->esbr_alt_sin_twiddle =
+          (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l32;
+    }
+    else
+    {
+      qmf_bank->esbr_cos_twiddle =
         (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l64;
-    qmf_bank->esbr_alt_sin_twiddle =
+      qmf_bank->esbr_alt_sin_twiddle =
         (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l64;
+    }
 
     qmf_bank->filter_pos_syn_32 +=
         qmf_dec_tables_ptr->esbr_qmf_c - qmf_bank->p_filter_32;
     qmf_bank->p_filter_32 = qmf_dec_tables_ptr->esbr_qmf_c;
 
-    sixty4 = NO_SYNTHESIS_CHANNELS;
-
     ptr_filt_states = qmf_bank->filter_states_32;
 
-    no_synthesis_channels = qmf_bank->no_channels;
     ptr_filt_states_1 = &ptr_filt_states[0];
     ptr_filt_states_2 = ptr_filt_states_1 + no_synthesis_channels;
 
     filter_l = qmf_bank->filter_pos_syn_32;
-
-    p1 = 0;
 
     ixheaacd_drc_offset = qmf_bank->ixheaacd_drc_offset;
 
@@ -509,34 +595,58 @@ VOID ixheaacd_esbr_synthesis_filt_block(
 
       ixheaacd_esbr_inv_modulation(ploc_qmf_buf_real,
                                    &ptr_sbr_dec->str_synthesis_qmf_bank,
-                                   sbr_tables_ptr->qmf_dec_tables_ptr);
+                                   sbr_tables_ptr->qmf_dec_tables_ptr,
+                                   no_synthesis_channels);
 
       ixheaacd_shiftrountine_with_rnd_hq(ploc_qmf_buf_real, ploc_qmf_buf_imag,
                                          &ptr_filt_states[ixheaacd_drc_offset],
                                          no_synthesis_channels,
                                          out_scalefactor + 1);
 
-      ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
-                                    filter_l, &time_out[0], ch_fac);
+      if (no_synthesis_channels == NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED) {
+        ixheaacd_esbr_qmfsyn32_winadd(ptr_filt_states_1, ptr_filt_states_2,
+                                      filter_l, &time_out[0], ch_fac);
 
-      syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
-      for (k = 0; k < 64; k++) {
-        syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
+        if (!mps_sbr_flag) {
+          syn_buffer = time_sample_buf + i * 32;
+        } else {
+          syn_buffer = ptr_sbr_dec->time_sample_buf + i * 32;
+        }
+        for (k = 0; k < 32; k++) {
+          syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
+        }
+
+        ptr_filt_states_1 += thrity2;
+        ptr_filt_states_2 -= thrity2;
+        thrity2 = -thrity2;
+        ixheaacd_drc_offset -= 64;
+
+        if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 640;
+      } else {
+        ixheaacd_esbr_qmfsyn64_winadd(ptr_filt_states_1, ptr_filt_states_2,
+                                      filter_l, &time_out[0], ch_fac);
+
+        if (!mps_sbr_flag) {
+          syn_buffer = time_sample_buf + i * 64;
+        } else {
+          syn_buffer = ptr_sbr_dec->time_sample_buf + i * 64;
+        }
+        for (k = 0; k < 64; k++) {
+          syn_buffer[k] = (FLOAT32)time_out[k] / (1 << 16);
+        }
+
+        ptr_filt_states_1 += sixty4;
+        ptr_filt_states_2 -= sixty4;
+        sixty4 = -sixty4;
+        ixheaacd_drc_offset -= 128;
+
+        if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
       }
-
-      ptr_filt_states_1 += sixty4;
-      ptr_filt_states_2 -= sixty4;
-      sixty4 = -sixty4;
-      ixheaacd_drc_offset -= 128;
-
-      if (ixheaacd_drc_offset < 0) ixheaacd_drc_offset += 1280;
 
       filter_l += 64;
 
       if (filter_l == qmf_bank->p_filter_32 + 640)
         filter_l = (WORD32 *)qmf_bank->p_filter_32;
-
-      p1 += no_synthesis_channels;
     }
 
     qmf_bank->filter_pos_syn_32 = filter_l;
@@ -544,11 +654,6 @@ VOID ixheaacd_esbr_synthesis_filt_block(
   }
 
   if (!mps_sbr_flag) ptr_frame_data->reset_flag = 0;
-
-  if (apply_processing && !mps_sbr_flag) {
-    ptr_header_data->pstr_freq_band_data->qmf_sb_prev =
-        ptr_header_data->pstr_freq_band_data->sub_band_start;
-  }
 }
 
 WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
@@ -564,7 +669,7 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                         ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
                         ia_pvc_data_struct *ptr_pvc_data, FLAG drc_on,
                         WORD32 drc_sbr_factors[][64], WORD32 audio_object_type,
-                        WORD32 ldmps_present) {
+                        WORD32 ldmps_present, VOID *self) {
   WORD i, j, k;
   WORD slot, reserve;
   WORD save_lb_scale;
@@ -590,8 +695,8 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 
   FLOAT32 *pvc_qmf_enrg_arr = (FLOAT32 *)ptr_sbr_dec->pvc_qmf_enrg_arr;
 
+  WORD32 dft_hbe_flag = ptr_header_data->esbr_hq;
   WORD32 esbr_hbe_delay_offsets;
-
   if (ptr_header_data->num_time_slots == 15)
     esbr_hbe_delay_offsets = ESBR_HBE_DELAY_OFFSET_960;
   else
@@ -607,7 +712,8 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 
   if (ldmps_present == 1) add_slot = SBR_HF_ADJ_OFFSET;
 
-  if (usac_flag) {
+  if (!((audio_object_type == AOT_ER_AAC_ELD) || (audio_object_type == AOT_ER_AAC_LD))) {
+    ch_fac = 1;
     pp_qmf_buf_real = ptr_sbr_dec->pp_qmf_buf_real;
     pp_qmf_buf_imag = ptr_sbr_dec->pp_qmf_buf_imag;
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
@@ -617,18 +723,16 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
 
   no_bins = (ptr_header_data->num_time_slots * ptr_header_data->time_step);
 
-  if (!usac_flag) {
+  if ((audio_object_type == AOT_ER_AAC_ELD) ||
+      (audio_object_type == AOT_ER_AAC_LD)) {
     WORD32 num = op_delay;
     WORD32 *ptr_pers_qmf_real = ptr_sbr_dec->ptr_sbr_overlap_buf;
     WORD32 *p_scr_qmf_real = ptr_work_buf_core + (2 << (6 + !low_pow_flag));
 
-    if (ptr_header_data->num_time_slots != 15)
-    {
+    if (ptr_header_data->num_time_slots != 15) {
       if ((no_bins < LPC_ORDER) || ((no_bins + op_delay) > MAX_ENV_COLS))
         return -1;
-    }
-    else
-    {
+    } else {
       if ((no_bins < LPC_ORDER) || ((no_bins + op_delay) > MAX_ENV_COLS_960))
         return -1;
     }
@@ -661,13 +765,11 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     }
   }
 
-  if (usac_flag) {
-    WORD32 num_anal_bands = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
+  if ((audio_object_type != AOT_ER_AAC_ELD) &&
+      (audio_object_type != AOT_ER_AAC_LD)) {
     WORD32 codec_x_delay = 0;
-    WORD32 frame_move = 288;
-    WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
-    if (hbe_flag) {
+    if (hbe_flag || !usac_flag) {
       codec_x_delay = esbr_hbe_delay_offsets;
     }
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
@@ -675,23 +777,13 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     }
     /* fixed decoder delay for bitstreams with SBR 4:1 and stereoConfigIndex 3
      */
-    if (ptr_header_data->num_time_slots != 15)
-    {
+    if (ptr_header_data->num_time_slots != 15) {
       if (mps_sbr_flag) op_delay = MPS_SBR_DELAY;
-    }
-    else
-    {
+    } else {
       if (mps_sbr_flag) op_delay = MPS_SBR_DELAY_960;
     }
 
-    frame_move = 9 * num_anal_bands;
-
-    memmove(ptr_sbr_dec->core_sample_buf,
-            ptr_sbr_dec->core_sample_buf + core_frame_size,
-            frame_move * sizeof(FLOAT32));
-    memcpy(&ptr_sbr_dec->core_sample_buf[frame_move],
-           &ptr_sbr_dec->time_sample_buf[0], core_frame_size * sizeof(FLOAT32));
-
+    {
     memmove(
         &ptr_sbr_dec->qmf_buf_real[0][0],
         &ptr_sbr_dec
@@ -724,13 +816,25 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
               ptr_sbr_dec->ph_vocod_qmf_imag +
                   ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
               64 * sizeof(FLOAT32) * (op_delay + SBR_HF_ADJ_OFFSET));
+        if (!usac_flag) {
+          WORD32 qmf_sb_prev = ptr_header_data->pstr_freq_band_data->qmf_sb_prev;
+          for (i = SBR_HF_ADJ_OFFSET; i < op_delay + SBR_HF_ADJ_OFFSET; ++i) {
+            memset(&ptr_sbr_dec->qmf_buf_real[i][qmf_sb_prev], 0, (64 - qmf_sb_prev));
+            memset(&ptr_sbr_dec->qmf_buf_imag[i][qmf_sb_prev], 0, (64 - qmf_sb_prev));
+          }
+        }
+      }
     }
     ixheaacd_esbr_analysis_filt_block(
         ptr_sbr_dec, sbr_tables_ptr,
         op_delay + codec_x_delay + SBR_HF_ADJ_OFFSET);
 
-    if (hbe_flag) {
-      err_code = ixheaacd_qmf_hbe_apply(
+    if (hbe_flag && apply_processing) {
+      if (dft_hbe_flag == 1) {
+        WORD32 err_code = 0;
+        ptr_sbr_dec->p_hbe_txposer->oversampling_flag =
+            ptr_frame_data->over_sampling_flag;
+        err_code = ixheaacd_dft_hbe_apply(
           ptr_sbr_dec->p_hbe_txposer,
           ptr_sbr_dec->qmf_buf_real + (op_delay + SBR_HF_ADJ_OFFSET) +
           esbr_hbe_delay_offsets,
@@ -739,19 +843,31 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
           ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
           ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
           ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
-          ptr_frame_data->pitch_in_bins);
-      if (err_code) return err_code;
+          ptr_frame_data->pitch_in_bins, (FLOAT32 *)ptr_work_buf_core);
+        if (err_code) return err_code;
+      } else {
+          WORD32 err_code = ixheaacd_qmf_hbe_apply(
+              ptr_sbr_dec->p_hbe_txposer,
+              ptr_sbr_dec->qmf_buf_real + (op_delay + SBR_HF_ADJ_OFFSET) +
+              esbr_hbe_delay_offsets,
+              ptr_sbr_dec->qmf_buf_imag + (op_delay + SBR_HF_ADJ_OFFSET) +
+              esbr_hbe_delay_offsets,
+              ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
+              ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
+              ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
+              ptr_frame_data->pitch_in_bins, ptr_header_data);
+          if (err_code) return err_code;
 
-      if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
-        ixheaacd_hbe_repl_spec(
-            &ptr_sbr_dec->p_hbe_txposer->x_over_qmf[0],
-            ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
-            ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
-            ptr_sbr_dec->p_hbe_txposer->max_stretch);
+        if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
+          ixheaacd_hbe_repl_spec(
+              &ptr_sbr_dec->p_hbe_txposer->x_over_qmf[0],
+              ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
+              ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
+              ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
+              ptr_sbr_dec->p_hbe_txposer->max_stretch);
+        }
       }
     }
-
     if (!mps_sbr_flag && apply_processing) {
       err_code = ixheaacd_generate_hf(
           ptr_sbr_dec->qmf_buf_real + (SBR_HF_ADJ_OFFSET),
@@ -814,8 +930,25 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
     ixheaacd_esbr_synthesis_filt_block(
         ptr_sbr_dec, ptr_header_data, ptr_frame_data, apply_processing,
         pp_qmf_buf_real, pp_qmf_buf_imag, stereo_config_idx, sbr_tables_ptr,
-        mps_sbr_flag, ch_fac);
+        mps_sbr_flag, ch_fac,
+        ((ptr_header_data->channel_mode == PS_STEREO) || ptr_header_data->enh_sbr_ps),
+        0, ptr_ps_dec, drc_on, drc_sbr_factors);
 
+    if (ptr_header_data->enh_sbr_ps || ptr_header_data->channel_mode == PS_STEREO) {
+      pp_qmf_buf_real = ptr_ps_dec->pp_qmf_buf_real[1];
+      pp_qmf_buf_imag = ptr_ps_dec->pp_qmf_buf_imag[1];
+      ixheaacd_esbr_synthesis_filt_block(
+          (ia_sbr_dec_struct *)
+          (&(((ia_handle_sbr_dec_inst_struct)self)->pstr_sbr_channel[1]->str_sbr_dec)),
+          (ia_sbr_header_data_struct *)
+          (&(((ia_handle_sbr_dec_inst_struct)self)->pstr_sbr_header[1])),
+          (ia_sbr_frame_info_data_struct *)
+          (&(((ia_handle_sbr_dec_inst_struct)self)->frame_buffer[1])), apply_processing,
+          pp_qmf_buf_real, pp_qmf_buf_imag, stereo_config_idx, sbr_tables_ptr,
+          mps_sbr_flag, ch_fac,
+          ((ptr_header_data->channel_mode == PS_STEREO) || ptr_header_data->enh_sbr_ps),
+          1, ptr_ps_dec, drc_on, drc_sbr_factors);
+    }
     ptr_frame_data->prev_sbr_mode = sbr_mode;
 
     return 0;
@@ -1127,7 +1260,6 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
   FLOAT32 **pp_qmf_buf_imag = ptr_sbr_dec->pp_qmf_buf_imag;
 
   WORD32 upsample_ratio_idx = ptr_header_data->sbr_ratio_idx;
-  WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
   WORD32 mps_sbr_flag = ptr_frame_data->mps_sbr_flag;
   WORD32 stereo_config_idx = ptr_frame_data->stereo_config_idx;
@@ -1141,23 +1273,12 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
 
   ptr_sbr_dec->str_sbr_scale_fact.lb_scale = 0;
   {
-    WORD32 num_anal_bands = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
-    WORD32 frame_move = 288;
     if (hbe_flag) {
       codec_x_delay = 32;
     }
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
       codec_x_delay = 2 * codec_x_delay;
     }
-
-    frame_move = 9 * num_anal_bands;
-
-    memmove(ptr_sbr_dec->core_sample_buf,
-            ptr_sbr_dec->core_sample_buf + core_frame_size,
-            frame_move * sizeof(FLOAT32));
-
-    memcpy(&ptr_sbr_dec->core_sample_buf[frame_move],
-           &ptr_sbr_dec->time_sample_buf[0], core_frame_size * sizeof(FLOAT32));
 
     memmove(
         &ptr_sbr_dec->qmf_buf_real[0][0],
@@ -1205,7 +1326,7 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
         ptr_sbr_dec->str_codec_qmf_bank.num_time_slots,
         ptr_sbr_dec->ph_vocod_qmf_real + (op_delay + SBR_HF_ADJ_OFFSET),
         ptr_sbr_dec->ph_vocod_qmf_imag + (op_delay + SBR_HF_ADJ_OFFSET),
-        ptr_frame_data->pitch_in_bins);
+        ptr_frame_data->pitch_in_bins, ptr_header_data);
     if (err) return err;
 
     if (upsample_ratio_idx == SBR_UPSAMPLE_IDX_4_1) {
@@ -1229,7 +1350,7 @@ WORD32 ixheaacd_esbr_dec(ia_sbr_dec_struct *ptr_sbr_dec,
   ixheaacd_esbr_synthesis_filt_block(
       ptr_sbr_dec, ptr_header_data, ptr_frame_data, apply_processing,
       pp_qmf_buf_real, pp_qmf_buf_imag, stereo_config_idx, ptr_sbr_tables,
-      mps_sbr_flag, ch_fac);
+      mps_sbr_flag, ch_fac, 0, 0, NULL, 0, NULL);
 
   ptr_frame_data->prev_sbr_mode = sbr_mode;
   return 0;

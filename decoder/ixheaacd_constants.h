@@ -77,4 +77,13 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
+#define C70 (-0.1666667014f)  //(cos(u) + cos(2 * u) + cos(3 * u)) / 3;
+#define C71 (0.7901564837f)   //(2 * cos(u) - cos(2 * u) - cos(3 * u)) / 3;
+#define C72 (0.0558542535f)   //(cos(u) - 2 * cos(2 * u) + cos(3 * u)) / 3;
+#define C73 (0.7343022227f)   //(cos(u) + cos(2 * u) - 2 * cos(3 * u)) / 3;
+#define C74 (-0.4409585893f)  //(sin(u) + sin(2 * u) - sin(3 * u)) / 3;
+#define C75 (-0.3408728838f)  //(2 * sin(u) - sin(2 * u) + sin(3 * u)) / 3;
+#define C76 (0.5339693427f)   //(sin(u) - 2 * sin(2 * u) - sin(3 * u)) / 3;
+#define C77 (-0.8748422265f)  //(sin(u) + sin(2 * u) + 2 * sin(3 * u)) / 3;
+
 #endif /* IXHEAACD_CONSTANTS_H */

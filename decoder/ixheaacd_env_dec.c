@@ -42,6 +42,7 @@
 #include "ixheaacd_env_dec.h"
 #include "ixheaacd_sbr_const.h"
 #include "ixheaacd_basic_funcs.h"
+#include "ixheaacd_audioobjtypes.h"
 
 #define add16_m(a, b) ((a) + (b))
 #define sub16_m(a, b) ((a) - (b))
@@ -275,6 +276,8 @@ ixheaacd_wrong_timing_compensate(ia_sbr_header_data_struct *ptr_header_data,
     for (i = 0; i < num_env_sf; i++) {
       ptr_sbr_data->int_env_sf_arr[i] =
           add16_m(ptr_sbr_data->int_env_sf_arr[i], delta_exp);
+      ptr_sbr_data->flt_env_sf_arr[i] =
+          (FLOAT32)(ptr_sbr_data->int_env_sf_arr[i]);
     }
   }
 
@@ -285,6 +288,7 @@ WORD16 ixheaacd_check_env_data(ia_sbr_header_data_struct *ptr_header_data,
                                ia_sbr_frame_info_data_struct *ptr_sbr_data,
                                ia_sbr_prev_frame_data_struct *ptr_prev_data) {
   WORD16 *ptr_evn_sf = ptr_sbr_data->int_env_sf_arr;
+  FLOAT32 *ptr_evn_sf_float = ptr_sbr_data->flt_env_sf_arr;
   WORD16 *ptr_prev_evn_sf = ptr_prev_data->sfb_nrg_prev;
   WORD32 i;
   FLAG error_code = 0;
@@ -299,6 +303,7 @@ WORD16 ixheaacd_check_env_data(ia_sbr_header_data_struct *ptr_header_data,
     }
     if (ptr_evn_sf[i] < 0) {
       ptr_evn_sf[i] = 0;
+      ptr_evn_sf_float[i] = 0;
     }
   }
 
@@ -343,6 +348,7 @@ ixheaacd_limit_noise_floor_fac(ia_sbr_header_data_struct *ptr_header_data,
   WORD32 value;
   WORD32 num_nf_bands;
   WORD16 *ptr_noise_floor;
+  FLOAT32 *ptr_noise_floor_flt;
 
   num_nf_bands = ptr_header_data->pstr_freq_band_data->num_nf_bands;
 
@@ -351,16 +357,21 @@ ixheaacd_limit_noise_floor_fac(ia_sbr_header_data_struct *ptr_header_data,
 
   ptr_noise_floor = ptr_sbr_data->int_noise_floor;
 
+  ptr_noise_floor_flt = &ptr_sbr_data->flt_noise_floor[0];
+
   for (i = tot_nf_bands - 1; i >= 0; i--) {
     value = *ptr_noise_floor;
     if (value > MAX_NOISE_FLOOR_FAC_VAL) {
       *ptr_noise_floor = MAX_NOISE_FLOOR_FAC_VAL;
+      *ptr_noise_floor_flt = MAX_NOISE_FLOOR_FAC_VAL;
     } else {
       if (value < MIN_NOISE_FLOOR_FAC_VAL) {
         *ptr_noise_floor = MIN_NOISE_FLOOR_FAC_VAL;
+        *ptr_noise_floor_flt = MIN_NOISE_FLOOR_FAC_VAL;
       }
     }
     ptr_noise_floor++;
+    ptr_noise_floor_flt++;
   }
 }
 
@@ -373,10 +384,20 @@ VOID ixheaacd_add_arr(WORD16 *ptr1, WORD16 *ptr2, WORD32 num) {
   }
 }
 
+VOID ixheaacd_add_farr(FLOAT32 *ptr1, FLOAT32 *ptr2, WORD32 num) {
+  WORD32 i;
+  for (i = num - 1; i >= 0; i--) {
+    *ptr2 = (*ptr2 + *ptr1);
+    ptr2++;
+    ptr1++;
+  }
+}
+
 IA_ERRORCODE ixheaacd_calc_noise_floor(
     ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_sbr_data,
-    ia_sbr_prev_frame_data_struct *ptr_prev_data) {
+    ia_sbr_prev_frame_data_struct *ptr_prev_data,
+    WORD32 audio_object_type) {
   WORD32 i;
   WORD32 num_nf_bands;
   WORD32 num_noise_env;
@@ -385,6 +406,7 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
 
   WORD16 *ptr_prev_noise_floor = ptr_prev_data->prev_noise_level;
   WORD16 *ptr1, *ptr2;
+  FLOAT32 *f_ptr1, *f_ptr2;
   WORD32 num;
   FLOAT32 *ptr_noise_floor_float = ptr_sbr_data->flt_noise_floor;
 
@@ -395,27 +417,35 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
     ptr1 = ptr_noise_floor++;
     ptr2 = ptr_noise_floor;
     num = num_nf_bands - 1;
+    f_ptr1 = &ptr_noise_floor_float[0];
+    f_ptr2 = &ptr_noise_floor_float[1];
   } else {
     ptr1 = ptr_prev_noise_floor;
     ptr2 = ptr_sbr_data->int_noise_floor;
+    f_ptr1 = &ptr_sbr_data->prev_noise_level[0];
+    f_ptr2 = &ptr_noise_floor_float[0];
     num = num_nf_bands;
   }
 
   ixheaacd_add_arr(ptr1, ptr2, num);
+  ixheaacd_add_farr(f_ptr1, f_ptr2, num);
 
   if (num_noise_env > 1) {
     if (ptr_sbr_data->del_cod_dir_noise_arr[1] == DTDF_DIR_FREQ) {
       ptr1 = &ptr_sbr_data->int_noise_floor[num_nf_bands];
       ptr2 = &ptr_sbr_data->int_noise_floor[(num_nf_bands + 1)];
-
+      f_ptr1 = &ptr_sbr_data->flt_noise_floor[num_nf_bands];
+      f_ptr2 = &ptr_sbr_data->flt_noise_floor[(num_nf_bands + 1)];
       num = num_nf_bands - 1;
     } else {
       ptr1 = &ptr_sbr_data->int_noise_floor[0];
       ptr2 = &ptr_sbr_data->int_noise_floor[num_nf_bands];
-
+      f_ptr1 = &ptr_sbr_data->flt_noise_floor[0];
+      f_ptr2 = &ptr_sbr_data->flt_noise_floor[num_nf_bands];
       num = num_nf_bands;
     }
     ixheaacd_add_arr(ptr1, ptr2, num);
+    ixheaacd_add_farr(f_ptr1, f_ptr2, num);
   }
 
   ixheaacd_limit_noise_floor_fac(ptr_header_data, ptr_sbr_data);
@@ -427,9 +457,12 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
   ptr2 = ptr_prev_noise_floor;
 
   memcpy(ptr2, ptr1, sizeof(WORD16) * (num_nf_bands));
-
-  if ((ptr_sbr_data->coupling_mode != COUPLING_BAL) ||
-      (ptr_header_data->usac_flag)) {
+  if (!ptr_header_data->usac_flag) {
+    for (i = 0; i < num_nf_bands; i++) {
+      ptr_sbr_data->prev_noise_level[i] = ptr_prev_noise_floor[i];
+    }
+  }
+  if (audio_object_type != AOT_ER_AAC_ELD) {
     WORD32 noise_floor_exp, tot_nf_bands;
 
     tot_nf_bands = (num_nf_bands * num_noise_env);
@@ -442,6 +475,20 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
       *ptr_noise_floor_float++ = *ptr_noise_floor;
       *ptr_noise_floor++ = (WORD16)(0x4000 + (noise_floor_exp & MASK_FOR_EXP));
     }
+  } else {
+    if (ptr_sbr_data->coupling_mode != COUPLING_BAL) {
+      WORD32 noise_floor_exp, tot_nf_bands;
+
+      tot_nf_bands = (num_nf_bands * num_noise_env);
+      ptr_noise_floor = &ptr_sbr_data->int_noise_floor[0];
+
+      for (i = 0; i < tot_nf_bands; i++) {
+        noise_floor_exp =
+            (NOISE_FLOOR_OFFSET_INT + 1 + NOISE_EXP_OFFSET - *ptr_noise_floor);
+        *ptr_noise_floor_float++ = *ptr_noise_floor;
+        *ptr_noise_floor++ = (WORD16)(0x4000 + (noise_floor_exp & MASK_FOR_EXP));
+      }
+    }
   }
   return IA_NO_ERROR;
 }
@@ -449,9 +496,11 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
 IA_ERRORCODE ixheaacd_dec_sbrdata_for_pvc(
     ia_sbr_header_data_struct *ptr_header_data,
     ia_sbr_frame_info_data_struct *ptr_sbr_data,
-    ia_sbr_prev_frame_data_struct *ptr_prev_data) {
+    ia_sbr_prev_frame_data_struct *ptr_prev_data,
+    WORD32 audio_object_type) {
   WORD32 err = 0;
-  err = ixheaacd_calc_noise_floor(ptr_header_data, ptr_sbr_data, ptr_prev_data);
+  err = ixheaacd_calc_noise_floor(ptr_header_data, ptr_sbr_data, ptr_prev_data,
+                                  audio_object_type);
   if (err) return err;
 
   if (!ptr_sbr_data->coupling_mode) {
@@ -583,21 +632,24 @@ IA_ERRORCODE ixheaacd_dec_sbrdata(
     ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
     ia_sbr_frame_info_data_struct *ptr_sbr_data_ch_1,
     ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-    ixheaacd_misc_tables *ptr_common_tables, WORD32 ldmps_present) {
+    ixheaacd_misc_tables *ptr_common_tables, WORD32 ldmps_present,
+    WORD32 audio_object_type) {
   FLAG error_code;
   WORD32 err = 0;
-  WORD32 usac_flag = ptr_header_data_ch_0->usac_flag;
+  WORD32 usac_flag = ptr_header_data_ch_0->usac_flag |
+                     ptr_header_data_ch_0->enh_sbr;
 
   err = ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                               ptr_prev_data_ch_0, ptr_prev_data_ch_1,
-                              ptr_common_tables);
+                              ptr_common_tables, audio_object_type);
 
   if (err) return err;
 
   err = ixheaacd_calc_noise_floor(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
-                                  ptr_prev_data_ch_0);
+                                  ptr_prev_data_ch_0, audio_object_type);
   if (err) return err;
-  if ((!ptr_sbr_data_ch_0->coupling_mode && usac_flag) || ldmps_present) {
+  if ((!ptr_sbr_data_ch_0->coupling_mode &&
+     ((usac_flag) && (audio_object_type != AOT_ER_AAC_ELD))) || ldmps_present) {
     ptr_sbr_data_ch_0->num_noise_sfac =
         ptr_header_data_ch_0->pstr_freq_band_data->num_nf_bands *
         ptr_sbr_data_ch_0->str_frame_info_details.num_noise_env;
@@ -612,16 +664,17 @@ IA_ERRORCODE ixheaacd_dec_sbrdata(
     error_code = ptr_header_data_ch_0->err_flag;
     err = ixheaacd_dec_envelope(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
                                 ptr_prev_data_ch_1, ptr_prev_data_ch_0,
-                                ptr_common_tables);
+                                ptr_common_tables, audio_object_type);
 
     if (err) return err;
 
     err = ixheaacd_calc_noise_floor(ptr_header_data_ch_1, ptr_sbr_data_ch_1,
-                                    ptr_prev_data_ch_1);
+                                    ptr_prev_data_ch_1, audio_object_type);
 
     if (err) return err;
 
-    if (!ptr_sbr_data_ch_1->coupling_mode && usac_flag) {
+    if (!ptr_sbr_data_ch_1->coupling_mode &&
+       ((usac_flag) && (audio_object_type != AOT_ER_AAC_ELD))) {
       ptr_sbr_data_ch_1->num_noise_sfac =
           ptr_header_data_ch_1->pstr_freq_band_data->num_nf_bands *
           ptr_sbr_data_ch_1->str_frame_info_details.num_noise_env;
@@ -632,11 +685,11 @@ IA_ERRORCODE ixheaacd_dec_sbrdata(
           ptr_sbr_data_ch_1->flt_noise_floor);
     }
 
-    if (!usac_flag) {
+    if ((!usac_flag) || (audio_object_type == AOT_ER_AAC_ELD)) {
       if (!error_code && ptr_header_data_ch_0->err_flag) {
         err = ixheaacd_dec_envelope(ptr_header_data_ch_0, ptr_sbr_data_ch_0,
                                     ptr_prev_data_ch_0, ptr_prev_data_ch_1,
-                                    ptr_common_tables);
+                                    ptr_common_tables, audio_object_type);
 
         if (err) return err;
       }
@@ -660,11 +713,13 @@ IA_ERRORCODE ixheaacd_dec_envelope(
     ia_sbr_frame_info_data_struct *ptr_sbr_data,
     ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_0,
     ia_sbr_prev_frame_data_struct *ptr_prev_data_ch_1,
-    ixheaacd_misc_tables *pstr_common_tables) {
+    ixheaacd_misc_tables *pstr_common_tables,
+    WORD32 audio_object_type) {
   FLAG error_code;
   WORD32 err;
   WORD16 env_sf_local_arr[MAX_FREQ_COEFFS];
-  WORD32 usac_flag = ptr_header_data->usac_flag;
+  WORD32 enh_sbr = ptr_header_data->enh_sbr;
+  WORD32 usac_flag = enh_sbr | ptr_header_data->usac_flag;
   WORD32 temp_1 =
       ptr_prev_data_ch_0->end_position - ptr_header_data->num_time_slots;
 
@@ -680,7 +735,7 @@ IA_ERRORCODE ixheaacd_dec_envelope(
     }
   }
 
-  if (ptr_header_data->err_flag && !usac_flag) {
+  if (ptr_header_data->err_flag && ((!usac_flag) || (audio_object_type == AOT_ER_AAC_ELD))) {
     ixheaacd_lean_sbrconcealment(ptr_header_data, ptr_sbr_data,
                                  ptr_prev_data_ch_0);
 
@@ -688,7 +743,8 @@ IA_ERRORCODE ixheaacd_dec_envelope(
                                       ptr_prev_data_ch_0);
   } else {
     WORD32 num = ptr_header_data->pstr_freq_band_data->num_sf_bands[HIGH];
-    if (ptr_header_data->err_flag_prev && !usac_flag) {
+    if (ptr_header_data->err_flag_prev && ((!usac_flag) ||
+        (audio_object_type == AOT_ER_AAC_ELD))) {
       WORD16 *ptr1, *ptr2;
       WORD32 i;
 
@@ -729,7 +785,7 @@ IA_ERRORCODE ixheaacd_dec_envelope(
     ixheaacd_process_del_cod_env_data(ptr_header_data, ptr_sbr_data,
                                       ptr_prev_data_ch_0);
 
-    if (!usac_flag) {
+    if ((!usac_flag)||(audio_object_type == AOT_ER_AAC_ELD)) {
       error_code = ixheaacd_check_env_data(ptr_header_data, ptr_sbr_data,
                                            ptr_prev_data_ch_0);
 
@@ -741,14 +797,14 @@ IA_ERRORCODE ixheaacd_dec_envelope(
 
         err = ixheaacd_dec_envelope(ptr_header_data, ptr_sbr_data,
                                     ptr_prev_data_ch_0, ptr_prev_data_ch_1,
-                                    pstr_common_tables);
+                                    pstr_common_tables, audio_object_type);
 
         if (err) return err;
         return 0;
       }
     }
   }
-  if (!usac_flag)
+  if ((!usac_flag)||(audio_object_type == AOT_ER_AAC_ELD))
     ixheaacd_dequant_env_data(ptr_sbr_data, ptr_sbr_data->amp_res);
 
   return 0;
