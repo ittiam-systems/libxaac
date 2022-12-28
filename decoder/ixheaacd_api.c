@@ -3146,7 +3146,10 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 .ldmps_present_flag == 1 &&
          p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] &&
          p_state_enhaacplus_dec->mps_dec_handle.mps_init_done == 1) {
-      ixheaacd_ld_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer);
+      error_code = ixheaacd_ld_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer);
+
+      if (error_code)
+        return error_code;
     }
     if (sample_rate < sample_rate_dec) {
       sample_rate = sample_rate_dec;
