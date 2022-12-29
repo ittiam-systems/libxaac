@@ -155,7 +155,7 @@ int get_use_edit_list(metadata_info meta_info) {
 }
 
 int get_start_offset_in_samples(metadata_info meta_info) {
-  return meta_info.startOffsetInSamples[0];
+  return (meta_info.startOffsetInSamples[0] + 2048);
 }
 
 int get_play_time_in_samples(metadata_info meta_info) {

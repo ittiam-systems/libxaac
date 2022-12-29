@@ -59,6 +59,7 @@ struct ia_aac_persistent_struct {
 
   ia_aac_dec_channel_info *ptr_aac_dec_static_channel_info[CHANNELS];
   WORD16 *ltp_buf[CHANNELS];
+  WORD8 *prev_sbr_payload_buffer;
 };
 
 typedef struct {

@@ -26,9 +26,7 @@
 #define MAX_NUM_QMF_BANDS_MPS_NEW (64)
 
 #define MAX_PARAMETER_SETS_MPS (9)
-#define MAX_M2_OUTPUT_MP (MAX_OUTPUT_CHANNELS_MPS)
 #define BUFFER_LEN_HF_MPS ((QMF_HYBRID_FILT_ORDER - 1) / 2 + MAX_TIME_SLOTS)
-#define MAX_OUTPUT_CHANNELS_MPS_AT (2)
 #define HYBRID_BAND_BORDER (12)
 
 #define DECORR_FILT_0_ORD_LD_MPS (20)
@@ -42,7 +40,6 @@
 #define DECORR_FILT_3_ORD (2)
 
 #define MAX_DECORR_FIL_ORDER (DECORR_FILT_0_ORD_LD_MPS)
-#define MAX_DECORR_FIL_ORDER_MPS (DECORR_FILT_0_ORD)
 
 #define NO_RES_BANDS -1
 
@@ -78,12 +75,6 @@ typedef struct ia_mps_decor_struct *ia_mps_decor_struct_handle;
 #define MAX_HYBRID_BANDS_MPS (MAX_NUM_QMF_BANDS_MPS_NEW - 3 + 10)
 #define MAX_HYBRID_BANDS_MPS_LD (MAX_NUM_QMF_BANDS_MPS - 3 + 10)
 #define MAX_TIME_SLOTS (72)
-
-#define MAX_M_INPUT_MPS (2)
-#define MAX_M_OUTPUT_MPS (2)
-#define MAX_M1_INPUT (2)
-#define MAX_M1_OUTPUT (2)
-#define MAX_M2_INPUT (2)
 
 #define MAX_M_INPUT (2)
 #define MAX_M_OUTPUT (2)
@@ -202,10 +193,10 @@ typedef struct ia_mps_dec_state_struct {
   FLOAT32 env_shape_data[2][MAX_TIME_SLOTS];
 
   WORD8 parse_nxt_frame;
-  WORD32 band_count[MAX_M1_INPUT];
+  WORD32 band_count[MAX_M_INPUT];
   WORD32 synth_count;
   WORD32 qmf_band_count;
-  WORD32 hyb_band_count[MAX_M1_INPUT];
+  WORD32 hyb_band_count[MAX_M_INPUT];
   WORD32 hyb_band_count_max;
   const WORD32 *hyb_band_to_processing_band_table;
 
@@ -359,6 +350,10 @@ WORD32 ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self);
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
                           WORD32 pcmsize, FLOAT32 (*out_samples)[4096],
                           WORD32 *out_bytes, WORD32 num_channel_out);
+
+VOID ixheaacd_samples_sat_mc(WORD8* outbuffer, WORD32 num_samples_out,
+                             FLOAT32(*out_samples)[4096], WORD32* out_bytes,
+                             WORD32 num_channel_out, WORD32 ch_fac);
 
 IA_ERRORCODE ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self);
 

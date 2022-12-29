@@ -49,8 +49,14 @@ WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
   WORD32 idx;
   WORD32 anal_size = 2 * ptr_hbe_txposer->synth_size;
   WORD32 N = (10 * anal_size);
+  WORD32 no_bins = ptr_hbe_txposer->no_bins >> 1;
 
-  for (idx = 0; idx < (ptr_hbe_txposer->no_bins >> 1); idx++) {
+  if (ptr_hbe_txposer->esbr_hq != 0) {
+    anal_size = 2 * ptr_hbe_txposer->analy_size;
+    no_bins = ptr_hbe_txposer->no_bins;
+  }
+
+  for (idx = 0; idx < no_bins; idx++) {
     WORD32 i, j, k, l;
     FLOAT32 window_output[640];
     FLOAT32 u[128], u_in[256], u_out[256];
@@ -61,7 +67,14 @@ WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
     FLOAT32 *analy_cos_sin_tab = ptr_hbe_txposer->analy_cos_sin_tab;
     const FLOAT32 *interp_window_coeff = ptr_hbe_txposer->analy_wind_coeff;
     FLOAT32 *x = ptr_hbe_txposer->analy_buf;
-
+    if (ptr_hbe_txposer->esbr_hq != 0) {
+      memset(ptr_hbe_txposer->qmf_in_buf[idx], 0,
+          TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(FLOAT32));
+      inp_signal = ptr_hbe_txposer->ptr_output_buf +
+          idx * ptr_hbe_txposer->analy_size + 1;
+      anal_buf = &ptr_hbe_txposer->qmf_in_buf[idx]
+          [4 * ptr_hbe_txposer->a_start];
+    } else {
     memset(ptr_hbe_txposer->qmf_in_buf[idx + HBE_OPER_WIN_LEN - 1], 0,
            TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(FLOAT32));
 
@@ -69,6 +82,7 @@ WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
                  idx * 2 * ptr_hbe_txposer->synth_size + 1;
     anal_buf = &ptr_hbe_txposer->qmf_in_buf[idx + HBE_OPER_WIN_LEN - 1]
                                            [4 * ptr_hbe_txposer->k_start];
+    }
 
     for (i = N - 1; i >= anal_size; i--) {
       x[i] = x[i - anal_size];
@@ -89,8 +103,7 @@ WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
       }
       u[i] = accu_r;
     }
-
-    if (anal_size == 40) {
+    if (anal_size == 40 || anal_size == 56) {
       for (i = 1; i < anal_size; i++) {
         FLOAT32 temp1 = u[i] + u[2 * anal_size - i];
         FLOAT32 temp2 = u[i] - u[2 * anal_size - i];
@@ -154,12 +167,19 @@ WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
       (FLOAT32 *)&ixheaacd_cos_table_trans_qmf[0][0] +
       ptr_hbe_txposer->k_start * 32;
   FLOAT32 *buffer = ptr_hbe_txposer->synth_buf;
+  FLOAT32 *ptr_inp_buf = ptr_hbe_txposer->ptr_input_buf + ptr_hbe_txposer->ana_fft_size[0];
 
   for (idx = 0; idx < num_columns; idx++) {
     FLOAT32 loc_qmf_buf[64];
     FLOAT32 *synth_buf_r = loc_qmf_buf;
-    FLOAT32 *out_buf = ptr_hbe_txposer->ptr_input_buf +
+    FLOAT32 *out_buf;
+    if (ptr_hbe_txposer->esbr_hq == 1) {
+        out_buf = ptr_inp_buf +
+                  (idx - 1) * ptr_hbe_txposer->synth_size;
+    } else {
+      out_buf = ptr_hbe_txposer->ptr_input_buf +
                        (idx + 1) * ptr_hbe_txposer->synth_size;
+    }
     FLOAT32 *synth_cos_tab = ptr_hbe_txposer->synth_cos_tab;
     const FLOAT32 *interp_window_coeff = ptr_hbe_txposer->synth_wind_coeff;
     if (ptr_hbe_txposer->k_start < 0) return -1;
@@ -248,6 +268,70 @@ WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
         accu_r = accu_r + w[synth_size * j + i];
       }
       out_buf[i] = (FLOAT32)accu_r;
+    }
+  }
+  return 0;
+}
+
+WORD32 ixheaacd_dft_hbe_cplx_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+                                       FLOAT32 qmf_buf_real[][64],
+                                       FLOAT32 qmf_buf_imag[][64]) {
+  WORD32 idx;
+
+  WORD32 anal_size = ptr_hbe_txposer->analy_size;
+
+  WORD32 N = (10 * ptr_hbe_txposer->analy_size);
+
+  for (idx = 0; idx < ptr_hbe_txposer->no_bins; idx++) {
+    WORD32 i, j, k, l;
+    FLOAT32 window_output[640];
+    FLOAT32 u[128];
+    FLOAT32 accu_r, accu_i;
+    const FLOAT32 *inp_signal;
+    FLOAT32 *qmf_buf_r = &qmf_buf_real[idx][ptr_hbe_txposer->a_start];
+    FLOAT32 *qmf_buf_i = &qmf_buf_imag[idx][ptr_hbe_txposer->a_start];
+
+    const FLOAT32 *interp_window_coeff = ptr_hbe_txposer->analy_wind_coeff;
+    FLOAT32 *x = ptr_hbe_txposer->analy_buf;
+
+    memset(&qmf_buf_real[idx][ptr_hbe_txposer->a_start], 0,
+        (NO_QMF_SYNTH_CHANNELS - ptr_hbe_txposer->a_start) *
+        sizeof(qmf_buf_real[idx][ptr_hbe_txposer->a_start]));
+    memset(&qmf_buf_imag[idx][ptr_hbe_txposer->a_start], 0,
+        TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(qmf_buf_imag[idx][ptr_hbe_txposer->a_start]));
+
+    inp_signal = ptr_hbe_txposer->ptr_output_buf +
+        idx * ptr_hbe_txposer->analy_size + 1;
+
+    for (i = N - 1; i >= anal_size; i--) {
+        x[i] = x[i - anal_size];
+    }
+
+    for (i = anal_size - 1; i >= 0; i--) {
+        x[i] = inp_signal[anal_size - 1 - i];
+    }
+
+    for (i = 0; i < N; i++) {
+        window_output[i] = x[i] * interp_window_coeff[i];
+    }
+
+    for (i = 0; i < 2 * anal_size; i++) {
+      accu_r = 0.0;
+      for (j = 0; j < 5; j++) {
+        accu_r = accu_r + window_output[i + j * 2 * anal_size];
+      }
+      u[i] = accu_r;
+    }
+
+    for (k = 0; k < anal_size; k++) {
+      accu_r = 0;
+      accu_i = 0;
+      for (l = 0; l < 2 * anal_size; l++) {
+        accu_r = accu_r + u[l] * ptr_hbe_txposer->str_dft_hbe_anal_coeff.real[k][l];
+        accu_i = accu_i + u[l] * ptr_hbe_txposer->str_dft_hbe_anal_coeff.imag[k][l];
+      }
+      qmf_buf_r[k] = (FLOAT32)accu_r;
+      qmf_buf_i[k] = (FLOAT32)accu_i;
     }
   }
   return 0;

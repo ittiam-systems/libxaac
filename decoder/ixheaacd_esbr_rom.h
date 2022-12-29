@@ -21,7 +21,7 @@
 #define IXHEAACD_ESBR_ROM_H
 
 extern const FLOAT32 ixheaacd_sub_samp_qmf_window_coeff[40 + 80 + 120 + 160 +
-                                                        200 + 240 + 320 + 400];
+                                                        200 + 240 + 320 + 400 + 440];
 extern const FLOAT32 ixheaacd_random_phase[512][2];
 extern const FLOAT32 ixheaacd_hphase_tbl[2][8];
 
@@ -57,5 +57,27 @@ extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_16[64];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_24[96];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_32[128];
 extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_40[40 * 40 * 2];
+
+extern const FLOAT32 ixheaacd_dft_hbe_window_ts_12[13];
+extern const FLOAT32 ixheaacd_dft_hbe_window_ts_18[19];
+
+extern const FLOAT32 ixheaacd_sine_pi_n_by_1024[1024];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_960[960];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_896[896];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_832[832];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_768[768];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_704[704];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_640[640];
+extern const FLOAT32 ixheaacd_sine_pi_n_by_576[576];
+extern const FLOAT32 ixheaacd_sine_pi_by_2_N[];
+extern const FLOAT32 ixheaacd_sin_cos_448[];
+extern const FLOAT32 ixheaacd_sin_cos_672[];
+extern const FLOAT32 ixheaacd_sin_cos_512[];
+extern const FLOAT32 ixheaacd_sin_cos_576[];
+extern const FLOAT32 ixheaacd_sin_cos_384[];
+extern const FLOAT32 ixheaacd_sin_cos_768[];
+
 extern const FLOAT32 ixheaacd_sel_case[5][8];
+extern const FLOAT32 ixheaacd_sub_samp_qmf_window_coeff_28_36[280 + 360];
+extern const FLOAT32 ixheaacd_analy_cos_sin_table_kl_56[56 * 56 * 2];
 #endif

@@ -1574,6 +1574,39 @@ VOID ixheaacd_esbr_qmfsyn64_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
   }
 }
 
+VOID ixheaacd_esbr_qmfsyn32_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
+                                   WORD32 *sample_buffer, WORD32 ch_fac) {
+  WORD32 k;
+
+  for (k = 0; k < 32; k++) {
+    WORD64 syn_out = 0;
+
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[0 + k], inp1[2 * (k + 0)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[128 + k], inp1[2 * (k + 64)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[256 + k], inp1[2 * (k + 128)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[384 + k], inp1[2 * (k + 192)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[512 + k], inp1[2 * (k + 256)]));
+
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[64 + k], inp1[2 * (k + 32)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[192 + k], inp1[2 * (k + 96)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[320 + k], inp1[2 * (k + 160)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[448 + k], inp1[2 * (k + 224)]));
+    syn_out =
+        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[576 + k], inp1[2 * (k + 288)]));
+
+    sample_buffer[ch_fac * k] = (WORD32)(syn_out >> 31);
+  }
+}
+
 VOID ixheaacd_shiftrountine(WORD32 *qmf_real, WORD32 *qmf_imag, WORD32 len,
                             WORD32 common_shift) {
   WORD32 treal, timag;

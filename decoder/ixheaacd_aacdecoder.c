@@ -873,7 +873,8 @@ WORD32 ixheaacd_aacdec_decodeframe(
         if (pstr_drc_dec->drc_on) {
           ixheaacd_drc_apply(pstr_drc_dec, spec_coef[ch],
                              str_ics_info[ch].window_sequence, ch,
-                             str_ics_info[ch].frame_length);
+                             str_ics_info[ch].frame_length,
+                             object_type);
         }
         if (skip_full_decode == 0) {
           ixheaacd_imdct_process(aac_dec_handle->pstr_aac_dec_overlap_info[ch],

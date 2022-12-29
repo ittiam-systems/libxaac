@@ -48,6 +48,8 @@ typedef struct {
   WORD32 extension_type;
   WORD32 size_payload;
   WORD8 *ptr_sbr_data;
+  WORD8 *ptr_prev_sbr_data;
+  WORD32 prev_size_payload;
 } ia_sbr_element_stream_struct;
 
 typedef struct {

@@ -492,8 +492,8 @@ VOID ixheaacd_imdct_process(ia_aac_dec_overlap_info *ptr_aac_dec_overlap_info,
                       ptr_spec_coeff, ptr_long_window,
                       ptr_ics_info->frame_length, q_shift, ptr_overlap_buf,
                       ch_fac, (WORD16 *)out_samples, slot_element);
-                  ptr_ics_info->qshift_adj = -2;
                 }
+                ptr_ics_info->qshift_adj = -2;
               }
             }
             break;

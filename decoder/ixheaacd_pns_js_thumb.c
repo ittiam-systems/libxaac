@@ -368,12 +368,9 @@ VOID ixheaacd_aac_tns_process(
       if (filter->direction == -1) {
         position = stop - 1;
 
-        if (maximum_bins_short == 120)
-        {
+        if (maximum_bins_short == 120) {
           if (((win * maximum_bins_short) + position) < filter->order) continue;
-        }
-        else
-        {
+        } else {
           if (((win << 7) + position) < filter->order) continue;
         }
 

@@ -71,7 +71,7 @@ extern ia_error_info_struct ixheaacd_error_info;
 
 #ifdef ARM_PROFILE_HW
 #include <sys/time.h>
-#define CLK_FREQ_BOARD_MHZ 716  // a9 omap4430 board
+#define CLK_FREQ_BOARD_MHZ 716 // a9 omap4430 board
 //#define CLK_FREQ_BOARD_MHZ 1555 //Nexus6P
 //#define CLK_FREQ_BOARD_MHZ 2035 //Tegra Board
 //#define CLK_FREQ_BOARD_MHZ 550 //a8  board
@@ -102,6 +102,8 @@ WORD32 mpeg_d_drc_on = 0;
 
 metadata_info meta_info;  // metadata pointer;
 WORD32 ixheaacd_i_bytes_to_read;
+WORD32 prev_i_bytes_to_read;
+WORD32 flush_frame = 0;
 FILE *g_pf_meta;
 
 WORD32 raw_testing = 0;
@@ -401,6 +403,22 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
           IA_ENHAACPLUS_DEC_CONFIG_PARAM_DOWNMIX, &ui_down_mix);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
+    if (!strncmp((pCHAR8)argv[i], "-esbr_hq:", 9)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 9);
+      UWORD32 ui_esbr_hq = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(
+          p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_HQ_ESBR, &ui_esbr_hq);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+    if (!strncmp((pCHAR8)argv[i], "-esbr_ps:", 9)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 9);
+      UWORD32 ui_esbr_ps = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(
+          p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_ENHAACPLUS_DEC_CONFIG_PARAM_PS_ENABLE, &ui_esbr_ps);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
 #ifdef RESAMPLE_SUPPORT
     /* Resample the output to 8 kHz. */
     if (!strncmp((pCHAR8)argv[i], "-f08:", 5)) {
@@ -665,7 +683,9 @@ IA_ERRORCODE ixheaacd_get_config_param(pVOID p_ia_process_api_obj,
                                        pWORD32 pi_samp_freq,
                                        pWORD32 pi_num_chan,
                                        pWORD32 pi_pcm_wd_sz,
-                                       pWORD32 pi_channel_mask) {
+                                       pWORD32 pi_channel_mask,
+                                       pWORD32 pi_sbr_mode,
+                                       pWORD32 pi_aot) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   /* the process API function */
   IA_ERRORCODE(*p_ia_process_api)
@@ -736,6 +756,15 @@ IA_ERRORCODE ixheaacd_get_config_param(pVOID p_ia_process_api_obj,
       printf("ESBR Mode: UPSAMPLING FACTOR 4\n");
     else
       printf("ui_sbr_mode not vaild\n");
+    *pi_sbr_mode = ui_sbr_mode;
+  }
+  {
+    UWORD32 ui_aot;
+    err_code = (*p_ia_process_api)(
+        p_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+        IA_ENHAACPLUS_DEC_CONFIG_PARAM_AOT, &ui_aot);
+    _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    *pi_aot = ui_aot;
   }
   return IA_NO_ERROR;
 }
@@ -842,7 +871,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 i_out_bytes, i_total_bytes = 0;
   WORD32 i_samp_freq, i_num_chan, i_pcm_wd_sz, i_channel_mask;
 
-  UWORD32 i_sbr_mode;
+  WORD32 i_sbr_mode;
   WORD32 i_effect_type = 0;
   WORD32 i_target_loudness = 0;
   WORD32 i_loud_norm = 0;
@@ -861,7 +890,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* The get config from API */
   IA_ERRORCODE(*p_get_config_param)
   (pVOID p_ia_process_api_obj, pWORD32 pi_samp_freq, pWORD32 pi_num_chan,
-   pWORD32 pi_pcm_wd_sz, pWORD32 pi_channel_mask);
+   pWORD32 pi_pcm_wd_sz, pWORD32 pi_channel_mask, pWORD32 pi_sbr_mode, pWORD32 pi_aot);
+  WORD32 ui_aot = 0;
 
   /* The error init function */
   VOID (*p_error_init)();
@@ -1099,7 +1129,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     err_code =
         (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq, &i_num_chan,
-                              &i_pcm_wd_sz, &i_channel_mask);
+                              &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
     /*if (ui_type == IA_MEMTYPE_OUTPUT) {
@@ -1197,7 +1227,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
       err_code =
           (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
-                                &i_num_chan, &i_pcm_wd_sz, &i_channel_mask);
+              &i_num_chan, &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
       // This is done in those cases, where file decodes ends at init time
@@ -1308,7 +1338,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     err_code =
         (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq, &i_num_chan,
-                              &i_pcm_wd_sz, &i_channel_mask);
+                              &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
     /* Sampling Frequency */
@@ -1592,11 +1622,17 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* ******************************************************************/
 
   err_code = (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
-                                   &i_num_chan, &i_pcm_wd_sz, &i_channel_mask);
+      &i_num_chan, &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
   if (raw_testing) {
     skip_samples = get_start_offset_in_samples(meta_info);
+    if (ui_aot >= 23) {
+      skip_samples = skip_samples - 2048;
+      if (skip_samples < 0) {
+        skip_samples = 0;
+      }
+    }
     if (eld_testing == 0) total_samples = get_play_time_in_samples(meta_info);
   }
 
@@ -1617,36 +1653,80 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   do {
     if (((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)) > 0) {
-      for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
-        pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
-      }
-#ifdef ENABLE_LD_DEC
-      if (0 != frame_counter) {
-#endif
-        FileWrapper_Read(
-            g_pf_inp,
-            (unsigned char *)(pb_inp_buf + i_buff_size - i_bytes_consumed),
+      if (i_sbr_mode && (ui_aot < 23)) {
+        if (meta_info.ia_mp4_stsz_entries != frame_counter) {
+          for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
+            pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
+          }
+
+          FileWrapper_Read(
+              g_pf_inp,
+              (unsigned char *)(pb_inp_buf + i_buff_size - i_bytes_consumed),
+              ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
+              (pUWORD32)&i_bytes_read);
+
+          i_buff_size = i_buff_size - (i_bytes_consumed - i_bytes_read);
+
+          if ((i_buff_size <= 0) ||
+              ((err_code_reinit == 0x00001804) && i_bytes_read == 0)) {
+            i_buff_size = 0;
+            raw_testing = 0;
+            /* Tell that the input is over in this buffer */
+            err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+                                           IA_API_CMD_INPUT_OVER, 0, NULL);
+
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+          }
+        }
+      } else {
+        for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
+          pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
+        }
+
+        FileWrapper_Read(g_pf_inp, (unsigned char *)(pb_inp_buf + i_buff_size -
+            i_bytes_consumed),
             ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
             (pUWORD32)&i_bytes_read);
-#ifdef ENABLE_LD_DEC
-      } else
-        i_bytes_read = 0;
-#endif
 
-      i_buff_size = i_buff_size - (i_bytes_consumed - i_bytes_read);
+        i_buff_size = i_buff_size - (i_bytes_consumed - i_bytes_read);
 
-      if ((i_buff_size <= 0) ||
-          ((err_code_reinit == 0x00001804) && i_bytes_read == 0)) {
-        i_buff_size = 0;
-        raw_testing = 0;
-        /* Tell that the input is over in this buffer */
-        err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
-                                       IA_API_CMD_INPUT_OVER, 0, NULL);
+        if ((i_buff_size <= 0) ||
+            ((err_code_reinit == 0x00001804) && i_bytes_read == 0)) {
+          i_buff_size = 0;
+          raw_testing = 0;
 
-        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+          err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+              IA_API_CMD_INPUT_OVER, 0, NULL);
+
+          _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+        }
       }
     }
+    if (i_sbr_mode && (ui_aot < 23)) {
+      if (meta_info.ia_mp4_stsz_entries != frame_counter) {
+        if (raw_testing) {
+          ixheaacd_i_bytes_to_read =
+              get_metadata_dec_exec(meta_info, frame_counter);
 
+          if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size)
+            return IA_FATAL_ERROR;
+          if (ixheaacd_i_bytes_to_read <= 0) {
+            err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
+                                           IA_API_CMD_INPUT_OVER, 0, NULL);
+
+            _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+            return IA_NO_ERROR;
+          }
+          err_code =
+              (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
+                  0, &ixheaacd_i_bytes_to_read);
+        } else {
+          err_code = (*p_ia_process_api)(
+              pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
+        }
+      }
+    } else {
     if (raw_testing) {
       ixheaacd_i_bytes_to_read =
           get_metadata_dec_exec(meta_info, frame_counter);
@@ -1669,6 +1749,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       /* Set number of bytes to be processed */
       err_code = (*p_ia_process_api)(
           pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
+    }
     }
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
@@ -1771,8 +1852,13 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
         if (err_code_reinit != 0) memset(pb_out_buf, 0, i_out_bytes);
 
+        if (i_sbr_mode && (ui_aot < 23)) {
+           if (frame_counter > 0)
         i_total_bytes += i_out_bytes;
-
+        }
+        else {
+            i_total_bytes += i_out_bytes;
+        }
         if (mpegd_drc_present == 1) {
           WORD32 is_config_changed = 0, apply_crossfade = 0;
 
@@ -1943,7 +2029,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         if (i_total_bytes <= skip_samples * i_num_chan * (i_pcm_wd_sz >> 3)) {
           err_code =
               (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
-                                    &i_num_chan, &i_pcm_wd_sz, &i_channel_mask);
+                  &i_num_chan, &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
 
           write_flag = 0;
         } else {
@@ -1981,9 +2067,17 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
 #else
 #ifndef ARM_PROFILE_BOARD
+      if (i_sbr_mode && (ui_aot < 23)) {
+        if (frame_counter != 0) {
       fwrite(pb_out_buf + ixheaacd_drc_offset, sizeof(WORD8), i_out_bytes,
              g_pf_out);
       fflush(g_pf_out);
+        }
+      } else {
+      fwrite(pb_out_buf + ixheaacd_drc_offset, sizeof(WORD8), i_out_bytes,
+             g_pf_out);
+      fflush(g_pf_out);
+      }
 #endif
 #endif
     }
@@ -2032,9 +2126,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   fprintf(stdout, " Peak frame = %d\n", Peak_frame_b);
 #endif
   fprintf(stderr, "TOTAL FRAMES : [%5d] \n", frame_counter);
-
   err_code = (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
-                                   &i_num_chan, &i_pcm_wd_sz, &i_channel_mask);
+      &i_num_chan, &i_pcm_wd_sz, &i_channel_mask, &i_sbr_mode, &ui_aot);
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
 #ifdef WAV_HEADER

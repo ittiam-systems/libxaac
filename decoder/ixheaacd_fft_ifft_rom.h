@@ -17,25 +17,20 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_DSP_FFT32X32S_H
-#define IXHEAACD_DSP_FFT32X32S_H
+#ifndef IXHEAACD_FFT_IFFT_ROM_H
+#define IXHEAACD_FFT_IFFT_ROM_H
 
-VOID ixheaacd_inv_dit_fft_8pt_dec(WORD32 *x, WORD32 *real, WORD32 *imag);
+extern const FLOAT64 ixheaacd_twid_tbl_fft_double[514];
+extern const WORD32 twiddle_table_fft_32x32[514];
+extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3r[1155];
+extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3i[1155];
+extern const FLOAT32 ixheaacd_twid_tbl_fft_224[372];
+extern const FLOAT32 ixheaacd_twid_tbl_fft_288[380];
+extern const FLOAT32 ixheaacd_twid_tbl_fft_336[564];
+extern const FLOAT32 ixheaacd_twid_tbl_fft_168[276];
+extern const FLOAT32 ixheaacd_twid_tbl_fft_float[514];
+extern const WORD32 ixheaacd_twid_tbl_fft[257];
+extern const FLOAT32 ixheaacd_twid_tbl_ifft_ntwt3r[1155];
+extern const FLOAT32 ixheaacd_twid_tbl_ifft_ntwt3i[1155];
 
-VOID ixheaacd_inv_dit_fft_8pt_armv7(WORD32 *x, WORD32 *real, WORD32 *imag);
-
-VOID ixheaacd_inv_dit_fft_8pt_armv8(WORD32 *x, WORD32 *real, WORD32 *imag);
-
-#define CPLX_MPY_FFT(re, im, a, b, c, d) \
-  do {                                   \
-    re = ((a * c) - (b * d));            \
-    im = ((a * d) + (b * c));            \
-  } while (0)
-
-#define CPLX_MPY_IFFT(re, im, a, b, c, d) \
-  do {                                    \
-    re = ((a * c) + (b * d));             \
-    im = (-(a * d) + (b * c));            \
-  } while (0)
-
-#endif
+#endif /* IXHEAACD_FFT_IFFT_ROM_H */

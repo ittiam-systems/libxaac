@@ -26,6 +26,15 @@
 #define NO_HYBRID_CHANNELS_LOW 2
 #define NO_HYBRID_CHANNELS_HIGH 8
 
+#define NO_HYBRID_CHANNELS_2 2
+#define NO_HYBRID_CHANNELS_4 4
+#define NO_HYBRID_CHANNELS_8 8
+#define NO_HYBRID_CHANNELS_12 12
+#define MAX_NUM_QMF_CHANNELS 64
+
+#define REAL 0
+#define CPLX 1
+
 typedef struct {
   const WORD16 *ptr_resol;
   WORD8 ptr_qmf_buf;
@@ -36,6 +45,18 @@ typedef struct {
   WORD32 *ptr_temp_re;
   WORD32 *ptr_temp_im;
 } ia_hybrid_struct;
+
+typedef struct {
+  WORD32 num_qmf_bands;
+  WORD32 frame_size;
+  WORD16 *ptr_resol;
+  FLOAT32 *ptr_work_re;
+  FLOAT32 *ptr_work_im;
+  FLOAT32 (*ptr_qmf_buf_re)[HYBRID_FILTER_LENGTH - 1];
+  FLOAT32 (*ptr_qmf_buf_im)[HYBRID_FILTER_LENGTH - 1];
+  FLOAT32 (*ptr_temp_re)[MAX_NUM_QMF_CHANNELS];
+  FLOAT32 (*ptr_temp_im)[MAX_NUM_QMF_CHANNELS];
+} ia_hybrid_flt_struct;
 
 VOID ixheaacd_hybrid_analysis(const WORD32 *ptr_qmf_real, WORD32 *ptr_hyb_real,
                               WORD32 *ptr_hyb_imag,

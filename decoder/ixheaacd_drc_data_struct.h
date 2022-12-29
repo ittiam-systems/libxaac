@@ -49,6 +49,7 @@ typedef struct {
   UWORD8 new_drc_fac;
   UWORD8 prev_interp_scheme;
   WORD32 drc_factors_sbr[SBR_QMF_SUB_SAMPLES][SBR_QMF_SUB_BANDS];
+  WORD32 drc_factors_sbr_lat[SBR_QMF_SUB_SAMPLES][SBR_QMF_SUB_BANDS];
 } ixheaac_drc_data_struct;
 
 typedef struct {

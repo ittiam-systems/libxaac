@@ -99,13 +99,10 @@ VOID ixheaacd_ms_stereo_process(
       }
       ptr_ms_used -= ptr_aac_dec_channel_info[LEFT]->str_ics_info.max_sfb;
 
-      if (maximum_bins_short == 120)
-      {
+      if (maximum_bins_short == 120) {
         l_spec = l_spec + maximum_bins_short - ixheaacd_drc_offset;
         r_spec = r_spec + maximum_bins_short - ixheaacd_drc_offset;
-      }
-      else
-      {
+      } else {
         l_spec = l_spec + 128 - ixheaacd_drc_offset;
         r_spec = r_spec + 128 - ixheaacd_drc_offset;
       }
@@ -215,13 +212,10 @@ VOID ixheaacd_intensity_stereo_process(
         }
       }
 
-      if (maximum_bins_short == 120)
-      {
+      if (maximum_bins_short == 120) {
         l_spec += maximum_bins_short - ixheaacd_drc_offset;
         r_spec += maximum_bins_short - ixheaacd_drc_offset;
-      }
-      else
-      {
+      } else {
         l_spec += 128 - ixheaacd_drc_offset;
         r_spec += 128 - ixheaacd_drc_offset;
       }

@@ -490,13 +490,13 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld(WORD16 *inp1, WORD16 *inp2,
   for (n = 0; n < 32; n += 2) {
     WORD32 accu;
     accu = ixheaacd_mult16x16in32(inp1[n + 0], p_qmf1[(n + 0)]);
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp1[n + 64], p_qmf1[(n + 64)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp1[n + 128], p_qmf1[(n + 128)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp1[n + 192], p_qmf1[(n + 192)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp1[n + 256], p_qmf1[(n + 256)]));
     p_out[n] = accu;
 
@@ -512,13 +512,13 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld(WORD16 *inp1, WORD16 *inp2,
     p_out[n + 1] = accu;
 
     accu = ixheaacd_mult16x16in32(inp2[n + 0], p_qmf2[(n + 0)]);
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp2[n + 64], p_qmf2[(n + 64)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp2[n + 128], p_qmf2[(n + 128)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp2[n + 192], p_qmf2[(n + 192)]));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mult16x16in32(inp2[n + 256], p_qmf2[(n + 256)]));
     p_out[n + 32] = accu;
 
@@ -733,9 +733,18 @@ VOID ixheaacd_esbr_qmfanal32_winadd(WORD32 *inp1, WORD32 *inp2, WORD32 *p_qmf1,
 
 VOID ixheaacd_esbr_inv_modulation(
     WORD32 *qmf_real, ia_sbr_qmf_filter_bank_struct *syn_qmf,
-    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr) {
-  ixheaacd_esbr_cos_sin_mod(qmf_real, syn_qmf, qmf_dec_tables_ptr->esbr_w_32,
-                            qmf_dec_tables_ptr->dig_rev_table2_32);
+    ia_qmf_dec_tables_struct *qmf_dec_tables_ptr, WORD32 no_synthesis_channels) {
+
+    if (no_synthesis_channels == NO_SYNTHESIS_CHANNELS_DOWN_SAMPLED)
+    {
+      ixheaacd_esbr_cos_sin_mod(qmf_real, syn_qmf, qmf_dec_tables_ptr->esbr_w_16,
+        qmf_dec_tables_ptr->dig_rev_table4_16);
+    }
+    else
+    {
+      ixheaacd_esbr_cos_sin_mod(qmf_real, syn_qmf, qmf_dec_tables_ptr->esbr_w_32,
+        qmf_dec_tables_ptr->dig_rev_table2_32);
+    }
 }
 
 VOID ixheaacd_sbr_qmfsyn32_winadd(WORD16 *tmp1, WORD16 *tmp2, WORD16 *inp1,

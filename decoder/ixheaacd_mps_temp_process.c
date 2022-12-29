@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -77,9 +78,6 @@
 #define STP_UPDATE_ENERGY_RATE (32)
 #define STP_SCALE_LIMIT (2.82f)
 #define STP_DAMP (0.1f)
-
-#define max(a, b) ((a > b) ? (a) : (b))
-#define min(a, b) ((a < b) ? (a) : (b))
 
 static const FLOAT32 ixheaacd_bp[BP_SIZE] = {
   0.0000f, 0.0005f, 0.0092f, 0.0587f, 0.2580f, 0.7392f, 0.9791f,
@@ -189,11 +187,15 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
   const WORD32 ixheaacd_hybrid_to_qmf_map[] = {0, 0, 0, 0, 0, 0, 1, 1, 2, 2};
   const WORD32 ixheaacd_hybrid_to_qmf_map_ldmps[] = {0, 1, 2};
   const WORD32* ptr_ixheaacd_hybrid_to_qmf_map;
+  WORD32 loop_counter;
 
-  if (self->ldmps_config.ldmps_present_flag)
+  if (self->ldmps_config.ldmps_present_flag) {
     ptr_ixheaacd_hybrid_to_qmf_map = ixheaacd_hybrid_to_qmf_map_ldmps;
-  else
+    loop_counter = 3;
+  } else {
     ptr_ixheaacd_hybrid_to_qmf_map = ixheaacd_hybrid_to_qmf_map;
+    loop_counter = 10;
+  }
 
   ixheaacd_mps_temp_process_scale_calc(self, ts, scale);
 
@@ -220,7 +222,7 @@ static VOID ixheaacd_mps_subbandtp(ia_mps_dec_state_struct* self, WORD32 ts) {
               (self->hyb_diff_out[ch][ts][n].im * temp);
         }
       } else {
-        for (n = 0; n < 10; n++) {
+        for (n = 0; n < loop_counter; n++) {
           temp = (FLOAT32)(scale[ch] *
                            ixheaacd_bp[ptr_ixheaacd_hybrid_to_qmf_map[n]]);
           self->hyb_dir_out[ch][ts][n].re +=

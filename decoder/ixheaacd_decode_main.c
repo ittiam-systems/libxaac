@@ -118,6 +118,54 @@ VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
   }
 }
 
+VOID ixheaacd_samples_sat_mc(WORD8* outbuffer, WORD32 num_samples_out,
+    FLOAT32(*out_samples)[4096], WORD32* out_bytes,
+    WORD32 num_channel_out, WORD32 ch_fac) {
+  WORD32 num;
+  WORD32 i;
+  FLOAT32 write_local_float;
+
+  WORD16* out_buf = (WORD16*)outbuffer;
+
+  num = num_channel_out * num_samples_out;
+  if (num_channel_out == 1) {
+    for (i = 0; i < num; i++) {
+      write_local_float =
+          (out_samples[i % num_channel_out][i / num_channel_out]);
+
+      if (write_local_float > 32767.0f) {
+        write_local_float = 32767.0f;
+      } else if (write_local_float < -32768.0f) {
+        write_local_float = -32768.0f;
+      }
+      out_buf[i * ch_fac] = (WORD16)write_local_float;
+    }
+  } else if (num_channel_out == 2) {
+    for (i = 0; i < num_samples_out; i++) {
+      write_local_float =
+          (out_samples[(2*i) % num_channel_out][(2 * i) / num_channel_out]);
+
+      if (write_local_float > 32767.0f) {
+          write_local_float = 32767.0f;
+      } else if (write_local_float < -32768.0f) {
+          write_local_float = -32768.0f;
+      }
+      out_buf[i * ch_fac] = (WORD16)write_local_float;
+
+      write_local_float =
+          (out_samples[((2 * i) + 1) % num_channel_out][((2 * i) + 1) / num_channel_out]);
+
+      if (write_local_float > 32767.0f) {
+          write_local_float = 32767.0f;
+      } else if (write_local_float < -32768.0f) {
+          write_local_float = -32768.0f;
+      }
+      out_buf[i * ch_fac + 1] = (WORD16)write_local_float;
+    }
+  }
+  *out_bytes = num * sizeof(WORD16);
+}
+
 /* audio pre roll frame parsing*/
 static WORD32 ixheaacd_audio_preroll_parsing(
     ia_dec_data_struct *pstr_dec_data, UWORD8 *conf_buf, WORD32 *preroll_units,
@@ -293,6 +341,9 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
     pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
     pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
+    pstr_dec_data->str_usac_data.esbr_hq = handle->aac_config.ui_hq_esbr;
+    pstr_dec_data->str_usac_data.enh_sbr = handle->aac_config.ui_enh_sbr;
+    pstr_dec_data->str_usac_data.enh_sbr_ps = handle->aac_config.ui_enh_sbr_ps;
     if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
       pstr_dec_data->dec_bit_buf.max_size = pstr_dec_data->dec_bit_buf.size;
     /* audio pre roll frame parsing*/
@@ -357,7 +408,9 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
       pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
 
       pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
-
+      pstr_dec_data->str_usac_data.esbr_hq = handle->aac_config.ui_hq_esbr;
+      pstr_dec_data->str_usac_data.enh_sbr = handle->aac_config.ui_enh_sbr;
+      pstr_dec_data->str_usac_data.enh_sbr_ps = handle->aac_config.ui_enh_sbr_ps;
       if (preroll_frame_offset[access_units]) {
         pstr_dec_data->dec_bit_buf.cnt_bits =
             pstr_dec_data->dec_bit_buf.size -

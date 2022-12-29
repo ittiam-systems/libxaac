@@ -99,6 +99,10 @@ VOID ixheaacd_mps_synt_out_calc_dec(WORD32 resolution, FLOAT32 *out,
                                     FLOAT32 *state,
                                     const FLOAT32 *filter_coeff);
 
+VOID ixheaacd_mps_synt_post_fft_twiddle_dec(WORD32 resolution, FLOAT32 *fin_re,
+                                            FLOAT32 *fin_im, const FLOAT32 *table_re,
+                                            const FLOAT32 *table_im, FLOAT32 *state);
+
 VOID ixheaacd_mps_synt_out_calc_armv7(WORD32 resolution, WORD32 *out,
                                       WORD32 *state,
                                       const WORD32 *filter_coeff);

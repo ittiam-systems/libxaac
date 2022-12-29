@@ -25,12 +25,25 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *h_hbe_txposer,
                               FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
                               FLOAT32 pv_qmf_buf_real[][64],
                               FLOAT32 pv_qmf_buf_imag[][64],
-                              WORD32 pitch_in_bins);
+                              WORD32 pitch_in_bins,
+                              ia_sbr_header_data_struct *ptr_header_data);
+
+WORD32 ixheaacd_dft_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+                              FLOAT32 qmf_buf_real[][64],
+                              FLOAT32 qmf_buf_imag[][64], WORD32 num_columns,
+                              FLOAT32 pv_qmf_buf_real[][64],
+                              FLOAT32 pv_qmf_buf_imag[][64],
+                              WORD32 pitch_in_bins,
+                              FLOAT32 *dft_hbe_scratch_buf);
 
 WORD32 ixheaacd_qmf_hbe_data_reinit(
     ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
     WORD16 *ptr_freq_band_tbl[MAX_FREQ_COEFFS + 1], WORD16 *ptr_num_sf_bands,
     WORD32 upsamp_4_flag);
+
+WORD32 ixheaacd_dft_hbe_data_reinqmf_fract_delay_phase_factor_imit(
+    ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
+    WORD16 *p_freq_band_tab[2], WORD16 *p_num_sfb);
 
 IA_ERRORCODE ixheaacd_hbe_post_anal_process(
     ia_esbr_hbe_txposer_struct *ptr_hbe_txposer, WORD32 pitch_in_bins,

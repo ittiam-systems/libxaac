@@ -105,14 +105,18 @@ VOID ixheaacd_esbr_fwd_modulation(const WORD32 *time_in, WORD32 *r_subband,
 
 VOID ixheaacd_esbr_inv_modulation(WORD32 *qmf_real,
                                   ia_sbr_qmf_filter_bank_struct *syn_qmf,
-                                  ia_qmf_dec_tables_struct *qmf_dec_tables_ptr);
+                                  ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
+                                  WORD32 no_synthesis_channels);
 
 VOID ixheaacd_shiftrountine_with_rnd_hq(WORD32 *qmf_real, WORD32 *qmf_imag,
                                         WORD32 *filter_states, WORD32 len,
                                         WORD32 shift);
 
-VOID ixheaacd_esbr_qmfsyn64_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *tmp3,
-                                   WORD32 *sample_buffer, WORD ch_fac);
+VOID ixheaacd_esbr_qmfsyn64_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
+                                   WORD32 *sample_buffer, WORD32 ch_fac);
+
+VOID ixheaacd_esbr_qmfsyn32_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
+                                   WORD32 *sample_buffer, WORD32 ch_fac);
 
 VOID ixheaacd_sbr_qmfanal32_winadds(WORD16 *fp1, WORD16 *fp2, WORD16 *filter_1,
                                     WORD16 *filter_2, WORD32 *analysis_buffer,

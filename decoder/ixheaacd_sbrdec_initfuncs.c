@@ -75,6 +75,8 @@ extern const WORD32 ixheaacd_ldmps_polyphase_filter_coeff_fix[1280];
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
+#define FD_OVERSAMPLING_FAC (1.5f)
+
 WORD32 ixheaacd_getsize_sbr_persistent() {
   return (ALIGN_SIZE64(sizeof(ia_sbr_pers_struct)));
 }
@@ -82,7 +84,8 @@ WORD32 ixheaacd_getsize_sbr_persistent() {
 VOID ixheaacd_esbr_hbe_data_init(
     ia_esbr_hbe_txposer_struct *pstr_esbr_hbe_txposer,
     const WORD32 num_aac_samples, WORD32 samp_fac_4_flag,
-    const WORD32 num_out_samples, VOID *persistent_hbe_mem) {
+    const WORD32 num_out_samples, VOID *persistent_hbe_mem,
+    WORD32 *total_persistant) {
   WORD32 i;
   WORD32 used_persistent = 0;
 
@@ -92,9 +95,8 @@ VOID ixheaacd_esbr_hbe_data_init(
     pstr_esbr_hbe_txposer->core_frame_length = num_aac_samples;
 
     pstr_esbr_hbe_txposer->no_bins = num_out_samples / NO_QMF_SYNTH_CHANNELS;
-
     pstr_esbr_hbe_txposer->hbe_qmf_in_len =
-        pstr_esbr_hbe_txposer->no_bins / 2 + HBE_OPER_WIN_LEN - 1;
+        pstr_esbr_hbe_txposer->no_bins;
     pstr_esbr_hbe_txposer->hbe_qmf_out_len =
         2 * pstr_esbr_hbe_txposer->hbe_qmf_in_len;
 
@@ -126,8 +128,19 @@ VOID ixheaacd_esbr_hbe_data_init(
       used_persistent += (TWICE_QMF_SYNTH_CHANNELS_NUM * sizeof(FLOAT32));
     }
     pstr_esbr_hbe_txposer->upsamp_4_flag = samp_fac_4_flag;
-  }
+    if (pstr_esbr_hbe_txposer) {
+      pstr_esbr_hbe_txposer->fft_size[0] = num_aac_samples;
+      pstr_esbr_hbe_txposer->fft_size[1] = (WORD32)(FD_OVERSAMPLING_FAC * num_aac_samples);
 
+      pstr_esbr_hbe_txposer->ptr_spectrum = &pstr_esbr_hbe_txposer->spectrum_buf[0];
+      pstr_esbr_hbe_txposer->ptr_spectrum_tx =
+          &pstr_esbr_hbe_txposer->spectrum_transposed_buf[0];
+      pstr_esbr_hbe_txposer->mag = &pstr_esbr_hbe_txposer->mag_buf[0];
+      pstr_esbr_hbe_txposer->phase = &pstr_esbr_hbe_txposer->phase_buf[0];
+      pstr_esbr_hbe_txposer->ptr_output_buf = &pstr_esbr_hbe_txposer->output_buf[0];
+  }
+  }
+  *total_persistant = used_persistent;
   return;
 }
 
@@ -152,6 +165,7 @@ VOID ixheaacd_set_sbr_persistent_buffers(VOID *sbr_persistent_mem_v,
   struct ia_sbr_dec_inst_struct *p_str_sbr_dec_inst =
       &sbr_persistent_mem->str_sbr_dec_inst;
 
+  num_channel = max(2, num_channel);
   memset(sbr_persistent_mem, 0, sizeof(struct ia_sbr_pers_struct));
 
   sbr_persistent_mem->sbr_qmf_analy_states =
@@ -391,61 +405,6 @@ VOID ixheaacd_set_sbr_persistent_buffers(VOID *sbr_persistent_mem_v,
   *persistent_used = used_persistent;
 }
 
-WORD32 ia_enhaacplus_dec_get_sbr_buffers_size(WORD32 channels) {
-  WORD32 sbr_buffers_size = 0;
-  WORD32 temp, temp2;
-  WORD32 num_channel = channels;
-  WORD32 i;
-
-  temp = num_channel * ((QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) *
-                        sizeof(WORD16));
-  sbr_buffers_size += temp;
-
-  temp2 =
-      (num_channel * ((QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) *
-                      sizeof(WORD16)));
-  sbr_buffers_size += temp2;
-
-  for (i = 0; i < num_channel; i++) {
-    sbr_buffers_size +=
-        2 * MAX_OV_COLS * NO_SYNTHESIS_CHANNELS * sizeof(WORD32);
-  }
-
-  for (i = 0; i < num_channel; i++) {
-    int j;
-    sbr_buffers_size += LPC_ORDER * sizeof(VOID *);
-
-    for (j = 0; j < LPC_ORDER; j++) {
-      sbr_buffers_size += NO_ANALYSIS_CHANNELS * sizeof(WORD32);
-    }
-  }
-
-  for (i = 0; i < num_channel; i++) {
-    int j;
-    sbr_buffers_size += LPC_ORDER * sizeof(WORD32);
-    for (j = 0; j < LPC_ORDER; j++) {
-      sbr_buffers_size += NO_ANALYSIS_CHANNELS * sizeof(WORD32);
-    }
-  }
-
-  for (i = 0; i < num_channel; i++) {
-    WORD32 temp_used = sbr_buffers_size;
-
-    temp_used += 2 * MAX_FREQ_COEFFS * sizeof(WORD16);
-    temp_used += MAX_FREQ_COEFFS * sizeof(WORD16);
-    temp_used += ALIGN_SIZE64(sizeof(ia_freq_band_data_struct));
-    temp_used += ALIGN_SIZE64(sizeof(ia_sbr_prev_frame_data_struct));
-    temp_used += ALIGN_SIZE64(sizeof(ia_sbr_channel_struct));
-    temp_used += ALIGN_SIZE64(sizeof(ia_sbr_header_data_struct));
-
-    sbr_buffers_size = temp_used;
-  }
-
-  sbr_buffers_size += sizeof(ia_ps_dec_struct);
-
-  return sbr_buffers_size;
-}
-
 static PLATFORM_INLINE VOID ixheaacd_init_headerdata(
     ia_sbr_header_data_struct *ptr_header_data, WORD32 sample_rate_dec,
     WORD32 samp_per_frame, ia_freq_band_data_struct *freq_band_data,
@@ -547,6 +506,8 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
 
     ptr_header_data[i]->status = 1;
     ptr_sbr_dec[i]->band_count = 64;
+    ptr_header_data[i]->pstr_freq_band_data[0].qmf_sb_prev = 64;
+    ptr_header_data[i]->pstr_freq_band_data[1].qmf_sb_prev = 64;
 
     if (err) {
       return NULL;
@@ -558,15 +519,16 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
       if (audio_object_type == AOT_ER_AAC_ELD)
         ixheaacd_create_psdec(
             sbr_persistent_mem->str_sbr_dec_inst.pstr_ps_stereo_dec,
-            sbr_persistent_mem, &ptr_overlap_buf[512 * 4]);
+            sbr_persistent_mem, &ptr_overlap_buf[512 * 4], samp_per_frame);
       else
         ixheaacd_create_psdec(
             sbr_persistent_mem->str_sbr_dec_inst.pstr_ps_stereo_dec,
-            sbr_persistent_mem, ptr_overlap_buf);
+            sbr_persistent_mem, ptr_overlap_buf, samp_per_frame);
     }
   }
 
-  if (use_hbe != NULL) {
+  if ((use_hbe != NULL) && !((audio_object_type == AOT_ER_AAC_ELD) ||
+     (audio_object_type == AOT_ER_AAC_LD))) {
     ia_sbr_header_data_struct *ptr_sbr_dflt_header =
         &sbr_persistent_mem->str_sbr_dec_inst.str_sbr_dflt_header;
     ia_sbr_header_data_struct *ptr_usac_dflt_header =
@@ -591,17 +553,18 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
       ptr_header_data[1]->esbr_start_up = 1;
       ptr_header_data[1]->esbr_start_up_pvc = 1;
     }
-    if (hbe_txposer_buffers != NULL && (use_hbe[0] == 1)) {
+    if (hbe_txposer_buffers != NULL) {
+      WORD32 persistant_used = 0;
       ixheaacd_esbr_hbe_data_init(ptr_sbr_dec[0]->p_hbe_txposer, samp_per_frame,
                                   sbr_ratio_idx == SBR_UPSAMPLE_IDX_4_1 ? 1 : 0,
-                                  output_frame_size, hbe_txposer_buffers);
+                                  output_frame_size, hbe_txposer_buffers, &persistant_used);
 
       hbe_txposer_buffers =
           (WORD8 *)hbe_txposer_buffers + MAX_HBE_PERSISTENT_SIZE;
 
       ixheaacd_esbr_hbe_data_init(ptr_sbr_dec[1]->p_hbe_txposer, samp_per_frame,
                                   sbr_ratio_idx == SBR_UPSAMPLE_IDX_4_1 ? 1 : 0,
-                                  output_frame_size, hbe_txposer_buffers);
+                                  output_frame_size, hbe_txposer_buffers, &persistant_used);
     }
 
     p_str_sbr_dec_inst->ptr_pvc_data_str->prev_first_bnd_idx = -1;
@@ -631,11 +594,11 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
         ptr_header_data[0]->upsamp_fac = 1;
 
         ptr_sbr_dec[1]->str_codec_qmf_bank.no_channels = 32;
-        ptr_sbr_dec[0]->str_codec_qmf_bank.esbr_cos_twiddle =
+        ptr_sbr_dec[1]->str_codec_qmf_bank.esbr_cos_twiddle =
             (WORD32 *)qmf_dec_tables_ptr->esbr_sin_cos_twiddle_l32;
-        ptr_sbr_dec[0]->str_codec_qmf_bank.esbr_alt_sin_twiddle =
+        ptr_sbr_dec[1]->str_codec_qmf_bank.esbr_alt_sin_twiddle =
             (WORD32 *)qmf_dec_tables_ptr->esbr_alt_sin_twiddle_l32;
-        ptr_sbr_dec[0]->str_codec_qmf_bank.esbr_t_cos =
+        ptr_sbr_dec[1]->str_codec_qmf_bank.esbr_t_cos =
             (WORD32 *)qmf_dec_tables_ptr->esbr_t_cos_sin_l32;
         ptr_header_data[1]->is_usf_4 = 0;
         ptr_header_data[1]->upsamp_fac = 1;
@@ -719,6 +682,7 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
         break;
     }
 
+    if (ptr_usac_dflt_header != NULL) {
     ptr_sbr_dflt_header->start_freq = ptr_usac_dflt_header->start_freq;
     ptr_sbr_dflt_header->stop_freq = ptr_usac_dflt_header->stop_freq;
 
@@ -744,6 +708,7 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
       ptr_sbr_dflt_header->interpol_freq = SBR_INTERPOL_FREQ_DEFAULT;
       ptr_sbr_dflt_header->smoothing_mode = SBR_SMOOTHING_LENGTH_DEFAULT;
     }
+  }
   }
   return &(sbr_persistent_mem->str_sbr_dec_inst);
 }
@@ -870,7 +835,7 @@ static PLATFORM_INLINE VOID ixheaacd_create_hf_generator(
 
 VOID ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
                            VOID *sbr_persistent_mem_v,
-                           WORD32 *ptr_overlap_buf) {
+                           WORD32 *ptr_overlap_buf, WORD32 frame_size) {
   ia_sbr_pers_struct *sbr_persistent_mem =
       (ia_sbr_pers_struct *)sbr_persistent_mem_v;
 
@@ -953,6 +918,15 @@ VOID ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
   memset(ptr_ps_dec->h11_h12_vec, 0xff,
          (NO_IID_GROUPS + 2) * 2 * sizeof(WORD16));
   memset(ptr_ps_dec->h21_h22_vec, 0, sizeof(ptr_ps_dec->h21_h22_vec));
+
+  if (frame_size == 960)
+    ptr_ps_dec->num_sub_samples = NUM_SUB_SAMPLES_960;
+  else
+    ptr_ps_dec->num_sub_samples = NUM_SUB_SAMPLES;
+
+
+  ixheaacd_create_ps_esbr_dec(ptr_ps_dec, sbr_tables_ptr->ps_tables_ptr,
+                              64, ptr_ps_dec->num_sub_samples, 0);
 
   return;
 }

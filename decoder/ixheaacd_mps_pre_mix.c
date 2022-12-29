@@ -63,7 +63,7 @@
 #define PI_BY_8_Q28 (105414352)
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880
-
+#define MULT(a, b) (a * b)
 #define Q28_FLOAT_VAL ((FLOAT32)(1 << 28))
 #define ONE_BY_Q28_FLOAT_VAL (1.0f / Q28_FLOAT_VAL)
 
@@ -211,7 +211,7 @@ static VOID ixheaacd_mps_par2umx_ps_core(WORD32 cld[MAX_PARAMETER_BANDS],
 
     c_l_temp = (ixheaacd_c_l_table[cld_idx]);
     c_r_temp = (ixheaacd_c_l_table[30 - cld_idx]);
-#define MULT(a, b) (a * b)
+
     temp = ixheaacd_cos_table[icc_idx][cld_idx];
     *h_real++ = MULT(temp, c_l_temp);
 

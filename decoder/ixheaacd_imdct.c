@@ -431,7 +431,7 @@ static IA_ERRORCODE ixheaacd_fd_imdct_long(ia_usac_data_struct *usac_data,
                                            offset_lengths *ixheaacd_drc_offset,
                                            WORD8 fac_q) {
   FLOAT32 qfac;
-  WORD32 *window_long_prev, k, i, *window_short_prev_ptr;
+  WORD32 *window_long_prev = NULL, k, i, *window_short_prev_ptr = NULL;
 
   WORD32 *p_in_ibuffer = usac_data->coef_fix[i_ch];
   WORD32 *p_overlap_ibuffer = usac_data->overlap_data_ptr[i_ch];
