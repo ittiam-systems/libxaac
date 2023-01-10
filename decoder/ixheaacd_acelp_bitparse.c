@@ -17,14 +17,9 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
 #include "ixheaacd_type_def.h"
 
 #include "ixheaacd_acelp_com.h"
-#include "ixheaacd_windows.h"
-#include "ixheaacd_vec_baisc_ops.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_interface.h"
@@ -35,22 +30,23 @@
 #include "ixheaacd_acelp_info.h"
 
 #include "ixheaacd_sbrdecsettings.h"
+#include "ixheaacd_sbr_scale.h"
+#include "ixheaacd_lpp_tran.h"
+#include "ixheaacd_common_rom.h"
+#include "ixheaacd_env_extr_part.h"
+#include "ixheaacd_sbr_rom.h"
+#include "ixheaacd_hybrid.h"
+#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_info.h"
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
-#include "ixheaacd_drc_dec.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_sbrdecoder.h"
-#include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaacd_env_extr.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
-#include "ixheaacd_bit_extract.h"
-#include "ixheaacd_main.h"
 #include "ixheaacd_func_def.h"
-#include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_error_standards.h"
 
 WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff,
                              WORD32 *nk_mode) {
@@ -368,19 +364,15 @@ IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
 WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
                                    ia_td_frame_data_struct *pstr_td_frame_data,
                                    ia_bit_buf_struct *it_bit_buff,
-                                   FLOAT32 *synth
-
-                                   )
-
-{
+                                   FLOAT32 *synth) {
   WORD32 lpd_mode, k, cnt, ii;
   WORD32 first_tcx_flag;
   WORD32 *quant;
-  WORD32 core_mode_last, fac_data_present;
+  WORD32 core_mode_last = 0, fac_data_present;
   WORD32 *fac_data;
-  WORD32 first_lpd_flag;
+  WORD32 first_lpd_flag = 0;
   WORD32 short_fac_flag;
-  WORD32 bpf_control_info;
+  WORD32 bpf_control_info = 0;
   WORD32 chan = usac_data->present_chan;
   WORD32 last_lpd_mode = usac_data->str_tddec[chan]->mode_prev;
   WORD32 err = 0;

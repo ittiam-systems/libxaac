@@ -57,7 +57,12 @@ WORD32 ixheaacd_get_element_index_tag(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, WORD ch_idx1,
     WORD *ch_idx, WORD *channel, WORD *element_index_order, WORD total_elements,
     WORD8 *element_used, WORD total_channels, ia_drc_dec_struct *pstr_drc_dec,
-    ia_drc_dec_struct *drc_dummy);
+    ia_drc_dec_struct *drc_dummy
+    ,
+    UWORD8 *mps_buffer,
+    WORD32 *mps_header,
+    WORD32 *mps_bytes
+);
 
 WORD32 ixheaacd_latm_audio_mux_element(
     struct ia_bit_buf_struct *it_bit_buff, ixheaacd_latm_struct *latm_element,

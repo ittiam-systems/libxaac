@@ -111,7 +111,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_shr32_dir(WORD32 a, WORD b) {
   return out_val;
 }
 
-static PLATFORM_INLINE WORD32 shr32_dir_sat(WORD32 a, WORD b) {
+static PLATFORM_INLINE WORD32 ixheaacd_shr32_dir_sat(WORD32 a, WORD b) {
   WORD32 out_val;
 
   if (b < 0) {
@@ -129,6 +129,16 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult16x16in32(WORD16 a, WORD16 b) {
   product = (WORD32)a * (WORD32)b;
 
   return product;
+}
+
+static PLATFORM_INLINE WORD32 ixheaacd_mult32x16hin32(WORD32 a, WORD32 b) {
+  WORD32 result;
+  WORD64 temp_result;
+
+  temp_result = (WORD64)(a) * (WORD64)(b >> 16);
+  result = (WORD32)(temp_result >> 16);
+
+  return (result);
 }
 
 static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32_sat(WORD32 a, WORD16 b) {
@@ -260,14 +270,6 @@ static PLATFORM_INLINE WORD ixheaacd_pnorm32(WORD32 a) {
   return norm_val;
 }
 
-static PLATFORM_INLINE WORD bin_expo32(WORD32 a) {
-  WORD bin_expo_val;
-
-  bin_expo_val = 31 - ixheaacd_norm32(a);
-
-  return bin_expo_val;
-}
-
 static PLATFORM_INLINE WORD32 ixheaacd_abs32(WORD32 a) {
   WORD32 abs_val;
 
@@ -325,7 +327,8 @@ static PLATFORM_INLINE WORD32 ixheaacd_negate32_sat(WORD32 a) {
   return neg_val;
 }
 
-static PLATFORM_INLINE WORD32 div32(WORD32 a, WORD32 b, WORD *q_format) {
+static PLATFORM_INLINE WORD32 ixheaacd_div32(WORD32 a, WORD32 b,
+                                             WORD *q_format) {
   WORD32 quotient;
   UWORD32 mantissa_nr, mantissa_dr;
   WORD16 sign = 0;
@@ -378,6 +381,27 @@ static PLATFORM_INLINE WORD32 div32(WORD32 a, WORD32 b, WORD *q_format) {
   return quotient;
 }
 
+static PLATFORM_INLINE WORD32 ixheaacd_shr32_sat(WORD32 a, WORD32 b) {
+  WORD32 out_val;
+
+  b = ((UWORD32)(b << 24) >> 24);
+  if (b >= 31) {
+    if (a < 0)
+      out_val = -1;
+    else
+      out_val = 0;
+  }
+  else if (b <= 0) {
+    return a;
+  }
+  else {
+    a = ixheaacd_add32_sat(a, (1 << (b - 1)));
+    out_val = (WORD32)a >> b;
+  }
+
+  return out_val;
+}
+
 static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32_sat(WORD32 a, WORD16 b,
                                                         WORD16 c) {
   WORD32 acc;
@@ -385,16 +409,6 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32_sat(WORD32 a, WORD16 b,
   acc = ixheaacd_mult16x16in32(b, c);
 
   acc = ixheaacd_add32_sat(a, acc);
-
-  return acc;
-}
-
-static PLATFORM_INLINE WORD32 mac16x16hin32(WORD32 a, WORD32 b, WORD32 c) {
-  WORD32 acc;
-
-  acc = ixheaacd_mult16x16in32((WORD16)b, (WORD16)(c >> 16));
-
-  acc = ixheaacd_add32(a, acc);
 
   return acc;
 }
@@ -421,7 +435,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac16x16in32_shl_sat(WORD32 a, WORD16 b,
   return acc;
 }
 
-static PLATFORM_INLINE WORD32 msu16x16in32(WORD32 a, WORD16 b, WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaacd_msu16x16in32(WORD32 a, WORD16 b, WORD16 c) {
   WORD32 acc;
 
   acc = ixheaacd_mult16x16in32(b, c);
@@ -431,46 +445,4 @@ static PLATFORM_INLINE WORD32 msu16x16in32(WORD32 a, WORD16 b, WORD16 c) {
   return acc;
 }
 
-static PLATFORM_INLINE WORD32 msu16x16in32_shl(WORD32 a, WORD16 b, WORD16 c) {
-  WORD32 acc;
-
-  acc = ixheaacd_mult16x16in32_shl(b, c);
-
-  acc = ixheaacd_sub32(a, acc);
-
-  return acc;
-}
-
-static PLATFORM_INLINE WORD32 msu16x16in32_shl_sat(WORD32 a, WORD16 b,
-                                                   WORD16 c) {
-  WORD32 acc;
-
-  acc = ixheaacd_mult16x16in32_shl_sat(b, c);
-
-  acc = ixheaacd_sub32_sat(a, acc);
-
-  return acc;
-}
-
-static PLATFORM_INLINE WORD32 add32_shr(WORD32 a, WORD32 b) {
-  WORD32 sum;
-
-  a = ixheaacd_shr32(a, 1);
-  b = ixheaacd_shr32(b, 1);
-
-  sum = ixheaacd_add32(a, b);
-
-  return sum;
-}
-
-static PLATFORM_INLINE WORD32 sub32_shr(WORD32 a, WORD32 b) {
-  WORD32 diff;
-
-  a = ixheaacd_shr32(a, 1);
-  b = ixheaacd_shr32(b, 1);
-
-  diff = ixheaacd_sub32(a, b);
-
-  return diff;
-}
 #endif

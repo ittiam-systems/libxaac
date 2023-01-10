@@ -40,6 +40,7 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
@@ -57,7 +58,9 @@ FLAG ixheaacd_check_for_sbr_payload(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_sbr_bitstream_struct *pstr_stream_sbr, WORD16 prev_element,
     ia_drc_dec_struct *pstr_drc_dec, WORD32 object_type, WORD32 adtsheader,
-    WORD32 cnt_bits, WORD32 ld_sbr_crc_flag, ia_drc_dec_struct *drc_dummy) {
+    WORD32 cnt_bits, WORD32 ld_sbr_crc_flag, ia_drc_dec_struct *drc_dummy,
+    UWORD8 *mps_buffer, WORD32 *mps_header, WORD32 *mps_bytes,
+    WORD32 is_init, WORD32 *is_first) {
   FLAG ret = 0;
   WORD32 count;
 
@@ -149,12 +152,43 @@ FLAG ixheaacd_check_for_sbr_payload(
       pstr_drc_dec->drc_element_found = 1;
       count -=
           ixheaacd_dec_drc_read_element(pstr_drc_dec, drc_dummy, it_bit_buff);
-    } else {
+    }
+    else if (extension_type == EXT_SAC_DATA) {
+      WORD32 anc_type, anc_start, i, len = 0;
+      anc_type = ixheaacd_read_bits_buf(it_bit_buff, 2);
+      *mps_header = anc_type;
+
+      anc_start = ixheaacd_read_bits_buf(it_bit_buff, 1);
+      if (anc_start == 1) {
+        *mps_bytes = 0;
+      }
+      ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+      if (anc_type == 1 && is_init == 0 && *is_first == 1) {
+        len = ixheaacd_read_bits_buf(it_bit_buff, 1);
+        len = ixheaacd_read_bits_buf(it_bit_buff, 7) + 1;
+        ixheaacd_read_bidirection(it_bit_buff, -8);
+      }
+
+      for (i = 0; i < count - 1; i++) {
+        mps_buffer[i + *mps_bytes] = ixheaacd_read_bits_buf(it_bit_buff, 8);
+      }
+
+      *mps_bytes += (count - 1);
+      if (anc_type == 1 && is_init == 0 && *is_first == 1) {
+        for (i = 0; i < count - 1; i++) {
+          mps_buffer[i] = mps_buffer[i + len];
+        }
+        *mps_bytes = *mps_bytes - len;
+      }
+      *is_first = 1;
+    }
+    else {
       ixheaacd_read_bits_buf(it_bit_buff, 4);
 
       if (it_bit_buff->cnt_bits < ((count - 1) << 3)) {
         longjmp(*(it_bit_buff->xaac_jmp_buf),
-                IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
       }
       it_bit_buff->ptr_read_next += count - 1;
       it_bit_buff->cnt_bits -= ((count - 1) << 3);

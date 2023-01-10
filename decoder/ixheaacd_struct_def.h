@@ -25,12 +25,13 @@
 #include "ixheaacd_peak_limiter_struct_def.h"
 
 #define MAX_DECOR_CONFIG_IDX (2)
-#define MAX_PARAMETER_BANDS_MPS (28)
 #define MAX_TIME_SLOTS (72)
+#define NUM_MPS_TABLES (13)
 
 #define MAX_PREROLL_FRAME_OFFSET 4
 // max of escapedValue(4, 4, 8) i.e. 2^4 -1 + 2^4 -1 + 2^8 -1;
 #define MAX_PREROLL_SIZE 285
+#define IA_ENHAACPLUS_DEC_MPS_PAYLOAD_SIZE (1024)
 
 typedef struct {
   WORD8 element_instance_tag;
@@ -92,7 +93,6 @@ typedef struct {
   UWORD32 ui_pce_found_in_hdr;
   UWORD32 ui_n_memtabs;
 
-  WORD32 ui_drc_enable;
   WORD32 ui_drc_boost;
   WORD32 ui_drc_cut;
   WORD32 ui_drc_target_level;
@@ -126,7 +126,9 @@ typedef struct {
   WORD32 output_level;
   WORD32 i_loud_ref_level;
   UWORD8 dup_stereo_flag;
+  WORD32 peak_limiter_off;
 
+  WORD32 mps_present;
   UWORD32 ui_frame_size;
   WORD32 ui_enh_sbr;
   WORD32 ui_hq_esbr;
@@ -217,6 +219,9 @@ typedef struct ia_aac_dec_state_struct {
   VOID *ia_audio_specific_config;
   ia_mps_dec_state_struct mps_dec_handle;
 
+  ia_heaac_mps_state_struct heaac_mps_handle;
+  UWORD8 mps_buffer[IA_ENHAACPLUS_DEC_MPS_PAYLOAD_SIZE];
+
   UWORD16 *huffman_code_book_scl;
   UWORD32 *huffman_code_book_scl_index;
 
@@ -243,6 +248,8 @@ typedef struct ia_aac_dec_state_struct {
   ia_peak_limiter_struct peak_limiter;
   UWORD8 sbr_present;
   UWORD8 slot_pos;
+  WORD32 mps_header;
+  WORD32 ui_mps_out_bytes;
   WORD32 drc_config_changed;
   WORD32 apply_crossfade;
 } ia_aac_dec_state_struct;
@@ -271,7 +278,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
     WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
     WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos);
+    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos
+    ,
+    UWORD8 *mps_buffer, WORD32 *mps_header, WORD32 *mps_bytes, WORD32 is_init
+);
 
 WORD ixheaacd_get_channel_mask(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec);
@@ -302,5 +312,10 @@ WORD32 ixheaacd_dec_execute(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec);
 WORD32 ixheaacd_dec_table_api(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, WORD32 i_cmd,
     WORD32 i_idx, VOID *pv_value);
+
+IA_ERRORCODE ixheaacd_aac_mps_init(ia_exhaacplus_dec_api_struct *p_obj_mps_dec,
+                                   UWORD8 *databuf, WORD32 buffer_size,
+                                   WORD32 sample_rate);
+
 
 #endif /* IXHEAACD_STRUCT_DEF_H */

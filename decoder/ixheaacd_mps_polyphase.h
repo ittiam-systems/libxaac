@@ -22,18 +22,10 @@
 
 #define MAX_NUM_QMF_BANDS_SAC (128)
 #define POLY_PHASE_SYNTH_SIZE (1280)
+#define QMF_BANDS_32 (32)
+#define QMF_BANDS_64 (64)
+#define QMF_BANDS_128 (128)
 
-typedef struct ia_mps_poly_phase_synth_struct {
-  FLOAT32 state[POLY_PHASE_SYNTH_SIZE];
-} ia_mps_poly_phase_synth_struct;
+VOID ixheaacd_mps_synt_init(FLOAT32 state[POLY_PHASE_SYNTH_SIZE]);
 
-typedef struct ia_mps_poly_phase_struct {
-  int resolution;
-} ia_mps_poly_phase_struct;
-
-VOID ixheaacd_mps_synt_create(ia_mps_poly_phase_struct *kernel,
-                              WORD32 resolution);
-
-VOID ixheaacd_mps_synt_init(ia_mps_poly_phase_synth_struct *self);
-
-#endif
+#endif /* IXHEAACD_MPS_POLYPHASE_H */

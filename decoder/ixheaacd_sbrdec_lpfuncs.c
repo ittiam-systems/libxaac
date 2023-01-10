@@ -237,7 +237,7 @@ VOID ixheaacd_lean_sbrconcealment(
 
   step = 1;
 
-  if (ptr_sbr_data->amp_res - SBR_AMPLITUDE_RESOLUTION_1_5 == 0) {
+  if (ptr_header_data->amp_res - SBR_AMPLITUDE_RESOLUTION_1_5 == 0) {
     target = (target << 1);
     step = (step << 1);
   }
@@ -252,7 +252,7 @@ VOID ixheaacd_lean_sbrconcealment(
   ptr_sbr_data->del_cod_dir_noise_arr[0] = DTDF_DIR_TIME;
 
   memset(ptr_sbr_data->int_noise_floor, 0,
-         sizeof(WORD16) * ptr_header_data->pstr_freq_band_data->num_nf_bands);
+         sizeof(ptr_sbr_data->int_noise_floor));
 
   memset(ptr_sbr_data->add_harmonics, 0, sizeof(FLAG) * MAX_FREQ_COEFFS);
 }
@@ -618,7 +618,7 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
     ptr_ps_dec->freq_res_ipd = ptr_ps_dec->iid_mode;
     if (ptr_ps_dec->freq_res_ipd > 2) {
       longjmp(*(it_bit_buff->xaac_jmp_buf),
-        IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+        IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
   }
 

@@ -669,7 +669,10 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                         ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
                         ia_pvc_data_struct *ptr_pvc_data, FLAG drc_on,
                         WORD32 drc_sbr_factors[][64], WORD32 audio_object_type,
-                        WORD32 ldmps_present, VOID *self) {
+                        WORD32 ldmps_present, VOID *self
+                        ,
+                        WORD32 heaac_mps_present
+) {
   WORD i, j, k;
   WORD slot, reserve;
   WORD save_lb_scale;
@@ -764,6 +767,26 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                                  p_arr_qmf_buf_imag, low_pow_flag);
     }
   }
+
+  if ((audio_object_type == AOT_AAC_LC) && (heaac_mps_present == 1)) {
+    WORD32 num_anal_bands = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
+    WORD32 frame_move = 9 * num_anal_bands;
+    WORD32 core_frame_size = ptr_header_data->core_frame_size;
+
+    memcpy(&ptr_sbr_dec->core_sample_buf[core_frame_size],
+           &ptr_sbr_dec->time_sample_buf[core_frame_size - frame_move],
+           frame_move * sizeof(FLOAT32));
+
+    memmove(&ptr_sbr_dec->time_sample_buf[frame_move], &ptr_sbr_dec->time_sample_buf[0],
+            (core_frame_size - frame_move));
+
+    memcpy(&ptr_sbr_dec->time_sample_buf[0], &ptr_sbr_dec->core_sample_buf[0],
+           frame_move * sizeof(FLOAT32));
+
+    memcpy(&ptr_sbr_dec->core_sample_buf[0], &ptr_sbr_dec->core_sample_buf[core_frame_size],
+           frame_move * sizeof(FLOAT32));
+  }
+
 
   if ((audio_object_type != AOT_ER_AAC_ELD) &&
       (audio_object_type != AOT_ER_AAC_LD)) {

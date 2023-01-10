@@ -46,7 +46,6 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
-
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_drc_dec.h"
@@ -73,6 +72,10 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_headerdecode.h"
@@ -100,9 +103,10 @@ WORD32 ixheaacd_aacdec_decodeframe(
     WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
     WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos)
-
-{
+    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos
+    ,
+    UWORD8 *mps_buffer, WORD32 *mps_header, WORD32 *mps_bytes, WORD32 is_init
+) {
   WORD ch, ele_type;
   ia_aac_dec_state_struct *p_state_enhaacplus_dec;
   ia_aac_decoder_struct *aac_dec_handle;
@@ -299,7 +303,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
     memset(ptr_pns_info, 0, sizeof(ia_pns_info_struct));
   }
 
-  {
+  if (channel > 0) {
     ia_pns_correlation_info_struct *ptr_corr_info =
         aac_dec_handle->pstr_aac_dec_ch_info[0]->pstr_pns_corr_info;
     memset(ptr_corr_info->correlated, 0, sizeof(UWORD8) * PNS_BAND_FLAGS_SIZE);
@@ -343,7 +347,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
       if (it_bit_buff->cnt_bits < 3) {
         it_bit_buff->cnt_bits = -1;
         error_code = (WORD16)(
-            (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+            (WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
         break;
       }
 
@@ -419,10 +423,12 @@ WORD32 ixheaacd_aacdec_decodeframe(
                     object_type, pstr_aac_dec_ch_info->common_window,
                     aac_dec_handle->samples_per_frame);
                 if (error_code) {
+                  aac_dec_handle->pstr_aac_dec_ch_info[RIGHT]->str_ics_info =
+                      aac_dec_handle->pstr_aac_dec_ch_info[LEFT]->str_ics_info;
                   if (it_bit_buff->cnt_bits < 0) {
                     error_code = (WORD16)(
                         (WORD32)
-                            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                            IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
                   }
 
                   goto _ia_handle_error;
@@ -448,7 +454,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
             if (it_bit_buff->cnt_bits < 0) {
               error_code = (WORD16)(
                   (WORD32)
-                      IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                      IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
             }
 
             if (error_code) {
@@ -505,11 +511,11 @@ WORD32 ixheaacd_aacdec_decodeframe(
             }
           } else {
             error_code =
-                (WORD32)((WORD32)IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE);
+                (WORD32)((WORD32)IA_XHEAAC_DEC_EXE_FATAL_UNIMPLEMENTED_CCE);
           }
           if (it_bit_buff->cnt_bits < 0) {
             error_code = (WORD16)((
-                WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
             goto _ia_handle_error;
           }
           break;
@@ -541,12 +547,12 @@ WORD32 ixheaacd_aacdec_decodeframe(
               if (it_bit_buff->cnt_bits < 0) {
                 error_code = (WORD16)(
                     (WORD32)
-                        IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                        IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
                 goto _ia_handle_error;
               }
               aac_dec_handle->frame_status = 0;
               if (error_code > 0) {
-                error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+                error_code = IA_XHEAAC_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
                 return error_code;
               } else {
                 return error_code;
@@ -561,21 +567,23 @@ WORD32 ixheaacd_aacdec_decodeframe(
               cnt_bits = (frame_size * 8 - bits_decoded);
               if (adtsheader == 1) {
                 if (cnt_bits > it_bit_buff->cnt_bits)
-                  return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+                  return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
               }
             }
 
             if (ixheaacd_check_for_sbr_payload(
                     it_bit_buff, aac_dec_handle->pstr_sbr_bitstream,
                     (WORD16)previous_element, pstr_drc_dec, object_type,
-                    adtsheader, cnt_bits, ld_sbr_crc_flag, drc_dummy)) {
+                    adtsheader, cnt_bits, ld_sbr_crc_flag, drc_dummy,
+                    mps_buffer, mps_header, mps_bytes, is_init,
+                    &aac_dec_handle->is_first)) {
               flag = 0;
             }
           }
 
           if (it_bit_buff->cnt_bits < 0) {
             error_code = (WORD16)((
-                WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
             goto _ia_handle_error;
           }
 
@@ -671,12 +679,12 @@ WORD32 ixheaacd_aacdec_decodeframe(
                     aac_dec_handle->samples_per_frame);
                 if (error_code) {
                   aac_dec_handle->pstr_aac_dec_ch_info[RIGHT]->str_ics_info =
-                      aac_dec_handle->pstr_aac_dec_ch_info[LEFT]->str_ics_info;
-
+                      aac_dec_handle->pstr_aac_dec_ch_info[LEFT]
+                          ->str_ics_info;
                   if (it_bit_buff->cnt_bits < 0) {
                     error_code = (WORD16)(
                         (WORD32)
-                            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                            IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
                   }
 
                   goto _ia_handle_error1;
@@ -714,7 +722,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
             if (it_bit_buff->cnt_bits < 0) {
               error_code = (WORD16)(
                   (WORD32)
-                      IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                      IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
             }
 
             if (error_code) {
@@ -806,12 +814,14 @@ WORD32 ixheaacd_aacdec_decodeframe(
         cnt_bits = (frame_size * 8 - bits_decoded);
         if (adtsheader == 1) {
           if (cnt_bits > it_bit_buff->cnt_bits)
-            return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+            return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
         }
         ixheaacd_check_for_sbr_payload(
             it_bit_buff, aac_dec_handle->pstr_sbr_bitstream,
             (WORD16)(ch_config - 1), pstr_drc_dec, object_type, adtsheader,
-            cnt_bits, ld_sbr_crc_flag, drc_dummy);
+            cnt_bits, ld_sbr_crc_flag, drc_dummy,
+            mps_buffer, mps_header, mps_bytes, is_init,
+            &aac_dec_handle->is_first);
       }
     }
   }
@@ -954,7 +964,7 @@ WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 *cnt,
       if (fill_nibble == 0) {
         for (i = 0; i < (*cnt >> 3) - 1; i++) {
           if (it_bit_buff->cnt_bits >= 8)
-          ixheaacd_read_bits_buf(it_bit_buff, 8);
+            ixheaacd_read_bits_buf(it_bit_buff, 8);
           else
             ixheaacd_read_bits_buf(it_bit_buff, it_bit_buff->cnt_bits);
         }
@@ -966,7 +976,7 @@ WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 *cnt,
 
     case EXT_DATA_LENGTH:
 
-      len = (WORD32)ixheaacd_read_bits_buf(it_bit_buff, 4);
+      len = ixheaacd_read_bits_buf(it_bit_buff, 4);
 
       if (len == 15) {
         add_len = ixheaacd_read_bits_buf(it_bit_buff, 8);

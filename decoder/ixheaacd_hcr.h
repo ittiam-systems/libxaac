@@ -38,7 +38,7 @@ void ixheaacd_lt_prediction(
     UWORD32 frame_len, WORD32* in_data, WORD32* out_data);
 
 WORD32 ixheaacd_ltp_data(WORD32 object_type, ia_ics_info_struct* ics,
-                         ltp_info* ltp, ia_handle_bit_buf_struct bs,
+                         ltp_info* ltp, ia_bit_buf_struct *it_bit_buf,
                          WORD32 frame_len);
 
 #endif

@@ -114,7 +114,7 @@ static PLATFORM_INLINE WORD16 ixheaacd_shr16(WORD16 op1, WORD16 shift) {
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD16 shl16_dir(WORD16 op1, WORD16 shift) {
+static PLATFORM_INLINE WORD16 ixheaacd_shl16_dir(WORD16 op1, WORD16 shift) {
   WORD16 var_out;
   if (shift > 0) {
     var_out = ixheaacd_shl16(op1, shift);
@@ -124,7 +124,7 @@ static PLATFORM_INLINE WORD16 shl16_dir(WORD16 op1, WORD16 shift) {
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD16 shr16_dir(WORD16 op1, WORD16 shift) {
+static PLATFORM_INLINE WORD16 ixheaacd_shr16_dir(WORD16 op1, WORD16 shift) {
   WORD16 var_out;
 
   if (shift < 0) {
@@ -135,7 +135,7 @@ static PLATFORM_INLINE WORD16 shr16_dir(WORD16 op1, WORD16 shift) {
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD16 shl16_dir_sat(WORD16 op1, WORD16 shift) {
+static PLATFORM_INLINE WORD16 ixheaacd_shl16_dir_sat(WORD16 op1, WORD16 shift) {
   WORD16 var_out;
   if (shift > 0) {
     var_out = ixheaacd_shl16_sat(op1, shift);
@@ -156,7 +156,7 @@ static PLATFORM_INLINE WORD16 ixheaacd_shr16_dir_sat(WORD16 op1, WORD16 shift) {
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD16 norm16(WORD16 op1) {
+static PLATFORM_INLINE WORD16 ixheaacd_norm16(WORD16 op1) {
   WORD16 var_out;
 
   if (0 == op1) {
@@ -174,13 +174,6 @@ static PLATFORM_INLINE WORD16 norm16(WORD16 op1) {
     }
   }
 
-  return (var_out);
-}
-
-static PLATFORM_INLINE WORD16 bin_expo16(WORD16 op1) {
-  WORD16 var_out;
-
-  var_out = ((WORD16)(15 - norm16(op1)));
   return (var_out);
 }
 
@@ -232,93 +225,6 @@ static PLATFORM_INLINE WORD16 ixheaacd_max16(WORD16 op1, WORD16 op2) {
   WORD16 var_out;
 
   var_out = op1 > op2 ? op1 : op2;
-  return (var_out);
-}
-
-static PLATFORM_INLINE WORD16 div16(WORD16 op1, WORD16 op2, WORD16 *q_format) {
-  WORD32 quotient;
-  UWORD16 mantissa_nr, mantissa_dr;
-  WORD16 sign = 0;
-
-  LOOPIDX i;
-  WORD16 q_nr, q_dr;
-
-  mantissa_nr = op1;
-  mantissa_dr = op2;
-  quotient = 0;
-
-  if (op1 < 0 && op2 != 0) {
-    op1 = -op1;
-    sign = (WORD16)(sign ^ -1);
-  }
-
-  if (op2 < 0) {
-    op2 = -op2;
-    sign = (WORD16)(sign ^ -1);
-  }
-
-  if (op2 == 0) {
-    *q_format = 0;
-    return (op1);
-  }
-
-  quotient = 0;
-
-  q_nr = norm16(op1);
-  mantissa_nr = (UWORD16)op1 << (q_nr);
-  q_dr = norm16(op2);
-  mantissa_dr = (UWORD16)op2 << (q_dr);
-  *q_format = (WORD16)(14 + q_nr - q_dr);
-
-  for (i = 0; i < 15; i++) {
-    quotient = quotient << 1;
-
-    if (mantissa_nr >= mantissa_dr) {
-      mantissa_nr = mantissa_nr - mantissa_dr;
-      quotient += 1;
-    }
-
-    mantissa_nr = (UWORD32)mantissa_nr << 1;
-  }
-
-  if (sign < 0) {
-    quotient = -quotient;
-  }
-
-  return (WORD16)quotient;
-}
-
-static PLATFORM_INLINE WORD16 mac16(WORD16 c, WORD16 op1, WORD16 op2) {
-  WORD16 var_out;
-
-  var_out = ixheaacd_mult16(op1, op2);
-  var_out = ixheaacd_add16(c, var_out);
-  return (var_out);
-}
-
-static PLATFORM_INLINE WORD16 mac16_sat(WORD16 c, WORD16 op1, WORD16 op2) {
-  WORD16 var_out;
-
-  var_out = ixheaacd_mult16(op1, op2);
-  var_out = ixheaacd_add16_sat(c, var_out);
-  return (var_out);
-}
-
-static PLATFORM_INLINE WORD16 mac16_shl(WORD16 c, WORD16 op1, WORD16 op2) {
-  WORD16 var_out;
-
-  var_out = ixheaacd_mult16_shl(op1, op2);
-  var_out = ixheaacd_add16(c, var_out);
-  return (var_out);
-}
-
-static PLATFORM_INLINE WORD16 mac16_shl_sat(WORD16 c, WORD16 op1, WORD16 op2) {
-  WORD16 var_out;
-  WORD32 temp;
-
-  temp = ((WORD32)op1 * (WORD32)op2) >> 15;
-  temp += c;
-  var_out = ixheaacd_sat16(temp);
   return (var_out);
 }
 

@@ -27,13 +27,13 @@ extern const FLOAT32 ixheaacd_hphase_tbl[2][8];
 
 extern const FLOAT32 ixheaacd_g_lim_gains[4];
 
-typedef FLOAT32 FIR_FILTER[5];
-extern const FIR_FILTER ixheaacd_fir_0;
-extern const FIR_FILTER ixheaacd_fir_1;
-extern const FIR_FILTER ixheaacd_fir_2;
-extern const FIR_FILTER ixheaacd_fir_3;
-extern const FIR_FILTER ixheaacd_fir_4;
-extern const FIR_FILTER* const ixheaacd_fir_table[5];
+typedef FLOAT32 ia_fir_table_struct[5];
+extern const ia_fir_table_struct ixheaacd_fir_0;
+extern const ia_fir_table_struct ixheaacd_fir_1;
+extern const ia_fir_table_struct ixheaacd_fir_2;
+extern const ia_fir_table_struct ixheaacd_fir_3;
+extern const ia_fir_table_struct ixheaacd_fir_4;
+extern const ia_fir_table_struct* const ixheaacd_fir_table[5];
 extern const FLOAT32 ixheaacd_q_gamma_table[4];
 extern const WORD32 ixheaacd_start_subband2kL_tbl[33];
 extern const FLOAT32 ixheaacd_cos_table_trans_qmf[7][32 * 2];

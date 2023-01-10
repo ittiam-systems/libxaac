@@ -33,6 +33,13 @@ typedef struct {
   UWORD32 ui_placed[2];    /* the o_red location for placement  */
 } ia_mem_info_struct;
 
+typedef struct {
+  WORD8 *p_lib_name;
+  WORD8 *p_version_num;
+} ia_lib_info_struct;
+
+VOID ixheaacd_get_lib_id_strings(pVOID pv_output);
+
 /*****************************************************************************/
 /* Constant hash defines                                                     */
 /*****************************************************************************/

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <setjmp.h>
 
 #include "ixheaacd_type_def.h"
 
@@ -60,6 +61,12 @@
 
 #include "ixheaacd_vec_baisc_ops.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_defines.h"
+#include "ixheaacd_aac_rom.h"
+#include "ixheaacd_pulsedata.h"
+#include "ixheaacd_pns.h"
+#include "ixheaacd_channelinfo.h"
+
 
 const WORD16 ixheaacd_mdst_fcoeff_long_sin[] = {0, 0, -16384, 0, 16384, 0, 0};
 const WORD16 ixheaacd_mdst_fcoeff_long_kbd[] = {-2998, 0, -19052, 0,
@@ -370,11 +377,13 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
+    sum = 0;
     sum = ixheaacd_mac32x32in64_7(&in[i - 3], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
+    sum = 0;
     sum = ixheaacd_mac32x32in64_7(&in[i - 2], filter);
     *out = ixheaacd_add32_sat(
         *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
@@ -531,7 +540,6 @@ static VOID ixheaacd_cplx_pred_upmixing(
                           (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
               l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
-
           } else {
             i += pstr_sfb_info->sfb_width[sfb];
           }
@@ -554,7 +562,6 @@ static VOID ixheaacd_cplx_pred_upmixing(
                           (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
               l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
             }
-
           } else {
             i += pstr_sfb_info->sfb_width[sfb];
           }
@@ -602,12 +609,11 @@ WORD32 ixheaacd_ics_info(ia_usac_data_struct *usac_data, WORD32 chn,
   usac_data->pstr_sfb_info[chn] =
       usac_data->pstr_usac_winmap[usac_data->window_sequence[chn]];
 
-  usac_data->window_shape[chn] = (WORD32)ixheaacd_read_bits_buf(it_bit_buff, 1);
+  usac_data->window_shape[chn] = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
   if (usac_data->pstr_usac_winmap[win]->islong) {
     *max_sfb = ixheaacd_read_bits_buf(it_bit_buff, 6);
     *scf_group_ptr = 1;
-
   } else {
     WORD32 i, scale_factor_grouping;
 
@@ -639,7 +645,7 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
                                 ia_bit_buf_struct *it_bit_buff,
                                 WORD32 nr_core_coder_channels) {
   WORD32 err_code = 0;
-  WORD32 k = 0, ch = 0, chn, left = 0, right = 0;
+  WORD32 k = 0, ch = 0, chn = 0, left = 0, right = 0;
 
   ia_usac_tmp_core_coder_struct str_tmp_core_coder = {0};
   ia_usac_tmp_core_coder_struct *pstr_core_coder = &str_tmp_core_coder;

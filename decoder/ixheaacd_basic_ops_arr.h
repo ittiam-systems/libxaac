@@ -39,7 +39,7 @@ static PLATFORM_INLINE WORD16 norm16_arr(WORD16 *word16_arr, WORD32 n) {
     max_bits = max_bits | ixheaacd_abs16_sat(word16_arr[i]);
   }
 
-  return (norm16(max_bits));
+  return (ixheaacd_norm16(max_bits));
 }
 
 static PLATFORM_INLINE VOID shl32_arr(WORD32 *word32_arr, WORD16 shift,
@@ -103,7 +103,7 @@ static PLATFORM_INLINE VOID shr32_arr_dir_sat(WORD32 *word32_arr, WORD16 shift,
   WORD32 i;
 
   for (i = 0; i < n; i++) {
-    word32_arr[i] = shr32_dir_sat(word32_arr[i], shift);
+    word32_arr[i] = ixheaacd_shr32_dir_sat(word32_arr[i], shift);
   }
 
   return;
@@ -149,7 +149,7 @@ static PLATFORM_INLINE VOID shl16_arr_dir(WORD16 *word16_arr, WORD16 shift,
   WORD32 i;
 
   for (i = 0; i < n; i++) {
-    word16_arr[i] = shl16_dir(word16_arr[i], shift);
+    word16_arr[i] = ixheaacd_shl16_dir(word16_arr[i], shift);
   }
 
   return;
@@ -160,7 +160,7 @@ static PLATFORM_INLINE VOID shr16_arr_dir(WORD16 *word16_arr, WORD16 shift,
   WORD32 i;
 
   for (i = 0; i < n; i++) {
-    word16_arr[i] = shr16_dir(word16_arr[i], shift);
+    word16_arr[i] = ixheaacd_shr16_dir(word16_arr[i], shift);
   }
 
   return;
@@ -171,7 +171,7 @@ static PLATFORM_INLINE VOID shl16_arr_dir_sat(WORD16 *word16_arr, WORD16 shift,
   WORD32 i;
 
   for (i = 0; i < n; i++) {
-    word16_arr[i] = shl16_dir_sat(word16_arr[i], shift);
+    word16_arr[i] = ixheaacd_shl16_dir_sat(word16_arr[i], shift);
   }
 
   return;

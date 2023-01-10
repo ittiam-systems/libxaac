@@ -32,12 +32,13 @@ VOID ixheaacd_drc_dec_create(ia_drc_dec_struct *pstr_hdrc_dec,
 
 WORD32 ixheaacd_dec_drc_read_element(ia_drc_dec_struct *pstr_drc_dec,
                                      ia_drc_dec_struct *drc_dummy,
-                                     ia_handle_bit_buf_struct bs);
+                                     ia_bit_buf_struct *it_bit_buf);
 
 WORD32 ixheaacd_drc_map_channels(ia_drc_dec_struct *drc_dec, WORD32 num_ch,
                                  WORD32 frame_size);
 
 VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
                         WORD32 *ptr_spectral_coef, WORD32 win_seq,
-                        WORD32 channel, WORD32 frame_size, WORD32 audio_object_type);
+                        WORD32 channel, WORD32 frame_size,
+                        WORD32 audio_object_type);
 #endif

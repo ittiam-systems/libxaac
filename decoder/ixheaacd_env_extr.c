@@ -305,7 +305,7 @@ static VOID ixheaacd_read_sbr_addi_data(
 }
 
 WORD32 ixheaacd_ssc_huff_dec(ia_huffman_data_type t_huff,
-                             ia_handle_bit_buf_struct it_bit_buff) {
+                             ia_bit_buf_struct *it_bit_buff) {
   WORD32 index;
   WORD32 value, bit;
   WORD16 cw;
@@ -811,7 +811,7 @@ WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
   for (i = 0; i < ptr_header_data->pstr_freq_band_data->num_nf_bands; i++) {
     ptr_frame_data->sbr_invf_mode_prev[i] = ptr_frame_data->sbr_invf_mode[i];
     ptr_frame_data->sbr_invf_mode[i] =
-        (WORD32)ixheaacd_read_bits_buf(it_bit_buff, ESBR_INVF_MODE_BITS);
+        ixheaacd_read_bits_buf(it_bit_buff, ESBR_INVF_MODE_BITS);
   }
 
   ptr_pvc_data->pvc_mode = ptr_header_data->pvc_mode;
@@ -913,7 +913,7 @@ IA_ERRORCODE ixheaacd_sbr_read_sce(
   for (i = 0; i < num_if_bands; i++) {
     ptr_frame_data->sbr_invf_mode_prev[i] = ptr_frame_data->sbr_invf_mode[i];
     ptr_frame_data->sbr_invf_mode[i] =
-        (WORD32)ixheaacd_read_bits_buf(it_bit_buff, SBR_INVERSE_FILT_MODE_BITS);
+        ixheaacd_read_bits_buf(it_bit_buff, SBR_INVERSE_FILT_MODE_BITS);
   }
 
   if (!ixheaacd_read_sbr_env_data(ptr_header_data, ptr_frame_data, it_bit_buff,
@@ -1088,7 +1088,7 @@ IA_ERRORCODE ixheaacd_sbr_read_cpe(
           ptr_frame_data[1]->sbr_invf_mode[i];
 
       ptr_frame_data[0]->sbr_invf_mode[i] =
-          (WORD32)ixheaacd_read_bits_buf(it_bit_buff, ESBR_INVF_MODE_BITS);
+          ixheaacd_read_bits_buf(it_bit_buff, ESBR_INVF_MODE_BITS);
       ptr_frame_data[1]->sbr_invf_mode[i] = ptr_frame_data[0]->sbr_invf_mode[i];
     }
 
@@ -1130,7 +1130,7 @@ IA_ERRORCODE ixheaacd_sbr_read_cpe(
       for (i = 0; i < num_if_bands; i++) {
         ptr_frame_data[k]->sbr_invf_mode_prev[i] =
             ptr_frame_data[k]->sbr_invf_mode[i];
-        ptr_frame_data[k]->sbr_invf_mode[i] = (WORD32)ixheaacd_read_bits_buf(
+        ptr_frame_data[k]->sbr_invf_mode[i] = ixheaacd_read_bits_buf(
             it_bit_buff, SBR_INVERSE_FILT_MODE_BITS);
       }
     }
@@ -1316,10 +1316,10 @@ VOID ixheaacd_read_env_data(ia_sbr_frame_info_data_struct *ptr_frame_data,
     if (usac_flag && (num_noise_env == 0)) {
       ptr_frame_data->inter_temp_shape_mode[j] = 0;
       if (ptr_frame_data->inter_tes_flag) {
-        WORD32 flag = (WORD32)ixheaacd_read_bits_buf(it_bit_buff, 1);
+        WORD32 flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
         if (flag) {
           ptr_frame_data->inter_temp_shape_mode[j] =
-              (WORD32)ixheaacd_read_bits_buf(it_bit_buff, 2);
+              ixheaacd_read_bits_buf(it_bit_buff, 2);
         }
       }
     }
@@ -1724,6 +1724,7 @@ WORD16 ixheaacd_sbr_time_freq_grid_info(
       if (number_of_time_slots != 15) {
         p_fixfix_tab = &env_extr_tables_ptr->sbr_frame_info1_2_4_16[bs_num_env];
       } else {
+        if (bs_num_env > 2) return 0;
         p_fixfix_tab = &env_extr_tables_ptr->sbr_frame_info1_2_4_16[bs_num_env + 4];
       }
 

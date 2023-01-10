@@ -21,16 +21,11 @@
 #define IXHEAACD_FFT_IFFT_ROM_H
 
 extern const FLOAT64 ixheaacd_twid_tbl_fft_double[514];
-extern const WORD32 twiddle_table_fft_32x32[514];
 extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3r[1155];
 extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3i[1155];
 extern const FLOAT32 ixheaacd_twid_tbl_fft_224[372];
 extern const FLOAT32 ixheaacd_twid_tbl_fft_288[380];
 extern const FLOAT32 ixheaacd_twid_tbl_fft_336[564];
 extern const FLOAT32 ixheaacd_twid_tbl_fft_168[276];
-extern const FLOAT32 ixheaacd_twid_tbl_fft_float[514];
-extern const WORD32 ixheaacd_twid_tbl_fft[257];
-extern const FLOAT32 ixheaacd_twid_tbl_ifft_ntwt3r[1155];
-extern const FLOAT32 ixheaacd_twid_tbl_ifft_ntwt3i[1155];
 
 #endif /* IXHEAACD_FFT_IFFT_ROM_H */

@@ -799,7 +799,7 @@ void ixheaacd_sbr_pre_twiddle(WORD32 *p_xre, WORD32 *p_xim,
 
     WORD32 re, im;
 
-    re = ixheaacd_mac32x16in32_shl_sat(
+    re = ixheaacd_mac32x16in32_shl(
         ixheaacd_mult32x16in32_shl(x_re, ixheaacd_cosine), x_im, ixheaacd_sine);
     im = ixheaacd_sub32_sat(ixheaacd_mult32x16in32_shl(x_im, ixheaacd_cosine),
                             ixheaacd_mult32x16in32_shl(x_re, ixheaacd_sine));

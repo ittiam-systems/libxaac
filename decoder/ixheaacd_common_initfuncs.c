@@ -71,6 +71,10 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_headerdecode.h"
@@ -165,7 +169,7 @@ VOID ixheaacd_read_bidirection(ia_bit_buf_struct *it_bit_buff,
         (it_bit_buff->cnt_bits - ixheaacd_drc_offset < 0) ||
         (it_bit_buff->cnt_bits - ixheaacd_drc_offset > it_bit_buff->size)) {
       longjmp(*(it_bit_buff->xaac_jmp_buf),
-              IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+              IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
     it_bit_buff->cnt_bits = it_bit_buff->cnt_bits - ixheaacd_drc_offset;
     it_bit_buff->bit_pos = it_bit_buff->bit_pos - ixheaacd_drc_offset;

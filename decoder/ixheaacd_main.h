@@ -181,7 +181,7 @@ typedef struct ia_usac_data_main_struct {
   WORD32 enh_sbr;
   WORD32 esbr_hq;
   WORD32 enh_sbr_ps;
-
+  WORD32 drc_config_changed;
 } ia_usac_data_struct;
 
 IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,

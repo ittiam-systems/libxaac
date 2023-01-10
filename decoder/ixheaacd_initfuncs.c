@@ -46,6 +46,7 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
@@ -76,6 +77,10 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 
 #include "ixheaacd_struct_def.h"

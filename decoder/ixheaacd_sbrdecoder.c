@@ -264,7 +264,8 @@ IA_ERRORCODE ixheaacd_applysbr(
     FLAG down_mix_flag, ia_sbr_scr_struct *sbr_scratch_struct, WORD32 ps_enable,
     WORD32 ch_fac, WORD32 slot_element, ia_bit_buf_struct *it_bit_buff,
     ia_drc_dec_struct *pstr_drc_dec, WORD eld_sbr_flag,
-    WORD32 audio_object_type, WORD32 init_flag, WORD32 ldmps_present, WORD32 frame_size) {
+    WORD32 audio_object_type, WORD32 init_flag, WORD32 ldmps_present,
+    WORD32 frame_size, WORD32 heaac_mps_present) {
   WORD32 k;
   FLAG prev_ps_flag = 0;
   FLAG ps_flag = 0;
@@ -758,7 +759,7 @@ IA_ERRORCODE ixheaacd_applysbr(
         (ptr_header_data[0]->sync_state == SBR_ACTIVE), low_pow_flag,
         sbr_scratch_struct->ptr_work_buf_core, self->pstr_sbr_tables,
         self->pstr_common_tables, ch_fac, self->ptr_pvc_data_str, 0, NULL,
-        audio_object_type, ldmps_present, self);
+        audio_object_type, ldmps_present, self, heaac_mps_present);
     if (err_code) return err_code;
     if (!self->enh_sbr_ps) {
       if ((ptr_header_data[0]->sync_state == SBR_ACTIVE) && !ptr_frame_data[0]->mps_sbr_flag
@@ -785,7 +786,7 @@ IA_ERRORCODE ixheaacd_applysbr(
         self->pstr_common_tables, ch_fac, self->ptr_pvc_data_str,
         pstr_drc_dec->drc_on,
         pstr_drc_dec->str_drc_channel_data[0].drc_factors_sbr,
-        audio_object_type, ldmps_present, self);
+        audio_object_type, ldmps_present, self, heaac_mps_present);
     if (err_code) return err_code;
     if (!self->enh_sbr_ps) {
       if ((ptr_header_data[0]->sync_state == SBR_ACTIVE) && !ptr_frame_data[0]->mps_sbr_flag
@@ -820,7 +821,7 @@ IA_ERRORCODE ixheaacd_applysbr(
             low_pow_flag, sbr_scratch_struct->ptr_work_buf_core,
             self->pstr_sbr_tables, self->pstr_common_tables, ch_fac,
             self->ptr_pvc_data_str, 0, NULL, audio_object_type, ldmps_present,
-            self);
+            self, heaac_mps_present);
         if (err_code) return err_code;
         if (!self->enh_sbr_ps) {
           if ((ptr_header_data[1]->sync_state == SBR_ACTIVE) &&
@@ -844,7 +845,7 @@ IA_ERRORCODE ixheaacd_applysbr(
             self->pstr_sbr_tables, self->pstr_common_tables, ch_fac,
             self->ptr_pvc_data_str, pstr_drc_dec->drc_on,
             pstr_drc_dec->str_drc_channel_data[1].drc_factors_sbr,
-            audio_object_type, ldmps_present, self);
+            audio_object_type, ldmps_present, self, heaac_mps_present);
         if (err_code) return err_code;
         if (!self->enh_sbr_ps) {
           if ((ptr_header_data[1]->sync_state == SBR_ACTIVE) &&

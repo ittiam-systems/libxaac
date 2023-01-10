@@ -50,6 +50,11 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_bitbuffer.h"
@@ -69,7 +74,8 @@
 #include "ixheaacd_create.h"
 #include "ixheaacd_dec_main.h"
 #include "ixheaacd_error_standards.h"
-#include "ixheaacd_struct_def.h"
+#include "ixheaacd_headerdecode.h"
+#include "ixheaacd_error_codes.h"
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
                           WORD32 pcmsize, FLOAT32 (*out_samples)[4096],
                           WORD32 *out_bytes, WORD32 num_channel_out) {
@@ -293,6 +299,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
   WORD preroll_frame_offset[MAX_PREROLL_FRAME_OFFSET] = {0};
   WORD preroll_units = -1;
   WORD32 access_units = 0;
+  WORD32 bits_consumed = 0;
 
   if (frames_done == 0) {
     if ((pstr_audio_specific_config->channel_configuration > 2) ||
@@ -347,6 +354,19 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
       pstr_dec_data->dec_bit_buf.max_size = pstr_dec_data->dec_bit_buf.size;
     /* audio pre roll frame parsing*/
+
+    if (aac_dec_handle->bs_format == LOAS_BSFORMAT) {
+      WORD32 sync = ixheaacd_read_bits_buf(&pstr_dec_data->dec_bit_buf, 11);
+      if (sync == 0x2b7) {
+        WORD32 result = ixheaacd_latm_audio_mux_element(
+          &pstr_dec_data->dec_bit_buf, &aac_dec_handle->latm_struct_element,
+          aac_dec_handle,
+          (ia_sampling_rate_info_struct *)&handle->aac_tables
+          .pstr_huffmann_tables->str_sample_rate_info[0]);
+        if (result < 0) return result;
+      }
+      bits_consumed = pstr_dec_data->dec_bit_buf.size - pstr_dec_data->dec_bit_buf.cnt_bits;
+    }
 
     do {
       config_len = 0;
@@ -420,6 +440,15 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
         pstr_dec_data->dec_bit_buf.ptr_read_next =
             pstr_dec_data->dec_bit_buf.ptr_read_next +
             (preroll_frame_offset[access_units] / 8);
+      } else {
+        pstr_dec_data->dec_bit_buf.cnt_bits =
+          pstr_dec_data->dec_bit_buf.size -
+          (bits_consumed);
+        pstr_dec_data->dec_bit_buf.bit_pos =
+          7 - (bits_consumed) % 8;
+        pstr_dec_data->dec_bit_buf.ptr_read_next =
+          pstr_dec_data->dec_bit_buf.ptr_read_next +
+          (bits_consumed / 8);
       }
 
       if (!aac_dec_handle->decode_create_done) return IA_FATAL_ERROR;
@@ -523,6 +552,21 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
       tot_out_bytes += (*out_bytes);
     } while (preroll_units >= 0);
     *out_bytes = tot_out_bytes;
+  }
+
+  if (aac_dec_handle->bs_format == LOAS_BSFORMAT) {
+    pstr_dec_data->dec_bit_buf.ptr_bit_buf_base = (UWORD8 *)inbuffer;
+    pstr_dec_data->dec_bit_buf.size = aac_dec_handle->ui_in_bytes << 3;
+    pstr_dec_data->dec_bit_buf.ptr_bit_buf_end =
+      (UWORD8 *)inbuffer + aac_dec_handle->ui_in_bytes - 1;
+    pstr_dec_data->dec_bit_buf.ptr_read_next = (UWORD8 *)inbuffer;
+    pstr_dec_data->dec_bit_buf.bit_pos = 7;
+    pstr_dec_data->dec_bit_buf.cnt_bits = pstr_dec_data->dec_bit_buf.size;
+    pstr_dec_data->dec_bit_buf.xaac_jmp_buf = &(aac_dec_handle->xaac_jmp_buf);
+
+    ixheaacd_read_bits_buf(&pstr_dec_data->dec_bit_buf, 11);
+    aac_dec_handle->i_bytes_consumed =
+        ixheaacd_read_bits_buf(&pstr_dec_data->dec_bit_buf, 13) + 3;
   }
 
   return err;

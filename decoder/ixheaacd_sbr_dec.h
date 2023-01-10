@@ -111,7 +111,6 @@ typedef struct {
   WORD32 band_count;
   ia_esbr_hbe_txposer_struct *p_hbe_txposer;
 
-
   FLOAT32 core_sample_buf[2624];
   FLOAT32 ph_vocod_qmf_real[TIMESLOT_BUFFER_SIZE][NO_QMF_SYNTH_CHANNELS];
   FLOAT32 ph_vocod_qmf_imag[TIMESLOT_BUFFER_SIZE][NO_QMF_SYNTH_CHANNELS];
@@ -166,6 +165,7 @@ struct ia_sbr_dec_inst_struct {
   FLAG prev_sbr_mode;
   FLAG inter_tes_flag;
   FLAG aot_usac_flag;
+  WORD32 band_count[MAXNRSBRCHANNELS];
   jmp_buf *xaac_jmp_buf;
   WORD8 *ptr_mps_data;
   WORD32 left_mps_bits;
@@ -216,7 +216,10 @@ WORD32 ixheaacd_sbr_dec(ia_sbr_dec_struct *ptr_sbr_dec, WORD16 *ptr_time_data,
                         ixheaacd_misc_tables *pstr_common_tables, WORD ch_fac,
                         ia_pvc_data_struct *ptr_pvc_data_str, FLAG drc_on,
                         WORD32 drc_sbr_factors[][64], WORD32 audio_object_type,
-                        WORD32 ldmps_present, VOID *self);
+                        WORD32 ldmps_present, VOID *self
+                        ,
+                        WORD32 heaac_mps_present
+);
 
 WORD16 ixheaacd_create_sbrdec(ixheaacd_misc_tables *pstr_common_table,
                               ia_sbr_channel_struct *ptr_sbr_channel,

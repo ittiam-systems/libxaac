@@ -66,31 +66,25 @@
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
+#include "ixheaacd_mps_interface.h"
 #include "ixheaacd_struct_def.h"
-
 #include "ixheaacd_cnst.h"
-
 #include "ixheaacd_error_standards.h"
 
 #define RVLC_ERROR_ALL_ESCAPE_WORDS_INVALID 0x80000000
-#define RVLC_ERROR_RVL_SUM_BIT_COUNTER_BELOW_ZERO_FWD 0x40000000
-#define RVLC_ERROR_RVL_SUM_BIT_COUNTER_BELOW_ZERO_BWD 0x20000000
 #define RVLC_ERROR_FORBIDDEN_CW_DETECTED_FWD 0x08000000
 #define RVLC_ERROR_FORBIDDEN_CW_DETECTED_BWD 0x04000000
 
 #define FWD 0
 #define BWD 1
 
-#define MAX_RVL 7
-#define MIN_RVL -7
-#define MAX_ALLOWED_DPCM_INDEX 14
-#define TABLE_OFFSET 7
 #define MAX_LEN_RVLC_CODE_WORD 9
 #define MAX_LEN_RVLC_ESCAPE_WORD 20
-
-#define DPCM_NOISE_NRG_BITS 9
-#define SF_OFFSET 100
 
 #define CONCEAL_MAX_INIT 1311
 #define CONCEAL_MIN_INIT -1311
@@ -100,8 +94,6 @@
 #define MASK_LEFT 0xFFF000
 #define MASK_RIGHT 0xFFF
 #define CLR_BIT_10 0x3FF
-#define NODE_MASK 0x400
-
 #define LEFT_OFFSET 12
 
 #define ixheaacd_bitbuf_checkpoint(it_bit_buf, saved_bit_buf) \
@@ -109,8 +101,8 @@
 #define ixheaacd_bitbuf_restore(it_bit_buf, saved_bit_buf) \
   (it_bit_buf) = (saved_bit_buf)
 
-static int ixheaacd_rvlc_decode(short cw, int len, int *found) {
-  short indx = 0;
+static WORD32 ixheaacd_rvlc_decode(WORD16 cw, WORD32 len, WORD32 *found) {
+  WORD16 indx = 0;
   *found = 0;
   switch (len) {
     case 1:
@@ -207,8 +199,8 @@ static int ixheaacd_rvlc_decode(short cw, int len, int *found) {
   return indx;
 }
 
-static int ixheaacd_rvlc_decode_esc(int cw, int len, int *found) {
-  short indx = 0;
+static WORD32 ixheaacd_rvlc_decode_esc(WORD32 cw, WORD32 len, WORD32 *found) {
+  WORD16 indx = 0;
   *found = 0;
   switch (len) {
     case 2:
@@ -1008,7 +1000,7 @@ static IA_ERRORCODE ixheaacd_rvlc_init(
     it_bit_buff->bit_pos = ((it_bit_buff->size - it_bit_buff->cnt_bits) & 7);
   }
   if (it_bit_buff->cnt_bits < 0) {
-    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+    return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
   } else
     return IA_NO_ERROR;
 }

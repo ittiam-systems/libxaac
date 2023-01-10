@@ -18,6 +18,12 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
+#include "ixheaacd_memory_standards.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
+
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
@@ -161,7 +167,7 @@ WORD32 ixheaacd_adts_crc_check_crc(ia_adts_crc_info_struct *ptr_adts_crc_info) {
 
   for (reg = 0; reg < ptr_adts_crc_info->no_reg; reg++) {
     UWORD8 bits;
-    UWORD32 bits_remaining;
+    WORD32 bits_remaining;
 
     ptr_reg_data = &ptr_adts_crc_info->str_crc_reg_data[reg];
 
@@ -176,6 +182,9 @@ WORD32 ixheaacd_adts_crc_check_crc(ia_adts_crc_info_struct *ptr_adts_crc_info) {
     }
 
     while (bits_remaining >= 8) {
+      if (ptr_reg_data->str_bit_buf.cnt_bits < 8) {
+        return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+      }
       bits = (UWORD8)ixheaacd_read_bits_buf(
           (ia_bit_buf_struct *)(&ptr_adts_crc_info->str_crc_reg_data[reg]
                                      .str_bit_buf),
@@ -184,6 +193,9 @@ WORD32 ixheaacd_adts_crc_check_crc(ia_adts_crc_info_struct *ptr_adts_crc_info) {
       bits_remaining -= 8;
     }
 
+    if (ptr_reg_data->str_bit_buf.cnt_bits < bits_remaining) {
+      return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+    }
     bits = (UWORD8)ixheaacd_read_bits_buf(
         (ia_bit_buf_struct *)(&ptr_adts_crc_info->str_crc_reg_data[reg]
                                    .str_bit_buf),
@@ -207,7 +219,7 @@ WORD32 ixheaacd_adts_crc_check_crc(ia_adts_crc_info_struct *ptr_adts_crc_info) {
   ptr_adts_crc_info->no_reg = 0;
 
   if (crc != ptr_adts_crc_info->file_value) {
-    return (IA_ENHAACPLUS_DEC_EXE_NONFATAL_ADTS_HDR_CRC_FAIL);
+    return (IA_XHEAAC_DEC_EXE_NONFATAL_ADTS_HDR_CRC_FAIL);
   }
 
   return (error_code);

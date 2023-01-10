@@ -52,7 +52,9 @@ VOID ixheaacd_map_ms_mask_pns(
 
 VOID ixheaacd_read_fill_element(ia_bit_buf_struct *it_bit_buff,
                                 ia_drc_dec_struct *drc_dummy,
-                                ia_drc_dec_struct *pstr_drc_dec);
+                                ia_drc_dec_struct *pstr_drc_dec,
+                                UWORD8 *mps_buffer, WORD32 *mps_header,
+                                WORD32 *mps_bytes);
 
 VOID ixheaacd_read_data_stream_element(ia_bit_buf_struct *it_bit_buff,
                                        WORD32 *byte_align_bits,

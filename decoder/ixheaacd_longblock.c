@@ -124,7 +124,7 @@ IA_ERRORCODE ixheaacd_read_section_data(
             band_offsets[top] - band_offsets[sfb];
         num_lines_sec_idx++;
         if (sect_cb == (ESC_HCB + 1)) {
-          return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INVALID_CODE_BOOK;
+          return IA_XHEAAC_DEC_EXE_NONFATAL_INVALID_CODE_BOOK;
         } else {
           *ptr_hcr_code_book++ = sect_cb;
         }
@@ -134,11 +134,11 @@ IA_ERRORCODE ixheaacd_read_section_data(
       sfb = (sfb + sect_len);
       if (sfb > max_sfb) {
         return (WORD16)(
-            (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_EXCEEDS_SFB_TRANSMITTED);
+            (WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_EXCEEDS_SFB_TRANSMITTED);
       }
       if (sect_cb == (ESC_HCB + 1)) {
         return (WORD16)(
-            (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INVALID_CODE_BOOK);
+            (WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INVALID_CODE_BOOK);
       }
 
       while (sect_len--) {
@@ -297,8 +297,9 @@ VOID ixheaacd_read_scale_factor_data(
   it_bit_buff->bit_pos = 7 - bit_pos;
   {
     WORD bits_consumed;
-    bits_consumed = ((it_bit_buff->ptr_read_next - start_read_pos) << 3) +
-                    (start_bit_pos - it_bit_buff->bit_pos);
+    bits_consumed =
+        (WORD)(((it_bit_buff->ptr_read_next - start_read_pos) << 3) +
+               (start_bit_pos - it_bit_buff->bit_pos));
     it_bit_buff->cnt_bits -= bits_consumed;
   }
 }

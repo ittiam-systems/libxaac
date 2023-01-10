@@ -20,11 +20,10 @@
 #ifndef IXHEAACD_AACDEC_H
 #define IXHEAACD_AACDEC_H
 
-#define AAC_DEC_OK IA_ENHAACPLUS_DEC_API_NONFATAL_NO_ERROR
-
-#define IA_ENHAACPDEC_NUM_MEMTABS (4)
+#define AAC_DEC_OK IA_XHEAAC_DEC_API_NONFATAL_NO_ERROR
 
 #define FRAME_SIZE 1024
+#define FRAME_SIZE_SMALL 960
 
 #define ADTS_BSFORMAT 2
 #define LOAS_BSFORMAT 3
@@ -48,6 +47,7 @@ typedef struct ia_aac_decoder_struct {
   WORD8 num_swb_window[2];
   ia_aac_dec_tables_struct *pstr_aac_tables;
   ixheaacd_misc_tables *pstr_common_tables;
+  WORD32 is_first;
 } ia_aac_decoder_struct;
 
 struct ia_aac_persistent_struct {

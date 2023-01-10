@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
+#include "ixheaacd_constants.h"
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -52,6 +52,10 @@
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_struct_def.h"
@@ -106,7 +110,8 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                                    ia_bit_buf_struct *it_bit_buff,
                                    WORD32 stereo_config_idx,
                                    WORD16 num_channels,
-                                   WORD32 audio_object_type) {
+                                   WORD32 audio_object_type,
+                                   WORD32 heaac_mps_present) {
   WORD32 ch;
   WORD32 err_code = 0;
   ia_aac_dec_sbr_bitstream_struct *esbr_bit_str = &usac_data->esbr_bit_str[0];
@@ -118,6 +123,7 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                             audio_object_type, 0, NULL, 0, 0);
 
   self->usac_independency_flag = usac_data->usac_independency_flg;
+
   self->time_sample_buf[0] = usac_data->time_sample_vector[0];
   self->time_sample_buf[1] = usac_data->time_sample_vector[1];
   self->stereo_config_idx = stereo_config_idx;
@@ -137,7 +143,8 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
 
   err_code = ixheaacd_applysbr(self, esbr_bit_str, NULL, &num_channels, 1, 0, 0,
                                &sbr_scratch_struct, 0, 1, 0, it_bit_buff, NULL,
-                               0, audio_object_type, 0, 0, 1024);
+                               0, audio_object_type, 0, 0, 1024,
+                               heaac_mps_present);
 
   usac_data->sbr_mode = self->sbr_mode;
 
@@ -198,7 +205,7 @@ static WORD32 ixheaacd_read_ext_element(
       }
     }
     if ((it_bit_buff->cnt_bits >> 3) < (WORD32)pay_load_length)
-      return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+      return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
     if (pay_load_length > 0) {
       if (usac_ext_element_payload_frag)
         ixheaacd_read_bits_buf(it_bit_buff, 2);
@@ -223,7 +230,7 @@ static WORD32 ixheaacd_read_ext_element(
       } else {
         if (it_bit_buff->cnt_bits < (WORD32)(pay_load_length << 3)) {
           longjmp(*(it_bit_buff->xaac_jmp_buf),
-                  IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+                  IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
         }
         it_bit_buff->ptr_read_next =
             it_bit_buff->ptr_read_next + pay_load_length;
@@ -366,7 +373,8 @@ WORD32 ixheaacd_usac_process(ia_dec_data_struct *pstr_dec_data,
           err_code = ixheaacd_esbr_process(
               pstr_usac_data, it_bit_buff, stereo_config_index,
               nr_core_coder_channels,
-              pstr_dec_data->str_frame_data.str_audio_specific_config.audio_object_type);
+              pstr_dec_data->str_frame_data.str_audio_specific_config.audio_object_type,
+            p_state_aac_dec->heaac_mps_handle.heaac_mps_present);
           if (err_code < 0) return err_code;
         }
 

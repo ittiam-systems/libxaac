@@ -85,6 +85,10 @@
 
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 
@@ -153,6 +157,8 @@ WORD32 ixheaacd_ld_mps_apply(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
 
   err = ixheaacd_mps_frame_decode(mps_handle);
   if (err != IA_NO_ERROR) return err;
+
+  if (aac_handle->mps_dec_handle.num_parameter_sets_prev <= 0) return IA_FATAL_ERROR;
 
   if (mps_handle->ldmps_config.bs_tree_config == 7) {
     ixheaacd_pre_and_mix_matrix_calculation(&(aac_handle->mps_dec_handle));

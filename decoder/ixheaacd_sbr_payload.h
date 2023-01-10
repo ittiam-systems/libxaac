@@ -24,7 +24,9 @@ FLAG ixheaacd_check_for_sbr_payload(
     ia_bit_buf_struct *it_bit_buff,
     ia_aac_dec_sbr_bitstream_struct *pstr_stream_sbr, WORD16 prev_element,
     ia_drc_dec_struct *pstr_drc_dec, WORD32 object_type, WORD32 adtsheader,
-    WORD32 cnt_bits, WORD32 ld_sbr_crc_flag, ia_drc_dec_struct *drc_dummy);
+    WORD32 cnt_bits, WORD32 ld_sbr_crc_flag, ia_drc_dec_struct *drc_dummy,
+    UWORD8 *mps_buffer, WORD32 *mps_header, WORD32 *mps_bytes,
+    WORD32 is_init, WORD32 *is_first);
 
 WORD8 ixheaacd_aac_plus_get_payload(
     ia_bit_buf_struct *it_bit_buff,
