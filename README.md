@@ -113,19 +113,6 @@ $ mm
 ## Using CMake
 Users can also use cmake to build for `x86`, `x86_64`, and Windows (MSVS project) platforms.
 
-### Building for native platforms
-Run the following commands to build the Ex-HEAAC Decoder for native platform:
-```
-Go to the root directory(libxaac/) of the Ex-HEAAC Decoder.
-Create a new folder in the project root directory and move to the newly created folder.
-
-$ cd <path to libxaac>
-$ mkdir bin
-$ cd bin
-$ cmake ..
-$ cmake --build .
-```
-
 ### Creating MSVS project files
 To create MSVS project files for the Ex-HEAAC decoder from cmake, run the following commands:
 ```
@@ -140,6 +127,49 @@ $ cmake -G "Visual Studio 15 2017" ..
 
 The above command creates MSVS 2017 project files. If the version is different, modify the generator name accordingly.
 The Ex-HEAAC decoder can be built using these project files.
+
+### Building for native platforms
+Run the following commands to build the Ex-HEAAC Decoder for native platform:
+```
+Go to the root directory(libxaac/) of the Ex-HEAAC Decoder.
+Create a new folder in the project root directory and move to the newly created folder.
+
+$ cd <path to libxaac>
+$ mkdir bin
+$ cd bin
+$ cmake ..
+$ cmake --build .
+```
+
+### Cross-compiler based builds
+### Building for x86_32 on a x86_64 Linux machine
+```
+$ cd <path to libxaac>
+$ mkdir build
+$ cd build
+$ CFLAGS="-m32" CXXFLAGS="-m32" LDFLAGS="-m32" cmake ..
+$ make
+```
+
+### Building for aarch32/aarch64
+Update 'CMAKE_C_COMPILER', 'CMAKE_CXX_COMPILER', 'CMAKE_C_COMPILER_AR', and 'CMAKE_CXX_COMPILER_AR' in CMAKE_TOOLCHAIN_FILE passed below
+```
+$ cd <path to libxaac>
+$ mkdir build
+$ cd build
+```
+
+### For aarch64
+```
+$ cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/aarch64_toolchain.cmake
+$ make
+```
+
+### For aarch32
+```
+$ cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/aarch32_toolchain.cmake
+$ make
+```
 
 # Running the Ex-HEAAC Decoder
 
