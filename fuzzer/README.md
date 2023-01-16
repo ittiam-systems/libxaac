@@ -21,18 +21,13 @@ Create a directory inside libxaac and change directory
  $ mkdir build
  $ cd build
 ```
-Build libxaac using cmake
+
+Build fuzzer with required sanitizers (-DSANITIZE=fuzzer-no-link is mandatory to enable fuzzers)
 ```
- $ CC=clang CXX=clang++ cmake ../ \
-   -DSANITIZE=fuzzer-no-link,address,signed-integer-overflow
+ $ cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+   -DCMAKE_BUILD_TYPE=Debug -DSANITIZE=fuzzer-no-link,address,\
+   signed-integer-overflow,unsigned-integer-overflow
  $ make
- ```
-Build the fuzzer
-```
- $ clang++ -std=c++11 -fsanitize=fuzzer,address -I.  -I../  -I../common \
-   -I../decoder -I../decoder/drc_src -Wl,--start-group \
-   ../fuzzer/xaac_dec_fuzzer.cpp -o ./xaac_dec_fuzzer ./libxaacdec.a \
-   -Wl,--end-group
 ```
 
 ### Steps to run
