@@ -18,16 +18,11 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <math.h>
-#include <memory.h>
+#include <string.h>
 
 #include <assert.h>
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
-#include "ixheaacd_defines.h"
-#include "ixheaacd_aac_rom.h"
-#include "ixheaacd_pulsedata.h"
-#include "ixheaacd_pns.h"
-#include "ixheaacd_channelinfo.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
@@ -38,28 +33,13 @@
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_polyphase.h"
-
-#include "ixheaacd_mps_dec.h"
-#include "ixheaacd_mps_interface.h"
-
-#include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
-
-#undef ABS_THR
-#define ABS_THR 1.0e-9f
-
-#define ICC_FIX
-#define UNSINGULARIZE_FIX
-#define QUANTIZE_PARS_FIX
-
-#define PI 3.14159265358979f
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
+#include "ixheaacd_mps_dec.h"
 
 #define ONE_IN_Q28 (268435456)
-#define MINUS_ONE_IN_Q28 (-268435456)
-#define PI_Q28 (843314856)
-#define PI_Q27 (421657428)
 #define PI_BY_8_Q28 (105414352)
 #define P_PI 3.1415926535897932
 #define PI_IN_Q28 843314880
@@ -119,14 +99,6 @@ static VOID ixheaacd_mps_buffer_pre_and_mix_matrix(
     self->phase_r_prev[pb] =
         self->phase_r[self->num_parameter_sets_prev - 1][pb];
   }
-}
-
-VOID ixheaacd_fix_to_float_int(WORD32 *inp, FLOAT32 *out, WORD32 length,
-                               FLOAT32 q_fac) {
-  WORD32 i;
-  FLOAT32 m_qfac = 1.0f / q_fac;
-
-  for (i = 0; i < length; i++) out[i] = (FLOAT32)(inp[i]) * m_qfac;
 }
 
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self) {
@@ -335,7 +307,7 @@ VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
         im_weight = ixheaacd_im_weight[0][icc_idx][cld_idx];
       }
 
-      *h_real++ = weight - re_weight;  // h_real[0] = weight - re_weight
+      *h_real++ = weight - re_weight;
       *h_imag++ = -im_weight;
       *h_real++ = weight + re_weight;
       *h_imag++ = im_weight;
@@ -1196,7 +1168,7 @@ WORD32 ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self) {
         }
       }
     } else {
-      int num_cols = (self->dir_sig_count + self->decor_sig_count) > 1
+      WORD32 num_cols = (self->dir_sig_count + self->decor_sig_count) > 1
                          ? 1
                          : (self->dir_sig_count + self->decor_sig_count);
       for (ts = 0; ts < self->time_slots; ts++) {
@@ -1390,10 +1362,12 @@ WORD32 ixheaacd_mps_upmix_interp_type2(
 
 static FLOAT32 ixheaacd_mps_angle_interpolation(FLOAT32 angle1, FLOAT32 angle2,
                                                 FLOAT32 alpha, FLOAT32 *step) {
-  while (angle2 - angle1 > (FLOAT32)P_PI)
+  while (angle2 - angle1 > (FLOAT32)P_PI) {
     angle1 = angle1 + 2.0f * (FLOAT32)P_PI;
-  while (angle1 - angle2 > (FLOAT32)P_PI)
+  }
+  while (angle1 - angle2 > (FLOAT32)P_PI) {
     angle2 = angle2 + 2.0f * (FLOAT32)P_PI;
+  }
   *step = angle2 - angle1;
   return (1 - alpha) * angle1 + alpha * angle2;
 }
@@ -1438,13 +1412,15 @@ VOID ixheaacd_mps_phase_interpolation(
       step_l *= alpha;
       step_r *= alpha;
       for (i = 1; i <= self->param_slot_diff[ps]; i++) {
-        r_re[ts][pb][0] = (FLOAT32)cos(tl);
-        r_im[ts][pb][0] = (FLOAT32)sin(tl);
-        tl += step_l;
+        if (ts < 72 && pb < 28) {
+          r_re[ts][pb][0] = (FLOAT32)cos(tl);
+          r_im[ts][pb][0] = (FLOAT32)sin(tl);
+          tl += step_l;
 
-        r_re[ts][pb][1] = (FLOAT32)cos(tr);
-        r_im[ts][pb][1] = (FLOAT32)sin(tr);
-        tr += step_r;
+          r_re[ts][pb][1] = (FLOAT32)cos(tr);
+          r_im[ts][pb][1] = (FLOAT32)sin(tr);
+          tr += step_r;
+        }
         ts++;
 
         if (ts > 71) {

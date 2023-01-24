@@ -89,8 +89,6 @@ typedef struct ia_bit_buf_struct {
 
 } ia_bit_buf_struct;
 
-typedef struct ia_bit_buf_struct *ia_handle_bit_buf_struct;
-
 typedef struct ia_crc_bit_buf_struct *ia_crc_bit_buf_struct_handle;
 
 VOID ixheaacd_byte_align(ia_bit_buf_struct *it_bit_buff,

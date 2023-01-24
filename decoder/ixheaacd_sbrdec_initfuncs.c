@@ -138,7 +138,7 @@ VOID ixheaacd_esbr_hbe_data_init(
       pstr_esbr_hbe_txposer->mag = &pstr_esbr_hbe_txposer->mag_buf[0];
       pstr_esbr_hbe_txposer->phase = &pstr_esbr_hbe_txposer->phase_buf[0];
       pstr_esbr_hbe_txposer->ptr_output_buf = &pstr_esbr_hbe_txposer->output_buf[0];
-  }
+    }
   }
   *total_persistant = used_persistent;
   return;
@@ -683,32 +683,32 @@ ia_handle_sbr_dec_inst_struct ixheaacd_init_sbr(
     }
 
     if (ptr_usac_dflt_header != NULL) {
-    ptr_sbr_dflt_header->start_freq = ptr_usac_dflt_header->start_freq;
-    ptr_sbr_dflt_header->stop_freq = ptr_usac_dflt_header->stop_freq;
+      ptr_sbr_dflt_header->start_freq = ptr_usac_dflt_header->start_freq;
+      ptr_sbr_dflt_header->stop_freq = ptr_usac_dflt_header->stop_freq;
 
-    if (ptr_usac_dflt_header->header_extra_1) {
-      ptr_sbr_dflt_header->freq_scale = ptr_usac_dflt_header->freq_scale;
-      ptr_sbr_dflt_header->alter_scale = ptr_usac_dflt_header->alter_scale;
-      ptr_sbr_dflt_header->noise_bands = ptr_usac_dflt_header->noise_bands;
-    } else {
-      ptr_sbr_dflt_header->freq_scale = SBR_FREQ_SCALE_DEFAULT;
-      ptr_sbr_dflt_header->alter_scale = SBR_ALTER_SCALE_DEFAULT;
-      ptr_sbr_dflt_header->noise_bands = SBR_NOISE_BANDS_DEFAULT;
-    }
+      if (ptr_usac_dflt_header->header_extra_1) {
+        ptr_sbr_dflt_header->freq_scale = ptr_usac_dflt_header->freq_scale;
+        ptr_sbr_dflt_header->alter_scale = ptr_usac_dflt_header->alter_scale;
+        ptr_sbr_dflt_header->noise_bands = ptr_usac_dflt_header->noise_bands;
+      } else {
+        ptr_sbr_dflt_header->freq_scale = SBR_FREQ_SCALE_DEFAULT;
+        ptr_sbr_dflt_header->alter_scale = SBR_ALTER_SCALE_DEFAULT;
+        ptr_sbr_dflt_header->noise_bands = SBR_NOISE_BANDS_DEFAULT;
+      }
 
-    if (ptr_usac_dflt_header->header_extra_2) {
-      ptr_sbr_dflt_header->limiter_bands = ptr_usac_dflt_header->limiter_bands;
-      ptr_sbr_dflt_header->limiter_gains = ptr_usac_dflt_header->limiter_gains;
-      ptr_sbr_dflt_header->interpol_freq = ptr_usac_dflt_header->interpol_freq;
-      ptr_sbr_dflt_header->smoothing_mode =
-          ptr_usac_dflt_header->smoothing_mode;
-    } else {
-      ptr_sbr_dflt_header->limiter_bands = SBR_LIMITER_BANDS_DEFAULT;
-      ptr_sbr_dflt_header->limiter_gains = SBR_LIMITER_GAINS_DEFAULT;
-      ptr_sbr_dflt_header->interpol_freq = SBR_INTERPOL_FREQ_DEFAULT;
-      ptr_sbr_dflt_header->smoothing_mode = SBR_SMOOTHING_LENGTH_DEFAULT;
+      if (ptr_usac_dflt_header->header_extra_2) {
+        ptr_sbr_dflt_header->limiter_bands = ptr_usac_dflt_header->limiter_bands;
+        ptr_sbr_dflt_header->limiter_gains = ptr_usac_dflt_header->limiter_gains;
+        ptr_sbr_dflt_header->interpol_freq = ptr_usac_dflt_header->interpol_freq;
+        ptr_sbr_dflt_header->smoothing_mode =
+            ptr_usac_dflt_header->smoothing_mode;
+      } else {
+        ptr_sbr_dflt_header->limiter_bands = SBR_LIMITER_BANDS_DEFAULT;
+        ptr_sbr_dflt_header->limiter_gains = SBR_LIMITER_GAINS_DEFAULT;
+        ptr_sbr_dflt_header->interpol_freq = SBR_INTERPOL_FREQ_DEFAULT;
+        ptr_sbr_dflt_header->smoothing_mode = SBR_SMOOTHING_LENGTH_DEFAULT;
+      }
     }
-  }
   }
   return &(sbr_persistent_mem->str_sbr_dec_inst);
 }

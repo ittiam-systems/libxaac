@@ -77,6 +77,10 @@
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 
@@ -500,7 +504,7 @@ WORD32 ixheaacd_drc_map_channels(ia_drc_dec_struct *pstr_drc_dec,
       }
 
       if (drc_on > 1) {
-        return IA_ENHAACPLUS_DEC_EXE_FATAL_INVALID_DRC_DATA;
+        return IA_XHEAAC_DEC_EXE_FATAL_INVALID_DRC_DATA;
       }
     }
   }
@@ -553,12 +557,12 @@ VOID ixheaacd_drc_dec_create(ia_drc_dec_struct *pstr_drc_dec,
     pstr_drc_dec->drc_channel_next_index[ch] = 0;
     pstr_drc_dec->state = 0;
 
-    for (j = 0; j < 64; j++)
-      for (k = 0; k < 64; k++)
-      {
+    for (j = 0; j < 64; j++) {
+      for (k = 0; k < 64; k++) {
         pstr_drc_data->drc_factors_sbr[j][k] = DRC_SBR_ONE_Q25;
         pstr_drc_data->drc_factors_sbr_lat[j][k] = DRC_SBR_ONE_Q25;
       }
+    }
     for (j = 0; j < MAX_DRC_BANDS; j++) pstr_drc_data->drc_fac[j] = 0;
 
     pstr_drc_data->n_mdct_bands[0] = FRAME_SIZE;
@@ -571,7 +575,7 @@ VOID ixheaacd_drc_dec_create(ia_drc_dec_struct *pstr_drc_dec,
   }
 }
 
-static WORD32 ixheaacd_drc_excluded_channels(ia_handle_bit_buf_struct bs,
+static WORD32 ixheaacd_drc_excluded_channels(ia_bit_buf_struct *it_bit_buf,
                                              WORD32 nch, UWORD8 *b_channel_on) {
   WORD32 ich, nbyte = 0;
   WORD32 num_excl_chan;
@@ -579,16 +583,16 @@ static WORD32 ixheaacd_drc_excluded_channels(ia_handle_bit_buf_struct bs,
 
   num_excl_chan = 7;
   for (ich = 0; ich < 7; ich++) {
-    exclude_mask = ixheaacd_read_bits_buf(bs, 1);
+    exclude_mask = ixheaacd_read_bits_buf(it_bit_buf, 1);
     if (ich < nch) {
       b_channel_on[ich] = !exclude_mask;
     }
   }
   nbyte++;
 
-  while (ixheaacd_read_bits_buf(bs, 1)) {
+  while (ixheaacd_read_bits_buf(it_bit_buf, 1)) {
     for (ich = num_excl_chan; ich < num_excl_chan + 7; ich++) {
-      exclude_mask = ixheaacd_read_bits_buf(bs, 1);
+      exclude_mask = ixheaacd_read_bits_buf(it_bit_buf, 1);
       if (ich < nch) {
         b_channel_on[ich] = !exclude_mask;
       }
@@ -601,7 +605,7 @@ static WORD32 ixheaacd_drc_excluded_channels(ia_handle_bit_buf_struct bs,
 }
 
 static WORD32 ixheaacd_drc_element_read(
-    ia_handle_bit_buf_struct bs, ixheaac_drc_bs_data_struct *pstr_bs_data) {
+    ia_bit_buf_struct *it_bit_buf, ixheaac_drc_bs_data_struct *pstr_bs_data) {
   WORD32 ich, idrc, nbyte = 1;
   WORD32 pce_tag_present, drc_bands_present;
   WORD32 excluded_chns_present;
@@ -610,10 +614,10 @@ static WORD32 ixheaacd_drc_element_read(
 
   pstr_bs_data->drc_num_bands = 1;
 
-  pce_tag_present = ixheaacd_read_bits_buf(bs, 1);
+  pce_tag_present = ixheaacd_read_bits_buf(it_bit_buf, 1);
   if (pce_tag_present) {
-    ixheaacd_read_bits_buf(bs, 4);/*pce_instance_tag*/
-    ixheaacd_read_bits_buf(bs, 4);/*drc_tag_reserved_bits*/
+    ixheaacd_read_bits_buf(it_bit_buf, 4);/*pce_instance_tag*/
+    ixheaacd_read_bits_buf(it_bit_buf, 4);/*drc_tag_reserved_bits*/
     nbyte++;
   }
 
@@ -621,21 +625,21 @@ static WORD32 ixheaacd_drc_element_read(
     pstr_bs_data->b_channel_on[ich] = 1;
   }
 
-  excluded_chns_present = ixheaacd_read_bits_buf(bs, 1);
+  excluded_chns_present = ixheaacd_read_bits_buf(it_bit_buf, 1);
   if (excluded_chns_present) {
-    nbyte += ixheaacd_drc_excluded_channels(bs, MAX_AUDIO_CHANNELS,
+    nbyte += ixheaacd_drc_excluded_channels(it_bit_buf, MAX_AUDIO_CHANNELS,
                                             pstr_bs_data->b_channel_on);
   }
 
-  drc_bands_present = ixheaacd_read_bits_buf(bs, 1);
+  drc_bands_present = ixheaacd_read_bits_buf(it_bit_buf, 1);
   if (drc_bands_present) {
-    drc_band_incr = ixheaacd_read_bits_buf(bs, 4);
-    pstr_bs_data->drc_interpolation_scheme = ixheaacd_read_bits_buf(bs, 4);
+    drc_band_incr = ixheaacd_read_bits_buf(it_bit_buf, 4);
+    pstr_bs_data->drc_interpolation_scheme = ixheaacd_read_bits_buf(it_bit_buf, 4);
     nbyte++;
 
     pstr_bs_data->drc_num_bands += drc_band_incr;
     for (idrc = 0; idrc < pstr_bs_data->drc_num_bands; idrc++) {
-      pstr_bs_data->drc_band_top[idrc] = ixheaacd_read_bits_buf(bs, 8);
+      pstr_bs_data->drc_band_top[idrc] = ixheaacd_read_bits_buf(it_bit_buf, 8);
       nbyte++;
     }
   } else {
@@ -643,17 +647,17 @@ static WORD32 ixheaacd_drc_element_read(
     pstr_bs_data->drc_interpolation_scheme = 0;
   }
 
-  pstr_bs_data->prog_ref_level_present = ixheaacd_read_bits_buf(bs, 1);
+  pstr_bs_data->prog_ref_level_present = ixheaacd_read_bits_buf(it_bit_buf, 1);
   if (pstr_bs_data->prog_ref_level_present) {
-    pstr_bs_data->prog_ref_level = ixheaacd_read_bits_buf(bs, 7);
+    pstr_bs_data->prog_ref_level = ixheaacd_read_bits_buf(it_bit_buf, 7);
 
-    ixheaacd_read_bits_buf(bs, 1);/*prog_ref_level_reserved_bits*/
+    ixheaacd_read_bits_buf(it_bit_buf, 1);/*prog_ref_level_reserved_bits*/
     nbyte++;
   }
 
   for (idrc = 0; idrc < pstr_bs_data->drc_num_bands; idrc++) {
-    WORD32 sign = ixheaacd_read_bits_buf(bs, 1);
-    pstr_bs_data->dyn_rng_dlbl[idrc] = ixheaacd_read_bits_buf(bs, 7);
+    WORD32 sign = ixheaacd_read_bits_buf(it_bit_buf, 1);
+    pstr_bs_data->dyn_rng_dlbl[idrc] = ixheaacd_read_bits_buf(it_bit_buf, 7);
     if (sign)
       pstr_bs_data->dyn_rng_dlbl[idrc] = -pstr_bs_data->dyn_rng_dlbl[idrc];
     max_dyn_rng_dlbl = max(max_dyn_rng_dlbl, pstr_bs_data->dyn_rng_dlbl[idrc]);
@@ -665,20 +669,20 @@ static WORD32 ixheaacd_drc_element_read(
   return nbyte;
 }
 
-static int ixheaacd_drc_read_compression(ia_handle_bit_buf_struct bs,
+static WORD32 ixheaacd_drc_read_compression(ia_bit_buf_struct *it_bit_buf,
                                          ia_drc_dec_struct *pstr_drc_dec,
                                          WORD32 bs_pos) {
-  int bit_count = 0;
-  int dmx_lvl_present, ext_present, compression_present;
-  int coarse_gain_present, fine_grain_present;
+  WORD32 bit_count = 0;
+  WORD32 dmx_lvl_present, ext_present, compression_present;
+  WORD32 coarse_gain_present, fine_grain_present;
   ia_bit_buf_struct local_bs = {0};
   WORD32 bytes = 0, bits = 0;
 
-  memcpy(&local_bs, bs, sizeof(ia_bit_buf_struct));
+  memcpy(&local_bs, it_bit_buf, sizeof(ia_bit_buf_struct));
 
   if (local_bs.size < bs_pos) {
     longjmp(*(local_bs.xaac_jmp_buf),
-            IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+            IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }
   bytes = (local_bs.size - bs_pos) >> 3;
   bits = (local_bs.size - bs_pos) % 8;
@@ -748,7 +752,7 @@ static int ixheaacd_drc_read_compression(ia_handle_bit_buf_struct bs,
   }
 
   if (ext_present) {
-    int ext_bits = 8;
+    WORD32 ext_bits = 8;
 
     ixheaacd_read_bits_buf(&local_bs, 1);
     if (ixheaacd_read_bits_buf(&local_bs, 1)) ext_bits += 8;
@@ -764,25 +768,25 @@ static int ixheaacd_drc_read_compression(ia_handle_bit_buf_struct bs,
 
 WORD32 ixheaacd_dec_drc_read_element(ia_drc_dec_struct *pstr_drc_dec,
                                      ia_drc_dec_struct *drc_dummy,
-                                     ia_handle_bit_buf_struct bs) {
+                                     ia_bit_buf_struct *it_bit_buf) {
   WORD32 bits_read = 0;
   if (pstr_drc_dec->num_drc_elements < pstr_drc_dec->max_audio_channels) {
     bits_read = ixheaacd_drc_element_read(
-        bs, &pstr_drc_dec->str_drc_bs_data[pstr_drc_dec->num_drc_elements]);
+        it_bit_buf, &pstr_drc_dec->str_drc_bs_data[pstr_drc_dec->num_drc_elements]);
 
     if (pstr_drc_dec->dvb_anc_data_present) {
       ixheaacd_drc_read_compression(
-          bs, pstr_drc_dec, pstr_drc_dec->dvb_anc_data_pos);
+          it_bit_buf, pstr_drc_dec, pstr_drc_dec->dvb_anc_data_pos);
     }
     pstr_drc_dec->num_drc_elements++;
 
   } else {
     ixheaac_drc_bs_data_struct drc_ele_dummy;
 
-    bits_read = ixheaacd_drc_element_read(bs, &drc_ele_dummy);
+    bits_read = ixheaacd_drc_element_read(it_bit_buf, &drc_ele_dummy);
     if (pstr_drc_dec->dvb_anc_data_present) {
       ixheaacd_drc_read_compression(
-          bs, drc_dummy, pstr_drc_dec->dvb_anc_data_pos);
+          it_bit_buf, drc_dummy, pstr_drc_dec->dvb_anc_data_pos);
     }
   }
 
@@ -905,9 +909,7 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
     }
     ptr_drc_fac =
       &pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr_lat[0][0];
-  }
-  else
-  {
+  } else {
     ptr_drc_fac =
       &pstr_drc_dec->str_drc_channel_data[channel].drc_factors_sbr[0][0];
   }
@@ -952,7 +954,7 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
   for (drc_band = 0; drc_band < pstr_drc_data->n_drc_bands; drc_band++) {
     if ((pstr_drc_dec->str_drc_bs_data[0].drc_data_type == DVB_DRC_ANC_DATA) &&
         (pstr_drc_dec->heavy_mode)) {
-      int val_x, val_y;
+      WORD32 val_x, val_y;
       float compression_factor;
       float temp;
       val_x = ((UWORD8)pstr_drc_data->drc_fac_dvb[drc_band]) >> 4;

@@ -23,6 +23,10 @@
 #include <assert.h>
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_memory_standards.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops16.h"
@@ -108,7 +112,7 @@
 #include "ixheaacd_create.h"
 #include "ixheaacd_function_selector.h"
 #include "ixheaacd_ld_mps_dec.h"
-
+#include "ixheaacd_mps_tables.h"
 #define MAX_TRACKS_PER_LAYER 50
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
@@ -132,22 +136,25 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
                                    VOID *samples, UWORD32 frame_len,
                                    WORD8 *qshift_adj);
 
+VOID ixheaacd_scale_adjust(VOID *time_data, UWORD32 frame_size,
+                           WORD8 *qshift_adj, WORD num_channels);
+
 IA_ERRORCODE ixheaacd_dec_mem_api(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, WORD32 i_cmd,
     WORD32 i_idx, VOID *pv_value) {
   pUWORD32 pui_value = pv_value;
 
   if (i_idx < 0 || i_idx >= IA_ENHAACPDEC_NUM_MEMTABS) {
-    return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_MEMTAB_INDEX;
+    return IA_XHEAAC_DEC_API_FATAL_INVALID_MEMTAB_INDEX;
   }
 
   if (i_cmd == IA_API_CMD_SET_MEM_PTR) {
     if (pv_value == 0) {
-      return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC);
+      return (IA_XHEAAC_DEC_API_FATAL_MEM_ALLOC);
     }
     if (((SIZE_T)pv_value %
          p_obj_exhaacplus_dec->p_mem_info_aac[i_idx].ui_alignment) != 0) {
-      return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALIGN);
+      return (IA_XHEAAC_DEC_API_FATAL_MEM_ALIGN);
     }
     p_obj_exhaacplus_dec->pp_mem_aac[i_idx] = pv_value;
     memset(p_obj_exhaacplus_dec->pp_mem_aac[i_idx], 0,
@@ -197,7 +204,7 @@ VOID ixheaacd_updatebytesconsumed(
     ia_aac_dec_state_struct *p_state_enhaacplus_dec,
     struct ia_bit_buf_struct *it_bit_buff) {
   p_state_enhaacplus_dec->i_bytes_consumed =
-    (WORD32)(it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base);
+      (WORD32)(it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base);
   if ((p_state_enhaacplus_dec->i_bytes_consumed == 0) &&
       (it_bit_buff->cnt_bits == 0)) {
     p_state_enhaacplus_dec->i_bytes_consumed =
@@ -206,6 +213,7 @@ VOID ixheaacd_updatebytesconsumed(
   if (it_bit_buff->cnt_bits < 0) {
     p_state_enhaacplus_dec->i_bytes_consumed = 0;
     p_state_enhaacplus_dec->ui_out_bytes = 0;
+    p_state_enhaacplus_dec->ui_mps_out_bytes = 0;
     p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
   }
 }
@@ -235,7 +243,7 @@ WORD32 ixheaacd_readifadts(ia_aac_dec_state_struct *p_state_enhaacplus_dec,
 
   if ((error = ixheaacd_find_syncword(adts, it_bit_buff)) != 0) {
     ixheaacd_updatebytesconsumed(p_state_enhaacplus_dec, it_bit_buff);
-    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_ADTS_SYNC_LOST;
+    return IA_XHEAAC_DEC_EXE_NONFATAL_ADTS_SYNC_LOST;
   }
   if ((error = ixheaacd_check_if_adts(
            adts, it_bit_buff,
@@ -245,10 +253,11 @@ WORD32 ixheaacd_readifadts(ia_aac_dec_state_struct *p_state_enhaacplus_dec,
     if (it_bit_buff->cnt_bits < 0) {
       p_state_enhaacplus_dec->i_bytes_consumed = 0;
       p_state_enhaacplus_dec->ui_out_bytes = 0;
-      error = IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+      p_state_enhaacplus_dec->ui_mps_out_bytes = 0;
+      error = IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
       return error;
     }
-    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_ADTS_SYNC_LOST;
+    return IA_XHEAAC_DEC_EXE_NONFATAL_ADTS_SYNC_LOST;
   }
   p_state_enhaacplus_dec->b_n_raw_data_blk =
       (WORD8)(adts->no_raw_data_blocks + 1);
@@ -374,9 +383,18 @@ VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct,
   }
 }
 
-IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
+VOID ixheaacd_get_lib_id_strings(pVOID pv_output) {
+  ia_lib_info_struct *pstr_lib_info = (ia_lib_info_struct *)pv_output;
+
+  pstr_lib_info->p_lib_name = (WORD8 *)LIBNAME;
+  pstr_lib_info->p_version_num = (WORD8 *)xHE_AAC_DEC_ITTIAM_VER;
+
+  return;
+}
+
+IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
                               WORD32 i_idx, pVOID pv_value) {
-  ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec = p_ia_enhaacplus_dec_obj;
+  ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec = p_ia_xheaac_dec_obj;
   pUWORD32 pui_value = pv_value;
   pWORD32 pui_value_signed = pv_value;
   pWORD8 pb_value = pv_value;
@@ -385,11 +403,11 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
   if ((i_cmd != IA_API_CMD_GET_API_SIZE) &&
       (i_cmd != IA_API_CMD_GET_LIB_ID_STRINGS)) {
-    if (p_ia_enhaacplus_dec_obj == 0) {
-      return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC);
+    if (p_ia_xheaac_dec_obj == 0) {
+      return (IA_XHEAAC_DEC_API_FATAL_MEM_ALLOC);
     }
-    if (((SIZE_T)p_ia_enhaacplus_dec_obj & 3) != 0) {
-      return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALIGN);
+    if (((SIZE_T)p_ia_xheaac_dec_obj & 3) != 0) {
+      return (IA_XHEAAC_DEC_API_FATAL_MEM_ALIGN);
     }
   }
 
@@ -398,7 +416,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     case IA_API_CMD_GET_MEM_INFO_ALIGNMENT:
     case IA_API_CMD_GET_MEM_INFO_TYPE:
     case IA_API_CMD_SET_MEM_PTR: {
-      return ixheaacd_dec_mem_api(p_ia_enhaacplus_dec_obj, i_cmd, i_idx,
+      return ixheaacd_dec_mem_api(p_ia_xheaac_dec_obj, i_cmd, i_idx,
                                   pv_value);
     }
 
@@ -406,7 +424,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     case IA_API_CMD_GET_TABLE_INFO_ALIGNMENT:
     case IA_API_CMD_SET_TABLE_PTR:
     case IA_API_CMD_GET_TABLE_PTR: {
-      return ixheaacd_dec_table_api(p_ia_enhaacplus_dec_obj, i_cmd, i_idx,
+      return ixheaacd_dec_table_api(p_ia_xheaac_dec_obj, i_cmd, i_idx,
                                     pv_value);
     }
   };
@@ -421,7 +439,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       else if (i_idx == IA_CMD_TYPE_LIB_VERSION)
         i1_ver = (WORD8 *)xHE_AAC_DEC_ITTIAM_VER;
       else
-        return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_LIB_ID_STRINGS_IDX;
+        return IA_XHEAAC_DEC_API_FATAL_INVALID_LIB_ID_STRINGS_IDX;
 
       ver_char = *i1_ver++;
 
@@ -470,7 +488,6 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_pce_found_in_hdr = 0;
           p_obj_exhaacplus_dec->aac_config.loas_present = 0;
           p_obj_exhaacplus_dec->aac_config.ld_decoder = 0;
-          p_obj_exhaacplus_dec->aac_config.ui_drc_enable = 1;
           p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
           p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
           p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
@@ -542,242 +559,230 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         }
 
         default: {
-          return IA_ENHAACPLUS_DEC_API_NONFATAL_CMD_TYPE_NOT_SUPPORTED;
+          return IA_XHEAAC_DEC_API_NONFATAL_CMD_TYPE_NOT_SUPPORTED;
         }
       };
       break;
     }
     case IA_API_CMD_SET_CONFIG_PARAM: {
       switch (i_idx) {
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_SAMP_FREQ: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_SAMP_FREQ: {
           if ((*pui_value < 8000) || (*pui_value > 96000)) {
-            return (IA_ENHAACPLUS_DEC_CONFIG_FATAL_INVALID_SAMPLE_RATE);
+            return (IA_XHEAAC_DEC_CONFIG_FATAL_INVALID_SAMPLE_RATE);
           }
           p_obj_exhaacplus_dec->aac_config.ui_samp_freq = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMELENGTH_FLAG: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_FRAMELENGTH_FLAG: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
-            return(IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_FRAMELENGTHFLAG);
+            return(IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_FRAMELENGTHFLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_frame_size = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_PCM_WDSZ: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_PCM_WDSZ: {
           if ((*pui_value != 16) && (*pui_value != 24)) {
             p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz = 16;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_PCM_WDSZ);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_PCM_WDSZ);
           }
           p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DOWNMIX: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DOWNMIX: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.flag_downmix = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DOWNMIX);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DOWNMIX);
           }
           p_obj_exhaacplus_dec->aac_config.flag_downmix = *pui_value;
           p_obj_exhaacplus_dec->aac_config.downmix = *pui_value;
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_TOSTEREO: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_TOSTEREO: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.flag_to_stereo = 1;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_TOSTEREO);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_TOSTEREO);
           }
           p_obj_exhaacplus_dec->aac_config.flag_to_stereo = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DSAMPLE: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DSAMPLE: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.down_sample_flag = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DSAMPLE);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DSAMPLE);
           }
           p_obj_exhaacplus_dec->aac_config.down_sample_flag = *pui_value;
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMEOK: {
-          if ((*pui_value != 1) && (*pui_value != 0)) {
-            p_obj_exhaacplus_dec->aac_config.frame_status = 1;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_FRAMEOK);
-          }
-          p_obj_exhaacplus_dec->aac_config.frame_status = *pui_value;
-          break;
-        }
-
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_ISMP4: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_MP4FLAG: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.ui_mp4_flag = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_MP4FLAG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_MP4FLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_mp4_flag = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_ISLOAS: {
-          if ((*pui_value != 1) && (*pui_value != 0)) {
-            p_obj_exhaacplus_dec->aac_config.loas_present = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_LOASFLAG);
-          }
-          p_obj_exhaacplus_dec->aac_config.loas_present = *pui_value;
-          break;
-        }
+
         case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_ENABLE: {
-          if ((*pui_value != 1) && (*pui_value != 0)) {
-            p_obj_exhaacplus_dec->aac_config.ui_drc_enable = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRCFLAG);
-          }
-          p_obj_exhaacplus_dec->aac_config.ui_drc_enable = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_CUT: {
+
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
           if (*pf_value > 1) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_CUT);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRC_CUT);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_cut =
               (WORD32)((*pf_value) * 100);
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_BOOST: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
           if (*pf_value > 1) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_BOOST);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRC_BOOST);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_boost =
               (WORD32)((*pf_value) * 100);
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LEVEL: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_TARGET_LEVEL: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
           p_obj_exhaacplus_dec->aac_config.i_loud_ref_level = *pui_value_signed;
           if (*pui_value > 127) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRC_TARGET);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRC_TARGET);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_HEAVY_COMP: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_HEAVY_COMP: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_heavy_comp = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DRCFLAG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRCFLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_drc_heavy_comp = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DISABLE_SYNC: {
+        case IA_XHEAAC_DEC_CONFIG_DISABLE_SYNC: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.ui_disable_sync = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_SYNCFLAG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_SYNCFLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_disable_sync = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_AUTO_SBR_UPSAMPLE: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_AUTO_SBR_UPSAMPLE: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.ui_auto_sbr_upsample = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_SBRUPFLAG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_SBRUPFLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_auto_sbr_upsample = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_MAX_CHANNEL: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_MAX_CHANNEL: {
           if (*pui_value > 8) {
             p_obj_exhaacplus_dec->aac_config.ui_max_channels = 8;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL);
           }
           if (*pui_value < 2) {
             p_obj_exhaacplus_dec->aac_config.ui_max_channels = 2;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL);
           }
           p_obj_exhaacplus_dec->aac_config.ui_max_channels = *pui_value;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMESIZE: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_FRAMESIZE: {
           if (*pui_value == 1) {
             p_obj_exhaacplus_dec->aac_config.framesize_480 = 1;
           } else if (*pui_value == 0) {
             p_obj_exhaacplus_dec->aac_config.framesize_480 = 0;
           } else {
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_FRAMSZ);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_FRAMSZ);
           }
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_LD_TESTING: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_LD_TESTING: {
           if (*pui_value == 1) {
             p_obj_exhaacplus_dec->aac_config.ld_decoder = 1;
           } else if (*pui_value == 0) {
             p_obj_exhaacplus_dec->aac_config.ld_decoder = 0;
           } else {
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_LD_CONFIG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_LD_CONFIG);
           }
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_COUP_CHANNEL: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_COUP_CHANNEL: {
           if (*pui_value > 16) {
             p_obj_exhaacplus_dec->aac_config.ui_coupling_channel = 1;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_COUP_CHANNEL);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_COUP_CHANNEL);
           }
           p_obj_exhaacplus_dec->aac_config.ui_coupling_channel = *pui_value;
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_DOWNMIX_STEREO: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DOWNMIX_STEREO: {
           if ((*pui_value != 1) && (*pui_value != 0)) {
             p_obj_exhaacplus_dec->aac_config.downmix = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_DOWNMIX);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DOWNMIX_STEREO);
           }
           p_obj_exhaacplus_dec->aac_config.downmix = *pui_value;
           break;
         }
 
-        case IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_EFFECT_TYPE: {
           if (((*pui_value_signed) > 8) || ((*pui_value_signed) < -1)) {
             p_obj_exhaacplus_dec->aac_config.ui_effect_type = -1;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NON_FATAL_INVALID_EFFECT_TYPE);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_EFFECT_TYPE);
           }
           p_obj_exhaacplus_dec->aac_config.ui_effect_type = *pui_value_signed;
           break;
         }
-        case IA_ENHAACPLUS_DEC_DRC_TARGET_LOUDNESS: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS: {
           if (*pui_value_signed >= 0) {
             p_obj_exhaacplus_dec->aac_config.ui_loud_norm_flag = 1;
           }
           *pui_value_signed = -(*pui_value_signed >> 2);
           if (((*pui_value_signed) > 0) || ((*pui_value_signed) < -63)) {
             p_obj_exhaacplus_dec->aac_config.ui_target_loudness = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_TARGET_LOUDNESS);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_TARGET_LOUDNESS);
           }
           p_obj_exhaacplus_dec->aac_config.ui_target_loudness =
               *pui_value_signed;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_HQ_ESBR: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_HQ_ESBR: {
           if (((*pui_value_signed) != 0) && ((*pui_value_signed) != 1)) {
             p_obj_exhaacplus_dec->aac_config.ui_hq_esbr = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_ESBR_HQ_FLAG);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_ESBR_HQ_FLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_hq_esbr = *pui_value_signed;
           break;
         }
-        case IA_ENHAACPLUS_DEC_CONFIG_PARAM_PS_ENABLE: {
+        case IA_XHEAAC_DEC_CONFIG_PARAM_PS_ENABLE: {
           if (((*pui_value_signed) != 0) && ((*pui_value_signed) != 1)) {
             p_obj_exhaacplus_dec->aac_config.ui_enh_sbr_ps = 0;
-            return (IA_ENHAACPLUS_DEC_CONFIG_NON_FATAL_INVALID_EFFECT_TYPE);
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_ESBR_PS_FLAG);
           }
           p_obj_exhaacplus_dec->aac_config.ui_enh_sbr_ps = *pui_value_signed;
           break;
         }
-        default: { return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
+        case IA_XHEAAC_DEC_CONFIG_PARAM_PEAK_LIMITER: {
+          if (((*pui_value_signed) != 0) && ((*pui_value_signed) != 1)) {
+            p_obj_exhaacplus_dec->aac_config.peak_limiter_off = 0;
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_PEAK_LIM_FLAG_TYPE);
+          }
+          p_obj_exhaacplus_dec->aac_config.peak_limiter_off = *pui_value_signed;
+          break;
+        }
+        default: { return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
       }
       break;
     }
@@ -786,7 +791,25 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       UWORD32 i;
       WORD32 *pvalue =
           (WORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz);
-
+      if (IA_XHEAAC_DEC_CONFIG_PARAM_NUM_CHANNELS == i_idx) {
+        if (p_obj_exhaacplus_dec->p_state_aac != NULL &&
+            p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle
+                    .heaac_mps_present == 1) {
+          *pui_value = p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle
+                           .num_output_channels_at;
+        } else {
+          *pui_value = pvalue[i_idx];
+        }
+      } else if (IA_XHEAAC_DEC_CONFIG_PARAM_CHANNEL_MASK == i_idx) {
+        if (p_obj_exhaacplus_dec->p_state_aac != NULL &&
+            p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle
+                    .heaac_mps_present == 1) {
+          *pui_value = p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle
+                           .bs_config.ui_channel_mask;
+        } else {
+          *pui_value = pvalue[i_idx];
+        }
+      } else
       if (i_idx >= 0 && i_idx <= 8) {
         *pui_value = pvalue[i_idx];
       } else if (IA_ENHAACPLUS_DEC_CONFIG_GET_NUM_PRE_ROLL_FRAMES == i_idx) {
@@ -888,7 +911,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         *pp_value = ptr_audio_specific_config->str_usac_config
                         .str_usac_dec_config.usac_ext_gain_payload_buf +
                     payload_buffer_offeset;
-      } else if (IA_ENHAACPLUS_DEC_CONFIG_PARAM_AOT == i_idx) {
+      } else if (IA_XHEAAC_DEC_CONFIG_PARAM_AOT == i_idx) {
         if (p_obj_exhaacplus_dec->p_state_aac != NULL) {
           if (p_obj_exhaacplus_dec->aac_config.ui_mp4_flag == 1) {
             ia_audio_specific_config_struct *ptr_audio_specific_config =
@@ -902,7 +925,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
           *pui_value = AOT_AAC_LC;
         }
       } else {
-        return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CONFIG_PARAM;
+        return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
       break;
     }
@@ -917,7 +940,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       break;
     }
     case IA_API_CMD_SET_MEMTABS_PTR: {
-      if (pv_value == NULL) return IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC;
+      if (pv_value == NULL) return IA_XHEAAC_DEC_API_FATAL_MEM_ALLOC;
       memset(pv_value, 0, (sizeof(ia_mem_info_struct) + sizeof(pVOID *)) *
                               (IA_ENHAACPDEC_NUM_MEMTABS));
 
@@ -934,7 +957,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
     }
 
     case IA_API_CMD_GET_N_TABLES: {
-      *pui_value = NUM_AAC_TABLES;
+      *pui_value = NUM_AAC_TABLES + NUM_MPS_TABLES;
       break;
     }
     case IA_API_CMD_EXECUTE: {
@@ -968,7 +991,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
 
           break;
         }
-        default: { return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_EXECUTE_TYPE; }
+        default: { return IA_XHEAAC_DEC_API_FATAL_INVALID_EXECUTE_TYPE; }
       };
       break;
     }
@@ -981,6 +1004,11 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       break;
     }
     case IA_API_CMD_GET_OUTPUT_BYTES: {
+      if (1 == i_idx) {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->ui_mps_out_bytes;
+      } else {
+        *pui_value = p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes;
+      }
       if (p_obj_exhaacplus_dec->p_state_aac->audio_object_type == AOT_USAC) {
         ia_audio_specific_config_struct *ptr_audio_specific_config =
             ((ia_audio_specific_config_struct *)
@@ -996,8 +1024,6 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
         if (preroll_counter > (MAX_AUDIO_PREROLLS + 1)) return IA_FATAL_ERROR;
         ptr_audio_specific_config->str_usac_config.str_usac_dec_config
             .preroll_counter = preroll_counter;
-      } else {
-        *pui_value = p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes;
       }
       break;
     }
@@ -1005,7 +1031,7 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_enhaacplus_dec_obj, WORD32 i_cmd,
       p_obj_exhaacplus_dec->p_state_aac->ui_input_over = 1;
       break;
     }
-    default: { return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_CMD; }
+    default: { return IA_XHEAAC_DEC_API_FATAL_INVALID_CMD; }
   };
   return IA_NO_ERROR;
 }
@@ -1029,8 +1055,6 @@ IA_ERRORCODE ixheaacd_decoder_2_ga_hdr(
     p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 2;
     p_obj_exhaacplus_dec->aac_config.ui_pce_found_in_hdr = 0;
     p_obj_exhaacplus_dec->aac_config.loas_present = 0;
-
-    p_obj_exhaacplus_dec->aac_config.ui_drc_enable = 1;
     p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
@@ -1110,8 +1134,6 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(
     p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 2;
     p_obj_exhaacplus_dec->aac_config.ui_pce_found_in_hdr = 0;
     p_obj_exhaacplus_dec->aac_config.loas_present = 0;
-
-    p_obj_exhaacplus_dec->aac_config.ui_drc_enable = 1;
     p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
@@ -1145,7 +1167,6 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(
     p_obj_exhaacplus_dec->p_state_aac->header_length = header_length;
 
     return ixheaacd_dec_init(p_obj_exhaacplus_dec);
-
   } else {
     p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 0;
     return ixheaacd_dec_init(p_obj_exhaacplus_dec);
@@ -1256,10 +1277,8 @@ VOID ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac->ui_size =
         sizeof(ia_aac_dec_state_struct) +
         channels * sizeof(struct ia_aac_persistent_struct) +
-
         buffer_size + channels * ixheaacd_getsize_sbr_persistent() +
-        channels * 16;
-
+        channels * 16 + ixheaacd_mps_persistent_buffer_sizes();
     p_mem_info_aac->ui_size += sizeof(ia_dec_data_struct);
     p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
     p_mem_info_aac->ui_size += 8300;
@@ -1340,20 +1359,35 @@ VOID ixheaacd_fill_aac_mem_tables(
 IA_ERRORCODE ixheaacd_dec_table_api(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, WORD32 i_cmd,
     WORD32 i_idx, pVOID pv_value) {
+  ia_heaac_mps_state_struct *pstr_mps_state =
+      &p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle;
   pUWORD32 pui_value = pv_value;
   pUWORD32 *p_pui_value = pv_value;
   SIZE_T ui_get_vals[5];
 
-  pVOID *table_ptrs[8];
-  UWORD32 table_sizes[8] = {sizeof(ixheaacd_aac_huffmann_tables),
-                            sizeof(ixheaacd_aac_block_tables),
-                            sizeof(ixheaacd_imdct_tables),
-                            sizeof(ixheaacd_str_fft_n_transcendent_tables),
-                            sizeof(ixheaacd_aac_dec_env_calc_tables),
-                            sizeof(ixheaacd_aac_qmf_dec_tables),
-                            sizeof(ixheaacd_aac_dec_env_extr_tables),
-                            sizeof(ixheaacd_aac_dec_ps_tables)};
-
+  pVOID *table_ptrs[8 + NUM_MPS_TABLES];
+  UWORD32 table_sizes[8 + NUM_MPS_TABLES] = {
+      sizeof(ixheaacd_aac_huffmann_tables),
+      sizeof(ixheaacd_aac_block_tables),
+      sizeof(ixheaacd_imdct_tables),
+      sizeof(ixheaacd_str_fft_n_transcendent_tables),
+      sizeof(ixheaacd_aac_dec_env_calc_tables),
+      sizeof(ixheaacd_aac_qmf_dec_tables),
+      sizeof(ixheaacd_aac_dec_env_extr_tables),
+      sizeof(ixheaacd_aac_dec_ps_tables),
+      sizeof(ixheaacd_mps_dec_qmf_tables),
+      sizeof(ixheaacd_mps_dec_common_tables),
+      sizeof(ixheaacd_mps_dec_hybrid_tables),
+      sizeof(ixheaacd_mps_dec_m1_m2_tables),
+      sizeof(ixheaacd_mps_dec_decorr_tables),
+      sizeof(ixheaacd_mps_dec_tp_process_tables),
+      sizeof(ixheaacd_mps_dec_mdct2qmf_table),
+      sizeof(ixheaacd_mps_dec_tonality_tables),
+      sizeof(ixheaacd_mps_dec_bitdec_tables),
+      sizeof(ixheaacd_mps_dec_blind_tables),
+      sizeof(ixheaacd_mps_dec_mdct2qmf_tables),
+      sizeof(ia_mps_dec_mdct2qmf_cos_table_struct),
+      sizeof(ia_mps_dec_residual_aac_tables_struct)};
   table_ptrs[0] =
       (pVOID *)&(p_obj_exhaacplus_dec->aac_tables.pstr_huffmann_tables);
   table_ptrs[1] =
@@ -1368,9 +1402,22 @@ IA_ERRORCODE ixheaacd_dec_table_api(
   table_ptrs[6] =
       (pVOID *)&p_obj_exhaacplus_dec->str_sbr_tables.env_extr_tables_ptr;
   table_ptrs[7] = (pVOID *)&p_obj_exhaacplus_dec->str_sbr_tables.ps_tables_ptr;
+  table_ptrs[8] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.qmf_table_ptr);
+  table_ptrs[9] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.common_table_ptr);
+  table_ptrs[10] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.hybrid_table_ptr);
+  table_ptrs[11] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
+  table_ptrs[12] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.decor_table_ptr);
+  table_ptrs[13] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.tp_process_table_ptr);
+  table_ptrs[14] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.mdct2qmf_table_ptr);
+  table_ptrs[15] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.tonality_table_ptr);
+  table_ptrs[16] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr);
+  table_ptrs[17] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.blind_table_ptr);
+  table_ptrs[18] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.mdct2qmfcos_table_ptr);
+  table_ptrs[19] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.mdct2qmfcos_tab_ptr);
+  table_ptrs[20] = (pVOID *)&(pstr_mps_state->ia_mps_dec_mps_table.aac_tab);
 
-  if (i_idx < 0 || i_idx >= NUM_AAC_TABLES) {
-    return IA_ENHAACPLUS_DEC_API_FATAL_INVALID_MEMTAB_INDEX;
+  if (i_idx < 0 || i_idx >= (NUM_AAC_TABLES + NUM_MPS_TABLES)) {
+    return IA_XHEAAC_DEC_API_FATAL_INVALID_MEMTAB_INDEX;
   }
 
   ui_get_vals[0] = table_sizes[i_idx];
@@ -1379,10 +1426,10 @@ IA_ERRORCODE ixheaacd_dec_table_api(
 
   if (i_cmd == IA_API_CMD_SET_TABLE_PTR) {
     if (pv_value == 0) {
-      return (IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALLOC);
+      return (IA_XHEAAC_DEC_API_FATAL_MEM_ALLOC);
     }
     if (((SIZE_T)pv_value) & 3) {
-      return IA_ENHAACPLUS_DEC_API_FATAL_MEM_ALIGN;
+      return IA_XHEAAC_DEC_API_FATAL_MEM_ALIGN;
     }
 
     *table_ptrs[i_idx] = pv_value;
@@ -1438,6 +1485,7 @@ IA_ERRORCODE ixheaacd_dec_init(
   WORD16 *time_data;
   WORD ch_idx;
   WORD sbr_present_flag = 0;
+  UWORD8 *mps_buffer;
   ia_aac_dec_state_struct *p_state_enhaacplus_dec;
 
   WORD32 error_code = IA_NO_ERROR;
@@ -1483,6 +1531,8 @@ IA_ERRORCODE ixheaacd_dec_init(
   p_obj_exhaacplus_dec->p_state_aac->huffman_code_book_scl =
       p_obj_exhaacplus_dec->aac_tables.pstr_huffmann_tables
           ->huffman_code_book_scl;
+  mps_buffer = p_obj_exhaacplus_dec->p_state_aac->mps_buffer;
+  p_state_enhaacplus_dec->mps_header = -1;
   p_obj_exhaacplus_dec->p_state_aac->huffman_code_book_scl_index =
       p_obj_exhaacplus_dec->aac_tables.pstr_huffmann_tables
           ->huffman_code_book_scl_index;
@@ -1537,6 +1587,17 @@ IA_ERRORCODE ixheaacd_dec_init(
         p_state_enhaacplus_dec->sbr_persistent_mem_v, &persistent_used,
         channels, 1);
 
+    p_state_enhaacplus_dec->heaac_mps_handle.mps_persistent_mem_v =
+        (pVOID)((SIZE_T)((pWORD8)p_state_enhaacplus_dec->sbr_persistent_mem_v +
+                         persistent_used + sizeof(SIZE_T) - 1) &
+                (SIZE_T)(~(sizeof(SIZE_T) - 1)));
+
+    persistent_used = ixheaacd_getsize_mps_persistent();
+
+    ixheaacd_set_mps_persistent_buffers(
+        &p_state_enhaacplus_dec->heaac_mps_handle, &persistent_used, channels,
+        p_state_enhaacplus_dec->heaac_mps_handle.mps_persistent_mem_v);
+
     aac_persistent_mem = (struct ia_aac_persistent_struct *)
                              p_state_enhaacplus_dec->aac_persistent_mem_v;
     if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD ||
@@ -1584,10 +1645,13 @@ IA_ERRORCODE ixheaacd_dec_init(
         p_obj_exhaacplus_dec->p_state_aac->sbr_persistent_mem_v,
         &p_obj_exhaacplus_dec->str_sbr_tables,
         p_obj_exhaacplus_dec->common_tables);
+    ixheaacd_set_scratch_buffers(
+        &p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle,
+        p_state_enhaacplus_dec->aac_scratch_mem_v);
   }
 
   if (p_obj_exhaacplus_dec->p_state_aac->ui_input_over == 1) {
-    return IA_ENHAACPLUS_DEC_INIT_FATAL_EO_INPUT_REACHED;
+    return IA_XHEAAC_DEC_INIT_FATAL_EO_INPUT_REACHED;
   }
 
   if (p_obj_exhaacplus_dec->p_state_aac->header_dec_done == 0) {
@@ -1638,7 +1702,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
       if (return_val < 0) {
         if (return_val ==
-            (WORD32)IA_ENHAACPLUS_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX) {
+            (WORD32)IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX) {
           p_state_enhaacplus_dec->i_bytes_consumed = header_bytes_consumed;
           return return_val;
         }
@@ -1648,7 +1712,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       }
 
       if (return_val ==
-          IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES) {
+          IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES) {
         p_state_enhaacplus_dec->i_bytes_consumed = header_bytes_consumed;
         return return_val;
       }
@@ -1696,7 +1760,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       }
 
       if (p_obj_exhaacplus_dec->p_state_aac->header_dec_done != 1)
-        return IA_ENHAACPLUS_DEC_INIT_NONFATAL_HEADER_NOT_AT_START;
+        return IA_XHEAAC_DEC_INIT_NONFATAL_HEADER_NOT_AT_START;
 
       if (p_state_enhaacplus_dec->dwnsmp_signal == 1 &&
           p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_ELD)
@@ -1733,7 +1797,7 @@ IA_ERRORCODE ixheaacd_dec_init(
     p_state_enhaacplus_dec->ptr_bit_stream =
         p_state_enhaacplus_dec->pstr_bit_buf;
 
-    if (p_state_enhaacplus_dec->s_adts_hdr_present) {  // rajat
+    if (p_state_enhaacplus_dec->s_adts_hdr_present) {
       if (p_obj_exhaacplus_dec->aac_config.ld_decoder == 1)
         p_state_enhaacplus_dec->audio_object_type = 23;
     }
@@ -1771,7 +1835,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
         if (!p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]) {
           p_state_enhaacplus_dec->i_bytes_consumed = 1;
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+          return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
         }
       }
 
@@ -1833,7 +1897,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
     p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 0;
     p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = 0;
-
+    p_state_enhaacplus_dec->ui_mps_out_bytes = 0;
     if (p_state_enhaacplus_dec->ui_in_bytes == 0) {
       p_state_enhaacplus_dec->i_bytes_consumed = 0;
       return IA_NO_ERROR;
@@ -1902,7 +1966,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       sync = ixheaacd_read_bits_buf(it_bit_buff, 11);
       cnt_bits = it_bit_buff->cnt_bits;
       if (it_bit_buff->cnt_bits <= 24) {
-        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+        return IA_XHEAAC_DEC_INIT_NONFATAL_INSUFFICIENT_INPUT_BYTES;
       }
 
       while (sync != 0x2b7) {
@@ -1911,7 +1975,7 @@ IA_ERRORCODE ixheaacd_dec_init(
           ixheaacd_read_bidirection(it_bit_buff, -11);
           p_state_enhaacplus_dec->i_bytes_consumed =
               (cnt_bits - it_bit_buff->cnt_bits) / 8;
-          return (IA_ENHAACPLUS_DEC_INIT_NONFATAL_HEADER_NOT_AT_START);
+          return (IA_XHEAAC_DEC_INIT_NONFATAL_HEADER_NOT_AT_START);
         }
       }
 
@@ -1941,7 +2005,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       if (ch_idx >= elements_number) {
         p_state_enhaacplus_dec->i_bytes_consumed = 1;
 
-        return IA_ENHAACPLUS_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
+        return IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
       }
 
       ixheaacd_allocate_aac_scr(
@@ -1966,7 +2030,9 @@ IA_ERRORCODE ixheaacd_dec_init(
           p_state_enhaacplus_dec->s_adts_hdr_present,
           &p_state_enhaacplus_dec->drc_dummy,
           p_state_enhaacplus_dec->ldmps_present,
-          &p_state_enhaacplus_dec->slot_pos);
+          &p_state_enhaacplus_dec->slot_pos,
+          mps_buffer, &p_state_enhaacplus_dec->mps_header,
+          &p_state_enhaacplus_dec->ui_mps_out_bytes, 1);
 
       if (p_state_enhaacplus_dec->pstr_drc_dec->drc_element_found == 1) {
         if (p_obj_exhaacplus_dec->aac_config.i_loud_ref_level < 0) {
@@ -2007,7 +2073,7 @@ IA_ERRORCODE ixheaacd_dec_init(
       if ((p_obj_exhaacplus_dec->aac_config.ui_max_channels <= 2) &&
           (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == 2)) {
         p_state_enhaacplus_dec->i_bytes_consumed = 1;
-        return IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
+        return IA_XHEAAC_DEC_INIT_FATAL_UNIMPLEMENTED_CCE;
       }
 
       if (p_state_enhaacplus_dec->pstr_stream_sbr[0][0].no_elements) {
@@ -2017,7 +2083,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
       if (error_code) {
         if (p_state_enhaacplus_dec->ui_input_over) {
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_EO_INPUT_REACHED;
+          return IA_XHEAAC_DEC_INIT_FATAL_EO_INPUT_REACHED;
         }
 
         ixheaacd_updatebytesconsumed(p_state_enhaacplus_dec, it_bit_buff);
@@ -2110,6 +2176,11 @@ IA_ERRORCODE ixheaacd_dec_init(
         p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->enh_sbr_ps =
             p_obj_exhaacplus_dec->aac_config.ui_enh_sbr_ps;
 
+        if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+          p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->xaac_jmp_buf =
+              &(p_state_enhaacplus_dec->xaac_jmp_buf);
+        }
+
         if (ixheaacd_applysbr(
                 p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx],
                 &p_state_enhaacplus_dec->pstr_stream_sbr[0][0], time_data,
@@ -2118,7 +2189,9 @@ IA_ERRORCODE ixheaacd_dec_init(
                 &sbr_scratch_struct, 1, 1, 0, NULL, NULL,
                 p_state_enhaacplus_dec->eld_specific_config.ld_sbr_flag_present,
                 p_state_enhaacplus_dec->audio_object_type, 1,
-                p_state_enhaacplus_dec->ldmps_present, frame_size_1) != SBRDEC_OK) {
+                p_state_enhaacplus_dec->ldmps_present, frame_size_1,
+                p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present) !=
+            SBRDEC_OK) {
           p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = 0;
           return -1;
         } else {
@@ -2165,7 +2238,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
         if (!p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]) {
           p_state_enhaacplus_dec->i_bytes_consumed = 1;
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+          return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
         }
 
         if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
@@ -2231,12 +2304,12 @@ IA_ERRORCODE ixheaacd_dec_init(
 
       if (ch_idx_err == 0) {
         p_obj_exhaacplus_dec->p_state_aac->header_dec_done = 0;
-        p_state_enhaacplus_dec->i_bytes_consumed =
-            it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base;
-        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+        p_state_enhaacplus_dec->i_bytes_consumed = (WORD32)(
+            it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base);
+        return IA_XHEAAC_DEC_INIT_NONFATAL_DECODE_FRAME_ERROR;
       }
 
-      if (ch_idx == 1)
+      if (ch_idx_err == 1)
         ps_enable = 1;
       else
         ps_enable = 0;
@@ -2267,11 +2340,11 @@ IA_ERRORCODE ixheaacd_dec_init(
             cc_channel_check++;
             break;
           default:
-            assert(0);
+            return -1;
         }
 
         if (cc_channel_check > MAX_CC_CHANNEL_NUM)
-          return IA_ENHAACPLUS_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
+          return IA_XHEAAC_DEC_EXE_FATAL_UNIMPLEMENTED_CCE;
         if (ps_enable == 1) {
           channel = 2;
         }
@@ -2282,7 +2355,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
         if (channel_check > max_ch_num) {
           p_state_enhaacplus_dec->i_bytes_consumed = 1;
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
+          return IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
         }
 
         temp = p_state_enhaacplus_dec->aac_persistent_mem_v;
@@ -2314,7 +2387,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
         if (!p_state_enhaacplus_dec->pstr_aac_dec_info[i]) {
           p_state_enhaacplus_dec->i_bytes_consumed = 1;
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+          return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
         }
 
         p_state_enhaacplus_dec->str_sbr_dec_info[i] = ixheaacd_init_sbr(
@@ -2349,6 +2422,27 @@ IA_ERRORCODE ixheaacd_dec_init(
                 .ldmps_present_flag == 1) {
           copy_qmf_to_ldmps(&p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle,
                             p_state_enhaacplus_dec->sbr_persistent_mem_v);
+        }
+        if (p_state_enhaacplus_dec->audio_object_type == AOT_AAC_LC &&
+          p_state_enhaacplus_dec->ui_mps_out_bytes != 0) {
+          p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present = 1;
+          if (p_state_enhaacplus_dec->pstr_stream_sbr[0][0].no_elements) {
+            p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle.mps_with_sbr = 1;
+          }
+          ixheaacd_aac_mps_init(p_obj_exhaacplus_dec, mps_buffer,
+                                p_state_enhaacplus_dec->ui_mps_out_bytes,
+                                sample_rate_1);
+          p_obj_exhaacplus_dec->aac_config.ui_n_channels =
+            p_state_enhaacplus_dec->heaac_mps_handle.num_output_channels_at;
+          if (p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle.mps_with_sbr == 1) {
+            p_obj_exhaacplus_dec->aac_config.ui_sbr_mode = 1;
+          }
+          if (p_obj_exhaacplus_dec->aac_config.element_type[i + 1] >= 0 &&
+              p_obj_exhaacplus_dec->aac_config.element_type[i + 1] <= 3)
+          {
+            return IA_FATAL_ERROR;
+          }
+          break;
         }
         i++;
       }
@@ -2471,6 +2565,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   WORD32 sample_rate = 0;
   WORD16 num_ch = 0;
   struct ia_bit_buf_struct *it_bit_buff;
+  UWORD8 *mps_buffer;
   WORD32 error_code = IA_NO_ERROR;
   WORD ch_idx1;
   WORD type;
@@ -2505,7 +2600,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
   p_state_enhaacplus_dec = p_obj_exhaacplus_dec->p_state_aac;
   p_state_enhaacplus_dec->aac_scratch_mem_v =
       p_obj_exhaacplus_dec->pp_mem_aac[IA_ENHAACPLUS_DEC_SCRATCH_IDX];
-
+  p_state_enhaacplus_dec->mps_header = -1;
+  mps_buffer = p_state_enhaacplus_dec->mps_buffer;
   it_bit_buff = p_state_enhaacplus_dec->pstr_bit_buf;
 
   ch_idx1 = 0;
@@ -2562,8 +2658,13 @@ IA_ERRORCODE ixheaacd_dec_execute(
       out_bytes = 0;
     }
 
-    p_obj_exhaacplus_dec->p_state_aac->i_bytes_consumed =
+    if (p_state_enhaacplus_dec->bs_format != LOAS_BSFORMAT)
+    {
+      p_obj_exhaacplus_dec->p_state_aac->i_bytes_consumed =
         p_obj_exhaacplus_dec->p_state_aac->ui_in_bytes;
+    }
+
+
     p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = out_bytes;
     p_obj_exhaacplus_dec->aac_config.ui_n_channels =
         p_obj_exhaacplus_dec->p_state_aac->num_of_output_ch;
@@ -2610,7 +2711,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   }
 
   p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes = 0;
-
+  p_obj_exhaacplus_dec->p_state_aac->ui_mps_out_bytes = 0;
   if (p_state_enhaacplus_dec->ui_in_bytes == 0) {
     UWORD32 i;
     WORD32 j;
@@ -2664,11 +2765,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
   if (ch_idx1 == 0) {
     p_state_enhaacplus_dec->i_bytes_consumed = 1;
-    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+    return IA_XHEAAC_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
   }
   if (total_channels > (WORD)p_obj_exhaacplus_dec->aac_config.ui_max_channels) {
     p_state_enhaacplus_dec->i_bytes_consumed = 1;
-    return IA_ENHAACPLUS_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL;
+    return IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_MAX_CHANNEL;
   }
 
   if (p_state_enhaacplus_dec->audio_object_type == AOT_ER_AAC_LD ||
@@ -2706,7 +2807,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
                           ->str_sample_rate_info[adts.samp_freq_index]
                           .sampling_frequency))) {
           p_state_enhaacplus_dec->i_bytes_consumed = 0;
-          return IA_ENHAACPLUS_DEC_EXE_NONFATAL_CHANGED_ADTS_SF;
+          return IA_XHEAAC_DEC_EXE_NONFATAL_CHANGED_ADTS_SF;
         }
       }
     }
@@ -2734,7 +2835,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
           if (p_state_enhaacplus_dec->i_bytes_consumed == 0)
             p_state_enhaacplus_dec->i_bytes_consumed = 1;
 
-          return (IA_ENHAACPLUS_DEC_INIT_NONFATAL_HEADER_NOT_AT_START);
+          return (IA_XHEAAC_DEC_INIT_NONFATAL_HEADER_NOT_AT_START);
         }
       }
 
@@ -2750,7 +2851,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
         ixheaacd_read_bidirection(it_bit_buff, -(13 + 11));
         p_state_enhaacplus_dec->i_bytes_consumed =
             (cnt_bits - it_bit_buff->cnt_bits) / 8;
-        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+        return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
       } else {
         ixheaacd_read_bidirection(it_bit_buff, -(13));
       }
@@ -2761,7 +2862,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
             p_state_enhaacplus_dec,
             (ia_sampling_rate_info_struct *)&p_obj_exhaacplus_dec->aac_tables
                 .pstr_huffmann_tables->str_sample_rate_info[0]);
-        if (result) return result;
+        if (result) {
+          return result;
+        }
         if (!p_state_enhaacplus_dec->latm_initialized) {
           p_state_enhaacplus_dec->sampling_rate =
               p_state_enhaacplus_dec->latm_struct_element.layer_info[0][0]
@@ -2770,7 +2873,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
         } else {
           if (p_state_enhaacplus_dec->sampling_rate != curr_samp_rate) {
             p_state_enhaacplus_dec->i_bytes_consumed = 0;
-            return IA_ENHAACPLUS_DEC_EXE_NONFATAL_CHANGED_ADTS_SF;
+            return IA_XHEAAC_DEC_EXE_NONFATAL_CHANGED_ADTS_SF;
           }
         }
       }
@@ -2789,7 +2892,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
     it_bit_buff->cnt_bits = -1;
     ixheaacd_updatebytesconsumed(p_state_enhaacplus_dec, it_bit_buff);
     return (WORD16)(
-        (WORD32)IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+        (WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }
 
   { it_bit_buff->initial_cnt_bits = it_bit_buff->cnt_bits; }
@@ -2817,7 +2920,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
   for (ch_idx1 = 0; ch_idx1 < total_elements; ch_idx1++) {
     WORD32 skip_full_decode = 0;
     WORD32 ch_idx = ch_idx1;
-    WORD32 channel;
+    WORD32 channel = 0;
     WORD ch_fac, slot_ele;
 
     if (p_state_enhaacplus_dec->audio_object_type < ER_OBJECT_START ||
@@ -2829,10 +2932,17 @@ IA_ERRORCODE ixheaacd_dec_execute(
           p_obj_exhaacplus_dec->aac_config.element_instance_order,
           total_elements, element_used, total_channels,
           p_state_enhaacplus_dec->pstr_drc_dec,
-          &p_state_enhaacplus_dec->drc_dummy);
+          &p_state_enhaacplus_dec->drc_dummy,
+          mps_buffer, &p_state_enhaacplus_dec->mps_header,
+          &p_state_enhaacplus_dec->ui_mps_out_bytes);
 
       if (error_code) {
         ixheaacd_updatebytesconsumed(p_state_enhaacplus_dec, it_bit_buff);
+        if (it_bit_buff->cnt_bits < 0) {
+          p_state_enhaacplus_dec->ui_out_bytes = 0;
+          p_state_enhaacplus_dec->ui_mps_out_bytes = 0;
+          p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
+        }
         p_state_enhaacplus_dec->i_bytes_consumed = 1;
         p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
         return error_code;
@@ -2883,7 +2993,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 );
         if (!p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]) {
           p_state_enhaacplus_dec->i_bytes_consumed = 1;
-          return IA_ENHAACPLUS_DEC_INIT_FATAL_DEC_INIT_FAIL;
+          return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
         }
         p_state_enhaacplus_dec->pstr_aac_dec_info[ch_idx]->p_ind_channel_info =
             (WORD8 *)p_state_enhaacplus_dec->aac_scratch_mem_v + (8 * 1024) +
@@ -2910,8 +3020,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
           time_data, channel, p_obj_exhaacplus_dec->aac_config.ui_max_channels,
           p_state_enhaacplus_dec->audio_object_type);
 
-      if (p_state_enhaacplus_dec->ch_config == 2 && channel == 1)
-        return IA_ENHAACPLUS_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+      if (p_state_enhaacplus_dec->ch_config == 2 && channel == 1) {
+        return IA_XHEAAC_DEC_EXE_NONFATAL_DECODE_FRAME_ERROR;
+      }
 
       error_code = ixheaacd_aacdec_decodeframe(
           p_obj_exhaacplus_dec, &aac_scratch_struct, actual_out_buffer,
@@ -2927,7 +3038,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
           p_state_enhaacplus_dec->s_adts_hdr_present,
           &p_state_enhaacplus_dec->drc_dummy,
           p_state_enhaacplus_dec->ldmps_present,
-          &p_state_enhaacplus_dec->slot_pos);
+          &p_state_enhaacplus_dec->slot_pos,
+          mps_buffer, &p_state_enhaacplus_dec->mps_header,
+          &p_state_enhaacplus_dec->ui_mps_out_bytes, 0);
 
       p_state_enhaacplus_dec->slot_pos -= (channel - 1);
       p_state_enhaacplus_dec->sbr_present = 0;
@@ -2949,10 +3062,10 @@ IA_ERRORCODE ixheaacd_dec_execute(
         if ((error_code == 0) && ((ch_idx1 + 1) == total_elements) &&
             (type != ID_END)) {
           {
-            p_state_enhaacplus_dec->i_bytes_consumed =
-                it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base;
+            p_state_enhaacplus_dec->i_bytes_consumed = (WORD32)(
+                it_bit_buff->ptr_read_next - it_bit_buff->ptr_bit_buf_base);
             p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
-            return IA_ENHAACPLUS_DEC_EXE_NONFATAL_ELE_INSTANCE_TAG_NOT_FOUND;
+            return IA_XHEAAC_DEC_EXE_NONFATAL_ELE_INSTANCE_TAG_NOT_FOUND;
           }
         }
       }
@@ -2981,7 +3094,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
     if (error_code) {
       if (p_state_enhaacplus_dec->ui_input_over) {
-        return IA_ENHAACPLUS_DEC_INIT_FATAL_EO_INPUT_REACHED;
+        return IA_XHEAAC_DEC_INIT_FATAL_EO_INPUT_REACHED;
       }
       ixheaacd_updatebytesconsumed(p_state_enhaacplus_dec, it_bit_buff);
       p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes +=
@@ -2995,13 +3108,13 @@ IA_ERRORCODE ixheaacd_dec_execute(
       if (p_state_enhaacplus_dec->pstr_stream_sbr[ch_idx][0].no_elements == 0 &&
           p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
         p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = 0;
-        error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_SBR_TURNED_OFF;
+        error_code = IA_XHEAAC_DEC_EXE_NONFATAL_SBR_TURNED_OFF;
       }
     }
     if ((!p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) &&
         p_state_enhaacplus_dec->pstr_stream_sbr[ch_idx][0].no_elements) {
       WORD32 harmonic_sbr_flag = 0;
-      error_code = IA_ENHAACPLUS_DEC_EXE_NONFATAL_SBR_TURNED_ON;
+      error_code = IA_XHEAAC_DEC_EXE_NONFATAL_SBR_TURNED_ON;
       p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = ixheaacd_init_sbr(
           sample_rate_dec, frame_size,
           (FLAG *)&p_obj_exhaacplus_dec->aac_config.down_sample_flag,
@@ -3092,6 +3205,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
         p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->enh_sbr_ps =
             p_obj_exhaacplus_dec->aac_config.ui_enh_sbr_ps;
 
+        if (p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]) {
+          p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx]->xaac_jmp_buf =
+              &(p_state_enhaacplus_dec->xaac_jmp_buf);
+        }
+
         if (ixheaacd_applysbr(
                 p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx],
                 &p_state_enhaacplus_dec->pstr_stream_sbr[ch_idx][0],
@@ -3102,7 +3220,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 slot_ele, NULL, &p_state_enhaacplus_dec->str_drc_dec_info,
                 p_state_enhaacplus_dec->eld_specific_config.ld_sbr_flag_present,
                 p_state_enhaacplus_dec->audio_object_type, 0,
-                p_state_enhaacplus_dec->ldmps_present, frame_size) != SBRDEC_OK) {
+                p_state_enhaacplus_dec->ldmps_present, frame_size,
+                p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present) !=
+            SBRDEC_OK) {
           p_state_enhaacplus_dec->str_sbr_dec_info[ch_idx] = 0;
           return -1;
         } else {
@@ -3137,6 +3257,9 @@ IA_ERRORCODE ixheaacd_dec_execute(
         }
         p_state_enhaacplus_dec->mps_dec_handle.ldmps_config.no_ldsbr_present =
             0;
+        if (p_state_enhaacplus_dec->ui_mps_out_bytes > 0) {
+          p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present = 1;
+        }
       } else
         p_state_enhaacplus_dec->mps_dec_handle.ldmps_config.no_ldsbr_present =
             1;
@@ -3268,9 +3391,15 @@ IA_ERRORCODE ixheaacd_dec_execute(
   if (!p_state_enhaacplus_dec->sbr_present &&
       p_obj_exhaacplus_dec->p_state_aac->peak_lim_init == 1 &&
       p_obj_exhaacplus_dec->p_state_aac->qshift_adj[0] != LD_OBJ) {
-    ixheaacd_peak_limiter_process(
-        &p_state_enhaacplus_dec->peak_limiter, time_data, frame_size,
-        p_obj_exhaacplus_dec->p_state_aac->qshift_adj);
+    if (!p_obj_exhaacplus_dec->aac_config.peak_limiter_off) {
+      ixheaacd_peak_limiter_process(
+          &p_state_enhaacplus_dec->peak_limiter, time_data, frame_size,
+          p_obj_exhaacplus_dec->p_state_aac->qshift_adj);
+    } else {
+      ixheaacd_scale_adjust(time_data, frame_size,
+                            p_obj_exhaacplus_dec->p_state_aac->qshift_adj,
+                            total_channels);
+    }
 
     for (i = 0; i < frame_size * 2; i++) {
       for (j = 0; j < total_channels; j++) {
@@ -3289,7 +3418,27 @@ IA_ERRORCODE ixheaacd_dec_execute(
         p_obj_exhaacplus_dec->p_state_aac->delay_in_samples -
         MIN(p_obj_exhaacplus_dec->p_state_aac->delay_in_samples, (UWORD16)frame_size);
   }
+  if (p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present == 1) {
+    ia_heaac_mps_state_struct *pstr_mps_state =
+        &p_state_enhaacplus_dec->heaac_mps_handle;
+    if (p_state_enhaacplus_dec->sbr_present == 0) {
+      p_state_enhaacplus_dec->heaac_mps_handle.mps_decode = 1;
+    } else {
+      p_state_enhaacplus_dec->heaac_mps_handle.mps_with_sbr = 1;
+    }
+    if (p_state_enhaacplus_dec->heaac_mps_handle.mps_init_done == 1) {
 
+      ixheaacd_heaac_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer,
+                               mps_buffer,
+                               p_state_enhaacplus_dec->ui_mps_out_bytes);
+
+      p_state_enhaacplus_dec->heaac_mps_handle.mps_decode = 1;
+      p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes =
+          (pstr_mps_state->num_output_channels_at *
+           pstr_mps_state->frame_length *
+           (p_obj_exhaacplus_dec->aac_config.ui_pcm_wdsz >> 3));
+    }
+  }
   if ((total_channels > 2) && (1 == p_obj_exhaacplus_dec->aac_config.downmix)) {
     ixheaacd_dec_downmix_to_stereo(p_obj_exhaacplus_dec, num_of_out_samples,
                                    total_elements, time_data, total_channels);
@@ -3337,7 +3486,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
   if (p_state_enhaacplus_dec->bs_format == LOAS_BSFORMAT)
     p_state_enhaacplus_dec->i_bytes_consumed =
-        (audio_mux_length_bytes_last + (SIZE_T)bytes_for_sync);
+        (WORD32)(audio_mux_length_bytes_last + bytes_for_sync);
 
   return error_code;
 }

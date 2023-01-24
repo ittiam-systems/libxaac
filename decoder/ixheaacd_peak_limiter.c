@@ -55,7 +55,7 @@ WORD32 ixheaacd_peak_limiter_init(ia_peak_limiter_struct *peak_limiter,
   peak_limiter->max_buf = buffer;
   peak_limiter->max_idx = 0;
   peak_limiter->cir_buf_pnt = 0;
-  peak_limiter->delayed_input = buffer + attack + 1;
+  peak_limiter->delayed_input = buffer + attack * 4 + 32;
 
   peak_limiter->delayed_input_index = 0;
   peak_limiter->attack_time = DEFAULT_ATTACK_TIME_MS;
@@ -203,4 +203,29 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
   peak_limiter->min_gain = min_gain;
 
   return;
+}
+
+/**
+ *  ixheaacd_scale_adjust
+ *
+ *  \brief Scale adjust process
+ *
+ *  \param [in/out] samples
+ *  \param [in] qshift_adj
+ *  \param [in] frame_len
+ *
+ *  \return WORD32
+ *
+ */
+
+VOID ixheaacd_scale_adjust(WORD32 *samples, UWORD32 frame_len,
+                           WORD8 *qshift_adj, WORD num_channels) {
+  UWORD32 i;
+  WORD32 j;
+  for (i = 0; i < frame_len; i++) {
+    for (j = 0; j < num_channels; j++) {
+      WORD32 gain_t = (WORD32)(1 << *(qshift_adj + j));
+      samples[i * num_channels + j] = (samples[i * num_channels + j] * gain_t);
+    }
+  }
 }

@@ -76,8 +76,11 @@
 #include "ixheaacd_aacdec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
-
 #include "ixheaacd_struct_def.h"
 
 #include "ixheaacd_tns.h"
@@ -85,23 +88,6 @@
 
 #include "ixheaacd_multichannel.h"
 #include "ixheaacd_function_selector.h"
-
-static PLATFORM_INLINE WORD32 ixheaacd_shr32_drc(WORD32 a, WORD32 b) {
-  WORD32 out_val;
-
-  b = ((UWORD32)(b << 24) >> 24);
-  if (b >= 31) {
-    if (a < 0)
-      out_val = -1;
-    else
-      out_val = 0;
-  } else {
-    a = ixheaacd_add32_sat(a, (1 << (b - 1)));
-    out_val = (WORD32)a >> b;
-  }
-
-  return out_val;
-}
 
 VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD32 *out,
                               const WORD16 *window_long,
@@ -301,7 +287,7 @@ VOID ixheaacd_nolap1_32(WORD32 *coef, WORD32 *out, WORD16 q_shift,
   WORD32 i;
 
   for (i = 0; i < size_07; i++) {
-    out[ch_fac * i] = ixheaacd_shr32_drc(
+    out[ch_fac * i] = ixheaacd_shr32_sat(
         ixheaacd_negate32_sat(coef[size_07 - 1 - i]), 16 - q_shift);
   }
 }
@@ -330,7 +316,7 @@ VOID ixheaacd_spec_to_overlapbuf_dec(WORD32 *ptr_overlap_buf,
                                      WORD32 size) {
   WORD32 i;
   for (i = 0; i < size; i++) {
-    ptr_overlap_buf[i] = ixheaacd_shr32_drc(ptr_spec_coeff[i], 16 - q_shift);
+    ptr_overlap_buf[i] = ixheaacd_shr32_sat(ptr_spec_coeff[i], 16 - q_shift);
   }
 }
 

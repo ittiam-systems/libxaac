@@ -1053,16 +1053,16 @@ const FLOAT32 ixheaacd_hphase_tbl[2][8] = {{1.0f, 0.0f, -1.0f, 0.0f},
 
 const FLOAT32 ixheaacd_g_lim_gains[4] = {0.70795f, 1.0f, 1.41254f, 1e10f};
 
-const FIR_FILTER ixheaacd_fir_0 = {1.0f};
-const FIR_FILTER ixheaacd_fir_1 = {0.33333333333333f, 0.66666666666666f};
-const FIR_FILTER ixheaacd_fir_2 = {0.12500000000000f, 0.37500000000000f,
+const ia_fir_table_struct ixheaacd_fir_0 = {1.0f};
+const ia_fir_table_struct ixheaacd_fir_1 = {0.33333333333333f, 0.66666666666666f};
+const ia_fir_table_struct ixheaacd_fir_2 = {0.12500000000000f, 0.37500000000000f,
                                    0.50000000000000f};
-const FIR_FILTER ixheaacd_fir_3 = {0.05857864376269f, 0.20000000000000f,
+const ia_fir_table_struct ixheaacd_fir_3 = {0.05857864376269f, 0.20000000000000f,
                                    0.34142135623731f, 0.40000000000000f};
-const FIR_FILTER ixheaacd_fir_4 = {0.03183050093751f, 0.11516383427084f,
+const ia_fir_table_struct ixheaacd_fir_4 = {0.03183050093751f, 0.11516383427084f,
                                    0.21816949906249f, 0.30150283239582f,
                                    0.33333333333333f};
-const FIR_FILTER* const ixheaacd_fir_table[5] = {
+const ia_fir_table_struct* const ixheaacd_fir_table[5] = {
     &ixheaacd_fir_0, &ixheaacd_fir_1, &ixheaacd_fir_2, &ixheaacd_fir_3,
     &ixheaacd_fir_4};
 const FLOAT32 ixheaacd_q_gamma_table[4] = {0.0f, 1.0f, 2.0f, 4.0f};

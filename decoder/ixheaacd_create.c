@@ -54,7 +54,6 @@
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
 
 #include "ixheaacd_main.h"
 
@@ -83,6 +82,11 @@
 
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 

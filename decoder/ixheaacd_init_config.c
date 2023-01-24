@@ -23,7 +23,7 @@
 #include <assert.h>
 
 #include "ixheaacd_type_def.h"
-
+#include "ixheaacd_constants.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_defines.h"
@@ -42,6 +42,7 @@
 #include "ixheaacd_drc_dec.h"
 
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_channel.h"
@@ -55,17 +56,19 @@
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_qmf_dec.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_mps_dec.h"
-
 #include "ixheaacd_struct_def.h"
 
 #include "ixheaacd_config.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_info.h"
 #include "ixheaacd_struct.h"
-#include "ixheaacd_constants.h"
 #include "ixheaacd_error_standards.h"
 
 #include "ixheaacd_error_codes.h"
@@ -334,7 +337,7 @@ IA_ERRORCODE ixheaacd_mps212_config(
     pstr_usac_mps212_config->bs_residual_bands =
         ixheaacd_read_bits_buf(it_bit_buff, 5);
 
-    if (pstr_usac_mps212_config->bs_residual_bands > MAX_PARAMETER_BANDS_MPS)
+    if (pstr_usac_mps212_config->bs_residual_bands > MAX_PARAMETER_BANDS)
       return IA_FATAL_ERROR;
 
     pstr_usac_mps212_config->bs_ott_bands_phase =
@@ -535,14 +538,16 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
   pstr_usac_conf->core_sbr_framelength_index =
       ixheaacd_read_bits_buf(it_bit_buff, 3);
 
-  if (pstr_usac_conf->core_sbr_framelength_index > MAX_CORE_SBR_FRAME_LEN_IDX)
+  if (pstr_usac_conf->core_sbr_framelength_index > MAX_CORE_SBR_FRAME_LEN_IDX) {
     return -1;
+  }
 
   pstr_usac_conf->channel_configuration_index =
       ixheaacd_read_bits_buf(it_bit_buff, 5);
   if ((pstr_usac_conf->channel_configuration_index >= 3) &&
-      (pstr_usac_conf->channel_configuration_index != 8))
+      (pstr_usac_conf->channel_configuration_index != 8)) {
     return -1;
+  }
 
   if (pstr_usac_conf->channel_configuration_index == 0) {
     UWORD32 i;
@@ -551,7 +556,7 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff,
                                (UWORD32 *)(&(pstr_usac_conf->num_out_channels)),
                                5, 8, 16);
     if (BS_MAX_NUM_OUT_CHANNELS < pstr_usac_conf->num_out_channels) {
-      return IA_ENHAACPLUS_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
+      return IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
     }
     for (i = 0; i < pstr_usac_conf->num_out_channels; i++)
       pstr_usac_conf->output_channel_pos[i] =

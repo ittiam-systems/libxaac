@@ -1742,8 +1742,9 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
   cumulative = ((((WORD32)(value - low + 1)) << 14) - ((WORD32)1)) / ((WORD32)range);
 
   if (it_bit_buff->cnt_bits == 0)
-    if (cumulative <= 0) return -1;
-
+    if (cumulative <= 0) {
+      return -1;
+    }
   p = cum_freq - 1;
 
   do {
@@ -1756,7 +1757,7 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
     cfl >>= 1;
   } while (cfl > 1);
 
-  symbol = p - cum_freq + 1;
+  symbol = (WORD32)(p - cum_freq + 1);
 
   if (symbol) high = low + ((range * cum_freq[symbol - 1]) >> 14) - 1;
 
@@ -1863,8 +1864,12 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
         a = (a << 1) | (m & 1);
         b = (b << 1) | ((m >> 1) & 1);
       }
-      if ((a > (8183)) || (b > (8183))) return -1;
-      if ((a < (-8183)) || (b < (-8183))) return -1;
+      if ((a > (8183)) || (b > (8183))) {
+        return -1;
+      }
+      if ((a < (-8183)) || (b < (-8183))) {
+        return -1;
+      }
       quant[2 * i + 0] = a;
       quant[2 * i + 1] = b;
       temp = a + b + 1;
@@ -1876,8 +1881,9 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
   }
 
   bit_count -= 16 - 2;
-  if (bit_count > it_bit_buff->cnt_bits)
-    return IA_ENHAACPLUS_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+  if (bit_count > it_bit_buff->cnt_bits) {
+    return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+  }
 
   if (bit_count > 0) {
     bit_count_5 = bit_count >> 5;
@@ -1903,8 +1909,12 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       m = (m << 1) * temp1;
       temp1 = m - (temp1);
     }
-    if ((temp0 > (8183)) || (temp1 > (8183))) return -1;
-    if ((temp0 < (-8183)) || (temp1 < (-8183))) return -1;
+    if ((temp0 > (8183)) || (temp1 > (8183))) {
+      return -1;
+    }
+    if ((temp0 < (-8183)) || (temp1 < (-8183))) {
+      return -1;
+    }
     *quant++ = temp0;
     *quant++ = temp1;
   }

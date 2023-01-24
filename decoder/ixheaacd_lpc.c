@@ -27,6 +27,8 @@
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
+#include "ixheaacd_defines.h"
+#include "ixheaacd_aac_rom.h"
 #include "ixheaacd_tns_usac.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_acelp_info.h"
@@ -39,7 +41,12 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
+
+#include "ixheaacd_pulsedata.h"
+#include "ixheaacd_pns.h"
+#include "ixheaacd_lt_predict.h"
 #include "ixheaacd_main.h"
+#include "ixheaacd_channelinfo.h"
 #include "ixheaacd_arith_dec.h"
 
 #include "ixheaacd_func_def.h"
@@ -52,8 +59,6 @@
 #define LSF_GAP_F 50.0f
 #define FREQ_MAX_F 6400.0f
 #define FREQ_DIV_F 400.0f
-
-extern const FLOAT32 lsf_init[ORDER];
 
 extern const FLOAT32 ixheaacd_fir_lp_filt[1 + FILTER_DELAY];
 
@@ -343,7 +348,7 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
 
   WORD32 i, k, tp, mode;
   WORD32 *mod;
-  FLOAT32 gain, stability_factor;
+  FLOAT32 gain, stability_factor = 0.0f;
   FLOAT32 tmp, synth_corr, synth_energy;
 
   WORD32 len_fr;
@@ -519,6 +524,7 @@ WORD32 ixheaacd_lpd_dec(ia_usac_data_struct *usac_data,
 
       err = ixheaacd_acelp_alias_cnx(usac_data, pstr_td_frame_data, k,
                                      lp_flt_coff_a, stability_factor, st);
+
       if (err) return err;
 
       if ((st->mode_prev != 0) && bpf_control_info) {

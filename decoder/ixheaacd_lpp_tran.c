@@ -46,6 +46,7 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
@@ -78,16 +79,6 @@
 #define AUTO_CORR_LEN_960  36
 
 #define SHIFT 5
-
-static PLATFORM_INLINE WORD32 ixheaacd_mult32x16hin32(WORD32 a, WORD32 b) {
-  WORD32 result;
-  WORD64 temp_result;
-
-  temp_result = (WORD64)(a) * (WORD64)(b >> 16);
-  result = (WORD32)(temp_result >> 16);
-
-  return (result);
-}
 
 static PLATFORM_INLINE WORD32 ixheaacd_mac32x16hin32(WORD32 a, WORD32 b,
                                                      WORD32 c) {

@@ -1961,7 +1961,6 @@ VOID ixheaacd_complex_fft_p2_dec(WORD32 *xr, WORD32 *xi, WORD32 nlength,
         ptr_y += 2;
       }
     }
-
   }
 
   else {

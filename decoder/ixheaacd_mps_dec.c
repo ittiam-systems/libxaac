@@ -17,17 +17,13 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
-
-#include <assert.h>
 #include <string.h>
-
 #include "ixheaacd_type_def.h"
 #include "ixheaacd_constants.h"
+#include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
-
 #include "ixheaacd_defines.h"
 #include "ixheaacd_sbr_const.h"
 #include "ixheaacd_memory_standards.h"
@@ -38,21 +34,13 @@
 #include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
-
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
-#include "ixheaacd_drc_dec.h"
-
-#include "ixheaacd_lt_predict.h"
-#include "ixheaacd_channelinfo.h"
-#include "ixheaacd_channel.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_audioobjtypes.h"
 #include "ixheaacd_latmdemux.h"
 #include "ixheaacd_aacdec.h"
-#include "ixheaacd_sbr_common.h"
-
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_sbr_scale.h"
 #include "ixheaacd_ps_dec.h"
@@ -64,28 +52,25 @@
 #include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
+#include "ixheaacd_mps_macro_def.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_struct_def.h"
-
-#include "ixheaacd_config.h"
-#include "ixheaacd_mps_interface.h"
-
-#include "ixheaacd_mps_polyphase.h"
-
-#include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_process.h"
+#include "ixheaacd_mps_bitdec.h"
+#include "ixheaacd_mps_smoothing.h"
+#include "ixheaacd_mps_tp_process.h"
+#include "ixheaacd_mps_reshape_bb_env.h"
+#include "ixheaacd_mps_blind.h"
+#include "ixheaacd_mps_m1m2.h"
+#include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_mps_decor.h"
 #include "ixheaacd_mps_hybfilter.h"
 #include "ixheaacd_mps_nlc_dec.h"
 #include "ixheaacd_mps_huff_tab.h"
-
-#include "math.h"
-#include <assert.h>
-#include <string.h>
-#include "ixheaacd_error_standards.h"
-
-#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 extern const ia_huff_pt0_nodes_struct ixheaacd_huff_part0_nodes;
 extern const ia_huff_ipd_nodes_struct ixheaacd_huff_ipd_nodes;
@@ -93,6 +78,7 @@ extern const ia_huff_lav_nodes_struct ixheaacd_huff_lav_idx_nodes;
 extern const ia_huff_pt0_nodes_struct ixheaacd_huff_pilot_nodes;
 extern const ia_huff_cld_nodes_struct ixheaacd_huff_cld_nodes;
 extern const ia_huff_icc_nodes_struct ixheaacd_huff_icc_nodes;
+extern const ia_huff_cpc_nodes_struct ixheaacd_huff_cpc_nodes;
 extern const ia_huff_res_nodes_struct ixheaacd_huff_reshape_nodes;
 
 WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
@@ -126,17 +112,17 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
   err_code = ixheaacd_mps_header_decode(self);
 
   if (err_code != IA_NO_ERROR) {
-      return err_code;
+    return err_code;
   }
 
   if ((self->residual_coding) && (self->res_bands > 0)) self->res_ch_count++;
 
   ixheaacd_mps_env_init(self);
 
-  ixheaacd_mps_synt_create(&self->poly_phase_filt_kernel, self->qmf_band_count);
+  self->resolution = self->qmf_band_count;
 
   for (num_ch = 0; num_ch < self->out_ch_count; num_ch++) {
-    ixheaacd_mps_synt_init(&self->qmf_filt_state[num_ch]);
+    ixheaacd_mps_synt_init(self->qmf_filt_state[num_ch]);
   }
 
   ixheaacd_mps_qmf_hybrid_analysis_init(&self->hyb_filt_state[0]);
@@ -149,7 +135,7 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
                                      self->object_type);
 
   if (err_code != IA_NO_ERROR) {
-      return err_code;
+    return err_code;
   }
 
   ixheaacd_mps_init_pre_and_post_matrix(self);
@@ -187,7 +173,7 @@ static const FLOAT32 ixheaacd_tsd_mul_im[] = {
 VOID ixheaacd_mps_qmf_hyb_analysis(ia_mps_dec_state_struct* self) {
   if (self->object_type == AOT_ER_AAC_ELD ||
       self->object_type == AOT_ER_AAC_LD) {
-    int k, n;
+    WORD32 k, n;
 
     for (n = 0; n < self->time_slots; n++) {
       for (k = 0; k < self->qmf_band_count; k++) {
@@ -213,7 +199,7 @@ VOID ixheaacd_mps_qmf_hyb_synthesis(ia_mps_dec_state_struct* self) {
 
   if (self->object_type == AOT_ER_AAC_ELD ||
       self->object_type == AOT_ER_AAC_LD) {
-    int k, n;
+    WORD32 k, n;
     for (ch = 0; ch < self->out_ch_count; ch++) {
       for (n = 0; n < self->time_slots; n++) {
         for (k = 0; k < self->qmf_band_count; k++) {
@@ -440,9 +426,7 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
   return 0;
 }
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-
-static VOID ixheaacd_mps_pcm_decode(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_pcm_decode(ia_bit_buf_struct *it_bit_buff,
                                     WORD32* out_data_1, WORD32* out_data_2,
                                     WORD32 ixheaacd_drc_offset, WORD32 num_val,
                                     WORD32 num_levels) {
@@ -485,7 +469,7 @@ static VOID ixheaacd_mps_pcm_decode(ia_handle_bit_buf_struct it_bit_buff,
       max_grp_len = 1;
       break;
     default:
-      assert(0);
+      return;
   }
 
   ld_nlev = (FLOAT32)(log((FLOAT32)num_levels) / log(2.f));
@@ -523,7 +507,7 @@ static VOID ixheaacd_mps_pcm_decode(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-static VOID ixheaacd_mps_huff_read(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_huff_read(ia_bit_buf_struct *it_bit_buff,
                                    const WORD32 (*node_tab)[][2],
                                    WORD32* out_data) {
   WORD32 node = 0;
@@ -539,7 +523,7 @@ static VOID ixheaacd_mps_huff_read(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-static VOID ixheaacd_mps_huff_read_2d(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_huff_read_2d(ia_bit_buf_struct *it_bit_buff,
                                       const WORD32 (*node_tab)[][2],
                                       WORD32 out_data[2], WORD32* escape)
 
@@ -562,7 +546,7 @@ static VOID ixheaacd_mps_huff_read_2d(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-static VOID ixheaacd_mps_sym_restore(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_sym_restore(ia_bit_buf_struct *it_bit_buff,
                                      WORD32 lav, WORD32 data[2]) {
   WORD32 tmp = 0;
   UWORD32 sym_bit = 0;
@@ -598,7 +582,7 @@ static VOID ixheaacd_mps_sym_restore(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-static VOID ixheaacd_mps_sym_restoreipd(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_sym_restoreipd(ia_bit_buf_struct *it_bit_buff,
                                         WORD32 lav, WORD32 data[2]) {
   WORD32 tmp = 0;
   UWORD32 sym_bit = 0;
@@ -626,7 +610,7 @@ static VOID ixheaacd_mps_sym_restoreipd(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-static VOID ixheaacd_mps_huff_dec_pilot(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_mps_huff_dec_pilot(ia_bit_buf_struct *it_bit_buff,
                                         const WORD32 (*node_tab)[][2],
                                         WORD32* pilot_data) {
   WORD32 node = 0;
@@ -638,7 +622,7 @@ static VOID ixheaacd_mps_huff_dec_pilot(ia_handle_bit_buf_struct it_bit_buff,
 }
 
 static VOID ixheaacd_mps_huff_dec_cld_1d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_cld_node_1d_struct* huff_nodes, WORD32* out_data,
     WORD32 num_val, WORD32 p0_flag) {
   WORD32 i = 0, node = 0, ixheaacd_drc_offset = 0;
@@ -672,7 +656,7 @@ static VOID ixheaacd_mps_huff_dec_cld_1d(
 }
 
 static VOID ixheaacd_mps_huff_dec_ipd_1d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_ipd_node_1d_struct* huff_nodes, WORD32* out_data,
     WORD32 num_val, WORD32 p0_flag) {
   WORD32 i = 0, node = 0, ixheaacd_drc_offset = 0;
@@ -697,7 +681,7 @@ static VOID ixheaacd_mps_huff_dec_ipd_1d(
 }
 
 static VOID ixheaacd_mps_huff_dec_icc_1d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_icc_node_1d_struct* huff_nodes, WORD32* out_data,
     WORD32 num_val, WORD32 p0_flag) {
   WORD32 i = 0, node = 0, ixheaacd_drc_offset = 0;
@@ -730,8 +714,39 @@ static VOID ixheaacd_mps_huff_dec_icc_1d(
   return;
 }
 
+static VOID ia_mps_dec_huff_dec_cpc_1d(
+    const ia_huff_cpc_node_1d_struct *huff_nodes, WORD32 *out_data,
+    WORD32 num_val, WORD32 p0_flag, ia_bit_buf_struct *h_bit_buf) {
+  WORD32 i = 0, node = 0, offset = 0;
+  WORD32 od = 0, od_sign = 0;
+  WORD32 data = 0;
+
+  if (p0_flag) {
+    ixheaacd_mps_huff_read(
+        h_bit_buf, (ia_huff_node_struct) & (ixheaacd_huff_part0_nodes.cpc),
+        &node);
+    out_data[0] = -(node + 1);
+    offset = 1;
+  }
+
+  for (i = offset; i < num_val; i++) {
+    ixheaacd_mps_huff_read(h_bit_buf,
+                           (ia_huff_node_struct)&huff_nodes->node_tab, &node);
+    od = -(node + 1);
+
+    if (od != 0) {
+      data = ixheaacd_read_bits_buf(h_bit_buf, 1);
+      od_sign = data;
+
+      if (od_sign) od = -od;
+    }
+
+    out_data[i] = od;
+  }
+}
+
 static VOID ixheaacd_mps_huff_dec_cld_2d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_cld_node_2d_struct* huff_nodes, WORD32 out_data[][2],
     WORD32 num_val, WORD32 ch_fac, WORD32* p0_data[2]) {
   WORD32 i = 0, lav = 0, escape = 0, esc_contrl = 0;
@@ -808,7 +823,7 @@ static VOID ixheaacd_mps_huff_dec_cld_2d(
 }
 
 static VOID ixheaacd_mps_huff_dec_icc_2d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_icc_node_2d_struct* huff_nodes, WORD32 out_data[][2],
     WORD32 num_val, WORD32 ch_fac, WORD32* p0_data[2]) {
   WORD32 i = 0, lav = 0, escape = 0, esc_contrl = 0;
@@ -883,7 +898,7 @@ static VOID ixheaacd_mps_huff_dec_icc_2d(
 }
 
 static VOID ixheaacd_mps_huff_dec_ipd_2d(
-    ia_handle_bit_buf_struct it_bit_buff,
+    ia_bit_buf_struct *it_bit_buff,
     const ia_huff_ipd_node_2d_struct* huff_nodes, WORD32 out_data[][2],
     WORD32 num_val, WORD32 ch_fac, WORD32* p0_data[2]) {
   WORD32 i = 0, lav = 0, escape = 0, esc_contrl = 0;
@@ -962,7 +977,83 @@ static VOID ixheaacd_mps_huff_dec_ipd_2d(
   return;
 }
 
-static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
+static IA_ERRORCODE ia_mps_dec_huff_dec_cpc_2d(
+    const ia_mps_dec_huff_cpc_nod_2d *huff_nodes, WORD32 out_data[][2],
+    WORD32 num_val, WORD32 stride, WORD32 *p0_data[2],
+    ia_bit_buf_struct *h_bit_buf) {
+  WORD32 i = 0, lav = 0, escape = 0, esc_cntr = 0;
+  WORD32 node = 0;
+  WORD32 data = 0;
+
+  WORD32 esc_data[2][MAXBANDS] = {{0}};
+  WORD32 esc_idx[MAXBANDS] = {0};
+
+  ixheaacd_mps_huff_read(
+      h_bit_buf, (ia_huff_node_struct) & (ixheaacd_huff_lav_idx_nodes.node_tab),
+      &node);
+  data = -(node + 1);
+
+  lav = 3 * data + 3;
+
+  if (p0_data[0] != NULL) {
+    ixheaacd_mps_huff_read(
+        h_bit_buf, (ia_huff_node_struct) & (ixheaacd_huff_part0_nodes.cpc),
+        &node);
+    *p0_data[0] = -(node + 1);
+  }
+  if (p0_data[1] != NULL) {
+    ixheaacd_mps_huff_read(
+        h_bit_buf, (ia_huff_node_struct) & (ixheaacd_huff_part0_nodes.cpc),
+        &node);
+    *p0_data[1] = -(node + 1);
+  }
+
+  for (i = 0; i < num_val; i += stride) {
+    switch (lav) {
+      case LAV_3:
+        ixheaacd_mps_huff_read_2d(h_bit_buf,
+                                  (ia_huff_node_struct)&huff_nodes->lav3,
+                                  out_data[i], &escape);
+        break;
+      case LAV_6:
+        ixheaacd_mps_huff_read_2d(h_bit_buf,
+                                  (ia_huff_node_struct)&huff_nodes->lav6,
+                                  out_data[i], &escape);
+        break;
+      case LAV_9:
+        ixheaacd_mps_huff_read_2d(h_bit_buf,
+                                  (ia_huff_node_struct)&huff_nodes->lav9,
+                                  out_data[i], &escape);
+        break;
+      case LAV_12:
+        ixheaacd_mps_huff_read_2d(h_bit_buf,
+                                  (ia_huff_node_struct)&huff_nodes->lav12,
+                                  out_data[i], &escape);
+        break;
+      default:
+        break;
+    }
+
+    if (escape) {
+      esc_idx[esc_cntr++] = i;
+    } else {
+      ixheaacd_mps_sym_restore(h_bit_buf, lav, out_data[i]);
+    }
+  }
+
+  if (esc_cntr > 0) {
+    ixheaacd_mps_pcm_decode(h_bit_buf, esc_data[0], esc_data[1], 0,
+                            (esc_cntr << 1), ((lav << 1) + 1));
+
+    for (i = 0; i < esc_cntr; i++) {
+      out_data[esc_idx[i]][0] = esc_data[0][i] - lav;
+      out_data[esc_idx[i]][1] = esc_data[1][i] - lav;
+    }
+  }
+  return IA_NO_ERROR;
+}
+
+static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
                                    WORD32* out_data_1, WORD32* out_data_2,
                                    WORD32 data_type, WORD32 diff_type_1,
                                    WORD32 diff_type_2, WORD32 pilot_coding_flag,
@@ -992,7 +1083,7 @@ static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
   WORD32 huff_yy_1;
   WORD32 huff_yy_2;
   WORD32 huff_yy;
-
+  IA_ERRORCODE error_code = IA_NO_ERROR;
   if (pilot_coding_flag) {
     switch (data_type) {
       case CLD:
@@ -1007,6 +1098,15 @@ static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
         if (out_data_1 != NULL) {
           ixheaacd_mps_huff_dec_pilot(
               it_bit_buff, (ia_huff_node_struct)&ixheaacd_huff_pilot_nodes.icc,
+              pilot_data);
+        }
+        break;
+
+      case CPC:
+        if (out_data_1 != NULL) {
+          ixheaacd_mps_huff_dec_pilot(
+              it_bit_buff,
+              (ia_huff_node_struct) & (ixheaacd_huff_pilot_nodes.cpc),
               pilot_data);
         }
         break;
@@ -1087,7 +1187,19 @@ static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
           }
 
           break;
+        case CPC:
+          if (out_data_1 != NULL) {
+            ia_mps_dec_huff_dec_cpc_1d(
+                &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_1]), out_data_1,
+                num_val_1_int, p0_flag[0], it_bit_buff);
+          }
+          if (out_data_2 != NULL) {
+            ia_mps_dec_huff_dec_cpc_1d(
+                &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_2]), out_data_2,
+                num_val_2_int, p0_flag[1], it_bit_buff);
+          }
 
+          break;
         default:
           break;
       }
@@ -1198,7 +1310,30 @@ static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
                 }
               }
               break;
-
+            case CPC:
+              if (out_data_1 != NULL) {
+                error_code = ia_mps_dec_huff_dec_cpc_2d(
+                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_1][FREQ_PAIR]),
+                    pair_vec, num_val_1_int, 2, p0_data_1, it_bit_buff);
+                if (error_code) return error_code;
+                if (df_rest_flag_1) {
+                  ia_mps_dec_huff_dec_cpc_1d(
+                      &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_1]),
+                      out_data_1_int + num_val_1_int, 1, 0, it_bit_buff);
+                }
+              }
+              if (out_data_2 != NULL) {
+                error_code = ia_mps_dec_huff_dec_cpc_2d(
+                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_2][FREQ_PAIR]),
+                    pair_vec + 1, num_val_2_int, 2, p0_data_2, it_bit_buff);
+                if (error_code) return error_code;
+                if (df_rest_flag_2) {
+                  ia_mps_dec_huff_dec_cpc_1d(
+                      &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_2]),
+                      out_data_2_int + num_val_2_int, 1, 0, it_bit_buff);
+                }
+              }
+              break;
             default:
               break;
           }
@@ -1263,7 +1398,12 @@ static WORD32 ixheaacd_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
                   &ixheaacd_huff_ipd_nodes.h_2_dim[huff_yy][TIME_PAIR],
                   pair_vec, num_val_1_int, 1, p0_data_1);
               break;
-
+            case CPC:
+              error_code = ia_mps_dec_huff_dec_cpc_2d(
+                  &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy][TIME_PAIR]),
+                  pair_vec, num_val_1_int, 1, p0_data_1, it_bit_buff);
+              if (error_code) return error_code;
+              break;
             default:
               break;
           }
@@ -1335,7 +1475,7 @@ static VOID ixheaacd_mps_diff_time_dec_fwd(WORD32* prev_data, WORD32* diff_data,
   }
 }
 
-static VOID ixheaacd_attach_lsb(ia_handle_bit_buf_struct it_bit_buff,
+static VOID ixheaacd_attach_lsb(ia_bit_buf_struct *it_bit_buff,
                                 WORD32* in_data_msb, WORD32 ixheaacd_drc_offset,
                                 WORD32 num_lsb, WORD32 num_val,
                                 WORD32* out_data) {
@@ -1357,15 +1497,11 @@ static VOID ixheaacd_attach_lsb(ia_handle_bit_buf_struct it_bit_buff,
   return;
 }
 
-WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
-                                  WORD32 outdata[][MAXBANDS],
-                                  WORD32 history[MAXBANDS], WORD32 data_type,
-                                  WORD32 set_idx, WORD32 data_bands,
-                                  WORD32 pair_flag, WORD32 coarse_flag,
-                                  WORD32 diff_time_back_flag,
-                                  WORD32 ld_mps_flag)
-
-{
+WORD32 ixheaacd_mps_ecdatapairdec(
+    ia_bit_buf_struct *it_bit_buff, WORD32 outdata[][MAXBANDS],
+    WORD32 history[MAXBANDS], WORD32 data_type, WORD32 set_idx,
+    WORD32 start_band, WORD32 data_bands, WORD32 pair_flag, WORD32 coarse_flag,
+    WORD32 diff_time_back_flag, WORD32 ld_mps_flag, WORD32 heaac_mps_present) {
   WORD32 attach_lsb_flag = 0;
   WORD32 pcm_coding_flag = 0;
   WORD32 pilot_coding_flag = 0;
@@ -1385,6 +1521,10 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
   WORD32 diff_type[2] = {DIFF_FREQ, DIFF_FREQ};
   WORD32 cdg_scheme = HUFF_1D;
   WORD32 direction = BACKWARDS;
+
+  if (heaac_mps_present == 1) {
+    band_start = start_band;
+  }
 
   switch (data_type) {
     case CLD:
@@ -1425,8 +1565,19 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
       }
       break;
 
+    case CPC:
+      if (coarse_flag) {
+        attach_lsb_flag = 0;
+        quant_levels = 26;
+        quant_offset = 10;
+      } else {
+        attach_lsb_flag = 1;
+        quant_levels = 51;
+        quant_offset = 20;
+      }
+      break;
+
     default:
-      fprintf(stderr, "Unknown type of data!\n");
       return -1;
   }
 
@@ -1434,6 +1585,13 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
   pcm_coding_flag = data;
 
   pilot_coding_flag = 0;
+
+  if (heaac_mps_present == 1) {
+    if (pcm_coding_flag && data_bands > 4) {
+      data = ixheaacd_read_bits_buf(it_bit_buff, 1);
+      pilot_coding_flag = data;
+    }
+  }
 
   if (pcm_coding_flag && !pilot_coding_flag) {
     if (pair_flag) {
@@ -1484,55 +1642,67 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
       return 0;
     }
 
-    if ((diff_type[0] == DIFF_TIME) || (diff_type[1] == DIFF_TIME)) {
+    if (pilot_coding_flag && heaac_mps_present == 1) {
+      WORD32 i;
+      for (i = 0; i < data_bands; i++) {
+        data_pair[0][i] = data_diff[0][i] + pilot_data[0];
+      }
+
       if (pair_flag) {
-        if ((diff_type[0] == DIFF_TIME) && !diff_time_back_flag) {
-          direction = FORWARDS;
-        } else if (diff_type[1] == DIFF_TIME) {
-          direction = BACKWARDS;
-        } else {
-          data = ixheaacd_read_bits_buf(it_bit_buff, 1);
-          direction = data;
-        }
-      } else {
-        direction = BACKWARDS;
-      }
-    }
-
-    mixed_time_pair = (diff_type[0] != diff_type[1]) &&
-                      ((cdg_scheme & PAIR_MASK) == TIME_PAIR);
-
-    if (direction == BACKWARDS) {
-      if (diff_type[0] == DIFF_FREQ) {
-        ixheaacd_diff_freq_decode(data_diff[0], data_pair[0], data_bands);
-      } else {
-        WORD32 i;
         for (i = 0; i < data_bands; i++) {
-          msb_state[i] = history[i + band_start] + quant_offset;
-          if (attach_lsb_flag) {
-            msb_state[i] >>= 1;
-          }
+          data_pair[1][i] = data_diff[1][i] + pilot_data[0];
         }
-        ixheaacd_mps_diff_time_dec_bwd(msb_state, data_diff[0], data_pair[0],
-                                       mixed_time_pair, data_bands);
-      }
-      if (diff_type[1] == DIFF_FREQ) {
-        ixheaacd_diff_freq_decode(data_diff[1], data_pair[1], data_bands);
-      } else {
-        ixheaacd_mps_diff_time_dec_bwd(data_pair[0], data_diff[1], data_pair[1],
-                                       mixed_time_pair, data_bands);
       }
     } else {
-      ixheaacd_diff_freq_decode(data_diff[1], data_pair[1], data_bands);
+      if ((diff_type[0] == DIFF_TIME) || (diff_type[1] == DIFF_TIME)) {
+        if (pair_flag) {
+          if ((diff_type[0] == DIFF_TIME) && !diff_time_back_flag) {
+            direction = FORWARDS;
+          } else if (diff_type[1] == DIFF_TIME) {
+            direction = BACKWARDS;
+          } else {
+            data = ixheaacd_read_bits_buf(it_bit_buff, 1);
+            direction = data;
+          }
+        } else {
+          direction = BACKWARDS;
+        }
+      }
 
-      if (diff_type[0] == DIFF_FREQ) {
-        ixheaacd_diff_freq_decode(data_diff[0], data_pair[0], data_bands);
+      mixed_time_pair = (diff_type[0] != diff_type[1]) &&
+                        ((cdg_scheme & PAIR_MASK) == TIME_PAIR);
+
+      if (direction == BACKWARDS) {
+        if (diff_type[0] == DIFF_FREQ) {
+          ixheaacd_diff_freq_decode(data_diff[0], data_pair[0], data_bands);
+        } else {
+          WORD32 i;
+          for (i = 0; i < data_bands; i++) {
+            msb_state[i] = history[i + band_start] + quant_offset;
+            if (attach_lsb_flag) {
+              msb_state[i] >>= 1;
+            }
+          }
+          ixheaacd_mps_diff_time_dec_bwd(msb_state, data_diff[0], data_pair[0],
+                                         mixed_time_pair, data_bands);
+        }
+        if (diff_type[1] == DIFF_FREQ) {
+          ixheaacd_diff_freq_decode(data_diff[1], data_pair[1], data_bands);
+        } else {
+          ixheaacd_mps_diff_time_dec_bwd(data_pair[0], data_diff[1], data_pair[1],
+                                         mixed_time_pair, data_bands);
+        }
       } else {
-        ixheaacd_mps_diff_time_dec_fwd(data_pair[1], data_diff[0], data_pair[0],
-                                       mixed_time_pair, data_bands);
+        ixheaacd_diff_freq_decode(data_diff[1], data_pair[1], data_bands);
+
+        if (diff_type[0] == DIFF_FREQ) {
+          ixheaacd_diff_freq_decode(data_diff[0], data_pair[0], data_bands);
+        } else {
+          ixheaacd_mps_diff_time_dec_fwd(data_pair[1], data_diff[0], data_pair[0],
+                                         mixed_time_pair, data_bands);
+        }
       }
     }
-
     ixheaacd_attach_lsb(it_bit_buff, data_pair[0], quant_offset,
                         attach_lsb_flag ? 1 : 0, data_bands, data_pair[0]);
     if (pair_flag) {
@@ -1551,7 +1721,7 @@ WORD32 ixheaacd_mps_ecdatapairdec(ia_handle_bit_buf_struct it_bit_buff,
   return IA_NO_ERROR;
 }
 
-VOID ixheaacd_mps_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
+VOID ixheaacd_mps_huff_decode(ia_bit_buf_struct *it_bit_buff,
                               WORD32* out_data, WORD32 num_val) {
   WORD32 val_rcvd = 0, dummy = 0, i = 0, val = 0, len = 0;
   WORD32 rl_data[2] = {0};
@@ -1569,4 +1739,347 @@ VOID ixheaacd_mps_huff_decode(ia_handle_bit_buf_struct it_bit_buff,
   }
 
   return;
+}
+
+VOID ixheaacd_update_out_buffer(ia_heaac_mps_state_struct *pstr_mps_state,
+                                WORD16 *out_buf) {
+  WORD32 ch, sam;
+  WORD32 num_output_channels_at = pstr_mps_state->num_output_channels_at;
+  WORD32 frame_length = pstr_mps_state->frame_length;
+
+  WORD32 *p_time_out = pstr_mps_state->array_struct->time_out;
+
+  for (ch = 0; ch < num_output_channels_at; ch++) {
+    WORD32 *time_out = p_time_out;
+    for (sam = 0; sam < frame_length; sam++) {
+      out_buf[sam * num_output_channels_at + ch] = (*time_out++) >> 16;
+    }
+    p_time_out += QBXTS;
+  }
+
+  return;
+}
+
+VOID ixheaacd_update_time_out_buffer(ia_heaac_mps_state_struct *pstr_mps_state) {
+  WORD32 n;
+  WORD32 up_mix_type = pstr_mps_state->up_mix_type;
+  WORD32 tree_config = pstr_mps_state->tree_config;
+  WORD32 lfe_gain = pstr_mps_state->lfe_gain;
+  WORD32 surround_gain = pstr_mps_state->surround_gain;
+
+  if (!pstr_mps_state->bs_config.arbitrary_tree && up_mix_type != 2 && up_mix_type != 3) {
+    WORD32 frame_length = pstr_mps_state->frame_length;
+
+    WORD32 *time_out_3 = pstr_mps_state->array_struct->time_out + QBXTSX3;
+    WORD32 *time_out_4 = time_out_3 + QBXTS;
+    WORD32 *time_out_5 = time_out_4 + QBXTS;
+    WORD32 *time_out_6 = time_out_5 + QBXTS;
+    WORD32 *time_out_7 = time_out_6 + QBXTS;
+
+    for (n = 0; n < frame_length; n++) {
+      *time_out_3 = ixheaacd_mps_mult32_shr_15(*time_out_3, lfe_gain);
+      time_out_3++;
+      *time_out_4 = ixheaacd_mps_mult32_shr_15(*time_out_4, surround_gain);
+      time_out_4++;
+      *time_out_5 = ixheaacd_mps_mult32_shr_15(*time_out_5, surround_gain);
+      time_out_5++;
+    }
+
+    if (tree_config == 4 || tree_config == 6) {
+      for (n = 0; n < frame_length; n++) {
+        *time_out_6 = ixheaacd_mps_mult32_shr_15(*time_out_6, surround_gain);
+        time_out_6++;
+        *time_out_7 = ixheaacd_mps_mult32_shr_15(*time_out_7, surround_gain);
+        time_out_7++;
+      }
+    }
+  }
+}
+
+static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_state,
+                                         WORD32 in_time_slots,
+                                         WORD32 *m_qmf_real, WORD32 *m_qmf_imag,
+                                         WORD16 *out_buf) {
+  IA_ERRORCODE error_code = IA_NO_ERROR;
+  WORD32 ch, ts, qs;
+  WORD32 *pbuf_real, *pbuf_imag, *pbuf_re, *pbuf_im;
+  WORD32 *buf_real, *buf_imag;
+  WORD32 *qmf_input_delay_real_2 =
+      pstr_mps_state->mps_persistent_mem.qmf_input_delay_real;
+  WORD32 *qmf_input_delay_imag_2 =
+      pstr_mps_state->mps_persistent_mem.qmf_input_delay_imag;
+  WORD32 num_input_channels = pstr_mps_state->num_input_channels;
+  WORD32 qmf_bands = pstr_mps_state->qmf_bands;
+  WORD32 cur_time_slot = pstr_mps_state->cur_time_slot;
+  WORD32 time_slots = pstr_mps_state->time_slots;
+  WORD32 qmf_input_delay_index = pstr_mps_state->qmf_input_delay_index;
+  WORD32 up_mix_type = pstr_mps_state->up_mix_type;
+  WORD32 residual_coding = pstr_mps_state->residual_coding;
+  WORD32 arbitrary_downmix = pstr_mps_state->arbitrary_downmix;
+
+  WORD32 *qmf_input_delay_real_1, *qmf_input_delay_imag_1;
+  WORD32 *qmf_input_delay_real, *qmf_input_delay_imag;
+
+  WORD32 *p_qmf_real = m_qmf_real;
+  WORD32 *p_qmf_imag = m_qmf_imag;
+  WORD32 *p_qmf_re, *p_qmf_im, *qmf_real, *qmf_imag;
+
+  if (cur_time_slot + in_time_slots > time_slots) {
+    return IA_FATAL_ERROR;
+  }
+
+  pbuf_real = pstr_mps_state->array_struct->buf_real;
+  pbuf_imag = pstr_mps_state->array_struct->buf_imag;
+
+  if (up_mix_type == 1) {
+    for (ch = 0; ch < num_input_channels; ch++) {
+      pbuf_re = pbuf_real;
+      pbuf_im = pbuf_imag;
+
+      p_qmf_re = p_qmf_real;
+      p_qmf_im = p_qmf_imag;
+
+      for (ts = 0; ts < in_time_slots; ts++) {
+        buf_real = pbuf_re + (cur_time_slot + ts);
+        buf_imag = pbuf_im + (cur_time_slot + ts);
+
+        qmf_real = p_qmf_re;
+        qmf_imag = p_qmf_im;
+
+        for (qs = 0; qs < qmf_bands; qs++) {
+          *buf_real++ = *qmf_real++;
+          *buf_imag++ = *qmf_imag++;
+        }
+        pbuf_re += MAX_HYBRID_BANDS;
+        pbuf_im += MAX_HYBRID_BANDS;
+
+        p_qmf_re += MAX_NUM_QMF_BANDS;
+        p_qmf_im += MAX_NUM_QMF_BANDS;
+      }
+      pbuf_real += TSXHB;
+      pbuf_imag += TSXHB;
+
+      p_qmf_real += QBXTS;
+      p_qmf_imag += QBXTS;
+    }
+  } else {
+    for (ch = 0; ch < num_input_channels; ch++) {
+      WORD32 offset = ch * PCXQB;
+      qmf_input_delay_index = pstr_mps_state->qmf_input_delay_index;
+      qmf_input_delay_real_1 = qmf_input_delay_real_2 + offset;
+      qmf_input_delay_imag_1 = qmf_input_delay_imag_2 + offset;
+
+      pbuf_re = pbuf_real + cur_time_slot * MAX_HYBRID_BANDS;
+      pbuf_im = pbuf_imag + cur_time_slot * MAX_HYBRID_BANDS;
+
+      p_qmf_re = p_qmf_real;
+      p_qmf_im = p_qmf_imag;
+
+      for (ts = 0; ts < in_time_slots; ts++) {
+        WORD32 off_set = qmf_input_delay_index * MAX_NUM_QMF_BANDS;
+        qmf_input_delay_real = qmf_input_delay_real_1 + off_set;
+        qmf_input_delay_imag = qmf_input_delay_imag_1 + off_set;
+
+        buf_real = pbuf_re;
+        buf_imag = pbuf_im;
+
+        qmf_real = p_qmf_re;
+        qmf_imag = p_qmf_im;
+
+        for (qs = 0; qs < qmf_bands; qs++) {
+          {
+            *buf_real++ = *qmf_input_delay_real;
+            *buf_imag++ = *qmf_input_delay_imag;
+
+            *qmf_input_delay_real++ = *qmf_real++;
+            *qmf_input_delay_imag++ = *qmf_imag++;
+          }
+        }
+
+        qmf_input_delay_index++;
+
+        if (qmf_input_delay_index == PC_FILTERDELAY) {
+          qmf_input_delay_index = 0;
+        }
+        pbuf_re += MAX_HYBRID_BANDS;
+        pbuf_im += MAX_HYBRID_BANDS;
+
+        p_qmf_re += MAX_NUM_QMF_BANDS;
+        p_qmf_im += MAX_NUM_QMF_BANDS;
+      }
+      pbuf_real += TSXHB;
+      pbuf_imag += TSXHB;
+
+      p_qmf_real += QBXTS;
+      p_qmf_imag += QBXTS;
+    }
+    pstr_mps_state->qmf_input_delay_index = qmf_input_delay_index;
+  }
+
+  pstr_mps_state->cur_time_slot += in_time_slots;
+  cur_time_slot = pstr_mps_state->cur_time_slot;
+
+  if (pstr_mps_state->cur_time_slot < time_slots) return IA_FATAL_ERROR;
+
+  pstr_mps_state->cur_time_slot = 0;
+
+  error_code = ixheaacd_decode_frame(pstr_mps_state);
+
+  if (error_code) {
+    return error_code;
+  }
+
+  error_code = ixheaacd_mdct_2_qmf(pstr_mps_state);
+
+  ixheaacd_hybrid_qmf_analysis(pstr_mps_state);
+
+  if (residual_coding || (arbitrary_downmix == 2)) {
+    ixheaacd_update_buffers(pstr_mps_state);
+  }
+
+  if (up_mix_type == 1) {
+    error_code = ixheaacd_apply_blind(pstr_mps_state);
+  }
+
+  error_code = ixheaacd_calc_m1m2(pstr_mps_state);
+
+  error_code = ixheaacd_smooth_m1m2(pstr_mps_state);
+
+  ixheaacd_mps_apply_m1(pstr_mps_state);
+
+  ixheaacd_buffer_m1(pstr_mps_state);
+
+  if (up_mix_type != 2) {
+    if (pstr_mps_state->temp_shape_config == 2) {
+      error_code = ixheaacd_pre_reshape_bb_env(pstr_mps_state);
+    }
+  }
+
+  ixheaacd_create_w(pstr_mps_state);
+
+  ixheaacd_apply_m2(pstr_mps_state);
+
+  ixheaacd_buffer_m2(pstr_mps_state);
+
+  if (up_mix_type != 2) {
+    if (pstr_mps_state->temp_shape_config == 2) {
+      error_code = ixheaacd_reshape_bb_env(pstr_mps_state);
+    }
+  }
+
+  error_code = ixheaacd_tp_process(pstr_mps_state);
+
+  ixheaacd_update_time_out_buffer(pstr_mps_state);
+
+  ixheaacd_update_out_buffer(pstr_mps_state, out_buf);
+
+  pstr_mps_state->parse_next_bitstream_frame = 1;
+
+  return error_code;
+}
+
+IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
+                                      WORD16 *output_buf, UWORD8 *mps_buffer,
+                                      WORD32 mps_bytes) {
+  ia_heaac_mps_state_struct *pstr_mps_state =
+      &self->p_state_aac->heaac_mps_handle;
+  IA_ERRORCODE error_code = IA_NO_ERROR;
+  WORD32 n_channels, n_time_slots, qmf_bands, channel;
+  ia_heaac_mps_state_struct *curr_state = pstr_mps_state;
+
+  WORD32 *p_qmf_real = pstr_mps_state->array_struct->m_qmf_real;
+  WORD32 *p_qmf_imag = pstr_mps_state->array_struct->m_qmf_imag;
+  WORD32 buffer_size = mps_bytes;
+
+  if (self->p_state_aac->heaac_mps_handle.is_first == 1) {
+    self->p_state_aac->heaac_mps_handle.is_first = 1;
+    if (pstr_mps_state->bytes_remaining != 0) {
+      buffer_size = mps_bytes + pstr_mps_state->bytes_remaining;
+      for (WORD32 ii = 0; ii < mps_bytes; ii++) {
+        pstr_mps_state->temp_buf[ii + pstr_mps_state->bytes_remaining] =
+            mps_buffer[ii];
+      }
+
+      pstr_mps_state->ptr_mps_bit_buff = ixheaacd_create_bit_buf(
+          &pstr_mps_state->mps_bit_buf, (UWORD8 *)pstr_mps_state->temp_buf,
+          buffer_size);
+      pstr_mps_state->ptr_mps_bit_buff->xaac_jmp_buf =
+          &self->p_state_aac->xaac_jmp_buf;
+
+      pstr_mps_state->ptr_mps_bit_buff->cnt_bits += (8 * buffer_size);
+    } else {
+      memcpy(pstr_mps_state->temp_buf, mps_buffer, mps_bytes);
+      buffer_size = mps_bytes;
+      pstr_mps_state->ptr_mps_bit_buff = ixheaacd_create_bit_buf(
+          &pstr_mps_state->mps_bit_buf, (UWORD8 *)mps_buffer, buffer_size);
+      pstr_mps_state->ptr_mps_bit_buff->cnt_bits += (8 * buffer_size);
+
+      pstr_mps_state->ptr_mps_bit_buff->xaac_jmp_buf =
+          &self->p_state_aac->xaac_jmp_buf;
+    }
+  }
+
+  n_channels = curr_state->num_input_channels;
+  n_time_slots = curr_state->time_slots;
+  qmf_bands = curr_state->qmf_bands;
+
+  if (pstr_mps_state->mps_decode == 1) {
+    if (pstr_mps_state->mps_with_sbr) {
+      for (channel = 0; channel < n_channels; channel++) {
+        WORD32 kk = 0;
+
+        for (WORD32 ii = 0; ii < n_time_slots; ii++) {
+          FLOAT32 *qmf_re = self->p_state_aac->str_sbr_dec_info[0]
+                              ->pstr_sbr_channel[channel]
+                              ->str_sbr_dec.pp_qmf_buf_real[ii];
+          FLOAT32 *qmf_im = self->p_state_aac->str_sbr_dec_info[0]
+                              ->pstr_sbr_channel[channel]
+                              ->str_sbr_dec.pp_qmf_buf_imag[ii];
+
+          for (WORD32 jj = 0; jj < qmf_bands; jj++) {
+            p_qmf_real[kk] = ixheaacd_mps_mult32_shr_15(
+                curr_state->clip_protect_gain, (WORD32)(qmf_re[jj] * 1024));
+            p_qmf_imag[kk++] = ixheaacd_mps_mult32_shr_15(
+                curr_state->clip_protect_gain, (WORD32)(qmf_im[jj] * 1024));
+          }
+        }
+        p_qmf_real += QBXTS;
+        p_qmf_imag += QBXTS;
+      }
+    } else {
+      for (channel = 0; channel < n_channels; channel++) {
+        ixheaacd_calc_ana_filt_bank(pstr_mps_state, output_buf, p_qmf_real,
+                                    p_qmf_imag, channel);
+
+        p_qmf_real += QBXTS;
+        p_qmf_imag += QBXTS;
+      }
+    }
+    error_code = ixheaacd_parse_frame(pstr_mps_state);
+    if (error_code != IA_NO_ERROR) return error_code;
+    error_code = ixheaacd_apply_frame(
+        pstr_mps_state, n_time_slots, pstr_mps_state->array_struct->m_qmf_real,
+        pstr_mps_state->array_struct->m_qmf_imag, output_buf);
+
+    if (error_code) {
+      return error_code;
+    }
+
+    pstr_mps_state->i_bytes_consumed_mps =
+        (WORD32)(pstr_mps_state->ptr_mps_bit_buff->ptr_read_next -
+                 pstr_mps_state->ptr_mps_bit_buff->ptr_bit_buf_base);
+
+    pstr_mps_state->bytes_remaining =
+        buffer_size - pstr_mps_state->i_bytes_consumed_mps;
+
+    if (pstr_mps_state->bytes_remaining != 0) {
+      for (WORD32 ii = 0; ii < pstr_mps_state->bytes_remaining; ii++) {
+        pstr_mps_state->temp_buf[ii] =
+            pstr_mps_state->temp_buf[ii + pstr_mps_state->i_bytes_consumed_mps];
+      }
+    }
+  }
+  self->p_state_aac->heaac_mps_handle.is_first = 1;
+
+  return error_code;
 }

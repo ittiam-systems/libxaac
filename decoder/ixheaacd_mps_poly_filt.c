@@ -18,17 +18,10 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 #include "ixheaacd_type_def.h"
+#include "ixheaacd_constants.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
-#include "ixheaacd_defines.h"
-#include "ixheaacd_aac_rom.h"
-#include "ixheaacd_pulsedata.h"
-#include "ixheaacd_pns.h"
-#include "ixheaacd_channelinfo.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
@@ -39,13 +32,10 @@
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_bitbuffer.h"
-#include "ixheaacd_config.h"
+#include "ixheaacd_mps_struct_def.h"
+#include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
-#include "ixheaacd_mps_interface.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_function_selector.h"
 
 extern const FLOAT32
@@ -59,13 +49,9 @@ extern const FLOAT32 ixheaacd_ldmps_pre_twid[32];
 extern const FLOAT32 ixheaacd_mps_post_re_32[64];
 extern const FLOAT32 ixheaacd_mps_post_im_32[64];
 
-VOID ixheaacd_mps_synt_create(ia_mps_poly_phase_struct *kernel,
-                              WORD32 resolution) {
-  kernel->resolution = resolution;
-}
 
-VOID ixheaacd_mps_synt_init(ia_mps_poly_phase_synth_struct *self) {
-  memset(self->state, 0, sizeof(FLOAT32) * POLY_PHASE_SYNTH_SIZE);
+VOID ixheaacd_mps_synt_init(FLOAT32 state[POLY_PHASE_SYNTH_SIZE]) {
+  memset(state, 0, sizeof(FLOAT32) * POLY_PHASE_SYNTH_SIZE);
 }
 
 VOID ixheaacd_mps_synt_post_fft_twiddle_dec(WORD32 resolution, FLOAT32 *fin_re,
@@ -312,8 +298,7 @@ VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
   FLOAT32 fin_re[64] = {0};
   FLOAT32 fin_im[64] = {0};
 
-  ia_mps_poly_phase_struct kernel = self->poly_phase_filt_kernel;
-  WORD32 resolution = kernel.resolution;
+  WORD32 resolution = self->resolution;
   WORD32 m_resolution = resolution >> 1;
   const FLOAT32 *ixheaacd_mps_post_re, *ixheaacd_mps_post_im;
   VOID(*ixheaacd_mps_synt_out_calc_pointer)
@@ -332,7 +317,7 @@ VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
   if (self->qmf_band_count == 32)
   {
     for (ch = 0; ch < self->out_ch_count; ch++) {
-      tmp_state = (&self->qmf_filt_state[ch])->state;
+      tmp_state = self->qmf_filt_state[ch];
       state = &tmp_buf[self->time_slots * 2 * resolution];
       memcpy(state, tmp_state, sizeof(FLOAT32) * 18 * resolution);
       out = &tmp_buf[74 * MAX_NUM_QMF_BANDS_SAC];
@@ -375,7 +360,7 @@ VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self) {
   else
   {
     for (ch = 0; ch < self->out_ch_count; ch++) {
-      tmp_state = (&self->qmf_filt_state[ch])->state;
+      tmp_state = self->qmf_filt_state[ch];
       state = &tmp_buf[self->time_slots * 2 * resolution];
       memcpy(state, tmp_state, sizeof(FLOAT32) * 18 * resolution);
       out = &tmp_buf[74 * MAX_NUM_QMF_BANDS_SAC];

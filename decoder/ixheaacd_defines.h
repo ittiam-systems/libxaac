@@ -38,6 +38,7 @@
 #define NOISE_HCB 13
 #define INTENSITY_HCB2 14
 #define INTENSITY_HCB 15
+#define BOOKSCL 12
 
 #define CHANNELS 2
 

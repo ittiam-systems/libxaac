@@ -455,7 +455,6 @@ IA_ERRORCODE ixheaacd_calc_master_frq_bnd_tbl(
         f_master_tbl[num_bands0 + k] =
             f_master_tbl[num_bands0 + k - 1] + vec_dk1[k - 1];
       num_mf_bands = add_d(num_bands0, num_bands1);
-
     } else {
       k1 = k2;
 
@@ -523,7 +522,6 @@ static WORD16 ixheaacd_calc_freq_ratio(WORD16 k_start, WORD16 k_stop,
       if (direction == 0) step = ixheaacd_shr32(step, 1);
       direction = 1;
       bandfactor = ixheaacd_add32_sat(bandfactor, step);
-
     } else {
       if (direction == 1) step = ixheaacd_shr32(step, 1);
       direction = 0;

@@ -141,11 +141,11 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
                          ia_usac_lpd_decoder_handle st) {
   WORD32 i, mode;
   WORD32 *ptr_tcx_quant;
-  FLOAT32 tmp, gain_tcx, noise_level, energy, temp;
+  FLOAT32 tmp, gain_tcx = 0.0f, noise_level, energy, temp;
   FLOAT32 *ptr_a, i_ap[ORDER + 1];
   const FLOAT32 *sine_window_prev, *sine_window;
   WORD32 fac_length_prev;
-  FLOAT32 alfd_gains[LEN_SUPERFRAME / (4 * 8)];
+  FLOAT32 alfd_gains[LEN_SUPERFRAME / (4 * 8)] = {0};
   FLOAT32 x[LEN_SUPERFRAME], buf[ORDER + LEN_SUPERFRAME];
   WORD32 int_x[LEN_SUPERFRAME + (2 * FAC_LENGTH)];
   WORD32 int_xn1[LEN_SUPERFRAME + (2 * FAC_LENGTH)];
@@ -154,7 +154,7 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
   FLOAT32 *xn;
   FLOAT32 xn1[2 * FAC_LENGTH], facwindow[2 * FAC_LENGTH];
   WORD32 TTT;
-  WORD8 shiftp;
+  WORD8 shiftp = 0;
   WORD32 preshift = 0;
   WORD32 loop_count = 0;
   FLOAT32 *exc = &usac_data->exc_buf[usac_data->len_subfrm * frame_index +
@@ -254,7 +254,6 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
       (temp * 2.0f);
 
   ixheaacd_noise_shaping(x, lg, (usac_data->len_subfrm) / 4, gain1, gain2);
-
   shiftp = ixheaacd_float2fix(x, int_x, lg);
 
   err = ixheaacd_acelp_mdct_main(usac_data, int_x, int_xn1, (2 * fac_length),
@@ -377,7 +376,7 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
   return err;
 }
 
-static FLOAT32 ixheaacd_randomsign(UWORD32 *seed) {
+FLOAT32 ixheaacd_randomsign(UWORD32 *seed) {
   FLOAT32 sign = 0.0f;
   *seed = (UWORD32)(((UWORD64)(*seed) * (UWORD64)69069) + 5);
 

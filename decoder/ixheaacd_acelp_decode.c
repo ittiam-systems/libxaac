@@ -345,7 +345,7 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
                                 FLOAT32 stability_factor,
                                 ia_usac_lpd_decoder_handle st) {
   WORD32 i, subfr_idx;
-  WORD32 pitch_lag, pitch_lag_frac, index, pitch_flag, pitch_lag_max;
+  WORD32 pitch_lag = 0, pitch_lag_frac = 0, index, pitch_flag, pitch_lag_max;
   WORD32 pitch_lag_min = 0;
   FLOAT32 tmp, pitch_gain, gain_code, voicing_factor, r_v, innov_energy,
       pitch_energy, mean_ener_code;
