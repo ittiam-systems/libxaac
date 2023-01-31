@@ -773,7 +773,8 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
 
         temp = ixheaacd_add32_sat((1 << q_temp) - 1, temp);
 
-        temp = ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - q_l)) + l;
+        temp = ixheaacd_add32_sat(
+                   ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - q_l)), l);
 
         q_temp = q_l;
 

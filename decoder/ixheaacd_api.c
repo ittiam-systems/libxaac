@@ -1533,6 +1533,7 @@ IA_ERRORCODE ixheaacd_dec_init(
           ->huffman_code_book_scl;
   mps_buffer = p_obj_exhaacplus_dec->p_state_aac->mps_buffer;
   p_state_enhaacplus_dec->mps_header = -1;
+  p_state_enhaacplus_dec->mps_dec_handle.ldmps_config.ldmps_present_flag = 0;
   p_obj_exhaacplus_dec->p_state_aac->huffman_code_book_scl_index =
       p_obj_exhaacplus_dec->aac_tables.pstr_huffmann_tables
           ->huffman_code_book_scl_index;
