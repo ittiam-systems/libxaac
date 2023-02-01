@@ -583,7 +583,7 @@ IA_ERRORCODE ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) 
         for (pb = p_aux_struct->ttt_config[i][0].start_band;
              pb < p_aux_struct->ttt_config[i][0].stop_band; pb++) {
           if (p_aux_struct->ttt_config[i][0].mode == 0 && pb >= res_bands) {
-            if (p_aux_struct->ttt_config[i][0].use_ttt_decorr) {
+            if (p_aux_struct->ttt_config[i][0].use_ttt_decorr && enable_additionals) {
               WORD32 temp;
               pstr_mps_state->num_decor_signals = 3;
 
