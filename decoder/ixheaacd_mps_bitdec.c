@@ -240,6 +240,7 @@ IA_ERRORCODE ixheaacd_parse_specific_config(ia_heaac_mps_state_struct *pstr_mps_
       temp = ixheaacd_read_bits_buf(mps_bit_buf, 8);
       config->bs_ttt_mode_high[i] = (temp >> 5) & THREE_BIT_MASK;
       config->bs_ttt_bands_low[i] = (temp)&FIVE_BIT_MASK;
+      if (config->bs_ttt_bands_low[i] > MAX_PARAMETER_BANDS) return IA_FATAL_ERROR;
     }
   }
 
