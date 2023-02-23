@@ -46,8 +46,7 @@
 #undef ABS_THR
 #define ABS_THR 1
 
-IA_ERRORCODE ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -161,10 +160,9 @@ IA_ERRORCODE ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) 
           ixheaacd_quantize_icc(icc[pb], pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr);
     }
 
-    err_code = ixheaacd_param_2_umx_ps_core_tables(
-        iid, icc, num_parameter_bands, 0, h11, h12, h21, h22, h12_res, h22_res, c_l, c_r,
-        pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps_core_tables(iid, icc, num_parameter_bands, 0, h11, h12, h21, h22,
+                                        h12_res, h22_res, c_l, c_r,
+                                        pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
 
     for (pb = 0; pb < num_parameter_bands; pb++) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
@@ -176,11 +174,10 @@ IA_ERRORCODE ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) 
     memcpy(m2_param->m2_resid_real[0][ps], h11, num_parameter_bands * sizeof(h11[0]));
     memcpy(m2_param->m2_resid_real[1][ps], h21, num_parameter_bands * sizeof(h21[0]));
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -304,10 +301,9 @@ IA_ERRORCODE ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) 
           ixheaacd_quantize_icc(icc[pb], pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr);
     }
 
-    err_code = ixheaacd_param_2_umx_ps_core_tables(
-        iid, icc, num_parameter_bands, 0, h11, h12, h21, h22, h12_res, h22_res, c_l, c_r,
-        pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps_core_tables(iid, icc, num_parameter_bands, 0, h11, h12, h21, h22,
+                                        h12_res, h22_res, c_l, c_r,
+                                        pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
 
     for (pb = 0; pb < num_parameter_bands; pb++) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
@@ -324,5 +320,5 @@ IA_ERRORCODE ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) 
       m2_param->m2_resid_real[1][ps][pb] = ixheaacd_mps_mult32_shr_15(g_s[pb], h21[pb]);
     }
   }
-  return IA_NO_ERROR;
+  return;
 }

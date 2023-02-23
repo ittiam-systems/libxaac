@@ -36,6 +36,10 @@
 #include "ixheaacd_pns.h"
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
+#include "ixheaacd_error_codes.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_audioobjtypes.h"
@@ -112,6 +116,7 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
   err_code = ixheaacd_mps_header_decode(self);
 
   if (err_code != IA_NO_ERROR) {
+    self->mps_init_done = 0;
     return err_code;
   }
 
@@ -135,6 +140,7 @@ WORD32 ixheaacd_mps_create(ia_mps_dec_state_struct* self, WORD32 bs_frame_len,
                                      self->object_type);
 
   if (err_code != IA_NO_ERROR) {
+    self->mps_init_done = 0;
     return err_code;
   }
 
@@ -394,25 +400,21 @@ WORD32 ixheaacd_mps_apply(ia_mps_dec_state_struct* self,
   } else {
     ixheaacd_mps_qmf_hyb_analysis(self);
 
-    err = ixheaacd_mps_apply_pre_matrix(self);
-
-    if (err < 0) return err;
+    ixheaacd_mps_apply_pre_matrix(self);
 
     ixheaacd_mps_create_w(self);
   }
 
   if ((!(self->res_bands | self->pre_mix_req)) &&
       (self->config->bs_phase_coding == 0)) {
-    err = ixheaacd_mps_apply_mix_matrix_type1(self);
+    ixheaacd_mps_apply_mix_matrix_type1(self);
 
   } else if (self->pre_mix_req) {
-    err = ixheaacd_mps_apply_mix_matrix_type2(self);
+    ixheaacd_mps_apply_mix_matrix_type2(self);
 
   } else {
-    err = ixheaacd_mps_apply_mix_matrix_type3(self);
+    ixheaacd_mps_apply_mix_matrix_type3(self);
   }
-
-  if (err < 0) return err;
 
   if (self->config->bs_temp_shape_config == 2) {
     ixheaacd_mps_time_env_shaping(self);
@@ -977,7 +979,7 @@ static VOID ixheaacd_mps_huff_dec_ipd_2d(
   return;
 }
 
-static IA_ERRORCODE ia_mps_dec_huff_dec_cpc_2d(
+static VOID ia_mps_dec_huff_dec_cpc_2d(
     const ia_mps_dec_huff_cpc_nod_2d *huff_nodes, WORD32 out_data[][2],
     WORD32 num_val, WORD32 stride, WORD32 *p0_data[2],
     ia_bit_buf_struct *h_bit_buf) {
@@ -1050,15 +1052,13 @@ static IA_ERRORCODE ia_mps_dec_huff_dec_cpc_2d(
       out_data[esc_idx[i]][1] = esc_data[1][i] - lav;
     }
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
-                                   WORD32* out_data_1, WORD32* out_data_2,
-                                   WORD32 data_type, WORD32 diff_type_1,
-                                   WORD32 diff_type_2, WORD32 pilot_coding_flag,
-                                   WORD32* pilot_data, WORD32 num_val,
-                                   WORD32* cdg_scheme, WORD32 ld_mps_flag) {
+static VOID ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff, WORD32 *out_data_1,
+                                 WORD32 *out_data_2, WORD32 data_type, WORD32 diff_type_1,
+                                 WORD32 diff_type_2, WORD32 pilot_coding_flag, WORD32 *pilot_data,
+                                 WORD32 num_val, WORD32 *cdg_scheme, WORD32 ld_mps_flag) {
   WORD32 diff_type;
 
   WORD32 i = 0;
@@ -1083,7 +1083,6 @@ static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
   WORD32 huff_yy_1;
   WORD32 huff_yy_2;
   WORD32 huff_yy;
-  IA_ERRORCODE error_code = IA_NO_ERROR;
   if (pilot_coding_flag) {
     switch (data_type) {
       case CLD:
@@ -1112,9 +1111,6 @@ static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
         break;
 
       default:
-        if (out_data_1 != NULL) {
-          return 0;
-        }
         break;
     }
   }
@@ -1312,21 +1308,19 @@ static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
               break;
             case CPC:
               if (out_data_1 != NULL) {
-                error_code = ia_mps_dec_huff_dec_cpc_2d(
-                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_1][FREQ_PAIR]),
-                    pair_vec, num_val_1_int, 2, p0_data_1, it_bit_buff);
-                if (error_code) return error_code;
+                ia_mps_dec_huff_dec_cpc_2d(
+                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_1][FREQ_PAIR]), pair_vec,
+                    num_val_1_int, 2, p0_data_1, it_bit_buff);
                 if (df_rest_flag_1) {
-                  ia_mps_dec_huff_dec_cpc_1d(
-                      &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_1]),
+                  ia_mps_dec_huff_dec_cpc_1d(&(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_1]),
                       out_data_1_int + num_val_1_int, 1, 0, it_bit_buff);
                 }
               }
               if (out_data_2 != NULL) {
-                error_code = ia_mps_dec_huff_dec_cpc_2d(
-                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_2][FREQ_PAIR]),
-                    pair_vec + 1, num_val_2_int, 2, p0_data_2, it_bit_buff);
-                if (error_code) return error_code;
+                ia_mps_dec_huff_dec_cpc_2d(
+                    &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy_2][FREQ_PAIR]), pair_vec + 1,
+                    num_val_2_int, 2, p0_data_2, it_bit_buff);
+
                 if (df_rest_flag_2) {
                   ia_mps_dec_huff_dec_cpc_1d(
                       &(ixheaacd_huff_cpc_nodes.h_1_dim[huff_yy_2]),
@@ -1399,10 +1393,8 @@ static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
                   pair_vec, num_val_1_int, 1, p0_data_1);
               break;
             case CPC:
-              error_code = ia_mps_dec_huff_dec_cpc_2d(
-                  &(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy][TIME_PAIR]),
+              ia_mps_dec_huff_dec_cpc_2d(&(ixheaacd_huff_cpc_nodes.h_2_dim[huff_yy][TIME_PAIR]),
                   pair_vec, num_val_1_int, 1, p0_data_1, it_bit_buff);
-              if (error_code) return error_code;
               break;
             default:
               break;
@@ -1425,7 +1417,7 @@ static WORD32 ixheaacd_huff_decode(ia_bit_buf_struct *it_bit_buff,
       break;
   }
 
-  return 1;
+  return;
 }
 
 static VOID ixheaacd_diff_freq_decode(WORD32* diff_data, WORD32* out_data,
@@ -1497,11 +1489,11 @@ static VOID ixheaacd_attach_lsb(ia_bit_buf_struct *it_bit_buff,
   return;
 }
 
-WORD32 ixheaacd_mps_ecdatapairdec(
-    ia_bit_buf_struct *it_bit_buff, WORD32 outdata[][MAXBANDS],
-    WORD32 history[MAXBANDS], WORD32 data_type, WORD32 set_idx,
-    WORD32 start_band, WORD32 data_bands, WORD32 pair_flag, WORD32 coarse_flag,
-    WORD32 diff_time_back_flag, WORD32 ld_mps_flag, WORD32 heaac_mps_present) {
+WORD32 ixheaacd_mps_ecdatapairdec(ia_bit_buf_struct *it_bit_buff, WORD32 outdata[][MAXBANDS],
+                                  WORD32 history[MAXBANDS], WORD32 data_type, WORD32 set_idx,
+                                  WORD32 start_band, WORD32 data_bands, WORD32 pair_flag,
+                                  WORD32 coarse_flag, WORD32 diff_time_back_flag,
+                                  WORD32 ld_mps_flag, WORD32 heaac_mps_present, WORD32 ec_flag) {
   WORD32 attach_lsb_flag = 0;
   WORD32 pcm_coding_flag = 0;
   WORD32 pilot_coding_flag = 0;
@@ -1578,7 +1570,7 @@ WORD32 ixheaacd_mps_ecdatapairdec(
       break;
 
     default:
-      return -1;
+      break;
   }
 
   data = ixheaacd_read_bits_buf(it_bit_buff, 1);
@@ -1633,14 +1625,16 @@ WORD32 ixheaacd_mps_ecdatapairdec(
       }
     }
 
-    if (data_bands <= 0) return -1;
-
-    if (!ixheaacd_huff_decode(it_bit_buff, data_array[0], data_array[1],
-                              data_type, diff_type[0], diff_type[1],
-                              pilot_coding_flag, pilot_data, data_bands,
-                              &cdg_scheme, ld_mps_flag)) {
-      return 0;
+    if (data_bands <= 0) {
+      if (!ec_flag)
+        return -1;
+      else
+        longjmp(*(it_bit_buff->xaac_jmp_buf), IA_FATAL_ERROR);
     }
+
+    ixheaacd_huff_decode(it_bit_buff, data_array[0], data_array[1], data_type, diff_type[0],
+                         diff_type[1], pilot_coding_flag, pilot_data, data_bands, &cdg_scheme,
+                         ld_mps_flag);
 
     if (pilot_coding_flag && heaac_mps_present == 1) {
       WORD32 i;
@@ -1800,7 +1794,7 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
                                          WORD32 in_time_slots,
                                          WORD32 *m_qmf_real, WORD32 *m_qmf_imag,
                                          WORD16 *out_buf) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   WORD32 ch, ts, qs;
   WORD32 *pbuf_real, *pbuf_imag, *pbuf_re, *pbuf_im;
   WORD32 *buf_real, *buf_imag;
@@ -1825,7 +1819,16 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
   WORD32 *p_qmf_re, *p_qmf_im, *qmf_real, *qmf_imag;
 
   if (cur_time_slot + in_time_slots > time_slots) {
-    return IA_FATAL_ERROR;
+    if (pstr_mps_state->ec_flag)
+      cur_time_slot = time_slots - in_time_slots;
+    else
+      return IA_FATAL_ERROR;
+  }
+  if (time_slots % HOP_SLOTS != 0) {
+    if (pstr_mps_state->ec_flag)
+      time_slots = time_slots - (time_slots % HOP_SLOTS);
+    else
+      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_TIMESLOTS;
   }
 
   pbuf_real = pstr_mps_state->array_struct->buf_real;
@@ -1919,17 +1922,19 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
   pstr_mps_state->cur_time_slot += in_time_slots;
   cur_time_slot = pstr_mps_state->cur_time_slot;
 
-  if (pstr_mps_state->cur_time_slot < time_slots) return IA_FATAL_ERROR;
+  if (pstr_mps_state->cur_time_slot < time_slots) {
+    if (pstr_mps_state->ec_flag) {
+      pstr_mps_state->cur_time_slot = time_slots;
+    } else
+      return IA_FATAL_ERROR;
+  }
 
   pstr_mps_state->cur_time_slot = 0;
 
-  error_code = ixheaacd_decode_frame(pstr_mps_state);
+  err_code = ixheaacd_decode_frame(pstr_mps_state);
+  if (err_code != IA_NO_ERROR) return err_code;
 
-  if (error_code) {
-    return error_code;
-  }
-
-  error_code = ixheaacd_mdct_2_qmf(pstr_mps_state);
+  ixheaacd_mdct_2_qmf(pstr_mps_state);
 
   ixheaacd_hybrid_qmf_analysis(pstr_mps_state);
 
@@ -1938,12 +1943,12 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
   }
 
   if (up_mix_type == 1) {
-    error_code = ixheaacd_apply_blind(pstr_mps_state);
+    ixheaacd_apply_blind(pstr_mps_state);
   }
 
-  error_code = ixheaacd_calc_m1m2(pstr_mps_state);
+  ixheaacd_calc_m1m2(pstr_mps_state);
 
-  error_code = ixheaacd_smooth_m1m2(pstr_mps_state);
+  ixheaacd_smooth_m1m2(pstr_mps_state);
 
   ixheaacd_mps_apply_m1(pstr_mps_state);
 
@@ -1951,7 +1956,7 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
 
   if (up_mix_type != 2) {
     if (pstr_mps_state->temp_shape_config == 2) {
-      error_code = ixheaacd_pre_reshape_bb_env(pstr_mps_state);
+      ixheaacd_pre_reshape_bb_env(pstr_mps_state);
     }
   }
 
@@ -1963,11 +1968,11 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
 
   if (up_mix_type != 2) {
     if (pstr_mps_state->temp_shape_config == 2) {
-      error_code = ixheaacd_reshape_bb_env(pstr_mps_state);
+      ixheaacd_reshape_bb_env(pstr_mps_state);
     }
   }
 
-  error_code = ixheaacd_tp_process(pstr_mps_state);
+  ixheaacd_tp_process(pstr_mps_state);
 
   ixheaacd_update_time_out_buffer(pstr_mps_state);
 
@@ -1975,7 +1980,7 @@ static IA_ERRORCODE ixheaacd_apply_frame(ia_heaac_mps_state_struct *pstr_mps_sta
 
   pstr_mps_state->parse_next_bitstream_frame = 1;
 
-  return error_code;
+  return IA_NO_ERROR;
 }
 
 IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
@@ -2055,14 +2060,22 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
         p_qmf_imag += QBXTS;
       }
     }
-    error_code = ixheaacd_parse_frame(pstr_mps_state);
-    if (error_code != IA_NO_ERROR) return error_code;
-    error_code = ixheaacd_apply_frame(
-        pstr_mps_state, n_time_slots, pstr_mps_state->array_struct->m_qmf_real,
-        pstr_mps_state->array_struct->m_qmf_imag, output_buf);
+    if (!pstr_mps_state->ec_flag && pstr_mps_state->frame_ok) {
+      error_code = ixheaacd_parse_frame(pstr_mps_state);
+      if (error_code != IA_NO_ERROR) return error_code;
+    }
 
-    if (error_code) {
-      return error_code;
+    if (!pstr_mps_state->first_frame || !pstr_mps_state->ec_flag) {
+      error_code = ixheaacd_apply_frame(pstr_mps_state, n_time_slots,
+                                        pstr_mps_state->array_struct->m_qmf_real,
+                                        pstr_mps_state->array_struct->m_qmf_imag, output_buf);
+      if (error_code != IA_NO_ERROR) return error_code;
+    }
+    if (error_code == 0 && pstr_mps_state->ec_flag && pstr_mps_state->frame_ok) {
+      error_code = ixheaacd_parse_frame(pstr_mps_state);
+      if (error_code != IA_NO_ERROR) {
+        pstr_mps_state->frame_ok = 0;
+      }
     }
 
     pstr_mps_state->i_bytes_consumed_mps =
@@ -2080,6 +2093,7 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
     }
   }
   self->p_state_aac->heaac_mps_handle.is_first = 1;
+  self->p_state_aac->heaac_mps_handle.first_frame = 0;
 
   return error_code;
 }

@@ -54,12 +54,6 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
                                 ia_bit_buf_struct *it_bit_buff,
                                 WORD32 nr_core_coder_channels);
 
-VOID usac_past_tw(ia_usac_data_struct *usac_data, WORD32 mod0, WORD32 i,
-                  ia_usac_lpd_decoder_handle st);
-
-VOID usac_td2buffer(FLOAT32 p_in_data[], ia_usac_data_struct *usac_data,
-                    WORD32 k, WORD32 mod0);
-
 WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
                                    ia_td_frame_data_struct *pstr_td_frame_data,
                                    ia_bit_buf_struct *it_bit_buff,
@@ -69,7 +63,7 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
                              ia_td_frame_data_struct *pstr_td_frame_data,
                              ia_bit_buf_struct *it_bit_buff, WORD32 chan);
 
-IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, WORD32 *quant,
+VOID ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, WORD32 *quant,
                                  WORD32 k, WORD32 first_tcx_flag,
                                  ia_td_frame_data_struct *pstr_td_frame_data,
                                  ia_bit_buf_struct *it_bit_buff);

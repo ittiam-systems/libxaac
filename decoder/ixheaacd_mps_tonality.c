@@ -164,8 +164,7 @@ VOID ixheaacd_zoom_fft16(WORD32 *in_real, WORD32 *in_imag, WORD32 *out_real, WOR
   }
 }
 
-IA_ERRORCODE ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state,
-                                       WORD32 *tonality) {
+VOID ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *tonality) {
   ia_mps_dec_tonality_state_struct *ton_state = pstr_mps_state->mps_persistent_mem.ton_state;
 
   WORD32 *qmf_real;
@@ -249,7 +248,8 @@ IA_ERRORCODE ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state
       part = pstr_mps_state->ia_mps_dec_mps_table.tonality_table_ptr->part40;
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_PARAMETER_BANDS;
+      part = pstr_mps_state->ia_mps_dec_mps_table.tonality_table_ptr->part4;
+      break;
   }
 
   temp = time_slots - 6;
@@ -428,5 +428,5 @@ IA_ERRORCODE ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state
     coh_spec -= pstop;
     pow_spec -= pstop;
   }
-  return IA_NO_ERROR;
+  return;
 }

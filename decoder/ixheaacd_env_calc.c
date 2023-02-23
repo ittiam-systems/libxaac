@@ -39,6 +39,9 @@
 
 #include "ixheaacd_lt_predict.h"
 
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 
@@ -876,6 +879,11 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
           pstr_freq_band_data->freq_band_table[freq_res], start_pos, end_pos,
           ptr_frame_data->max_qmf_subband_aac, input_e, nrg_est, low_pow_flag,
           ptr_sbr_tables);
+    }
+
+    if (pstr_freq_band_data->freq_band_table[freq_res][0] < pstr_freq_band_data->sub_band_start) {
+      pstr_freq_band_data->sub_band_start = pstr_freq_band_data->freq_band_table[freq_res][0];
+      return IA_FATAL_ERROR;
     }
 
     ixheaacd_calc_subband_gains(

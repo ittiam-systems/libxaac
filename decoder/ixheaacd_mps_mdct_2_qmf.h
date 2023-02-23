@@ -56,11 +56,10 @@
 
 IA_ERRORCODE ixheaacd_mdct2qmf_create(ia_heaac_mps_state_struct *pstr_mps_state);
 
-IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
-                                       WORD32 *qmf_real_pre, WORD32 *qmf_real_post,
-                                       WORD32 *qmf_imag_pre, WORD32 *qmf_imag_post,
-                                       WORD32 const window_type, WORD32 qmf_global_offset,
-                                       ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr,
-                                       VOID *scratch, WORD32 time_slots);
+VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qmf_real_pre,
+                               WORD32 *qmf_real_post, WORD32 *qmf_imag_pre, WORD32 *qmf_imag_post,
+                               WORD32 const window_type, WORD32 qmf_global_offset,
+                               ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr,
+                               VOID *scratch, WORD32 time_slots);
 
 #endif /* IXHEAACD_MPS_MDCT_2_QMF_H */

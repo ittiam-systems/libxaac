@@ -38,6 +38,10 @@ typedef struct {
   WORD32 gains[NUM_SUBFR_SUPERFRAME];
   WORD32 mode_lpc[NUM_FRAMES];
   WORD32 lpc_first_approx_idx[110];
+  FLOAT32 lsp_coeff[5][ORDER];
+  FLOAT32 lsf_adaptive_mean_cand[ORDER];
+  FLOAT32 lsf_adaptive_mean[ORDER];
+  FLOAT32 lpc4_lsf[ORDER];
 } ia_td_frame_data_struct;
 
 typedef struct {

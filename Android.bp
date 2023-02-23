@@ -38,6 +38,7 @@ cc_library_static {
     srcs: [
         "decoder/ixheaacd_aacdecoder.c",
         "decoder/ixheaacd_aacpluscheck.c",
+        "decoder/ixheaacd_aac_ec.c",
         "decoder/ixheaacd_aac_imdct.c",
         "decoder/ixheaacd_aac_rom.c",
         "decoder/ixheaacd_aac_tns.c",
@@ -62,6 +63,7 @@ cc_library_static {
         "decoder/ixheaacd_decode_main.c",
         "decoder/ixheaacd_drc_freq_dec.c",
         "decoder/ixheaacd_dsp_fft32x32s.c",
+        "decoder/ixheaacd_ec_rom.c",
         "decoder/ixheaacd_env_calc.c",
         "decoder/ixheaacd_env_dec.c",
         "decoder/ixheaacd_env_extr.c",
@@ -155,6 +157,7 @@ cc_library_static {
         "decoder/ixheaacd_tcx_fwd_mdct.c",
         "decoder/ixheaacd_thumb_ps_dec.c",
         "decoder/ixheaacd_tns.c",
+        "decoder/ixheaacd_usac_ec.c",
         "decoder/ixheaacd_Windowing.c",
         "decoder/drc_src/impd_drc_api.c",
         "decoder/drc_src/impd_drc_bitbuffer.c",

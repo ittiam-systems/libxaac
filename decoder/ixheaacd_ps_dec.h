@@ -242,6 +242,20 @@ typedef struct {
 
 } ia_ps_dec_struct;
 
+typedef struct {
+  FLAG enable_iid;
+  FLAG enable_icc;
+  WORD16 iid_mode;
+  WORD16 icc_mode;
+  FLAG frame_class;
+  WORD32 freq_res_ipd;
+  WORD16 border_position[MAXIM_NUM_OF_PS_ENVLOPS + 2];
+  FLAG iid_dt[MAXIM_NUM_OF_PS_ENVLOPS];
+  FLAG icc_dt[MAXIM_NUM_OF_PS_ENVLOPS];
+  WORD16 iid_par_table[MAXIM_NUM_OF_PS_ENVLOPS + 2][NUM_BANDS_FINE];
+  WORD16 icc_par_table[MAXIM_NUM_OF_PS_ENVLOPS + 2][NUM_BANDS_FINE];
+} ia_ps_dec_config_struct;
+
 VOID ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
                            VOID *sbr_persistent_mem, WORD32 *ptr_overlap_buf,
                            WORD32 frame_size);

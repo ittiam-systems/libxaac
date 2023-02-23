@@ -349,7 +349,7 @@ WORD32 ixheaacd_dequant_cld_band(WORD32 cld) {
   }
 }
 
-IA_ERRORCODE ixheaacd_param_2_umx_ps_core_tables(
+VOID ixheaacd_param_2_umx_ps_core_tables(
     WORD32 cld[MAX_PARAMETER_BANDS], WORD32 icc[MAX_PARAMETER_BANDS], WORD32 num_ott_bands,
     WORD32 res_bands, WORD32 h11[MAX_PARAMETER_BANDS], WORD32 h12[MAX_PARAMETER_BANDS],
     WORD32 h21[MAX_PARAMETER_BANDS], WORD32 h22[MAX_PARAMETER_BANDS],
@@ -382,11 +382,14 @@ IA_ERRORCODE ixheaacd_param_2_umx_ps_core_tables(
       h22_res[band] = MINUS_ONE_IN_Q15;
     } else {
       quant_band_cld = ixheaacd_dequant_cld_band(cld[band]);
-      if (quant_band_cld < 0 || quant_band_cld >= 31) return IA_FATAL_ERROR;
+      if (quant_band_cld < 0 || quant_band_cld >= 31) {
+        quant_band_cld = 30;
+      }
+
       quant_band_icc = icc[band];
 
       if (quant_band_icc >= 8) {
-        return IA_FATAL_ERROR;
+        quant_band_icc = 7;
       }
       h11[band] = ixheaacd_mps_dec_m1_m2_tables->cos_table[quant_band_icc][quant_band_cld];
       h11[band] = ixheaacd_mps_mult32_shr_15(h11[band], c_l[band]);
@@ -401,31 +404,28 @@ IA_ERRORCODE ixheaacd_param_2_umx_ps_core_tables(
       h22_res[band] = 0;
     }
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_param_2_umx_ps(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *h11,
-                                     WORD32 *h12, WORD32 *h21, WORD32 *h22, WORD32 *h12_res,
-                                     WORD32 *h22_res, WORD16 *c_l, WORD16 *c_r,
-                                     WORD32 ott_box_indx, WORD32 parameter_set_indx,
-                                     WORD32 res_bands) {
+VOID ixheaacd_param_2_umx_ps(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *h11, WORD32 *h12,
+                             WORD32 *h21, WORD32 *h22, WORD32 *h12_res, WORD32 *h22_res,
+                             WORD16 *c_l, WORD16 *c_r, WORD32 ott_box_indx,
+                             WORD32 parameter_set_indx, WORD32 res_bands) {
   WORD32 band;
-  IA_ERRORCODE err_code = IA_NO_ERROR;
   ia_mps_dec_spatial_bs_frame_struct *p_cur_bs = pstr_mps_state->bs_frame;
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   WORD32 num_parameter_bands = pstr_mps_state->num_parameter_bands;
 
-  err_code = ixheaacd_param_2_umx_ps_core_tables(
-      p_aux_struct->ott_cld[ott_box_indx][parameter_set_indx],
-      p_cur_bs->ott_icc_idx[ott_box_indx][parameter_set_indx],
-      p_aux_struct->num_ott_bands[ott_box_indx], res_bands, h11, h12, h21, h22, h12_res, h22_res,
-      c_l, c_r, pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
-  if (err_code) return err_code;
+  ixheaacd_param_2_umx_ps_core_tables(p_aux_struct->ott_cld[ott_box_indx][parameter_set_indx],
+                                      p_cur_bs->ott_icc_idx[ott_box_indx][parameter_set_indx],
+                                      p_aux_struct->num_ott_bands[ott_box_indx], res_bands, h11,
+                                      h12, h21, h22, h12_res, h22_res, c_l, c_r,
+                                      pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr);
 
   for (band = p_aux_struct->num_ott_bands[ott_box_indx]; band < num_parameter_bands; band++) {
     h11[band] = h21[band] = h12[band] = h22[band] = h12_res[band] = h22_res[band] = 0;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
 static WORD32 ixheaacd_dequant_one_by_icc(WORD32 icc) {
@@ -761,7 +761,7 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
         temp = ixheaacd_div32(wl1, temp_1, &q_a);
         q_temp = q_a + (q_wl1 - q_temp1);
         wl2 = ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - 15));
-        m_ttt[0][1] = ixheaacd_negate32(wl2);
+        m_ttt[0][1] = ixheaacd_negate32_sat(wl2);
 
         temp = ixheaacd_mps_div_32(l, r, &q_temp);
         q_temp += (q_l - q_r);
@@ -794,7 +794,7 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
         temp = ixheaacd_div32(wr1, temp_1, &q_a);
         q_temp = q_a + (q_wl1 - q_temp1);
         wr2 = ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - 15));
-        m_ttt[1][0] = ixheaacd_negate32(wr2);
+        m_ttt[1][0] = ixheaacd_negate32_sat(wr2);
       }
     }
   }

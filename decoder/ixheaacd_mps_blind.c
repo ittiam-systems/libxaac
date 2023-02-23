@@ -404,14 +404,12 @@ static VOID ixheaacd_update_down_mix_state(ia_heaac_mps_state_struct *pstr_mps_s
   }
 }
 
-IA_ERRORCODE ixheaacd_apply_blind(ia_heaac_mps_state_struct *pstr_mps_state) {
+VOID ixheaacd_apply_blind(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_spatial_bs_frame_struct *frame = pstr_mps_state->bs_frame;
   WORD32 ts;
   WORD32 ps;
   WORD32 time_slots = pstr_mps_state->time_slots;
   WORD32 *param_slot = pstr_mps_state->aux_struct->param_slot;
-
-  if (time_slots % HOP_SLOTS != 0) return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_TIMESLOTS;
 
   for (ts = 0, ps = 0; ts < time_slots; ts += HOP_SLOTS, ps++) {
     param_slot[ps] = ts + HOP_SLOTS - 1;
@@ -425,5 +423,5 @@ IA_ERRORCODE ixheaacd_apply_blind(ia_heaac_mps_state_struct *pstr_mps_state) {
   frame->bs_independency_flag = 0;
   pstr_mps_state->aux_struct->num_ott_bands[0] = pstr_mps_state->num_parameter_bands;
 
-  return IA_NO_ERROR;
+  return;
 }

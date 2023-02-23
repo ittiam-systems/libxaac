@@ -24,6 +24,6 @@
 
 VOID ixheaacd_init_blind(ia_heaac_mps_state_struct *pstr_mps_state);
 
-IA_ERRORCODE ixheaacd_apply_blind(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_apply_blind(ia_heaac_mps_state_struct *pstr_mps_state);
 
 #endif /* IXHEAACD_MPS_BLIND_H */

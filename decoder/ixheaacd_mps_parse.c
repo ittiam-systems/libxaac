@@ -381,9 +381,9 @@ static IA_ERRORCODE ixheaacd_mps_ecdata_decoding(
         }
 
         err = ixheaacd_mps_ecdatapairdec(
-            bitstream, data, lastdata, datatype, set_index, 0, data_bands,
-            bs_data_pair, frame_xxx_data->bs_quant_coarse_xxx[set_index],
-            !(frame->independency_flag && (i == 0)) || (set_index > 0), 0, 0);
+            bitstream, data, lastdata, datatype, set_index, 0, data_bands, bs_data_pair,
+            frame_xxx_data->bs_quant_coarse_xxx[set_index],
+            !(frame->independency_flag && (i == 0)) || (set_index > 0), 0, 0, self->ec_flag);
         if (err) return err;
 
         for (pb = 0; pb < data_bands; pb++) {
@@ -755,9 +755,9 @@ static VOID ixheaacd_ld_mps_ecdata_decoding(
         }
 
         ixheaacd_mps_ecdatapairdec(
-            it_bit_buff, data, lastdata, datatype, set_index, 0, data_bands,
-            bs_data_pair, frame_xxx_data->bs_quant_coarse_xxx[set_index],
-            !(frame->independency_flag && (i == 0)) || (set_index > 0), 1, 0);
+            it_bit_buff, data, lastdata, datatype, set_index, 0, data_bands, bs_data_pair,
+            frame_xxx_data->bs_quant_coarse_xxx[set_index],
+            !(frame->independency_flag && (i == 0)) || (set_index > 0), 1, 0, self->ec_flag);
 
         for (pb = 0; pb < data_bands; pb++) {
           for (j = strides[pb]; j < strides[pb + 1]; j++) {
@@ -894,7 +894,10 @@ IA_ERRORCODE ixheaacd_ld_mps_frame_parsing(
           }
           break;
         default:
+          if (self->ec_flag == 0) {
           return IA_FATAL_ERROR;
+      }
+          break;
       }
     }
   }
@@ -1098,7 +1101,12 @@ static IA_ERRORCODE ixheaacd_mps_mapindexdata(
     x2 = param_slots[i2];
 
     if (interpolate_local[i] == 1) {
-      if (i2 < num_parameter_sets) return IA_FATAL_ERROR;
+      if (i2 < num_parameter_sets) {
+        if (self->ec_flag == 0) {
+          return IA_FATAL_ERROR;
+        }
+      }
+
       for (band = band_start; band < band_stop; band++) {
         WORD32 yi, y1, y2;
         yi = 0;
@@ -1274,11 +1282,26 @@ IA_ERRORCODE ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
     self->param_slots[self->num_parameter_sets - 1] = self->time_slots - 1;
   }
   self->param_slot_diff[0] = self->param_slots[0] + 1;
+  if (MAX_TIME_SLOTS < (self->param_slot_diff[0])) {
+    if (self->ec_flag == 0) {
+      return -1;
+    } else {
+      self->param_slot_diff[0] = MAX_TIME_SLOTS;
+    }
+  }
   self->inv_param_slot_diff[0] = (FLOAT32)1 / self->param_slot_diff[0];
   self->inv_param_slot_diff_Q30[0] =
       (WORD32)floor(self->inv_param_slot_diff[0] * 1073741824 + 0.5);
   for (i = 1; i < self->num_parameter_sets; i++) {
     self->param_slot_diff[i] = self->param_slots[i] - self->param_slots[i - 1];
+    if (MAX_TIME_SLOTS < (self->param_slot_diff[0] + self->param_slot_diff[i])) {
+      if (self->ec_flag == 0) {
+        return -1;
+      } else {
+        self->param_slot_diff[i] = 1;
+        self->inv_param_slot_diff[i] = 1;
+      }
+    }
     self->inv_param_slot_diff[i] = (FLOAT32)1 / self->param_slot_diff[i];
     self->inv_param_slot_diff_Q30[i] =
         (WORD32)floor(self->inv_param_slot_diff[i] * 1073741824 + 0.5);

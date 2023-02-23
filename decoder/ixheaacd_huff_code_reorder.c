@@ -35,7 +35,9 @@
 #include "ixheaacd_pns.h"
 
 #include "ixheaacd_lt_predict.h"
-
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 
 #include "ixheaacd_drc_data_struct.h"
@@ -68,7 +70,6 @@
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 
-#include "ixheaacd_cnst.h"
 #include "ixheaacd_rvlc.h"
 
 const UWORD8 ixheaacd_min_huff_cb_pair_tbl[MAX_CB_PAIRS] = {

@@ -92,7 +92,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32x16lin32(WORD32 a, WORD32 b,
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mult32x16lin32_drc(WORD32 a, WORD32 b) {
+static PLATFORM_INLINE WORD32 ixheaacd_mult32x16lin32_sat(WORD32 a, WORD32 b) {
   WORD32 result;
   WORD64 temp_result;
   temp_result = (WORD64)a * (WORD64)(((b & 0xFFFF) << 16) >> 16);
@@ -546,16 +546,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
     win1 = *((WORD32 *)window + size - 1);
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outi, win1), q_shift),
-        ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+        ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
     *pcm_out = accu;
 
     pcm_out -= ch_fac;
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(
-            ixheaacd_mult32x16hin32(ixheaacd_negate32(outi), win1),
+            ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outi), win1),
             q_shift),
-        ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
+        ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1)));
 
     *pcmout1 = accu;
 
@@ -586,15 +586,15 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       win1 = *((WORD32 *)window + i);
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outr, win1), q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
       *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(
-              ixheaacd_mult32x16hin32(ixheaacd_negate32(outr), win1),
+              ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outr), win1),
               q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)win1));
 
       *pcmout1 = accu;
       pcmout1 += ch_fac;
@@ -623,15 +623,15 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       win1 = *((WORD32 *)window + i + 1);
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outi, win1), q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
       *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shl32_sat(
-              ixheaacd_mult32x16hin32(ixheaacd_negate32(outi), win1),
+              ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outi), win1),
               q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1)));
       *pcmout1 = accu;
       pcmout1 += ch_fac;
     }
@@ -659,15 +659,15 @@ VOID ixheaacd_post_twid_overlap_add_dec(
     win1 = *((WORD32 *)window + i);
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(ixheaacd_mult32x16lin32(outr, win1), q_shift),
-        ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+        ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
     *pcm_out = accu;
     pcm_out -= ch_fac;
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_sat(
-            ixheaacd_mult32x16hin32(ixheaacd_negate32(outr), win1),
+            ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outr), win1),
             q_shift),
-        ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
+        ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)win1));
 
     *pcmout1 = accu;
     pcmout1 += ch_fac;
@@ -703,16 +703,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       win1 = *((WORD32 *)window + size - 1);
       accu = ixheaacd_sub32_sat(
           ixheaacd_shr32(ixheaacd_mult32x16lin32(outi, win1), q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
       *pcm_out = accu;
 
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shr32(
-              ixheaacd_mult32x16hin32(ixheaacd_negate32(outi), win1),
+              ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outi), win1),
               q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1)));
 
       *pcmout1 = accu;
       pcmout1 += ch_fac;
@@ -741,16 +741,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
         win1 = *((WORD32 *)window + i);
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(ixheaacd_mult32x16lin32(outr, win1), q_shift),
-            ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+            ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
         *pcm_out = accu;
         pcm_out -= ch_fac;
 
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(
-                ixheaacd_mult32x16hin32(ixheaacd_negate32(outr), win1),
+                ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outr), win1),
                 q_shift),
-            ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
+            ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)win1));
 
         *pcmout1 = accu;
         pcmout1 += ch_fac;
@@ -777,16 +777,16 @@ VOID ixheaacd_post_twid_overlap_add_dec(
         win1 = *((WORD32 *)window + i + 1);
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(ixheaacd_mult32x16lin32(outi, win1), q_shift),
-            ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+            ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
         *pcm_out = accu;
         pcm_out -= ch_fac;
 
         accu = ixheaacd_sub32_sat(
             ixheaacd_shr32(
-                ixheaacd_mult32x16hin32(ixheaacd_negate32(outi), win1),
+                ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outi), win1),
                 q_shift),
-            ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1)));
+            ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1)));
 
         *pcmout1 = accu;
         pcmout1 += ch_fac;
@@ -816,15 +816,15 @@ VOID ixheaacd_post_twid_overlap_add_dec(
       win1 = *((WORD32 *)window + i);
       accu = ixheaacd_sub32_sat(
           ixheaacd_shr32(ixheaacd_mult32x16lin32(outr, win1), q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)(win1 >> 16)));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)(win1 >> 16)));
 
       *pcm_out = accu;
       pcm_out -= ch_fac;
       accu = ixheaacd_sub32_sat(
           ixheaacd_shr32(
-              ixheaacd_mult32x16hin32(ixheaacd_negate32(outr), win1),
+              ixheaacd_mult32x16hin32(ixheaacd_negate32_sat(outr), win1),
               q_shift),
-          ixheaacd_mult32x16lin32_drc(overlap_data, (WORD16)win1));
+          ixheaacd_mult32x16lin32_sat(overlap_data, (WORD16)win1));
       *pcmout1 = accu;
       pcmout1 += ch_fac;
     }
@@ -1962,11 +1962,10 @@ VOID ixheaacd_fft_32_points(WORD16 *ptr_w, WORD32 npoints,
   }
 }
 
-VOID ixheaacd_dec_rearrange_short(WORD32 *ip, WORD32 *op, WORD32 N,
-                                  WORD16 *re_arr_tab) {
+VOID ixheaacd_dec_rearrange_short(WORD32 *ip, WORD32 *op, WORD32 mdct_len_2, WORD16 *re_arr_tab) {
   WORD32 n, i = 0;
 
-  for (n = 0; n < N; n++) {
+  for (n = 0; n < mdct_len_2; n++) {
     WORD32 idx = re_arr_tab[n] << 1;
     op[i++] = ip[idx];
     op[i++] = ip[idx + 1];

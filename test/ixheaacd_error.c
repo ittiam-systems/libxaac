@@ -321,9 +321,15 @@ IA_ERRORCODE ixheaacd_error_handler(ia_error_info_struct *p_mod_err_info,
     return IA_NO_ERROR;
   }
   {
-    WORD is_fatal = (((UWORD)code & 0x8000) >> 15);
-    WORD err_class = (((UWORD)code & 0x7800) >> 11);
-    WORD err_sub_code = (((UWORD)code & 0x07FF));
+    WORD is_fatal, err_class, err_sub_code;
+
+    if (code == IA_FATAL_ERROR)
+      is_fatal = 1;
+    else
+      is_fatal = (((UWORD)code & 0x8000) >> 15);
+
+    err_class = (((UWORD)code & 0x7800) >> 11);
+    err_sub_code = (((UWORD)code & 0x07FF));
 
     if (!is_fatal) {
       printf("non ");

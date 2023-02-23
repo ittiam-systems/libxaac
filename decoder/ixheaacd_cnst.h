@@ -95,6 +95,7 @@
 #define NUM_TW_NODES 16
 
 #define CORE_MODE_FD 0
+#define CORE_MODE_LPD 1
 
 #define ONLY_LONG_SEQUENCE 0
 #define LONG_START_SEQUENCE 1

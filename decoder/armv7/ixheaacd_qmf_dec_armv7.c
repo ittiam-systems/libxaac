@@ -84,7 +84,7 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
                                 ia_sbr_qmf_filter_bank_struct *qmf_bank,
                                 ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
                                 WORD32 ch_fac, WORD32 low_pow_flag,
-                                WORD audio_object_type, WORD32 ldmps_present) {
+                                WORD audio_object_type) {
   WORD32 i, k;
   WORD32 num_time_slots = qmf_bank->num_time_slots;
 
@@ -200,7 +200,7 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
 
     if (!low_pow_flag) {
       ixheaacd_fwd_modulation(analysis_buffer, qmf_real[i], qmf_imag[i],
-                              qmf_bank, qmf_dec_tables_ptr, ldmps_present);
+                              qmf_bank, qmf_dec_tables_ptr, 0);
     } else {
       ixheaacd_dct3_32(
           (WORD32 *)analysis_buffer, qmf_real[i], qmf_dec_tables_ptr->dct23_tw,

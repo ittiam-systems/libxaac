@@ -50,6 +50,8 @@
 #include "ixheaacd_constants.h"
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 
@@ -113,7 +115,7 @@ VOID ixheaacd_lsp_to_lp_conversion(FLOAT32 *lsp, FLOAT32 *lp_flt_coff_a) {
   return;
 }
 
-WORD32 ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
+VOID ixheaacd_lpc_to_td(FLOAT32 *coeff, WORD32 order, FLOAT32 *gains, WORD32 lg) {
   FLOAT32 data_r[LEN_SUPERFRAME * 2];
   FLOAT32 data_i[LEN_SUPERFRAME * 2];
   FLOAT64 avg_fac;
@@ -125,7 +127,6 @@ WORD32 ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
   FLOAT32 ftemp = 0;
   FLOAT32 tmp, qfac;
   WORD32 i, size_n;
-  WORD32 err = 0;
 
   size_n = 2 * lg;
   avg_fac = PI / (FLOAT32)(size_n);
@@ -153,8 +154,7 @@ WORD32 ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
     idata_i[i] = (WORD32)(data_i[i] * ((WORD64)1 << qshift));
   }
 
-  err = ixheaacd_complex_fft(idata_r, idata_i, size_n, -1, &preshift);
-  if (err) return err;
+  ixheaacd_complex_fft(idata_r, idata_i, size_n, -1, &preshift);
 
   qfac = 1.0f / ((FLOAT32)((WORD64)1 << (qshift - preshift)));
 
@@ -168,7 +168,7 @@ WORD32 ixheaacd_lpc_to_td(float *coeff, WORD32 order, float *gains, WORD32 lg) {
         (FLOAT32)(1.0f / sqrt(data_r[i] * data_r[i] + data_i[i] * data_i[i]));
   }
 
-  return err;
+  return;
 }
 
 VOID ixheaacd_noise_shaping(FLOAT32 r[], WORD32 lg, WORD32 M, FLOAT32 g1[],

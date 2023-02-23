@@ -72,12 +72,10 @@ typedef struct {
 } ia_sbr_qmf_filter_bank_struct;
 
 VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_inp,
-                                ia_sbr_scale_fact_struct *sbr_scale_factor,
-                                WORD32 **qmf_real, WORD32 **qmf_imag,
-                                ia_sbr_qmf_filter_bank_struct *qmf_bank,
-                                ia_qmf_dec_tables_struct *qmf_dec_tables_ptr,
-                                WORD ch_fac, WORD32 low_pow_flag,
-                                WORD audio_object_type, WORD32 ldmps_present);
+                                ia_sbr_scale_fact_struct *sbr_scale_factor, WORD32 **qmf_real,
+                                WORD32 **qmf_imag, ia_sbr_qmf_filter_bank_struct *qmf_bank,
+                                ia_qmf_dec_tables_struct *qmf_dec_tables_ptr, WORD ch_fac,
+                                WORD32 low_pow_flag, WORD audio_object_type);
 
 VOID ixheaacd_cplx_anal_qmffilt_32(const WORD32 *time_inp,
                                    ia_sbr_scale_fact_struct *sbr_scale_factor,

@@ -38,8 +38,7 @@
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_reshape_bb_env.h"
 
-IA_ERRORCODE ixheaacd_get_ch_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row,
-                                 WORD32 *index) {
+VOID ixheaacd_get_ch_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row, WORD32 *index) {
   switch (pstr_mps_state->temp_shape_config) {
     case SHAPE_STP:
       *index = pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr->idx_table
@@ -50,10 +49,10 @@ IA_ERRORCODE ixheaacd_get_ch_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD
                    .row_2_channel_ges[pstr_mps_state->tree_config][row];
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_TEMPORAL_SHAPING_CONFIG;
+      break;
   }
 
-  return IA_NO_ERROR;
+  return;
 }
 
 WORD32 ixheaacd_get_res_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row) {

@@ -36,6 +36,8 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_windows.h"
@@ -91,13 +93,12 @@ static VOID ixheaacd_synthesis_tool(WORD32 a[], WORD32 x[], WORD32 l,
   return;
 }
 
-WORD32 ixheaacd_fwd_alias_cancel_tool(
+VOID ixheaacd_fwd_alias_cancel_tool(
     ia_usac_data_struct *usac_data, ia_td_frame_data_struct *pstr_td_frame_data,
     WORD32 fac_length, FLOAT32 *lp_filt_coeff, WORD32 gain) {
   WORD32 i;
   FLOAT32 lp_filt_coeff_a[ORDER + 1];
   WORD32 qshift = 0;
-  WORD32 err = 0;
 
   WORD32 *x_in = pstr_td_frame_data->fac_data;
   WORD32 *ptr_scratch = &usac_data->scratch_buffer[0];
@@ -110,8 +111,7 @@ WORD32 ixheaacd_fwd_alias_cancel_tool(
 
   memset(fac_signal - 16, 0, ORDER * sizeof(WORD32));
 
-  err = ixheaacd_acelp_mdct(x_in, fac_signal, &qshift, fac_length, ptr_scratch);
-  if (err == -1) return err;
+  ixheaacd_acelp_mdct(x_in, fac_signal, &qshift, fac_length, ptr_scratch);
 
   ixheaacd_lpc_coeff_wt_apply(lp_filt_coeff, lp_filt_coeff_a);
 
@@ -132,10 +132,10 @@ WORD32 ixheaacd_fwd_alias_cancel_tool(
         ptr_overlap_buf[i],
         (WORD32)ixheaacd_mul32_sh(fac_signal[i], gain, (WORD8)(16 - qshift)));
 
-  return err;
+  return;
 }
 
-WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
+VOID ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
                                  WORD32 *lp_filt_coeff, WORD32 *izir,
                                  WORD32 *fac_data_out, WORD8 *qshift1,
                                  WORD8 qshift2, WORD8 qshift3, WORD32 *preshift,
@@ -144,7 +144,6 @@ WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
   const WORD32 *sine_window;
   WORD32 fac_window[2 * FAC_LENGTH];
   WORD32 lp_filt_coeff_a[ORDER + 1];
-  WORD32 err = 0;
 
   if (fac_length == 48) {
     sine_window = ixheaacd_sine_win_96;
@@ -155,25 +154,11 @@ WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
   } else {
     sine_window = ixheaacd_sine_win_256;
   }
-  if (FAC_LENGTH < fac_length) {
-    return -1;
-  }
-
-  if (FAC_LENGTH < fac_length) {
-    return -1;
-  }
-  if ((1 + (len / 2)) < (fac_length + 1)) {
-    return -1;
-  }
-  if ((len / 2 + 1) > (2 * LEN_FRAME - fac_length - 1)) {
-    return -1;
-  }
 
   if (lp_filt_coeff != NULL && fac_data_out != NULL) {
     memset(fac_data_out - 16, 0, ORDER * sizeof(WORD32));
-    err = ixheaacd_acelp_mdct(x_in, fac_data_out, preshift, fac_length,
+    ixheaacd_acelp_mdct(x_in, fac_data_out, preshift, fac_length,
                               ptr_scratch);
-    if (err == -1) return err;
 
     ixheaacd_weighted_synthesis_filter(lp_filt_coeff, lp_filt_coeff_a);
 
@@ -210,5 +195,5 @@ WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
     }
   }
 
-  return err;
+  return;
 }

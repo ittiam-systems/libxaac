@@ -55,7 +55,7 @@ VOID ixheaacd_reset_acelp_data(ia_usac_data_struct *usac_data,
                                FLOAT32 *ptr_ola_buffer, WORD32 last_was_short,
                                WORD32 tw_mdct);
 
-WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
+VOID ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
                                 ia_td_frame_data_struct *pstr_td_frame_data,
                                 WORD32 k, FLOAT32 A[], FLOAT32 stab_fac,
                                 ia_usac_lpd_decoder_handle st);
@@ -65,14 +65,13 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
                          WORD32 frame_index, FLOAT32 A[], WORD32 long_frame,
                          ia_usac_lpd_decoder_handle st);
 
-VOID ixheaacd_alg_vec_dequant(ia_td_frame_data_struct *pstr_td_frame_data,
-                              WORD32 first_lpd_flag, FLOAT32 *lsf,
-                              WORD32 mod[]);
+VOID ixheaacd_alg_vec_dequant(ia_td_frame_data_struct *pstr_td_frame_data, WORD32 first_lpd_flag,
+                              FLOAT32 *lsf, WORD32 mod[], WORD32 ec_flag);
 
 VOID ixheaacd_fac_decoding(WORD32 fac_len, WORD32 k, WORD32 *fac_prm,
                            ia_bit_buf_struct *it_bit_buff);
 
-WORD32 ixheaacd_lpc_to_td(FLOAT32 *lpc_coeffs, WORD32 lpc_order,
+VOID ixheaacd_lpc_to_td(FLOAT32 *lpc_coeffs, WORD32 lpc_order,
                           FLOAT32 *mdct_gains, WORD32 lg);
 
 VOID ixheaacd_noise_shaping(FLOAT32 x[], WORD32 lg, WORD32 fdns_npts,

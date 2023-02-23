@@ -28,7 +28,7 @@
 
 #include "ixheaacd_tns_usac.h"
 #include "ixheaacd_cnst.h"
-
+#include "ixheaacd_error_codes.h"
 #include "ixheaacd_acelp_info.h"
 
 #include "ixheaacd_sbrdecsettings.h"
@@ -39,6 +39,8 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 
@@ -367,7 +369,15 @@ WORD32 ixheaacd_fd_channel_stream(
     err_code = ixheaacd_ics_info(usac_data, chn, max_sfb, it_bit_buff,
                                  window_sequence_last);
 
-    if (err_code == -1) return err_code;
+    if (err_code == -1) {
+      if (usac_data->ec_flag) {
+        memcpy(usac_data->max_sfb, pstr_core_coder->max_sfb, sizeof(pstr_core_coder->max_sfb));
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      } else {
+        return err_code;
+      }
+    }
   }
   info = usac_data->pstr_sfb_info[chn];
 

@@ -20,11 +20,10 @@
 #ifndef IXHEAACD_MPS_CALC_M1M2_COMMON_H
 #define IXHEAACD_MPS_CALC_M1M2_COMMON_H
 
-IA_ERRORCODE ixheaacd_param_2_umx_ps(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *h11,
-                                     WORD32 *h12, WORD32 *h21, WORD32 *h22, WORD32 *h12_res,
-                                     WORD32 *h22_res, WORD16 *c_l, WORD16 *c_r,
-                                     WORD32 ott_box_indx, WORD32 parameter_set_indx,
-                                     WORD32 res_bands);
+VOID ixheaacd_param_2_umx_ps(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *h11, WORD32 *h12,
+                             WORD32 *h21, WORD32 *h22, WORD32 *h12_res, WORD32 *h22_res,
+                             WORD16 *c_l, WORD16 *c_r, WORD32 ott_box_indx,
+                             WORD32 parameter_set_indx, WORD32 res_bands);
 
 VOID ixheaacd_get_matrix_inversion_weights(
     WORD32 iid_lf_ls_idx, WORD32 iid_rf_rs_idx, WORD32 prediction_mode, WORD32 c1, WORD32 c2,
@@ -37,7 +36,7 @@ VOID ixheaacd_invert_matrix(WORD32 weight1, WORD32 weight2, WORD32 h_real[][2],
 VOID ixheaacd_calculate_arb_dmx_mtx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps,
                                     WORD32 pb, WORD32 g_real[]);
 
-IA_ERRORCODE ixheaacd_param_2_umx_ps_core_tables(
+VOID ixheaacd_param_2_umx_ps_core_tables(
     WORD32 *cld, WORD32 *icc, WORD32 num_ott_bands, WORD32 res_bands, WORD32 *h11, WORD32 *h12,
     WORD32 *h21, WORD32 *h22, WORD32 *h12_res, WORD32 *h22_res, WORD16 *c_l, WORD16 *c_r,
     const ia_mps_dec_m1_m2_tables_struct *ixheaacd_mps_dec_m1_m2_tables);

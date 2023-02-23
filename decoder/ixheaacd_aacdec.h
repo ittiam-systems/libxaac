@@ -48,6 +48,8 @@ typedef struct ia_aac_decoder_struct {
   ia_aac_dec_tables_struct *pstr_aac_tables;
   ixheaacd_misc_tables *pstr_common_tables;
   WORD32 is_first;
+  WORD32 conceal_count;
+  WORD16 sbr_num_elements;
 } ia_aac_decoder_struct;
 
 struct ia_aac_persistent_struct {

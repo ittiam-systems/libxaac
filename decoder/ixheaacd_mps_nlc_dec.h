@@ -47,13 +47,11 @@
 
 #define ia_huff_node_struct const WORD32(*)[][2]
 
-WORD32 ixheaacd_mps_ecdatapairdec(ia_bit_buf_struct *it_bit_buf,
-                                  WORD32 aa_out_data[][MAXBANDS],
-                                  WORD32 a_history[MAXBANDS], WORD32 data_type,
-                                  WORD32 set_idx, WORD32 start_band,
-                                  WORD32 data_bands, WORD32 pair_flag,
-                                  WORD32 coarse_flag, WORD32 independency_flag,
-                                  WORD32 ldmps_flag, WORD32 heaac_mps_present);
+WORD32 ixheaacd_mps_ecdatapairdec(ia_bit_buf_struct *it_bit_buf, WORD32 aa_out_data[][MAXBANDS],
+                                  WORD32 a_history[MAXBANDS], WORD32 data_type, WORD32 set_idx,
+                                  WORD32 start_band, WORD32 data_bands, WORD32 pair_flag,
+                                  WORD32 coarse_flag, WORD32 independency_flag, WORD32 ldmps_flag,
+                                  WORD32 heaac_mps_present, WORD32 ec_flag);
 
 VOID ixheaacd_mps_huff_decode(ia_bit_buf_struct *it_bit_buf, WORD32 *out_data,
                               WORD32 num_val);

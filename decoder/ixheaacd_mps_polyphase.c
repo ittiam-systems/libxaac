@@ -776,7 +776,7 @@ static VOID ixheaacd_inverse_modulation(WORD32 *qmf_real, WORD32 *qmf_imag,
     qmf_real[temp_1] = ixheaacd_sub32_sat(ixheaacd_mult32x16in32_shl(ixheaacd_sub32_sat(
         im12, re1), wre), ixheaacd_mult32x16in32_shl(ixheaacd_add32_sat(im1, re12), wim));
     qmf_imag[temp_1] = ixheaacd_add32_sat(ixheaacd_mult32x16in32_shl((ixheaacd_add32_sat(
-        im12, re1)), wre), ixheaacd_mult32x16in32_shl((im1 - re12), wim));
+        im12, re1)), wre), ixheaacd_mult32x16in32_shl(ixheaacd_sub32_sat(im1, re12), wim));
 
     im2 = qmf_real[63 - temp_1];
     im22 = qmf_imag[63 - temp_1];

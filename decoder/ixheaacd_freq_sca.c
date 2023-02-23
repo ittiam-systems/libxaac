@@ -489,6 +489,15 @@ IA_ERRORCODE ixheaacd_calc_master_frq_bnd_tbl(
     return -1;
   }
   pstr_freq_band_data->num_mf_bands = num_mf_bands;
+
+  if (upsamp_fac == 4) {
+    for (k = 1; k < num_mf_bands; k++) {
+      if (!(f_master_tbl[k] - f_master_tbl[k - 1] <= k0 - 2)) {
+        return -1;
+      }
+    }
+  }
+
   return 0;
 }
 

@@ -40,6 +40,8 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 
@@ -1743,7 +1745,7 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
 
   if (it_bit_buff->cnt_bits == 0)
     if (cumulative <= 0) {
-      return -1;
+       longjmp(*(it_bit_buff->xaac_jmp_buf), IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
   p = cum_freq - 1;
 
@@ -1796,9 +1798,8 @@ static WORD32 ixheaacd_arith_decode(ia_bit_buf_struct *it_bit_buff,
   return bit_count;
 }
 
-WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
-                                     WORD8 *c_prev, WORD8 *c_pres, WORD32 n,
-                                     WORD32 pres_n, WORD32 *quant) {
+VOID ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff, WORD8 *c_prev, WORD8 *c_pres,
+                                   WORD32 n, WORD32 pres_n, WORD32 *quant) {
   state_arith as;
   WORD32 a, b;
   WORD32 i, j, lev, pki, esc_nb;
@@ -1829,7 +1830,8 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                         ixheaacd_ari_cf_m[pki], 17);
       if (bit_count == -1) {
-        return -1;
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
       }
 
       if (m < ARITH_ESCAPE) {
@@ -1859,16 +1861,19 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
         bit_count = ixheaacd_arith_decode(&it_bit_buff_temp, bit_count, &m, &as,
                                           ixheaacd_ari_cf_r[lsbidx], 4);
         if (bit_count == -1) {
-          return -1;
+          longjmp(*(it_bit_buff->xaac_jmp_buf),
+                  IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
         }
         a = (a << 1) | (m & 1);
         b = (b << 1) | ((m >> 1) & 1);
       }
       if ((a > (8183)) || (b > (8183))) {
-        return -1;
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
       }
       if ((a < (-8183)) || (b < (-8183))) {
-        return -1;
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
       }
       quant[2 * i + 0] = a;
       quant[2 * i + 1] = b;
@@ -1882,7 +1887,7 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
 
   bit_count -= 16 - 2;
   if (bit_count > it_bit_buff->cnt_bits) {
-    return IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES;
+    longjmp(*(it_bit_buff->xaac_jmp_buf), IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
   }
 
   if (bit_count > 0) {
@@ -1910,15 +1915,15 @@ WORD32 ixheaacd_arth_decoding_level2(ia_bit_buf_struct *it_bit_buff,
       temp1 = m - (temp1);
     }
     if ((temp0 > (8183)) || (temp1 > (8183))) {
-      return -1;
+      longjmp(*(it_bit_buff->xaac_jmp_buf), IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
     if ((temp0 < (-8183)) || (temp1 < (-8183))) {
-      return -1;
+      longjmp(*(it_bit_buff->xaac_jmp_buf), IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
     }
     *quant++ = temp0;
     *quant++ = temp1;
   }
-  return 0;
+  return;
 }
 
 static WORD32 ixheaacd_randomsign_fix(UWORD32 *seed) {
@@ -2085,7 +2090,6 @@ WORD32 ixheaacd_ac_spectral_data(ia_usac_data_struct *usac_data,
 
   WORD32 *x_ac_dec = usac_data->x_ac_dec;
   WORD32 sbk;
-  WORD32 err_code = 0;
 
   const WORD32 max_win_len = usac_data->pstr_sfb_info[ch]->max_win_len;
   WORD8 *c_prev = &usac_data->c_prev[ch][0];
@@ -2102,12 +2106,9 @@ WORD32 ixheaacd_ac_spectral_data(ia_usac_data_struct *usac_data,
 
   if (max_spec_coefficients > 0) {
     for (sbk = 0; sbk < max_win_len; sbk++) {
-      err_code = ixheaacd_arth_decoding_level2(
-          it_bit_buff, c_prev + 2, c_pres + 2, max_spec_coefficients / 2,
-          arith_pres_n / 2, &x_ac_dec[sbk * arith_pres_n]);
-      if (err_code != 0) {
-        return err_code;
-      }
+      ixheaacd_arth_decoding_level2(it_bit_buff, c_prev + 2, c_pres + 2,
+                                    max_spec_coefficients / 2, arith_pres_n / 2,
+                                    &x_ac_dec[sbk * arith_pres_n]);
 
       for (i = max_spec_coefficients / 2; i < arith_pres_n / 2; i++) {
         x_ac_dec[sbk * arith_pres_n + 2 * i + 0] = 0;
@@ -2126,14 +2127,13 @@ WORD32 ixheaacd_ac_spectral_data(ia_usac_data_struct *usac_data,
   return 0;
 }
 
-WORD32 ixheaacd_arith_data(ia_td_frame_data_struct *pstr_td_frame_data,
+VOID ixheaacd_arith_data(ia_td_frame_data_struct *pstr_td_frame_data,
                            WORD32 *x_ac_dec, ia_usac_data_struct *usac_data,
                            ia_bit_buf_struct *it_bit_buff,
                            WORD32 first_tcx_flag, WORD32 k) {
   WORD32 *arith_prev_n = &usac_data->arith_prev_n[usac_data->present_chan];
   WORD32 arith_reset_flag =
       first_tcx_flag && pstr_td_frame_data->arith_reset_flag;
-  WORD32 err_code = 0;
   WORD32 tcx_size = pstr_td_frame_data->tcx_lg[k];
   WORD8 *c_prev = usac_data->c_prev[usac_data->present_chan];
   WORD8 *c_pres = usac_data->c[usac_data->present_chan];
@@ -2147,9 +2147,8 @@ WORD32 ixheaacd_arith_data(ia_td_frame_data_struct *pstr_td_frame_data,
 
   *arith_prev_n = tcx_size;
 
-  err_code =
-      ixheaacd_arth_decoding_level2(it_bit_buff, c_prev + 2, c_pres + 2,
-                                    tcx_size / 2, tcx_size / 2, x_ac_dec);
+  ixheaacd_arth_decoding_level2(it_bit_buff, c_prev + 2, c_pres + 2, tcx_size / 2, tcx_size / 2,
+                                x_ac_dec);
 
-  return err_code;
+  return;
 }

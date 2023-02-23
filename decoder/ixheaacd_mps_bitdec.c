@@ -168,6 +168,7 @@ static IA_ERRORCODE ixheaacd_parse_extension_config(
 
 IA_ERRORCODE ixheaacd_parse_specific_config(ia_heaac_mps_state_struct *pstr_mps_state,
                                             WORD32 sac_header_len) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   ia_mps_spatial_bs_config_struct *config = &(pstr_mps_state->bs_config);
   ia_heaac_mps_state_struct *curr_state = pstr_mps_state;
   const ia_mps_dec_tree_properties_struct *p_tree_property_table =
@@ -191,6 +192,9 @@ IA_ERRORCODE ixheaacd_parse_specific_config(ia_heaac_mps_state_struct *pstr_mps_
     return IA_FATAL_ERROR;
   }
   config->bs_freq_res = (temp >> 4) & THREE_BIT_MASK;
+  if (config->bs_freq_res == 0) {
+    return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_PARAMETER_BANDS;
+  }
   config->bs_tree_config = (temp)&FOUR_BIT_MASK;
 
   if (config->bs_tree_config >= 7) {
@@ -284,9 +288,11 @@ IA_ERRORCODE ixheaacd_parse_specific_config(ia_heaac_mps_state_struct *pstr_mps_
                (mps_bit_buf->bit_pos + 1) - tmp);
   bits_available -= num_header_bits;
 
-  ixheaacd_parse_extension_config(config, curr_state->num_ott_boxes, curr_state->num_ttt_boxes,
-                                  curr_state->num_output_channels, bits_available, mps_bit_buf,
-                                  pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr);
+  err_code = ixheaacd_parse_extension_config(
+      config, curr_state->num_ott_boxes, curr_state->num_ttt_boxes,
+      curr_state->num_output_channels, bits_available, mps_bit_buf,
+      pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr);
+  if (err_code != IA_NO_ERROR) return err_code;
 
   return IA_NO_ERROR;
 }
@@ -450,7 +456,7 @@ static IA_ERRORCODE ixheaacd_ec_data_dec(ia_heaac_mps_state_struct *pstr_mps_sta
     error_code = ixheaacd_mps_ecdatapairdec(
         mps_bit_buf, data[box_idx], lastdata[box_idx], datatype, set_idx, start_band, data_bands,
         bs_data_pair, ll_data->bs_quant_coarse_xxx[param_idx][set_idx],
-        (!frame->bs_independency_flag || (set_idx > 0)), 0, 1);
+        (!frame->bs_independency_flag || (set_idx > 0)), 0, 1, pstr_mps_state->ec_flag);
     if (error_code != IA_NO_ERROR) return error_code;
 
     for (pb = 0; pb < data_bands; pb++) {
@@ -997,6 +1003,9 @@ IA_ERRORCODE ixheaacd_parse_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
   if (frame->bs_smooth_control) {
     for (ps = 0; ps < num_parameter_sets; ps++) {
       frame->bs_smooth_mode[ps] = ixheaacd_read_bits_buf(mps_bit_buf, 2);
+      if (frame->bs_smooth_mode[ps] > 3 || frame->bs_smooth_mode[ps] < 0) {
+        return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SMOOTH_MODE;
+      }
       if (frame->bs_smooth_mode[ps] >= 2) {
         frame->bs_smooth_time[ps] = ixheaacd_read_bits_buf(mps_bit_buf, 2);
       }
@@ -1444,7 +1453,7 @@ static IA_ERRORCODE ixheaacd_map_index_data(
   return IA_NO_ERROR;
 }
 
-static IA_ERRORCODE ixheaacd_get_parameters_mapping(
+static VOID ixheaacd_get_parameters_mapping(
     WORD32 bs_parameter_bands, WORD32 *mapping,
     ia_mps_dec_bitdec_tables_struct *ixheaacd_mps_dec_bitdec_tables) {
   switch (bs_parameter_bands) {
@@ -1469,22 +1478,20 @@ static IA_ERRORCODE ixheaacd_get_parameters_mapping(
     case PARAMETER_BANDS_28:
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_PARAMETER_BANDS;
+      break;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-static IA_ERRORCODE ixheaacd_map_number_of_bands_to_28_bands(
+static VOID ixheaacd_map_number_of_bands_to_28_bands(
     WORD32 bands, WORD32 bs_parameter_bands, WORD32 *bands28,
     ia_mps_dec_bitdec_tables_struct *ixheaacd_mps_dec_bitdec_tables) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
   WORD32 *mapping = NULL;
   WORD32 pb;
 
   *bands28 = bands;
 
-  error_code = ixheaacd_get_parameters_mapping(bs_parameter_bands, mapping,
-                                               ixheaacd_mps_dec_bitdec_tables);
+  ixheaacd_get_parameters_mapping(bs_parameter_bands, mapping, ixheaacd_mps_dec_bitdec_tables);
 
   if (mapping != NULL) {
     for (pb = 0; pb < MAX_PARAMETER_BANDS; pb++) {
@@ -1494,28 +1501,26 @@ static IA_ERRORCODE ixheaacd_map_number_of_bands_to_28_bands(
     }
     *bands28 = pb;
   }
-  return error_code;
+  return;
 }
 
-static IA_ERRORCODE ixheaacd_map_data_to_28_bands(
+static VOID ixheaacd_map_data_to_28_bands(
     WORD32 *data, WORD32 bs_parameter_bands,
     ia_mps_dec_bitdec_tables_struct *ixheaacd_mps_dec_bitdec_tables) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
   WORD32 *mapping = NULL;
   WORD32 pb;
 
-  error_code = ixheaacd_get_parameters_mapping(bs_parameter_bands, mapping,
-                                               ixheaacd_mps_dec_bitdec_tables);
+  ixheaacd_get_parameters_mapping(bs_parameter_bands, mapping, ixheaacd_mps_dec_bitdec_tables);
 
   if (mapping != NULL) {
     for (pb = MAX_PARAMETER_BANDS - 1; pb >= 0; pb--) {
       data[pb] = data[mapping[pb]];
     }
   }
-  return error_code;
+  return;
 }
 
-static IA_ERRORCODE ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct *pstr_mps_state) {
+static VOID ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_spatial_bs_frame_struct *p_cur_bs = pstr_mps_state->bs_frame;
   ia_heaac_mps_state_struct *curr_state = pstr_mps_state;
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
@@ -1567,7 +1572,6 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct 
 
   switch (curr_state->tree_config) {
     case TREE_5151:
-      if (num_ott_boxes != 5) return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_OTT_BOXES;
       i = 0;
 
       ixheaacd_map_index_data(
@@ -1643,9 +1647,6 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct 
       break;
 
     default:
-      if (curr_state->tree_config != TREE_525) {
-        if (quant_mode != 0) return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_QUANT_MODE;
-      }
       for (i = 0; i < num_ott_boxes; i++) {
         ixheaacd_map_index_data(&p_cur_bs->cld_lossless_data, p_aux_struct->ott_cld,
                                 p_cur_bs->ott_cld_idx, p_cur_bs->cmp_ott_cld_idx, NULL, i,
@@ -1713,7 +1714,7 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct 
       }
     }
   }
-  return IA_NO_ERROR;
+  return;
 }
 
 static VOID ixheaacd_decode_and_map_frame_ttt(ia_heaac_mps_state_struct *pstr_mps_state) {
@@ -1806,8 +1807,7 @@ static VOID ixheaacd_decode_and_map_frame_ttt(ia_heaac_mps_state_struct *pstr_mp
   }
 }
 
-static IA_ERRORCODE ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+static VOID ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_smoothing_state_struct *smooth_state =
       pstr_mps_state->mps_persistent_mem.smooth_state;
   ia_mps_dec_bitdec_tables_struct *bitdec_table =
@@ -1867,8 +1867,9 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct 
             }
           }
           break;
+
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SMOOTH_MODE;
+          break;
       }
     }
 
@@ -1889,9 +1890,8 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct 
 
     if (pstr_mps_state->up_mix_type == 2) {
       WORD32 *mapping = NULL;
-      error_code = ixheaacd_get_parameters_mapping(pstr_mps_state->bitstream_parameter_bands,
-                                                   mapping, bitdec_table);
-      if (error_code != IA_NO_ERROR) return error_code;
+      ixheaacd_get_parameters_mapping(pstr_mps_state->bitstream_parameter_bands, mapping,
+                                      bitdec_table);
 
       if (mapping != NULL) {
         WORD32 num_parameter_sets = pstr_mps_state->num_parameter_sets;
@@ -1908,7 +1908,7 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct 
       }
     }
   }
-  return error_code;
+  return;
 }
 
 static VOID ixheaacd_decode_and_map_frame_arbdmx(ia_heaac_mps_state_struct *pstr_mps_state) {
@@ -1973,7 +1973,6 @@ static VOID ixheaacd_decode_and_map_frame_arb_tree(ia_heaac_mps_state_struct *ps
 }
 
 IA_ERRORCODE ixheaacd_decode_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
   ia_mps_spatial_bs_config_struct *p_bs_config = &pstr_mps_state->bs_config;
   WORD32 *param_slot = pstr_mps_state->aux_struct->param_slot;
 
@@ -1982,10 +1981,10 @@ IA_ERRORCODE ixheaacd_decode_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
     pstr_mps_state->extend_frame = 1;
   }
 
-  error_code = ixheaacd_decode_and_map_frame_ott(pstr_mps_state);
+  ixheaacd_decode_and_map_frame_ott(pstr_mps_state);
   ixheaacd_decode_and_map_frame_ttt(pstr_mps_state);
 
-  error_code = ixheaacd_decode_and_map_frame_smg(pstr_mps_state);
+  ixheaacd_decode_and_map_frame_smg(pstr_mps_state);
   if (p_bs_config->arbitrary_tree != 0) {
     ixheaacd_decode_and_map_frame_arb_tree(pstr_mps_state);
   }
@@ -1997,12 +1996,15 @@ IA_ERRORCODE ixheaacd_decode_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
   if (pstr_mps_state->extend_frame) {
     pstr_mps_state->num_parameter_sets++;
     if (pstr_mps_state->num_parameter_sets > MAX_PARAMETER_SETS) {
-      return IA_FATAL_ERROR;
+      if (pstr_mps_state->ec_flag)
+        pstr_mps_state->num_parameter_sets = 1;
+      else
+        return IA_FATAL_ERROR;
     }
 
     param_slot[pstr_mps_state->num_parameter_sets - 1] = pstr_mps_state->time_slots - 1;
   }
-  return error_code;
+  return IA_NO_ERROR;
 }
 
 IA_ERRORCODE ixheaacd_set_current_state_parameters(ia_heaac_mps_state_struct *pstr_mps_state) {
@@ -2228,6 +2230,10 @@ IA_ERRORCODE ixheaacd_set_current_state_parameters(ia_heaac_mps_state_struct *ps
                   (WORD64)reciprocal_tab[p_bs_config->bs_residual_frames_per_spatial_frame]) >>
                  28);
     curr_state->upd_qmf = (WORD32)temp;
+    if (curr_state->upd_qmf != UPD_QMF_15 && curr_state->upd_qmf != UPD_QMF_16 &&
+        curr_state->upd_qmf != UPD_QMF_32 && curr_state->upd_qmf != UPD_QMF_18 &&
+        curr_state->upd_qmf != UPD_QMF_30 && curr_state->upd_qmf != UPD_QMF_24)
+      return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
   }
 
   curr_state->arbdmx_residual_bands = config->bs_arbitrary_downmix_residual_bands;
@@ -2236,6 +2242,10 @@ IA_ERRORCODE ixheaacd_set_current_state_parameters(ia_heaac_mps_state_struct *ps
   if (curr_state->arbdmx_frames_per_spatial_frame > 0) {
     curr_state->arbdmx_upd_qmf =
         curr_state->time_slots / curr_state->arbdmx_frames_per_spatial_frame;
+    if (curr_state->arbdmx_upd_qmf != UPD_QMF_15 && curr_state->arbdmx_upd_qmf != UPD_QMF_16 &&
+        curr_state->arbdmx_upd_qmf != UPD_QMF_32 && curr_state->arbdmx_upd_qmf != UPD_QMF_18 &&
+        curr_state->arbdmx_upd_qmf != UPD_QMF_30 && curr_state->arbdmx_upd_qmf != UPD_QMF_24)
+      return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
   }
 
   curr_state->cpc_default = 10;

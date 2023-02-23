@@ -33,6 +33,6 @@
 #define HYBRID_BAND_BORDER (12)
 #define FIVE (5)
 
-IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state);
 
 #endif /* IXHEAACD_MPS_TP_PROCESS_H */

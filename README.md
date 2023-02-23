@@ -177,38 +177,68 @@ The Ex-HEAAC Decoder can be run by providing command-line parameters(CLI options
 
 Command line usage : 
 ```
-<exceutable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<out_file> [options]
+<executable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> [options]
 
 [options] can be,
+[-mp4:<mp4_flag>]
 [-pcmsz:<pcmwordsize>]
 [-dmix:<down_mix>]
+[-esbr_hq:<esbr_hq_flag>]
+[-esbr_ps:<esbr_ps_flag>]
 [-tostereo:<interleave_to_stereo>]
 [-dsample:<down_sample_sbr>]
-[-fs:<RAW_sample_rate>]
+[-drc_cut_fac:<drc_cut_factor>]
+[-drc_boost_fac:<drc_boost_factor>]
+[-drc_target_level:<drc_target_level>]
+[-drc_heavy_comp:<drc_heavy_compression>]
+[-effect:<effect_type>]
+[-target_loudness:<target_loudness>]
 [-nosync:<disable_sync>]
 [-sbrup:<auto_sbr_upsample>]
+[-flflag:<framelength_flag>}
+[-fs:<RAW_sample_rate>]
 [-maxchannel:<maximum_num_channels>]
-[-mp4:<mp4_flag>]
+[-coupchannel:<coupling_channel>]
+[-downmix:<down_mix_stereo>]
+[-fs480:<ld_frame_size>]
+[-ld_testing:<ld_testing_flag>]
+[-peak_limiter_off:<peak_limiter_off_flag>]
+[-err_conceal:<error_concealment_flag>]
 
 where,
-  <inputfile>        	 is the input AAC file name.
-  <meta_data_file> 	 	 is a text file which contains metadata for USAC files with an MP4 container.
-  <outputfile>       	 is the output file name.
-  <pcmwordsize>      	 is the bits per sample info. Only 16 is valid
-  <down_mix> 		 	 is to enable/disable always mono output. Default 0.
-  <interleave_to_stereo> is to enable/disable always interleaved to stereo output. Default 1.
-  <down_sample_sbr> 	 is to enable/disable down-sampled SBR output. Default auto identification from header.
-  <RAW_sample_rate> 	 is to indicate the core AAC sample rate for a RAW stream. If this is specified no other file format headers are searched for.
-  <disable_sync> 		 is to disable the ADTS/ADIF sync search i.e when enabled the decoder expects the header to be at the start of input buffer. Default 0.
-  <auto_sbr_upsample> 	 is to enable(1) or disable(0) auto SBR upsample in case of stream changing from SBR present to SBR not present. Default 1.
-  <maximum_num_channels> is the number of maxiumum channels the input may have. Default is 6 (5.1).
-  <mp4_flag> 			 is a flag that should be set to 1 when passing raw stream along with meta data text file.
+  <input_file>             is the input AAC/HEAACv1/HEAACv2/USAC file name.
+  <meta_data_file>         is a text file which contains metadata. To be given when -mp4:1 is enabled.
+  <output_file>            is the output file name.
+  <mp4_flag>               is a flag that should be set to 1 when passing raw stream along with meta data text file.
+  <pcmwordsize>            is the bits per sample info. value can be 16 or 24.
+  <down_mix>               is to enable/disable always mono output. Default 1.
+  <esbr_hq_flag>           is to enable/disable high quality eSBR. Default 0.
+  <esbr_ps_flag>           is to indicate eSBR with PS. Default 0.
+  <interleave_to_stereo>   is to enable/disable always interleaved to stereo output. Default 1.
+  <down_sample_sbr>        is to enable/disable down-sampled SBR output. Default auto identification from header.
+  <drc_cut_factor>         is to set DRC cut factor value. Default value is 0.
+  <drc_boost_factor>       is to set DRC boost factor. Default value is 0.
+  <drc_target_level>       is to set DRC target reference level. Default value is 108.
+  <drc_heavy_compression>  is to enable/disable DRC heavy compression. Default value is 0.
+  <effect_type>            is to set DRC effect type. Default value is 0.
+  <target_loudness>        is to set target loudness level. Default value is -24.
+  <disable_sync>           is to disable the ADTS/ADIF sync search i.e when enabled the decoder expects the header to be at the start of input buffer. Default 0.
+  <auto_sbr_upsample>      is to enable(1) or disable(0) auto SBR upsample in case of stream changing from SBR present to SBR not present. Default 1.
+  <framelength_flag>       is flag for decoding framelength of 1024 or 960. 1 to decode 960 frame length, 0 to decode 1024 frame length.
+                           Frame length value in the GA header will override this option. Default 0.
+  <RAW_sample_rate>        is to indicate the core AAC sample rate for a RAW stream. If this is specified no other file format headers are searched for.
+  <maximum_num_channels>   is the number of maxiumum channels the input may have. Default is 6 for multichannel libraries and 2 for stereo libraries.
+  <coupling_channel>       is element instance tag of independent coupling channel to be mixed. Default is 0.
+  <down_mix_stereo>        is flag for Downmix. Give 1 to get stereo (downmix) output. Default is 0.
+  <ld_frame_size>          is to indicate ld frame size. 0 is for 512 frame length, 1 is for 480 frame length. Default value is 512 (0).
+  <ld_testing_flag>        is to enable/disable ld decoder testing. Default value is 0.
+  <peak_limiter_off_flag>  is to enable/disable peak limiter. Default value is 0.
+  <error_concealment_flag> is to enable/disable error concealment. Default value is 0.
 
-```					 
-					 
+```
 Sample CLI:
 ```
-<xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16 					 
+<xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16
 ```
 
 # Validating the Ex-HEAAC Decoder

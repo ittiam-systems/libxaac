@@ -29,15 +29,17 @@
 #include "ixheaacd_basic_ops40.h"
 
 #include "ixheaacd_defines.h"
+#include "ixheaacd_cnst.h"
 #include "ixheaacd_aac_rom.h"
+#include "ixheaacd_lt_predict.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_audioobjtypes.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
-#include "ixheaacd_lt_predict.h"
 #include "ixheaacd_channelinfo.h"
-#include "ixheaacd_cnst.h"
 #include "ixheaacd_tns.h"
 #include "ixheaacd_aac_imdct.h"
 

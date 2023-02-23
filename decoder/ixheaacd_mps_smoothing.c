@@ -217,7 +217,7 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
   }
 }
 
-static IA_ERRORCODE ixheaacd_calc_filter_coeff(
+static VOID ixheaacd_calc_filter_coeff(
     ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps, WORD32 *delta) {
   WORD32 d_slots;
   WORD32 *param_slot = pstr_mps_state->aux_struct->param_slot;
@@ -243,18 +243,16 @@ static IA_ERRORCODE ixheaacd_calc_filter_coeff(
         *delta = d_slots << 6;
         break;
       default:
-        return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SMGTIME;
+        break;
     }
   } else {
     *delta = d_slots << 7;
   }
 
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
-
+VOID ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_heaac_mps_state_struct *curr_state = pstr_mps_state;
   ia_mps_persistent_mem *persistent_mem = &curr_state->mps_persistent_mem;
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
@@ -311,11 +309,11 @@ IA_ERRORCODE ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 
   if (smooth_config) {
-    error_code = ixheaacd_measure_tonality(pstr_mps_state, ton);
+    ixheaacd_measure_tonality(pstr_mps_state, ton);
   }
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    error_code = ixheaacd_calc_filter_coeff(pstr_mps_state, ps, delta);
+    ixheaacd_calc_filter_coeff(pstr_mps_state, ps, delta);
     *one_minus_delta++ = (1 << 15) - *delta++;
   }
 
@@ -721,5 +719,5 @@ IA_ERRORCODE ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
       }
     }
   }
-  return error_code;
+  return;
 }

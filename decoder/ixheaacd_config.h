@@ -41,6 +41,7 @@
 #define USAC_OUT_FRAMELENGTH_4096 4096
 
 #define MAX_CORE_SBR_FRAME_LEN_IDX (4)
+#define IA_MAX_INP_BUFFER_SIZE (8 * 1024 + 11)
 
 #define ID_EXT_ELE_FILL 0
 #define ID_EXT_ELE_MPEGS 1
@@ -710,6 +711,6 @@ UWORD32 ixheaacd_sbr_params(UWORD32 core_sbr_frame_len_idx,
                             UWORD32 *sample_freq_indx);
 
 WORD32 ixheaacd_config(ia_bit_buf_struct *bit_buff,
-                       ia_usac_config_struct *pstr_usac_conf, UINT32 *chan);
+                       ia_usac_config_struct *pstr_usac_conf, UINT32 *chan, WORD32 ec_flag);
 
 #endif /* IXHEAACD_CONFIG_H */

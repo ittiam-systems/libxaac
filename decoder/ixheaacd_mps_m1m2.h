@@ -20,7 +20,7 @@
 #ifndef IXHEAACD_MPS_M1M2_H
 #define IXHEAACD_MPS_M1M2_H
 
-IA_ERRORCODE ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state);
 
 VOID ixheaacd_mps_apply_m1(ia_heaac_mps_state_struct *pstr_mps_state);
 

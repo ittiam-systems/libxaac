@@ -48,6 +48,8 @@
 
 #include "ixheaacd_lt_predict.h"
 
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"

@@ -22,7 +22,6 @@
 
 VOID ixheaacd_init_tonality(ia_heaac_mps_state_struct *pstr_mps_state);
 
-IA_ERRORCODE ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state,
-                                       WORD32 *tonality);
+VOID ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 *tonality);
 
 #endif /* IXHEAACD_MPS_TONALITY_H */

@@ -42,8 +42,7 @@
 #include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_mps_calc_m1m2_common.h"
 
-IA_ERRORCODE ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -67,9 +66,8 @@ IA_ERRORCODE ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state) {
   dummy4 = dummy3 + MAX_PARAMETER_BANDS;
 
   for (ps = 0; ps < pstr_mps_state->num_parameter_sets; ps++) {
-    err_code = ixheaacd_param_2_umx_ps(pstr_mps_state, h11, h12, h21, h22, dummy1, dummy2, dummy3,
-                                       dummy4, 0, ps, 0);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11, h12, h21, h22, dummy1, dummy2, dummy3, dummy4, 0,
+                            ps, 0);
 
     for (pb = 0; pb < pstr_mps_state->num_parameter_bands; pb++) {
       WORD32 m11 = p_aux_struct->ttt_cpc_1[0][ps][pb] + ONE_IN_Q16;
@@ -187,5 +185,5 @@ IA_ERRORCODE ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state) {
       m2_param->m2_resid_real[3][ps][pb] = 32768;
     }
   }
-  return IA_NO_ERROR;
+  return;
 }

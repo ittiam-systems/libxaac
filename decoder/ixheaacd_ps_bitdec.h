@@ -24,9 +24,8 @@
 
 #define EXTENSION_ID_ENHSBR_CODING 3
 
-WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
-                             ia_bit_buf_struct *it_bit_buff, WORD16 n_bits_left,
-                             ia_ps_tables_struct *ps_tables_ptr);
+IA_ERRORCODE ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec, ia_bit_buf_struct *it_bit_buff,
+  WORD16 n_bits_left, ia_ps_tables_struct *ps_tables_ptr);
 
 VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size);
 

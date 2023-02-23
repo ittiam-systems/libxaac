@@ -57,9 +57,9 @@ typedef struct {
   ixheaacd_latm_layer_info layer_info[LATM_MAX_PROG][LATM_MAX_LAYER];
 } ixheaacd_latm_struct;
 
-WORD32 ixheaacd_latm_au_chunk_length_info(ia_bit_buf_struct* it_bit_buff);
+WORD32 ixheaacd_latm_au_chunk_length_info(ia_bit_buf_struct *it_bit_buff);
 
-WORD32 ixheaacd_latm_payload_length_info(ia_bit_buf_struct* it_bit_buff,
-                                         ixheaacd_latm_struct* latm_element);
+WORD32 ixheaacd_latm_payload_length_info(ia_bit_buf_struct *it_bit_buff,
+                                         ixheaacd_latm_struct *latm_element);
 
 #endif

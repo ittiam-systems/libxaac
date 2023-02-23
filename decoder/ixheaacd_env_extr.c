@@ -695,11 +695,11 @@ static WORD16 ixheaacd_read_enh_sbr_data(
   return num_bits_read;
 }
 
-static VOID ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_header_data,
-                                    ia_ps_dec_struct *ptr_ps_dec,
-                                    ia_bit_buf_struct *it_bit_buff,
-                                    ia_ps_tables_struct *ps_tables_ptr,
-                                    VOID *p_frame_data, WORD32 ele_id) {
+static IA_ERRORCODE ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_header_data,
+                                            ia_ps_dec_struct *ptr_ps_dec,
+                                            ia_bit_buf_struct *it_bit_buff,
+                                            ia_ps_tables_struct *ps_tables_ptr,
+                                            VOID *p_frame_data, WORD32 ele_id) {
   WORD i;
   WORD extended_data;
   WORD no_bits_left;
@@ -732,17 +732,19 @@ static VOID ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_header_data,
         case EXTENSION_ID_PS_CODING:
 
           if (ptr_ps_dec == NULL) {
-            return;
+            return 0;
           }
 
           if (!(ptr_ps_dec->force_mono || ps_read)) {
-            no_bits_left =
-                (no_bits_left - ixheaacd_read_ps_data(ptr_ps_dec, it_bit_buff,
-                                                      (WORD16)no_bits_left,
-                                                      ps_tables_ptr));
+            IA_ERRORCODE ret_val = ixheaacd_read_ps_data(ptr_ps_dec, it_bit_buff,
+                                                         (WORD16)no_bits_left, ps_tables_ptr);
+            if (ret_val == IA_FATAL_ERROR) {
+              return ret_val;
+            } else {
+              no_bits_left = no_bits_left - ret_val;
+            }
 
-            if (no_bits_left < 0) return;
-
+            if (no_bits_left < 0) return 0;
             ptr_header_data->channel_mode = PS_STEREO;
             ps_read = 1;
             break;
@@ -765,11 +767,10 @@ static VOID ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_header_data,
       }
     }
 
-    if (no_bits_left < 0) return;
-
+    if (no_bits_left < 0) return 0;
     ixheaacd_read_bits_buf(it_bit_buff, no_bits_left);
   }
-  return;
+  return 0;
 }
 
 WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
@@ -835,11 +836,11 @@ WORD32 ixheaacd_sbr_read_pvc_sce(ia_sbr_frame_info_data_struct *ptr_frame_data,
   return err_code;
 }
 
-IA_ERRORCODE ixheaacd_sbr_read_sce(
-    ia_sbr_header_data_struct *ptr_header_data,
-    ia_sbr_frame_info_data_struct *ptr_frame_data, ia_ps_dec_struct *ptr_ps_dec,
-    ia_bit_buf_struct *it_bit_buff, ia_sbr_tables_struct *ptr_sbr_tables,
-    WORD audio_object_type) {
+IA_ERRORCODE ixheaacd_sbr_read_sce(ia_sbr_header_data_struct *ptr_header_data,
+                                   ia_sbr_frame_info_data_struct *ptr_frame_data,
+                                   ia_ps_dec_struct *ptr_ps_dec, ia_bit_buf_struct *it_bit_buff,
+                                   ia_sbr_tables_struct *ptr_sbr_tables, WORD audio_object_type,
+                                   WORD32 ec_flag) {
   WORD32 bit;
   WORD32 i;
   WORD32 hbe_flag = ptr_header_data->hbe_flag;
@@ -938,9 +939,15 @@ IA_ERRORCODE ixheaacd_sbr_read_sce(
   }
 
   if (!usac_flag) {
-    ixheaacd_read_extn_data(ptr_header_data, ptr_ps_dec, it_bit_buff,
-                            ptr_sbr_tables->ps_tables_ptr, ptr_frame_data,
-                            SBR_ID_SCE);
+    IA_ERRORCODE err =
+        ixheaacd_read_extn_data(ptr_header_data, ptr_ps_dec, it_bit_buff,
+                                ptr_sbr_tables->ps_tables_ptr, ptr_frame_data, SBR_ID_SCE);
+    if (err == IA_FATAL_ERROR) {
+      if (ec_flag)
+        return 0;
+      else
+        return err;
+    }
   }
 
   return 1;
@@ -1190,9 +1197,12 @@ IA_ERRORCODE ixheaacd_sbr_read_cpe(
   }
 
   if (!usac_flag) {
-    ixheaacd_read_extn_data(ptr_header_data, NULL, it_bit_buff,
-                            ptr_sbr_tables->ps_tables_ptr,
-                            (VOID *)ptr_frame_data, SBR_ID_CPE);
+    IA_ERRORCODE err =
+        ixheaacd_read_extn_data(ptr_header_data, NULL, it_bit_buff, ptr_sbr_tables->ps_tables_ptr,
+                                (VOID *)ptr_frame_data, SBR_ID_CPE);
+    if (err == IA_FATAL_ERROR) {
+      return err;
+    }
   }
   return 1;
 }

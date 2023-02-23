@@ -20,8 +20,6 @@
 #ifndef IXHEAACD_INFO_H
 #define IXHEAACD_INFO_H
 
-#define chans 51
-
 #define EXT_SBR_DATA 13
 
 typedef struct {
