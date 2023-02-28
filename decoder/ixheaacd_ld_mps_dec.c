@@ -50,9 +50,10 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
-
-#include "ixheaacd_channelinfo.h"
 #include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
+#include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_block.h"
@@ -60,8 +61,6 @@
 
 #include "ixheaacd_sbr_payload.h"
 #include "ixheaacd_common_rom.h"
-
-#include "ixheaacd_type_def.h"
 
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
@@ -183,22 +182,22 @@ WORD32 ixheaacd_ld_mps_apply(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
   }
   ixheaacd_mps_qmf_hyb_analysis(mps_handle);
 
-  err = ixheaacd_mps_apply_pre_matrix(mps_handle);
-  if (err < 0) return err;
+  mps_handle->bs_high_rate_mode = 1;
+
+  ixheaacd_mps_apply_pre_matrix(mps_handle);
 
   ixheaacd_mps_create_w(mps_handle);
 
   if ((!(mps_handle->res_bands | mps_handle->pre_mix_req)) &&
       (mps_handle->config->bs_phase_coding == 0)) {
-    err = ixheaacd_mps_apply_mix_matrix_type1(mps_handle);
+    ixheaacd_mps_apply_mix_matrix_type1(mps_handle);
 
   } else if (mps_handle->pre_mix_req) {
-    err = ixheaacd_mps_apply_mix_matrix_type2(mps_handle);
+    ixheaacd_mps_apply_mix_matrix_type2(mps_handle);
 
   } else {
-    err = ixheaacd_mps_apply_mix_matrix_type3(mps_handle);
+    ixheaacd_mps_apply_mix_matrix_type3(mps_handle);
   }
-  if (err < 0) return err;
 
   if (mps_handle->ldmps_config.bs_temp_shape_config == 2) {
     ixheaacd_mps_time_env_shaping(mps_handle);

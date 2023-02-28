@@ -42,8 +42,7 @@
 #include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_mps_calc_m1m2_common.h"
 
-IA_ERRORCODE ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -127,18 +126,14 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state) 
   }
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    err_code = ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l,
-                                       h22_res_l, c_f_l, dummy, 1, ps, res_bands[1]);
-    if (err_code) return err_code;
-    err_code = ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r,
-                                       h22_res_r, c_f_r, dummy, 2, ps, res_bands[2]);
-    if (err_code) return err_code;
-    err_code = ixheaacd_param_2_umx_ps(pstr_mps_state, h11_lc, h12_lc, h21_lc, h22_lc, h12_res_lc,
-                                       h22_res_lc, c_f_lc, dummy, 3, ps, res_bands[3]);
-    if (err_code) return err_code;
-    err_code = ixheaacd_param_2_umx_ps(pstr_mps_state, h11_rc, h12_rc, h21_rc, h22_rc, h12_res_rc,
-                                       h22_res_rc, c_f_rc, dummy, 4, ps, res_bands[4]);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
+                            c_f_l, dummy, 1, ps, res_bands[1]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
+                            c_f_r, dummy, 2, ps, res_bands[2]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_lc, h12_lc, h21_lc, h22_lc, h12_res_lc,
+                            h22_res_lc, c_f_lc, dummy, 3, ps, res_bands[3]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_rc, h12_rc, h21_rc, h22_rc, h12_res_rc,
+                            h22_res_rc, c_f_rc, dummy, 4, ps, res_bands[4]);
 
     for (i = 0; i < 2; i++) {
       for (pb = p_aux_struct->ttt_config[i][0].start_band;
@@ -451,11 +446,10 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state) 
       }
     }
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -540,22 +534,14 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state) 
   }
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
-                                c_1_L, c_2_L, 1, ps, pstr_mps_state->res_bands[1]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
-                                c_1_R, c_2_R, 2, ps, pstr_mps_state->res_bands[2]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_ls, h12_ls, h21_ls, h22_ls, h12_res_ls,
-                                h22_res_ls, dummy, c_f_ls, 3, ps, pstr_mps_state->res_bands[3]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_rs, h12_rs, h21_rs, h22_rs, h12_res_rs,
-                                h22_res_rs, dummy, c_f_rs, 4, ps, pstr_mps_state->res_bands[4]);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
+                            c_1_L, c_2_L, 1, ps, pstr_mps_state->res_bands[1]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
+                            c_1_R, c_2_R, 2, ps, pstr_mps_state->res_bands[2]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_ls, h12_ls, h21_ls, h22_ls, h12_res_ls,
+                            h22_res_ls, dummy, c_f_ls, 3, ps, pstr_mps_state->res_bands[3]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_rs, h12_rs, h21_rs, h22_rs, h12_res_rs,
+                            h22_res_rs, dummy, c_f_rs, 4, ps, pstr_mps_state->res_bands[4]);
 
     for (i = 0; i < 2; i++) {
       for (pb = p_aux_struct->ttt_config[i][0].start_band;
@@ -843,5 +829,5 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state) 
       }
     }
   }
-  return IA_NO_ERROR;
+  return;
 }

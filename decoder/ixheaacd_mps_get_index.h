@@ -20,8 +20,7 @@
 #ifndef IXHEAACD_MPS_GET_INDEX_H
 #define IXHEAACD_MPS_GET_INDEX_H
 
-IA_ERRORCODE ixheaacd_get_ch_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row,
-                                 WORD32 *index);
+VOID ixheaacd_get_ch_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row, WORD32 *index);
 
 WORD32 ixheaacd_get_res_idx(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 row);
 

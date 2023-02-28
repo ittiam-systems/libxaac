@@ -20,8 +20,6 @@
 #ifndef IXHEAACD_VEC_BAISC_OPS_H
 #define IXHEAACD_VEC_BAISC_OPS_H
 
-#define ONE_BY_TWO_POW_15 0.000030517578125
-
 VOID ixheaacd_combine_fac(WORD32 *src1, WORD32 *src2, WORD32 *dest, WORD32 len,
                           WORD8 shift1, WORD8 shift2);
 

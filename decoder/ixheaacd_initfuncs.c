@@ -47,6 +47,8 @@
 
 #include "ixheaacd_lt_predict.h"
 #include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
@@ -425,6 +427,8 @@ ia_aac_decoder_struct *ixheaacd_aac_decoder_init(
     ptr_sbr_bitstream->str_sbr_ele[0].sbr_ele_id = ID_SCE;
     ptr_sbr_bitstream->str_sbr_ele[0].size_payload = 0;
     ptr_sbr_bitstream->str_sbr_ele[0].prev_size_payload = 0;
+    ptr_sbr_bitstream->str_sbr_ele[0].prev_sbr_ele_id = ID_SCE;
+    ptr_sbr_bitstream->str_sbr_ele[0].size_payload_old = 0;
   }
 
   {

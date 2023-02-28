@@ -45,6 +45,9 @@
 
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 
@@ -663,11 +666,11 @@ VOID ixheaacd_esbr_ps_de_correlate(
     maxsb = ptr_ps_dec->ptr_group_borders[gr] + 1;
 
     for (sb = ptr_ps_dec->ptr_group_borders[gr]; sb < maxsb; sb++) {
-      FLOAT32 decayScaleFactor;
+      FLOAT32 decay_scale_factor;
 
-      decayScaleFactor = 1.0f;
+      decay_scale_factor = 1.0f;
 
-      decayScaleFactor = max(decayScaleFactor, 0.0f);
+      decay_scale_factor = max(decay_scale_factor, 0.0f);
 
       l_delay = ptr_ps_dec->delay_buf_idx;
       for (k = 0; k < NUM_SER_AP_LINKS; k++)
@@ -675,7 +678,7 @@ VOID ixheaacd_esbr_ps_de_correlate(
 
       for (k = ptr_ps_dec->border_position[0];
            k < ptr_ps_dec->border_position[ptr_ps_dec->num_env]; k++) {
-        FLOAT32 real, imag, real0, imag0, rR0, iR0;
+        FLOAT32 real, imag, real0, imag0, r_r0, i_r0;
 
         im_left = pp_hyb_left_re[k][sb];
         re_left = pp_hyb_left_im[k][sb];
@@ -691,8 +694,8 @@ VOID ixheaacd_esbr_ps_de_correlate(
           imag = real0 * pp_frac_delay_phase_fac_im[sb] + imag0 *
                  pp_frac_delay_phase_fac_re[sb];
 
-          rR0 = real;
-          iR0 = imag;
+          r_r0 = real;
+          i_r0 = imag;
           for (m = 0; m < NUM_SER_AP_LINKS; m++) {
             real0 = ppp_ser_sub_qmf_dealy_buf_re[m][l_ser_delay_arr[m]][sb];
             imag0 = ppp_ser_sub_qmf_dealy_buf_im[m][l_ser_delay_arr[m]][sb];
@@ -701,22 +704,22 @@ VOID ixheaacd_esbr_ps_de_correlate(
             imag = real0 * pp_frac_delay_phase_fac_ser_im[sb][m] +
                    imag0 * pp_frac_delay_phase_fac_ser_re[sb][m];
 
-            real += -decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * rR0;
-            imag += -decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * iR0;
+            real += -decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * r_r0;
+            imag += -decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * i_r0;
             ppp_ser_sub_qmf_dealy_buf_re[m][l_ser_delay_arr[m]][sb] =
-                rR0 + decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * real;
+                r_r0 + decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * real;
             ppp_ser_sub_qmf_dealy_buf_im[m][l_ser_delay_arr[m]][sb] =
-                iR0 + decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * imag;
-            rR0 = real;
-            iR0 = imag;
+                i_r0 + decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * imag;
+            r_r0 = real;
+            i_r0 = imag;
           }
         }
 
         bin = (~NEGATE_IPD_MASK) & ptr_ps_dec->ptr_bins_group_map[gr];
         trans_ratio = trans_ratio_arr[k][bin];
 
-        pp_hyb_right_re[k][sb] = trans_ratio * rR0;
-        pp_hyb_right_im[k][sb] = trans_ratio * iR0;
+        pp_hyb_right_re[k][sb] = trans_ratio * r_r0;
+        pp_hyb_right_im[k][sb] = trans_ratio * i_r0;
 
         if (++l_delay >= DEL_ALL_PASS) l_delay = 0;
 
@@ -748,13 +751,13 @@ VOID ixheaacd_esbr_ps_de_correlate(
     maxsb = ptr_ps_dec->ptr_group_borders[gr + 1];
 
     for (sb = ptr_ps_dec->ptr_group_borders[gr]; sb < maxsb; sb++) {
-      FLOAT32 decayScaleFactor;
+      FLOAT32 decay_scale_factor;
       if (sb <= decay_cutoff)
-        decayScaleFactor = 1.0f;
+        decay_scale_factor = 1.0f;
       else
-        decayScaleFactor = 1.0f + decay_cutoff * DECAY_SLOPE - DECAY_SLOPE * sb;
+        decay_scale_factor = 1.0f + decay_cutoff * DECAY_SLOPE - DECAY_SLOPE * sb;
 
-      decayScaleFactor = max(decayScaleFactor, 0.0f);
+      decay_scale_factor = max(decay_scale_factor, 0.0f);
 
       l_delay = ptr_ps_dec->delay_buf_idx;
       for (k = 0; k < NUM_SER_AP_LINKS; k++)
@@ -762,7 +765,7 @@ VOID ixheaacd_esbr_ps_de_correlate(
 
       for (k = ptr_ps_dec->border_position[0];
            k < ptr_ps_dec->border_position[ptr_ps_dec->num_env]; k++) {
-        FLOAT32 real, imag, real0, imag0, rR0, iR0;
+        FLOAT32 real, imag, real0, imag0, r_r0, i_r0;
 
         im_left = pp_qmf_buf_re_left[k][sb];
         re_left = pp_qmf_buf_im_left[k][sb];
@@ -770,8 +773,8 @@ VOID ixheaacd_esbr_ps_de_correlate(
         if (gr >= ptr_ps_dec->first_delay_gr && sb >= NUM_OF_ALL_PASS_CHNLS) {
           real = pp_sub_qmf_delay_buf_re[p_delay_qmf_delay_buf_idx[sb]][sb];
           imag = pp_sub_qmf_delay_buf_im[p_delay_qmf_delay_buf_idx[sb]][sb];
-          rR0 = real;
-          iR0 = imag;
+          r_r0 = real;
+          i_r0 = imag;
           pp_sub_qmf_delay_buf_re[p_delay_qmf_delay_buf_idx[sb]][sb] = im_left;
           pp_sub_qmf_delay_buf_im[p_delay_qmf_delay_buf_idx[sb]][sb] = re_left;
         } else {
@@ -785,8 +788,8 @@ VOID ixheaacd_esbr_ps_de_correlate(
           imag = real0 * pp_frac_delay_phase_fac_im[sb] + imag0 *
                  pp_frac_delay_phase_fac_re[sb];
 
-          rR0 = real;
-          iR0 = imag;
+          r_r0 = real;
+          i_r0 = imag;
           for (m = 0; m < NUM_SER_AP_LINKS; m++) {
             real0 = ppp_ser_sub_qmf_dealy_buf_re[m][l_ser_delay_arr[m]][sb];
             imag0 = ppp_ser_sub_qmf_dealy_buf_im[m][l_ser_delay_arr[m]][sb];
@@ -795,22 +798,22 @@ VOID ixheaacd_esbr_ps_de_correlate(
             imag = real0 * pp_frac_delay_phase_fac_ser_im[sb][m] +
                    imag0 * pp_frac_delay_phase_fac_ser_re[sb][m];
 
-            real += -decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * rR0;
-            imag += -decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * iR0;
+            real += -decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * r_r0;
+            imag += -decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * i_r0;
             ppp_ser_sub_qmf_dealy_buf_re[m][l_ser_delay_arr[m]][sb] =
-                rR0 + decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * real;
+                r_r0 + decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * real;
             ppp_ser_sub_qmf_dealy_buf_im[m][l_ser_delay_arr[m]][sb] =
-                iR0 + decayScaleFactor * ptr_ps_tables->all_pass_link_decay_ser[m] * imag;
-            rR0 = real;
-            iR0 = imag;
+                i_r0 + decay_scale_factor * ptr_ps_tables->all_pass_link_decay_ser[m] * imag;
+            r_r0 = real;
+            i_r0 = imag;
           }
         }
 
         bin = (~NEGATE_IPD_MASK) & ptr_ps_dec->ptr_bins_group_map[gr];
         trans_ratio = trans_ratio_arr[k][bin];
 
-        pp_qmf_buf_re_right[k][sb] = trans_ratio * rR0;
-        pp_qmf_buf_im_right[k][sb] = trans_ratio * iR0;
+        pp_qmf_buf_re_right[k][sb] = trans_ratio * r_r0;
+        pp_qmf_buf_im_right[k][sb] = trans_ratio * i_r0;
 
         if (++l_delay >= DEL_ALL_PASS) l_delay = 0;
 

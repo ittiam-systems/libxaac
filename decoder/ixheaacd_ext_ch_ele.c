@@ -44,6 +44,9 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_rom.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_tns_usac.h"
@@ -66,7 +69,8 @@
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
 #include "ixheaacd_channelinfo.h"
-
+#include "ixheaacd_ec.h"
+#include "ixheaacd_error_codes.h"
 
 const WORD16 ixheaacd_mdst_fcoeff_long_sin[] = {0, 0, -16384, 0, 16384, 0, 0};
 const WORD16 ixheaacd_mdst_fcoeff_long_kbd[] = {-2998, 0, -19052, 0,
@@ -634,7 +638,7 @@ WORD32 ixheaacd_ics_info(ia_usac_data_struct *usac_data, WORD32 chn,
 
   if (*max_sfb > usac_data->pstr_sfb_info[chn]->sfb_per_sbk) {
     *max_sfb = usac_data->pstr_sfb_info[chn]->sfb_per_sbk;
-    return 0;
+    return -1;
   }
 
   return 0;
@@ -650,275 +654,416 @@ WORD32 ixheaacd_core_coder_data(WORD32 id, ia_usac_data_struct *usac_data,
   ia_usac_tmp_core_coder_struct str_tmp_core_coder = {0};
   ia_usac_tmp_core_coder_struct *pstr_core_coder = &str_tmp_core_coder;
   ia_td_frame_data_struct td_frame;
+  jmp_buf local;
 
-  memset(&td_frame, 0, sizeof(td_frame));
-  pstr_core_coder->tns_on_lr = 0;
-  pstr_core_coder->pred_dir = 0;
-  if (id != ID_USAC_LFE) {
-    for (ch = 0; ch < nr_core_coder_channels; ch++)
-      pstr_core_coder->core_mode[ch] = ixheaacd_read_bits_buf(it_bit_buff, 1);
-  } else {
-    for (ch = 0; ch < nr_core_coder_channels; ch++)
-      pstr_core_coder->core_mode[ch] = 0;
+  if (usac_data->ec_flag) {
+    err_code = setjmp(local);
+    it_bit_buff->xaac_jmp_buf = &local;
   }
-
-  if (nr_core_coder_channels == 2 && pstr_core_coder->core_mode[0] == 0 &&
-      pstr_core_coder->core_mode[1] == 0) {
-    pstr_core_coder->tns_active = ixheaacd_read_bits_buf(it_bit_buff, 1);
-    pstr_core_coder->common_window = ixheaacd_read_bits_buf(it_bit_buff, 1);
-
-    if (pstr_core_coder->common_window) {
-      left = chan_offset;
-      right = chan_offset + 1;
-
-      err_code =
-          ixheaacd_ics_info(usac_data, left, &pstr_core_coder->max_sfb[left],
-                            it_bit_buff, usac_data->window_sequence_last[left]);
-
-      if (err_code == -1) return err_code;
-
-      pstr_core_coder->common_max_sfb = ixheaacd_read_bits_buf(it_bit_buff, 1);
-
-      if (pstr_core_coder->common_max_sfb == 0) {
-        if (usac_data->window_sequence[left] == EIGHT_SHORT_SEQUENCE)
-          pstr_core_coder->max_sfb[right] =
-              ixheaacd_read_bits_buf(it_bit_buff, 4);
-        else
-          pstr_core_coder->max_sfb[right] =
-              ixheaacd_read_bits_buf(it_bit_buff, 6);
-      } else {
-        pstr_core_coder->max_sfb[right] = pstr_core_coder->max_sfb[left];
-      }
-
-      pstr_core_coder->max_sfb_ste =
-          max(pstr_core_coder->max_sfb[left], pstr_core_coder->max_sfb[right]);
-
-      usac_data->window_sequence[right] = usac_data->window_sequence[left];
-      usac_data->window_shape[right] = usac_data->window_shape[left];
-      memcpy(&usac_data->group_dis[right][0], &usac_data->group_dis[left][0],
-             8);
-      usac_data->pstr_sfb_info[right] = usac_data->pstr_sfb_info[left];
-      if (pstr_core_coder->max_sfb[right] >
-          usac_data->pstr_sfb_info[right]->sfb_per_sbk)
-        pstr_core_coder->max_sfb[right] =
-            usac_data->pstr_sfb_info[right]->sfb_per_sbk;
-
-      pstr_core_coder->ms_mask_present[0] =
-          ixheaacd_read_ms_mask(usac_data, pstr_core_coder, it_bit_buff, left);
+  if (err_code == 0 &&
+      ((usac_data->ec_flag == 0) || (usac_data->frame_ok == 1 && usac_data->ec_flag == 1))) {
+    memset(&td_frame, 0, sizeof(td_frame));
+    pstr_core_coder->tns_on_lr = 0;
+    pstr_core_coder->pred_dir = 0;
+    if (id != ID_USAC_LFE) {
+      for (ch = 0; ch < nr_core_coder_channels; ch++)
+        pstr_core_coder->core_mode[ch] = ixheaacd_read_bits_buf(it_bit_buff, 1);
     } else {
-      left = chan_offset;
-      right = chan_offset + 1;
-
-      pstr_core_coder->ms_mask_present[0] = 0;
-      pstr_core_coder->ms_mask_present[1] = 0;
-
-      for (k = 0; k < SFB_NUM_MAX; k++) {
-        usac_data->alpha_q_re_prev[k] = 0;
-        usac_data->alpha_q_im_prev[k] = 0;
-      }
+      for (ch = 0; ch < nr_core_coder_channels; ch++) pstr_core_coder->core_mode[ch] = 0;
     }
 
-    if (usac_data->tw_mdct[elem_idx] == 1) {
-      pstr_core_coder->common_tw = ixheaacd_read_bits_buf(it_bit_buff, 1);
+    if (nr_core_coder_channels == 2 && pstr_core_coder->core_mode[0] == 0 &&
+        pstr_core_coder->core_mode[1] == 0) {
+      pstr_core_coder->tns_active = ixheaacd_read_bits_buf(it_bit_buff, 1);
+      pstr_core_coder->common_window = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
-      if (pstr_core_coder->common_tw == 1) {
-        usac_data->tw_data_present[left] =
-            ixheaacd_read_bits_buf(it_bit_buff, 1);
-        usac_data->tw_data_present[right] = usac_data->tw_data_present[left];
-        if (usac_data->tw_data_present[left]) {
-          for (k = 0; k < NUM_TW_NODES; k++) {
-            usac_data->tw_ratio[left][k] =
-                ixheaacd_read_bits_buf(it_bit_buff, 3);
-            usac_data->tw_ratio[right][k] = usac_data->tw_ratio[left][k];
+      if (pstr_core_coder->common_window) {
+        left = chan_offset;
+        right = chan_offset + 1;
+
+        err_code = ixheaacd_ics_info(usac_data, left, &pstr_core_coder->max_sfb[left],
+                                     it_bit_buff, usac_data->window_sequence_last[left]);
+
+        if (err_code == -1) {
+          if (usac_data->ec_flag) {
+            memcpy(usac_data->max_sfb, pstr_core_coder->max_sfb,
+                   sizeof(pstr_core_coder->max_sfb));
+            longjmp(*(it_bit_buff->xaac_jmp_buf),
+                    IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+          } else {
+            return err_code;
+          }
+        }
+
+        pstr_core_coder->common_max_sfb = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+        if (pstr_core_coder->common_max_sfb == 0) {
+          if (usac_data->window_sequence[left] == EIGHT_SHORT_SEQUENCE)
+            pstr_core_coder->max_sfb[right] = ixheaacd_read_bits_buf(it_bit_buff, 4);
+          else
+            pstr_core_coder->max_sfb[right] = ixheaacd_read_bits_buf(it_bit_buff, 6);
+        } else {
+          pstr_core_coder->max_sfb[right] = pstr_core_coder->max_sfb[left];
+        }
+
+        pstr_core_coder->max_sfb_ste =
+            max(pstr_core_coder->max_sfb[left], pstr_core_coder->max_sfb[right]);
+
+        usac_data->window_sequence[right] = usac_data->window_sequence[left];
+        usac_data->window_shape[right] = usac_data->window_shape[left];
+        memcpy(&usac_data->group_dis[right][0], &usac_data->group_dis[left][0], 8);
+        usac_data->pstr_sfb_info[right] = usac_data->pstr_sfb_info[left];
+        if (pstr_core_coder->max_sfb[right] > usac_data->pstr_sfb_info[right]->sfb_per_sbk)
+          pstr_core_coder->max_sfb[right] = usac_data->pstr_sfb_info[right]->sfb_per_sbk;
+
+        pstr_core_coder->ms_mask_present[0] =
+            ixheaacd_read_ms_mask(usac_data, pstr_core_coder, it_bit_buff, left);
+      } else {
+        left = chan_offset;
+        right = chan_offset + 1;
+
+        pstr_core_coder->ms_mask_present[0] = 0;
+        pstr_core_coder->ms_mask_present[1] = 0;
+
+        for (k = 0; k < SFB_NUM_MAX; k++) {
+          usac_data->alpha_q_re_prev[k] = 0;
+          usac_data->alpha_q_im_prev[k] = 0;
+        }
+      }
+
+      if (usac_data->tw_mdct[elem_idx] == 1) {
+        pstr_core_coder->common_tw = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+        if (pstr_core_coder->common_tw == 1) {
+          usac_data->tw_data_present[left] = ixheaacd_read_bits_buf(it_bit_buff, 1);
+          usac_data->tw_data_present[right] = usac_data->tw_data_present[left];
+          if (usac_data->tw_data_present[left]) {
+            for (k = 0; k < NUM_TW_NODES; k++) {
+              usac_data->tw_ratio[left][k] = ixheaacd_read_bits_buf(it_bit_buff, 3);
+              usac_data->tw_ratio[right][k] = usac_data->tw_ratio[left][k];
+            }
           }
         }
       }
-    }
 
-    if (pstr_core_coder->tns_active) {
-      if (pstr_core_coder->common_window) {
-        pstr_core_coder->common_tns = ixheaacd_read_bits_buf(it_bit_buff, 1);
+      if (pstr_core_coder->tns_active) {
+        if (pstr_core_coder->common_window) {
+          pstr_core_coder->common_tns = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
+        } else {
+          pstr_core_coder->common_tns = 0;
+        }
+
+        pstr_core_coder->tns_on_lr = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+        if (pstr_core_coder->common_tns) {
+          ixheaacd_read_tns_u(usac_data->pstr_sfb_info[0], &usac_data->pstr_tns[left][0],
+                              it_bit_buff);
+          memcpy(&usac_data->pstr_tns[right][0], &usac_data->pstr_tns[left][0],
+                 sizeof(ia_tns_frame_info_struct));
+
+          pstr_core_coder->tns_data_present[0] = 2;
+          pstr_core_coder->tns_data_present[1] = 2;
+        } else {
+          pstr_core_coder->tns_present_both = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+          if (pstr_core_coder->tns_present_both) {
+            pstr_core_coder->tns_data_present[0] = 1;
+            pstr_core_coder->tns_data_present[1] = 1;
+          } else {
+            pstr_core_coder->tns_data_present[1] = ixheaacd_read_bits_buf(it_bit_buff, 1);
+            pstr_core_coder->tns_data_present[0] = 1 - pstr_core_coder->tns_data_present[1];
+          }
+        }
       } else {
         pstr_core_coder->common_tns = 0;
+        pstr_core_coder->tns_data_present[0] = 0;
+        pstr_core_coder->tns_data_present[1] = 0;
       }
 
-      pstr_core_coder->tns_on_lr = ixheaacd_read_bits_buf(it_bit_buff, 1);
+    } else {
+      pstr_core_coder->common_window = 0;
+      pstr_core_coder->common_tw = 0;
+      left = chan_offset;
+      right = chan_offset;
+      if (nr_core_coder_channels == 2) right = chan_offset + 1;
+    }
 
-      if (pstr_core_coder->common_tns) {
-        ixheaacd_read_tns_u(usac_data->pstr_sfb_info[0],
-                            &usac_data->pstr_tns[left][0], it_bit_buff);
-        memcpy(&usac_data->pstr_tns[right][0], &usac_data->pstr_tns[left][0],
-               sizeof(ia_tns_frame_info_struct));
-
-        pstr_core_coder->tns_data_present[0] = 2;
-        pstr_core_coder->tns_data_present[1] = 2;
-      } else {
-        pstr_core_coder->tns_present_both =
-            ixheaacd_read_bits_buf(it_bit_buff, 1);
-
-        if (pstr_core_coder->tns_present_both) {
-          pstr_core_coder->tns_data_present[0] = 1;
-          pstr_core_coder->tns_data_present[1] = 1;
-        } else {
-          pstr_core_coder->tns_data_present[1] =
-              ixheaacd_read_bits_buf(it_bit_buff, 1);
-          pstr_core_coder->tns_data_present[0] =
-              1 - pstr_core_coder->tns_data_present[1];
+    for (ch = 0, chn = chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
+      if (pstr_core_coder->core_mode[chn] == CORE_MODE_LPD &&
+          usac_data->td_frame_prev[chn] == CORE_MODE_FD && usac_data->ec_flag) {
+        memcpy(usac_data->coef_fix[chn], usac_data->str_error_concealment[chn].spectral_coeff,
+               sizeof(usac_data->str_error_concealment[chn].spectral_coeff));
+        memcpy(usac_data->spec_scale[chn], usac_data->str_error_concealment[chn].q_spec_coeff,
+               sizeof(usac_data->spec_scale[chn]));
+        err_code = ixheaacd_fd_frm_dec(usac_data, chn);
+        if (err_code == -1) return err_code;
+        for (k = 0; k < usac_data->ccfl; k++) {
+          usac_data->time_sample_vector[chn][k] = (FLOAT32)(
+              (FLOAT32)usac_data->output_data_ptr[chn][k] * (FLOAT32)(ONE_BY_TWO_POW_15));
         }
+        memcpy(usac_data->time_sample_vector_prev[chn], usac_data->time_sample_vector[chn],
+               usac_data->ccfl * sizeof(usac_data->time_sample_vector_prev[chn][0]));
+
+        usac_data->window_sequence[ch] = usac_data->str_error_concealment[ch].win_seq;
+        usac_data->window_shape[ch] = usac_data->str_error_concealment[ch].win_shape;
+        usac_data->window_shape_prev[ch] = usac_data->window_shape[ch];
+        usac_data->window_sequence_last[ch] = usac_data->window_sequence[ch];
       }
-    } else {
-      pstr_core_coder->common_tns = 0;
-      pstr_core_coder->tns_data_present[0] = 0;
-      pstr_core_coder->tns_data_present[1] = 0;
-    }
+      if (pstr_core_coder->core_mode[ch] == 1) {
+        err_code = ixheaacd_tw_buff_update(usac_data, chn, usac_data->str_tddec[chn]);
+        if (err_code == -1) return err_code;
 
-  } else {
-    pstr_core_coder->common_window = 0;
-    pstr_core_coder->common_tw = 0;
-    left = chan_offset;
-    right = chan_offset;
-    if (nr_core_coder_channels == 2) right = chan_offset + 1;
-  }
+        if (!usac_data->td_frame_prev[chn]) {
+          ixheaacd_fix2flt_data(usac_data, usac_data->str_tddec[chn], chn);
+        }
 
-  for (ch = 0, chn = chan_offset; ch < nr_core_coder_channels; ch++, chn++) {
-    if (pstr_core_coder->core_mode[ch] == 1) {
-      err_code =
-          ixheaacd_tw_buff_update(usac_data, chn, usac_data->str_tddec[chn]);
-      if (err_code == -1) return err_code;
+        for (k = 0; k < usac_data->ccfl; k++) {
+          usac_data->time_sample_vector[chn][k] = (FLOAT32)(
+              (FLOAT32)usac_data->output_data_ptr[chn][k] * (FLOAT32)(ONE_BY_TWO_POW_15));
+        }
+        usac_data->present_chan = chn;
+        err_code = ixheaacd_lpd_channel_stream(usac_data, &td_frame, it_bit_buff,
+                                               usac_data->time_sample_vector[chn]);
+        if (err_code == -1) return err_code;
+        if (usac_data->ec_flag) {
+          it_bit_buff->xaac_jmp_buf = &local;
+        }
+        if (usac_data->ec_flag && usac_data->frame_ok) {
+          memcpy(&usac_data->td_frame_data_prev[chn], &td_frame, sizeof(td_frame));
+          usac_data->core_mode = CORE_MODE_LPD;
+        }
+        for (k = 0; k < usac_data->ccfl; k++) {
+          usac_data->output_data_ptr[chn][k] =
+              (WORD32)(usac_data->time_sample_vector[chn][k] * (FLOAT32)((WORD64)1 << 15));
+        }
 
-      if (!usac_data->td_frame_prev[chn]) {
-        ixheaacd_fix2flt_data(usac_data, usac_data->str_tddec[chn], chn);
-      }
+        usac_data->window_shape[chn] = WIN_SEL_0;
 
-      for (k = 0; k < usac_data->ccfl; k++) {
-        usac_data->time_sample_vector[chn][k] =
-            (FLOAT32)((FLOAT32)usac_data->output_data_ptr[chn][k] *
-                      (FLOAT32)(ONE_BY_TWO_POW_15));
-      }
-      usac_data->present_chan = chn;
-      err_code =
-          ixheaacd_lpd_channel_stream(usac_data, &td_frame, it_bit_buff,
-                                      usac_data->time_sample_vector[chn]);
-      if (err_code == -1) return err_code;
+        ixheaacd_td_frm_dec(usac_data, chn, td_frame.mod[0]);
 
-      for (k = 0; k < usac_data->ccfl; k++) {
-        usac_data->output_data_ptr[chn][k] = (WORD32)(
-            usac_data->time_sample_vector[chn][k] * (FLOAT32)((WORD64)1 << 15));
-      }
+        usac_data->window_shape_prev[chn] = usac_data->window_shape[chn];
+        usac_data->window_sequence_last[chn] = EIGHT_SHORT_SEQUENCE;
 
-      usac_data->window_shape[chn] = WIN_SEL_0;
+      } else {
+        memset(usac_data->coef_fix[chn], 0, LN2 * sizeof(*usac_data->coef_fix[0]));
 
-      ixheaacd_td_frm_dec(usac_data, chn, td_frame.mod[0]);
+        if (usac_data->str_tddec[chn] && usac_data->td_frame_prev[chn]) {
+          if (usac_data->ec_flag) {
+            memcpy(usac_data->time_sample_vector[chn], usac_data->time_sample_vector_prev[chn],
+                   usac_data->ccfl * sizeof(usac_data->time_sample_vector[chn][0]));
+          }
+          ixheaacd_lpd_dec_update(usac_data->str_tddec[chn], usac_data, chn);
+        }
 
-      for (k = 0; k < usac_data->ccfl; k++) {
-        usac_data->time_sample_vector[chn][k] =
-            (FLOAT32)((FLOAT32)usac_data->output_data_ptr[chn][k] *
-                      (FLOAT32)(ONE_BY_TWO_POW_15));
-      }
+        if (id != ID_USAC_LFE) {
+          if ((nr_core_coder_channels == 1) ||
+              (pstr_core_coder->core_mode[0] != pstr_core_coder->core_mode[1]))
+            pstr_core_coder->tns_data_present[ch] = ixheaacd_read_bits_buf(it_bit_buff, 1);
+        }
 
-      usac_data->window_shape_prev[chn] = usac_data->window_shape[chn];
-      usac_data->window_sequence_last[chn] = EIGHT_SHORT_SEQUENCE;
-
-    } else {
-      memset(usac_data->coef_fix[chn], 0,
-             LN2 * sizeof(*usac_data->coef_fix[0]));
-
-      if (usac_data->str_tddec[chn] && usac_data->td_frame_prev[chn]) {
-        ixheaacd_lpd_dec_update(usac_data->str_tddec[chn], usac_data, chn);
-      }
-
-      if (id != ID_USAC_LFE) {
-        if ((nr_core_coder_channels == 1) ||
-            (pstr_core_coder->core_mode[0] != pstr_core_coder->core_mode[1]))
-          pstr_core_coder->tns_data_present[ch] =
-              ixheaacd_read_bits_buf(it_bit_buff, 1);
-      }
-
-      err_code = ixheaacd_fd_channel_stream(
-          usac_data, pstr_core_coder, &pstr_core_coder->max_sfb[ch],
-          usac_data->window_sequence_last[chn], chn,
-          usac_data->noise_filling_config[elem_idx], ch, it_bit_buff);
-      if (err_code == -1) return err_code;
-    }
-  }
-
-  if (pstr_core_coder->core_mode[0] == CORE_MODE_FD &&
-      pstr_core_coder->core_mode[1] == CORE_MODE_FD &&
-      nr_core_coder_channels == 2) {
-    ixheaacd_cplx_prev_mdct_dmx(
-        usac_data->pstr_sfb_info[left], usac_data->coef_save[left],
-        usac_data->coef_save[right], usac_data->dmx_re_prev,
-        pstr_core_coder->pred_dir);
-  }
-
-  if (pstr_core_coder->tns_on_lr == 0 && (id != ID_USAC_LFE)) {
-    for (ch = 0, chn = left; chn <= right; ch++, chn++) {
-      if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-        err_code = ixheaacd_tns_apply(
-            usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
-            usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
-        if (err_code) return err_code;
+        err_code = ixheaacd_fd_channel_stream(
+            usac_data, pstr_core_coder, &pstr_core_coder->max_sfb[ch],
+            usac_data->window_sequence_last[chn], chn, usac_data->noise_filling_config[elem_idx],
+            ch, it_bit_buff);
+        if (err_code == -1) return err_code;
       }
     }
-  }
 
-  if (nr_core_coder_channels == 2 && pstr_core_coder->core_mode[0] == 0 &&
-      pstr_core_coder->core_mode[1] == 0) {
-    if (pstr_core_coder->ms_mask_present[0] == 3) {
-      ixheaacd_cplx_pred_upmixing(usac_data, usac_data->coef_fix[left],
-                                  usac_data->coef_fix[right], pstr_core_coder,
-                                  left);
-
-    } else if (pstr_core_coder->ms_mask_present[0] > 0) {
-      ixheaacd_ms_stereo(
-          usac_data, usac_data->coef_fix[right], usac_data->coef_fix[left],
-          left, pstr_core_coder->max_sfb[right] > pstr_core_coder->max_sfb[left]
-                    ? pstr_core_coder->max_sfb[right]
-                    : pstr_core_coder->max_sfb[left]);
+    if (pstr_core_coder->core_mode[0] == CORE_MODE_FD &&
+        pstr_core_coder->core_mode[1] == CORE_MODE_FD && nr_core_coder_channels == 2) {
+      ixheaacd_cplx_prev_mdct_dmx(usac_data->pstr_sfb_info[left], usac_data->coef_save[left],
+                                  usac_data->coef_save[right], usac_data->dmx_re_prev,
+                                  pstr_core_coder->pred_dir);
     }
 
-    if (pstr_core_coder->tns_on_lr) {
+    if (pstr_core_coder->tns_on_lr == 0 && (id != ID_USAC_LFE)) {
       for (ch = 0, chn = left; chn <= right; ch++, chn++) {
         if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
-          err_code = ixheaacd_tns_apply(
-              usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
-              usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+          err_code = ixheaacd_tns_apply(usac_data, usac_data->coef_fix[chn],
+                                        pstr_core_coder->max_sfb[ch],
+                                        usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
           if (err_code) return err_code;
         }
       }
     }
 
-    ixheaacd_usac_cplx_save_prev(
-        usac_data->pstr_sfb_info[left], usac_data->coef_fix[left],
-        usac_data->coef_fix[right], usac_data->coef_save[left],
-        usac_data->coef_save[right]);
+    if (nr_core_coder_channels == 2 && pstr_core_coder->core_mode[0] == 0 &&
+        pstr_core_coder->core_mode[1] == 0) {
+      if (pstr_core_coder->ms_mask_present[0] == 3) {
+        ixheaacd_cplx_pred_upmixing(usac_data, usac_data->coef_fix[left],
+                                    usac_data->coef_fix[right], pstr_core_coder, left);
+
+      } else if (pstr_core_coder->ms_mask_present[0] > 0) {
+        ixheaacd_ms_stereo(usac_data, usac_data->coef_fix[right], usac_data->coef_fix[left], left,
+                           pstr_core_coder->max_sfb[right] > pstr_core_coder->max_sfb[left]
+                               ? pstr_core_coder->max_sfb[right]
+                               : pstr_core_coder->max_sfb[left]);
+      }
+
+      if (pstr_core_coder->tns_on_lr) {
+        for (ch = 0, chn = left; chn <= right; ch++, chn++) {
+          if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
+            err_code = ixheaacd_tns_apply(
+                usac_data, usac_data->coef_fix[chn], pstr_core_coder->max_sfb[ch],
+                usac_data->pstr_sfb_info[chn], usac_data->pstr_tns[chn]);
+            if (err_code) return err_code;
+          }
+        }
+      }
+
+      ixheaacd_usac_cplx_save_prev(usac_data->pstr_sfb_info[left], usac_data->coef_fix[left],
+                                   usac_data->coef_fix[right], usac_data->coef_save[left],
+                                   usac_data->coef_save[right]);
+    }
+    if (usac_data->ec_flag) {
+      for (chn = left; chn <= right; chn++) {
+        if (pstr_core_coder->core_mode[chn] == CORE_MODE_FD &&
+            usac_data->td_frame_prev[chn] == CORE_MODE_LPD) {
+          memcpy(usac_data->str_error_concealment[chn].spectral_coeff, usac_data->coef_fix[chn],
+                 sizeof(usac_data->str_error_concealment[chn].spectral_coeff));
+          memcpy(usac_data->str_error_concealment[chn].q_spec_coeff, usac_data->spec_scale[chn],
+                 sizeof(usac_data->spec_scale[chn]));
+          usac_data->str_error_concealment[chn].win_seq = usac_data->window_sequence[chn];
+          usac_data->str_error_concealment[chn].win_shape = usac_data->window_shape[chn];
+          usac_data->str_error_concealment[chn].win_shape_prev =
+              usac_data->window_shape_prev[chn];
+          usac_data->str_error_concealment[chn].td_frame_prev = usac_data->td_frame_prev[chn];
+          usac_data->str_error_concealment[chn].fac_data_present =
+              usac_data->fac_data_present[chn];
+        }
+      }
+      if (usac_data->frame_ok && usac_data->ec_flag) {
+        memcpy(usac_data->max_sfb, pstr_core_coder->max_sfb, sizeof(pstr_core_coder->max_sfb));
+      }
+    }
+  } else {
+    left = chan_offset;
+    right = chan_offset;
+    if (nr_core_coder_channels == 2) right = chan_offset + 1;
+    if (usac_data->ec_flag == 1) {
+      WORD32 err = 0;
+      usac_data->frame_ok = 0;
+      for (ch = left; ch <= right; ch++) {
+        if (usac_data->td_frame_prev[ch] == CORE_MODE_LPD) {
+          usac_data->fac_data_present[ch] = 0;
+          usac_data->str_error_concealment[ch].pstr_ec_scratch =
+              (ia_ec_scratch_str *)&usac_data->str_error_concealment[ch].str_ec_scratch;
+          usac_data->core_mode = usac_data->td_frame_prev[ch];
+          usac_data->present_chan = ch;
+          ixheaacd_usac_apply_ec(usac_data, NULL, ch);
+          err = ixheaacd_lpd_dec(usac_data, usac_data->str_tddec[ch],
+                                 &usac_data->td_frame_data_prev[ch],
+                                 usac_data->time_sample_vector[ch], usac_data->first_lpd_flag, 0,
+                                 usac_data->bpf_control_info);
+
+          if (err) return err;
+
+          for (k = 0; k < usac_data->ccfl; k++) {
+            usac_data->output_data_ptr[ch][k] =
+                (WORD32)(usac_data->time_sample_vector[ch][k] * (FLOAT32)((WORD64)1 << 15));
+          }
+
+          usac_data->window_shape[ch] = WIN_SEL_0;
+          usac_data->window_shape_prev[ch] = usac_data->window_shape[ch];
+          usac_data->window_sequence_last[ch] = EIGHT_SHORT_SEQUENCE;
+        } else {
+          pstr_core_coder->core_mode[ch] = CORE_MODE_FD;
+        }
+      }
+    }
   }
 
   for (ch = left; ch <= right; ch++) {
-    if (pstr_core_coder->core_mode[ch] == CORE_MODE_FD) {
+    FLOAT32 *ptr_scratch =
+        (FLOAT32 *)usac_data->str_error_concealment[ch].str_ec_scratch.spec_coeff;
+    if ((pstr_core_coder->core_mode[ch] != CORE_MODE_LPD &&
+         usac_data->td_frame_prev[ch] != CORE_MODE_LPD && usac_data->ec_flag) ||
+        (pstr_core_coder->core_mode[ch] == CORE_MODE_FD && usac_data->ec_flag == 0)) {
       if (usac_data->tw_mdct[elem_idx]) {
         err_code = -1;
         return err_code;
 
       } else {
+        if (usac_data->frame_ok == 0) {
+          usac_data->fac_data_present[ch] = 0;
+        }
         err_code = ixheaacd_fd_frm_dec(usac_data, ch);
         if (err_code == -1) return err_code;
+        if (usac_data->ec_flag) {
+          if (usac_data->str_error_concealment[ch].fade_idx < MAX_FADE_FRAMES) {
+            FLOAT32 fade_fac = (FLOAT32)(ONE_BY_TWO_POW_15)*ia_ec_fade_factors
+                [usac_data->str_error_concealment[ch].fade_idx];
+            for (k = 0; k < usac_data->ccfl; k++) {
+              usac_data->time_sample_vector[ch][k] =
+                  (FLOAT32)((FLOAT32)usac_data->output_data_ptr[ch][k] * fade_fac);
+            }
+          } else {
+            memset(&usac_data->time_sample_vector[ch][0], 0,
+                   usac_data->ccfl * sizeof(usac_data->time_sample_vector[ch][0]));
+          }
+        } else {
+          for (k = 0; k < usac_data->ccfl; k++) {
+            usac_data->time_sample_vector[ch][k] =
+                (FLOAT32)((FLOAT32)usac_data->output_data_ptr[ch][k] *
+                          (FLOAT32)(ONE_BY_TWO_POW_15));
+          }
+        }
+      }
+      usac_data->window_shape_prev[ch] = usac_data->window_shape[ch];
+      usac_data->window_sequence_last[ch] = usac_data->window_sequence[ch];
+    } else {
+      if (usac_data->ec_flag) {
+        usac_data->str_error_concealment[ch].prev_frame_ok[0] =
+            usac_data->str_error_concealment[ch].prev_frame_ok[1];
+        usac_data->str_error_concealment[ch].prev_frame_ok[1] = usac_data->frame_ok;
 
+        if (usac_data->str_error_concealment[ch].fade_idx < MAX_FADE_FRAMES) {
+          FLOAT32 fade_fac =
+              (FLOAT32)(ONE_BY_TWO_POW_15)*ia_ec_fade_factors[usac_data->str_error_concealment[ch]
+                                                                  .fade_idx];
+          for (k = 0; k < usac_data->ccfl; k++) {
+            usac_data->time_sample_vector[ch][k] =
+                (FLOAT32)((FLOAT32)usac_data->output_data_ptr[ch][k] * fade_fac);
+          }
+        } else {
+          memset(&usac_data->time_sample_vector[ch][0], 0,
+                 usac_data->ccfl * sizeof(usac_data->time_sample_vector[ch][0]));
+        }
+
+        memcpy(ptr_scratch, usac_data->time_sample_vector[ch],
+               usac_data->ccfl * sizeof(ptr_scratch[0]));
+        memcpy(usac_data->time_sample_vector[ch], usac_data->time_sample_vector_prev[ch],
+               usac_data->ccfl * sizeof(usac_data->time_sample_vector[ch][0]));
+        memcpy(usac_data->time_sample_vector_prev[ch], ptr_scratch,
+               usac_data->ccfl * sizeof(ptr_scratch[0]));
+      } else {
         for (k = 0; k < usac_data->ccfl; k++) {
           usac_data->time_sample_vector[ch][k] =
               (FLOAT32)((FLOAT32)usac_data->output_data_ptr[ch][k] *
                         (FLOAT32)(ONE_BY_TWO_POW_15));
         }
       }
-
-      usac_data->window_shape_prev[ch] = usac_data->window_shape[ch];
-      usac_data->window_sequence_last[ch] = usac_data->window_sequence[ch];
+    }
+    if (usac_data->ec_flag) {
+      usac_data->window_sequence[ch] = usac_data->str_error_concealment[ch].win_seq;
+      usac_data->window_shape[ch] = usac_data->str_error_concealment[ch].win_shape;
+      if (usac_data->first_frame == 0) {
+        usac_data->window_shape_prev[ch] = usac_data->window_shape[ch];
+        usac_data->window_sequence_last[ch] = usac_data->window_sequence[ch];
+      }
     }
   }
-
-  for (ch = 0, chn = left; chn <= right; chn++, ch++)
-    usac_data->td_frame_prev[chn] = pstr_core_coder->core_mode[ch];
+  if (usac_data->ec_flag) {
+    usac_data->first_frame = 0;
+    if (usac_data->frame_ok == 1) {
+      for (ch = 0, chn = left; chn <= right; chn++, ch++)
+        usac_data->td_frame_prev[chn] = pstr_core_coder->core_mode[ch];
+    }
+  } else {
+    for (ch = 0, chn = left; chn <= right; chn++, ch++)
+      usac_data->td_frame_prev[chn] = pstr_core_coder->core_mode[ch];
+  }
 
   return 0;
 }

@@ -215,8 +215,7 @@ static VOID ixheaacd_update_alpha(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 }
 
-IA_ERRORCODE ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 up_mix_type = pstr_mps_state->up_mix_type;
   WORD32 binaural_quality = pstr_mps_state->binaural_quality;
 
@@ -227,39 +226,32 @@ IA_ERRORCODE ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   switch (pstr_mps_state->tree_config) {
     case TREE_5151: {
       if (up_mix_type == 3) {
-        err_code = ixheaacd_calc_m1m2_51s1(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_51s1(pstr_mps_state);
       } else {
-        err_code = ixheaacd_calc_m1m2_5151(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_5151(pstr_mps_state);
       }
     } break;
     case TREE_5152: {
       if (up_mix_type == 3) {
-        err_code = ixheaacd_calc_m1m2_51s2(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_51s2(pstr_mps_state);
       } else {
-        err_code = ixheaacd_calc_m1m2_5152(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_5152(pstr_mps_state);
       }
     } break;
     case TREE_525:
       if (up_mix_type == 1) {
-        err_code = ixheaacd_calc_m1m2_emm(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_emm(pstr_mps_state);
       } else if (up_mix_type == 2) {
         if (binaural_quality == 1) {
           ixheaacd_calc_m1m2_5227(pstr_mps_state);
         }
       } else {
-        err_code = ixheaacd_calc_m1m2_5251(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_5251(pstr_mps_state);
       }
       break;
     case TREE_7271:
       if (up_mix_type == 0) {
-        err_code = ixheaacd_calc_m1m2_7271(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_7271(pstr_mps_state);
       } else if (up_mix_type == 2) {
         if (binaural_quality == 1) {
           ixheaacd_calc_m1m2_5227(pstr_mps_state);
@@ -268,8 +260,7 @@ IA_ERRORCODE ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
       break;
     case TREE_7272:
       if (up_mix_type == 0) {
-        err_code = ixheaacd_calc_m1m2_7272(pstr_mps_state);
-        if (err_code) return err_code;
+        ixheaacd_calc_m1m2_7272(pstr_mps_state);
       } else if (up_mix_type == 2) {
         if (binaural_quality == 1) {
           ixheaacd_calc_m1m2_5227(pstr_mps_state);
@@ -277,16 +268,14 @@ IA_ERRORCODE ixheaacd_calc_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
       }
       break;
     case TREE_7571:
-      err_code = ixheaacd_calc_m1m2_7571(pstr_mps_state);
-      if (err_code) return err_code;
+      ixheaacd_calc_m1m2_7571(pstr_mps_state);
       break;
     case TREE_7572:
-      err_code = ixheaacd_calc_m1m2_7572(pstr_mps_state);
-      if (err_code) return err_code;
+      ixheaacd_calc_m1m2_7572(pstr_mps_state);
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+      break;
   };
 
-  return IA_NO_ERROR;
+  return;
 }

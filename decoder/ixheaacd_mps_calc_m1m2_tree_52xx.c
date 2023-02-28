@@ -262,8 +262,7 @@ VOID ixheaacd_calc_m1m2_5227(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 }
 
-IA_ERRORCODE ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -499,14 +498,11 @@ IA_ERRORCODE ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) 
   }
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
-                                c_f_l, dummy1, 1, ps, pstr_mps_state->res_bands[1]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
-                                c_f_r, dummy2, 2, ps, pstr_mps_state->res_bands[2]);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
+                            c_f_l, dummy1, 1, ps, pstr_mps_state->res_bands[1]);
+
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
+                            c_f_r, dummy2, 2, ps, pstr_mps_state->res_bands[2]);
 
     for (pb = 0; pb < p_aux_struct->num_ott_bands[0]; pb++) {
       WORD32 temp = ixheaacd_quantize((p_aux_struct->ott_cld[0][ps][pb]) >> 15);
@@ -620,5 +616,5 @@ IA_ERRORCODE ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) 
       }
     }
   }
-  return IA_NO_ERROR;
+  return;
 }

@@ -46,8 +46,7 @@
 #include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_error_standards.h"
 
-IA_ERRORCODE ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+VOID ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_reuse_array_struct *p_array_struct = pstr_mps_state->array_struct;
   WORD32 ch, rfpsf, qb;
   WORD32 qmf_global_offset;
@@ -86,11 +85,11 @@ IA_ERRORCODE ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state) {
         }
 
         for (rfpsf = 0; rfpsf < rfpsf_max; rfpsf++) {
-          error_code = ixheaacd_mdct2qmf_process(
-              upd_qmf, res_mdct, qmf_residual_real_pre, qmf_residual_real_post,
-              qmf_residual_imag_pre, qmf_residual_imag_post,
-              pstr_mps_state->res_block_type[ch][rfpsf], qmf_global_offset,
-              &(pstr_mps_state->ia_mps_dec_mps_table), scratch, time_slots);
+          ixheaacd_mdct2qmf_process(upd_qmf, res_mdct, qmf_residual_real_pre,
+                                    qmf_residual_real_post, qmf_residual_imag_pre,
+                                    qmf_residual_imag_post,
+                                    pstr_mps_state->res_block_type[ch][rfpsf], qmf_global_offset,
+                                    &(pstr_mps_state->ia_mps_dec_mps_table), scratch, time_slots);
           qmf_global_offset += upd_qmf;
           res_mdct += MDCTCOEFX2;
         }
@@ -135,7 +134,7 @@ IA_ERRORCODE ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state) {
       }
 
       for (rfpsf = 0; rfpsf < rfpsf_max; rfpsf++) {
-        error_code = ixheaacd_mdct2qmf_process(
+        ixheaacd_mdct2qmf_process(
             arbdmx_upd_qmf, res_mdct, qmf_residual_real_pre, qmf_residual_real_post,
             qmf_residual_imag_pre, qmf_residual_imag_post,
             pstr_mps_state->res_block_type[offset + ch][rfpsf], qmf_global_offset,
@@ -153,7 +152,7 @@ IA_ERRORCODE ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state) {
       p_res_mdct += RFX2XMDCTCOEF;
     }
   }
-  return error_code;
+  return;
 }
 
 VOID ixheaacd_hybrid_qmf_analysis(ia_heaac_mps_state_struct *pstr_mps_state) {

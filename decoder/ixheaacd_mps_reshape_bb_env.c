@@ -62,7 +62,7 @@ VOID ixheaacd_init_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 }
 
-static IA_ERRORCODE ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 inp,
+static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 inp,
                                             WORD32 ch, WORD32 *env, VOID *scratch, WORD32 flag) {
   ia_mps_dec_reshape_bb_env_state_struct *reshape_bb_env_state =
       pstr_mps_state->mps_persistent_mem.reshape_bb_env_state;
@@ -357,13 +357,12 @@ static IA_ERRORCODE ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_
 
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_RESHAPE_INPUT;
+      break;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+VOID ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 *env_dry;
   WORD32 *env_dmx_0, *env_dmx_1;
 
@@ -416,9 +415,8 @@ IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) 
     p_buffer_re = p_buffer_real;
     p_buffer_im = p_buffer_imag;
 
-    error_code = ixheaacd_extract_bb_env(pstr_mps_state, INP_DRY_WET, ch, env_dry, free_scratch,
+    ixheaacd_extract_bb_env(pstr_mps_state, INP_DRY_WET, ch, env_dry, free_scratch,
                                          temp_shape_enable_channel_ges[ch2]);
-    if (error_code != IA_NO_ERROR) return error_code;
 
     if (temp_shape_enable_channel_ges[ch2]) {
       WORD32 *env = &p_aux_struct->env_shape_data[ch2][0];
@@ -459,7 +457,7 @@ IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) 
               }
               break;
             default:
-              return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_CHANNEL_INDEX;
+              break;
           }
           break;
 
@@ -480,10 +478,10 @@ IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) 
               }
               break;
             default:
-              return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_CHANNEL_INDEX;
+              break;
           }
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+          break;
       }
 
       hyb_out_dry_real =
@@ -560,11 +558,10 @@ IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) 
     p_buffer_real += TSXHB;
     p_buffer_imag += TSXHB;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_pre_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+VOID ixheaacd_pre_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 *env_dmx_0, *env_dmx_1;
 
   VOID *free_scratch;
@@ -577,18 +574,14 @@ IA_ERRORCODE ixheaacd_pre_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_sta
 
   switch (tree_config) {
     case TREE_7572:
-      error_code =
-          ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 0 + 4, env_dmx_0, free_scratch, 0);
-      error_code =
-          ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 1 + 4, env_dmx_1, free_scratch, 0);
+      ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 0 + 4, env_dmx_0, free_scratch, 0);
+      ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 1 + 4, env_dmx_1, free_scratch, 0);
       break;
     default:
-      error_code =
-          ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 0, env_dmx_0, free_scratch, 0);
+      ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 0, env_dmx_0, free_scratch, 0);
       if (min(pstr_mps_state->num_input_channels, 2) == 2) {
-        error_code =
-            ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 1, env_dmx_1, free_scratch, 0);
+        ixheaacd_extract_bb_env(pstr_mps_state, INP_DMX, 1, env_dmx_1, free_scratch, 0);
       }
   }
-  return error_code;
+  return;
 }

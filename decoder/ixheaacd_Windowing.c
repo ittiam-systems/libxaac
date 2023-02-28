@@ -26,7 +26,7 @@
 
 #include "ixheaacd_windows.h"
 
-WORD32 ixheaacd_calc_window(WORD32 **win, WORD32 win_sz, WORD32 win_sel) {
+WORD32 ixheaacd_calc_window(WORD32 **win, WORD32 win_sz, WORD32 win_sel, WORD32 ec_flag) {
   switch (win_sel) {
     case WIN_SEL_0:
       switch (win_sz) {
@@ -51,7 +51,12 @@ WORD32 ixheaacd_calc_window(WORD32 **win, WORD32 win_sz, WORD32 win_sel) {
         case WIN_LEN_256:
           *win = (WORD32 *)ixheaacd_sine_win_256;
           break;
-        default:;
+        default:
+          if (ec_flag)
+            *win = (WORD32 *)ixheaacd_sine_win_1024;
+          else
+            return -1;
+          break;
       }
       break;
 
@@ -91,7 +96,10 @@ WORD32 ixheaacd_calc_window(WORD32 **win, WORD32 win_sz, WORD32 win_sel) {
           *win = (WORD32 *)ixheaacd_kbd_win48;
           break;
         default:
-          return -1;
+          if (ec_flag)
+            *win = (WORD32 *)ixheaacd_kbd_win1024;
+          else
+            return -1;
           break;
       }
       break;

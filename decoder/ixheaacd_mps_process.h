@@ -20,15 +20,15 @@
 #ifndef IXHEAACD_MPS_PROCESS_H
 #define IXHEAACD_MPS_PROCESS_H
 
-VOID ixheaacd_mps_qmf_hyb_analysis(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_qmf_hyb_analysis_no_pre_mix(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_qmf_hyb_synthesis(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_decor(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_mix_res_decor(ia_mps_dec_state_struct* self);
-VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct* self);
+VOID ixheaacd_mps_qmf_hyb_analysis(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_qmf_hyb_analysis_no_pre_mix(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_qmf_hyb_synthesis(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_decor(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_create_w(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_mix_res_decor(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_synt_calc(ia_mps_dec_state_struct *self);
 
-IA_ERRORCODE ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_mdct_2_qmf(ia_heaac_mps_state_struct *pstr_mps_state);
 VOID ixheaacd_hybrid_qmf_analysis(ia_heaac_mps_state_struct *pstr_mps_state);
 VOID ixheaacd_create_w(ia_heaac_mps_state_struct *pstr_mps_state);
 VOID ixheaacd_merge_res_decor(ia_heaac_mps_state_struct *pstr_mps_state);

@@ -24,6 +24,7 @@ typedef struct {
   struct ia_bit_buf_struct dec_bit_buf;
   ia_frame_data_struct str_frame_data;
   ia_usac_data_struct str_usac_data;
+  jmp_buf *xaac_jmp_buf;
 } ia_dec_data_struct;
 
 WORD32 ixheaacd_frm_data_init(ia_audio_specific_config_struct *pstr_audio_conf,

@@ -17,39 +17,40 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
+#include <string.h>
 #include "ixheaacd_type_def.h"
 
 #include "ixheaacd_acelp_com.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_interface.h"
-
-#include "ixheaacd_tns_usac.h"
 #include "ixheaacd_cnst.h"
-
-#include "ixheaacd_acelp_info.h"
-
-#include "ixheaacd_sbrdecsettings.h"
-#include "ixheaacd_sbr_scale.h"
-#include "ixheaacd_lpp_tran.h"
-#include "ixheaacd_common_rom.h"
-#include "ixheaacd_env_extr_part.h"
-#include "ixheaacd_sbr_rom.h"
-#include "ixheaacd_hybrid.h"
-#include "ixheaacd_ps_dec.h"
 #include "ixheaacd_info.h"
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
+#include "ixheaacd_defines.h"
+#include "ixheaacd_aac_rom.h"
+#include "ixheaacd_pulsedata.h"
+#include "ixheaacd_pns.h"
 #include "ixheaacd_constants.h"
+#include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbrdecoder.h"
-#include "ixheaacd_env_extr.h"
+#include "ixheaacd_acelp_info.h"
+#include "ixheaacd_tns_usac.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
+#include "ixheaacd_channelinfo.h"
+#include "ixheaacd_ec.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_basic_ops32.h"
+#include "ixheaacd_error_standards.h"
+#include "ixheaacd_error_codes.h"
 
-WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff,
-                             WORD32 *nk_mode) {
+extern const ia_usac_samp_rate_info ixheaacd_samp_rate_info[];
+
+WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff, WORD32 *nk_mode) {
   WORD32 mode_lpc = 0;
   switch (lpc_set) {
     case 4:
@@ -89,8 +90,7 @@ WORD32 ixheaacd_get_mode_lpc(WORD32 lpc_set, ia_bit_buf_struct *it_bit_buff,
   return mode_lpc;
 }
 
-VOID ixheaacd_qn_data(WORD32 nk_mode, WORD32 *qn,
-                      ia_bit_buf_struct *it_bit_buff) {
+VOID ixheaacd_qn_data(WORD32 nk_mode, WORD32 *qn, ia_bit_buf_struct *it_bit_buff) {
   WORD32 k;
   switch (nk_mode) {
     case 1:
@@ -104,8 +104,7 @@ VOID ixheaacd_qn_data(WORD32 nk_mode, WORD32 *qn,
     case 0:
     case 2:
     case 3:
-      for (k = 0; k < 2; k++)
-        qn[k] = 2 + ixheaacd_read_bits_buf(it_bit_buff, 2);
+      for (k = 0; k < 2; k++) qn[k] = 2 + ixheaacd_read_bits_buf(it_bit_buff, 2);
 
       if (nk_mode == 2) {
         for (k = 0; k < 2; k++) {
@@ -145,9 +144,8 @@ VOID ixheaacd_qn_data(WORD32 nk_mode, WORD32 *qn,
   return;
 }
 
-VOID ixheaacd_code_book_indices(ia_td_frame_data_struct *pstr_td_frame_data,
-                                WORD32 nk_mode, WORD32 *pos,
-                                ia_bit_buf_struct *it_bit_buff) {
+VOID ixheaacd_code_book_indices(ia_td_frame_data_struct *pstr_td_frame_data, WORD32 nk_mode,
+                                WORD32 *pos, ia_bit_buf_struct *it_bit_buff) {
   WORD32 k, qn[2] = {0, 0}, nk, n, i;
 
   ixheaacd_qn_data(nk_mode, &qn[0], it_bit_buff);
@@ -182,8 +180,7 @@ VOID ixheaacd_lpc_data(WORD32 first_lpd_flag, WORD32 mod[],
 
   mode_lpc = ixheaacd_get_mode_lpc(4, it_bit_buff, &nk_mode);
 
-  pstr_td_frame_data->lpc_first_approx_idx[j++] =
-      ixheaacd_read_bits_buf(it_bit_buff, 8);
+  pstr_td_frame_data->lpc_first_approx_idx[j++] = ixheaacd_read_bits_buf(it_bit_buff, 8);
 
   ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
   if (first_lpd_flag) {
@@ -191,8 +188,7 @@ VOID ixheaacd_lpc_data(WORD32 first_lpd_flag, WORD32 mod[],
     pstr_td_frame_data->lpc_first_approx_idx[j++] = mode_lpc;
 
     if (mode_lpc == 0)
-      pstr_td_frame_data->lpc_first_approx_idx[j++] =
-          ixheaacd_read_bits_buf(it_bit_buff, 8);
+      pstr_td_frame_data->lpc_first_approx_idx[j++] = ixheaacd_read_bits_buf(it_bit_buff, 8);
 
     ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
   }
@@ -201,8 +197,7 @@ VOID ixheaacd_lpc_data(WORD32 first_lpd_flag, WORD32 mod[],
     pstr_td_frame_data->lpc_first_approx_idx[j++] = mode_lpc;
 
     if (mode_lpc == 0)
-      pstr_td_frame_data->lpc_first_approx_idx[j++] =
-          ixheaacd_read_bits_buf(it_bit_buff, 8);
+      pstr_td_frame_data->lpc_first_approx_idx[j++] = ixheaacd_read_bits_buf(it_bit_buff, 8);
 
     ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
   }
@@ -211,19 +206,16 @@ VOID ixheaacd_lpc_data(WORD32 first_lpd_flag, WORD32 mod[],
     pstr_td_frame_data->lpc_first_approx_idx[j++] = mode_lpc;
 
     if (mode_lpc == 0)
-      pstr_td_frame_data->lpc_first_approx_idx[j++] =
-          ixheaacd_read_bits_buf(it_bit_buff, 8);
+      pstr_td_frame_data->lpc_first_approx_idx[j++] = ixheaacd_read_bits_buf(it_bit_buff, 8);
 
-    if (mode_lpc != 1)
-      ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
+    if (mode_lpc != 1) ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
   }
   if (mod[2] < 2) {
     mode_lpc = ixheaacd_get_mode_lpc(3, it_bit_buff, &nk_mode);
     pstr_td_frame_data->lpc_first_approx_idx[j++] = mode_lpc;
 
     if (mode_lpc == 0)
-      pstr_td_frame_data->lpc_first_approx_idx[j++] =
-          ixheaacd_read_bits_buf(it_bit_buff, 8);
+      pstr_td_frame_data->lpc_first_approx_idx[j++] = ixheaacd_read_bits_buf(it_bit_buff, 8);
 
     ixheaacd_code_book_indices(pstr_td_frame_data, nk_mode, &j, it_bit_buff);
   }
@@ -255,8 +247,7 @@ VOID ixheaacd_fac_decoding(WORD32 fac_length, WORD32 k, WORD32 *fac_prm,
       kv[j] = ixheaacd_read_bits_buf(it_bit_buff, nk);
     }
 
-    ixheaacd_rotated_gosset_mtx_dec(qn, code_book_index, kv,
-                                    &fac_prm[k * FAC_LENGTH + i]);
+    ixheaacd_rotated_gosset_mtx_dec(qn, code_book_index, kv, &fac_prm[k * FAC_LENGTH + i]);
   }
 }
 
@@ -279,15 +270,12 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
     kk = k * 4 + sfr;
 
     if ((sfr == 0) || ((nb_subfr == 4) && (sfr == 2)))
-      pstr_td_frame_data->acb_index[kk] =
-          ixheaacd_read_bits_buf(it_bit_buff, 9);
+      pstr_td_frame_data->acb_index[kk] = ixheaacd_read_bits_buf(it_bit_buff, 9);
 
     else
-      pstr_td_frame_data->acb_index[kk] =
-          ixheaacd_read_bits_buf(it_bit_buff, 6);
+      pstr_td_frame_data->acb_index[kk] = ixheaacd_read_bits_buf(it_bit_buff, 6);
 
-    pstr_td_frame_data->ltp_filtering_flag[kk] =
-        ixheaacd_read_bits_buf(it_bit_buff, 1);
+    pstr_td_frame_data->ltp_filtering_flag[kk] = ixheaacd_read_bits_buf(it_bit_buff, 1);
 
     if (pstr_td_frame_data->acelp_core_mode == 5) {
       pstr_td_frame_data->icb_index[kk][0] =
@@ -321,14 +309,9 @@ VOID ixheaacd_acelp_decoding(WORD32 k, ia_usac_data_struct *usac_data,
   }
 }
 
-IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
-                                 WORD32 k, WORD32 first_tcx_flag,
-                                 ia_td_frame_data_struct *pstr_td_frame_data,
-                                 ia_bit_buf_struct *it_bit_buff
-
-                                 ) {
-  IA_ERRORCODE err = IA_NO_ERROR;
-
+VOID ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant, WORD32 k,
+                         WORD32 first_tcx_flag, ia_td_frame_data_struct *pstr_td_frame_data,
+                         ia_bit_buf_struct *it_bit_buff) {
   pstr_td_frame_data->noise_factor[k] = ixheaacd_read_bits_buf(it_bit_buff, 3);
 
   pstr_td_frame_data->global_gain[k] = ixheaacd_read_bits_buf(it_bit_buff, 7);
@@ -349,22 +332,18 @@ IA_ERRORCODE ixheaacd_tcx_coding(ia_usac_data_struct *usac_data, pWORD32 quant,
     if (usac_data->usac_independency_flg) {
       pstr_td_frame_data->arith_reset_flag = 1;
     } else {
-      pstr_td_frame_data->arith_reset_flag =
-          ixheaacd_read_bits_buf(it_bit_buff, 1);
+      pstr_td_frame_data->arith_reset_flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
     }
   }
 
-  err = ixheaacd_arith_data(pstr_td_frame_data, quant, usac_data, it_bit_buff,
-                            (first_tcx_flag), k);
-  if (err) return err;
+  ixheaacd_arith_data(pstr_td_frame_data, quant, usac_data, it_bit_buff, (first_tcx_flag), k);
 
-  return IA_NO_ERROR;
+  return;
 }
 
 WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
                                    ia_td_frame_data_struct *pstr_td_frame_data,
-                                   ia_bit_buf_struct *it_bit_buff,
-                                   FLOAT32 *synth) {
+                                   ia_bit_buf_struct *it_bit_buff, FLOAT32 *synth) {
   WORD32 lpd_mode, k, cnt, ii;
   WORD32 first_tcx_flag;
   WORD32 *quant;
@@ -378,97 +357,153 @@ WORD32 ixheaacd_lpd_channel_stream(ia_usac_data_struct *usac_data,
   WORD32 err = 0;
   short_fac_flag = 0;
 
-  pstr_td_frame_data->acelp_core_mode = ixheaacd_read_bits_buf(it_bit_buff, 3);
+  jmp_buf local;
 
-  lpd_mode = ixheaacd_read_bits_buf(it_bit_buff, 5);
+  if (usac_data->ec_flag) {
+    err = setjmp(local);
+  }
 
-  if (lpd_mode == 25) {
-    pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] =
-        pstr_td_frame_data->mod[2] = pstr_td_frame_data->mod[3] = 3;
-  } else if (lpd_mode == 24) {
-    pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] =
+  if (usac_data->sampling_rate_idx <= 5 && usac_data->ec_flag) {
+    usac_data->frame_ok = 0;
+  }
+
+  if (err == 0 && usac_data->frame_ok == 1) {
+    if (usac_data->ec_flag) {
+      it_bit_buff->xaac_jmp_buf = &local;
+    }
+    pstr_td_frame_data->acelp_core_mode = ixheaacd_read_bits_buf(it_bit_buff, 3);
+
+    lpd_mode = ixheaacd_read_bits_buf(it_bit_buff, 5);
+
+    if ((lpd_mode > 25 || lpd_mode < 0)) {
+      if (usac_data->ec_flag) {
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+                IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      } else {
+        return IA_FATAL_ERROR;
+      }
+    }
+
+    if (lpd_mode == 25) {
+      pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] = pstr_td_frame_data->mod[2] =
+          pstr_td_frame_data->mod[3] = 3;
+    } else if (lpd_mode == 24) {
+      pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] = pstr_td_frame_data->mod[2] =
+          pstr_td_frame_data->mod[3] = 2;
+    } else {
+      if (lpd_mode >= 20) {
+        pstr_td_frame_data->mod[0] = lpd_mode & 1;
+        pstr_td_frame_data->mod[1] = (lpd_mode >> 1) & 1;
         pstr_td_frame_data->mod[2] = pstr_td_frame_data->mod[3] = 2;
+      } else if (lpd_mode >= 16) {
+        pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] = 2;
+        pstr_td_frame_data->mod[2] = lpd_mode & 1;
+        pstr_td_frame_data->mod[3] = (lpd_mode >> 1) & 1;
+      } else {
+        pstr_td_frame_data->mod[0] = lpd_mode & 1;
+        pstr_td_frame_data->mod[1] = (lpd_mode >> 1) & 1;
+        pstr_td_frame_data->mod[2] = (lpd_mode >> 2) & 1;
+        pstr_td_frame_data->mod[3] = (lpd_mode >> 3) & 1;
+      }
+    }
+
+    bpf_control_info = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+    core_mode_last = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+    fac_data_present = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+    first_lpd_flag = (core_mode_last == 0) ? 1 : 0;
+
+    quant = pstr_td_frame_data->x_tcx_invquant;
+    first_tcx_flag = 1;
+    k = 0;
+    while (k < 4) {
+      if (k == 0) {
+        if ((core_mode_last == 1) && (fac_data_present == 1))
+          ixheaacd_fac_decoding((usac_data->len_subfrm) / 2, k, pstr_td_frame_data->fac,
+                                it_bit_buff);
+      } else {
+        if (((last_lpd_mode == 0) && (pstr_td_frame_data->mod[k] > 0)) ||
+            ((last_lpd_mode > 0) && (pstr_td_frame_data->mod[k] == 0)))
+          ixheaacd_fac_decoding((usac_data->len_subfrm) / 2, k, pstr_td_frame_data->fac,
+                                it_bit_buff);
+      }
+
+      if (pstr_td_frame_data->mod[k] == 0) {
+        ixheaacd_acelp_decoding(k, usac_data, pstr_td_frame_data, it_bit_buff, chan);
+        last_lpd_mode = 0;
+        pstr_td_frame_data->tcx_lg[k] = 0;
+        k += 1;
+      } else {
+        ixheaacd_tcx_coding(usac_data, quant, k, first_tcx_flag, pstr_td_frame_data, it_bit_buff);
+        last_lpd_mode = pstr_td_frame_data->mod[k];
+        quant += pstr_td_frame_data->tcx_lg[k];
+
+        cnt = 1 << (pstr_td_frame_data->mod[k] - 1);
+
+        for (ii = 0; ii < cnt - 1; ii++) pstr_td_frame_data->tcx_lg[k + 1 + ii] = 0;
+
+        k += cnt;
+        first_tcx_flag = 0;
+      }
+    }
+
+    ixheaacd_lpc_data(first_lpd_flag, pstr_td_frame_data->mod, pstr_td_frame_data, it_bit_buff);
+
+    if ((core_mode_last == 0) && (fac_data_present == 1)) {
+      WORD32 fac_length;
+      short_fac_flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
+
+      fac_length = (short_fac_flag) ? ((usac_data->ccfl) / 16) : ((usac_data->ccfl) / 8);
+
+      fac_data = pstr_td_frame_data->fac_data;
+      fac_data[0] = ixheaacd_read_bits_buf(it_bit_buff, 7);
+      if ((pstr_td_frame_data->fac_data[0] < 0) || (pstr_td_frame_data->fac_data[0] > 128)) {
+        if (usac_data->ec_flag) {
+          longjmp(*(it_bit_buff->xaac_jmp_buf),
+                  IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+        } else {
+          return IA_FATAL_ERROR;
+        }
+      }
+      ixheaacd_fac_decoding(fac_length, 0, &fac_data[1], it_bit_buff);
+    }
+    if (fac_data_present == 0) {
+      memset(&pstr_td_frame_data->fac_data[0], 0, sizeof(pstr_td_frame_data->fac_data));
+    }
+    if (usac_data->ec_flag && usac_data->frame_ok) {
+      usac_data->bpf_control_info = bpf_control_info;
+      usac_data->core_mode_last = core_mode_last;
+      usac_data->first_lpd_flag = first_lpd_flag;
+    }
   } else {
-    if (lpd_mode >= 20) {
-      pstr_td_frame_data->mod[0] = lpd_mode & 1;
-      pstr_td_frame_data->mod[1] = (lpd_mode >> 1) & 1;
-      pstr_td_frame_data->mod[2] = pstr_td_frame_data->mod[3] = 2;
-    } else if (lpd_mode >= 16) {
-      pstr_td_frame_data->mod[0] = pstr_td_frame_data->mod[1] = 2;
-      pstr_td_frame_data->mod[2] = lpd_mode & 1;
-      pstr_td_frame_data->mod[3] = (lpd_mode >> 1) & 1;
-    } else {
-      pstr_td_frame_data->mod[0] = lpd_mode & 1;
-      pstr_td_frame_data->mod[1] = (lpd_mode >> 1) & 1;
-      pstr_td_frame_data->mod[2] = (lpd_mode >> 2) & 1;
-      pstr_td_frame_data->mod[3] = (lpd_mode >> 3) & 1;
-    }
+    usac_data->frame_ok = 0;
   }
 
-  bpf_control_info = ixheaacd_read_bits_buf(it_bit_buff, 1);
+  if (usac_data->ec_flag) {
+    usac_data->str_error_concealment[chan].pstr_ec_scratch =
+        (ia_ec_scratch_str *)&usac_data->str_error_concealment[chan].str_ec_scratch;
 
-  core_mode_last = ixheaacd_read_bits_buf(it_bit_buff, 1);
+    ixheaacd_usac_apply_ec(usac_data, &ixheaacd_samp_rate_info[0], chan);
 
-  fac_data_present = ixheaacd_read_bits_buf(it_bit_buff, 1);
-
-  first_lpd_flag = (core_mode_last == 0) ? 1 : 0;
-
-  quant = pstr_td_frame_data->x_tcx_invquant;
-  first_tcx_flag = 1;
-  k = 0;
-  while (k < 4) {
-    if (k == 0) {
-      if ((core_mode_last == 1) && (fac_data_present == 1))
-        ixheaacd_fac_decoding((usac_data->len_subfrm) / 2, k,
-                              pstr_td_frame_data->fac, it_bit_buff);
-    } else {
-      if (((last_lpd_mode == 0) && (pstr_td_frame_data->mod[k] > 0)) ||
-          ((last_lpd_mode > 0) && (pstr_td_frame_data->mod[k] == 0)))
-        ixheaacd_fac_decoding((usac_data->len_subfrm) / 2, k,
-                              pstr_td_frame_data->fac, it_bit_buff);
-    }
-
-    if (pstr_td_frame_data->mod[k] == 0) {
-      ixheaacd_acelp_decoding(k, usac_data, pstr_td_frame_data, it_bit_buff,
-                              chan);
-      last_lpd_mode = 0;
-      pstr_td_frame_data->tcx_lg[k] = 0;
-      k += 1;
-    } else {
-      err = ixheaacd_tcx_coding(usac_data, quant, k, first_tcx_flag,
-                                pstr_td_frame_data, it_bit_buff);
-      if (err) return err;
-      last_lpd_mode = pstr_td_frame_data->mod[k];
-      quant += pstr_td_frame_data->tcx_lg[k];
-
-      cnt = 1 << (pstr_td_frame_data->mod[k] - 1);
-
-      for (ii = 0; ii < cnt - 1; ii++)
-        pstr_td_frame_data->tcx_lg[k + 1 + ii] = 0;
-
-      k += cnt;
-      first_tcx_flag = 0;
+    if (usac_data->frame_ok == 0) {
+      bpf_control_info = usac_data->bpf_control_info;
+      core_mode_last = usac_data->core_mode_last;
+      first_lpd_flag = usac_data->first_lpd_flag;
     }
   }
-
-  ixheaacd_lpc_data(first_lpd_flag, pstr_td_frame_data->mod, pstr_td_frame_data,
-                    it_bit_buff);
-
-  if ((core_mode_last == 0) && (fac_data_present == 1)) {
-    WORD32 fac_length;
-    short_fac_flag = ixheaacd_read_bits_buf(it_bit_buff, 1);
-
-    fac_length =
-        (short_fac_flag) ? ((usac_data->ccfl) / 16) : ((usac_data->ccfl) / 8);
-
-    fac_data = pstr_td_frame_data->fac_data;
-    fac_data[0] = ixheaacd_read_bits_buf(it_bit_buff, 7);
-    ixheaacd_fac_decoding(fac_length, 0, &fac_data[1], it_bit_buff);
+  if (usac_data->frame_ok) {
+    err = ixheaacd_lpd_dec(usac_data, usac_data->str_tddec[chan], pstr_td_frame_data, synth,
+                           first_lpd_flag, short_fac_flag, bpf_control_info);
+  } else {
+    if (usac_data->ec_flag) {
+      usac_data->fac_data_present[chan] = 0;
+      err = ixheaacd_lpd_dec(usac_data, usac_data->str_tddec[chan],
+                             &usac_data->td_frame_data_prev[chan], synth, first_lpd_flag,
+                             short_fac_flag, bpf_control_info);
+    }
   }
-
-  err = ixheaacd_lpd_dec(usac_data, usac_data->str_tddec[chan],
-                         pstr_td_frame_data, synth, first_lpd_flag,
-                         short_fac_flag, bpf_control_info);
 
   return (err);
 }
@@ -482,18 +517,20 @@ WORD32 ixheaacd_tw_buff_update(ia_usac_data_struct *usac_data, WORD32 i,
 
   if (!td_frame_prev) {
     if (tw_mdct) {
-      return -1;
+      if (usac_data->ec_flag == 0) {
+        return -1;
+      } else {
+        tw_mdct = 0;
+      }
     } else {
-      ixheaacd_reset_acelp_data_fix(
-          usac_data, st, p_ioverlap,
-          (window_sequence_last == EIGHT_SHORT_SEQUENCE), 0);
+      ixheaacd_reset_acelp_data_fix(usac_data, st, p_ioverlap,
+                                    (window_sequence_last == EIGHT_SHORT_SEQUENCE), 0);
     }
   }
   return 0;
 }
 
-VOID ixheaacd_td_frm_dec(ia_usac_data_struct *usac_data, WORD32 k,
-                         WORD32 mod0) {
+VOID ixheaacd_td_frm_dec(ia_usac_data_struct *usac_data, WORD32 k, WORD32 mod0) {
   WORD32 i;
   WORD32 lfac = 0;
 
@@ -534,8 +571,7 @@ VOID ixheaacd_td_frm_dec(ia_usac_data_struct *usac_data, WORD32 k,
       p_out_idata[i] = p_ioverlap[i] << 1;
       p_out_idata[i + nlong / 2] =
           ixheaacd_add32_sat(p_ioverlap[i + nlong / 2] << 1, p_in_idata[i]);
-      p_ioverlap[i] = ixheaacd_add32_sat(p_in_idata[i + (nlong / 2)] >> 1,
-                                         p_ioverlap[i + nlong]);
+      p_ioverlap[i] = ixheaacd_add32_sat(p_in_idata[i + (nlong / 2)] >> 1, p_ioverlap[i + nlong]);
       p_ioverlap[i + (nlong / 2)] = 0;
       p_ioverlap[i + nlong] = 0;
       p_ioverlap[i + nlong + (nlong / 2)] = 0;

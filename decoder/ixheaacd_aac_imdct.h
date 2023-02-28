@@ -114,7 +114,7 @@ VOID ixheaacd_fft_32_points(WORD16 *ptr_w, WORD32 npoints,
 VOID ixheaacd_ld_dec_fft_15_opt(WORD32 *inp, WORD32 *op, WORD32 *fft3out,
                                 WORD16 *re_arr_tab_sml_240_ptr);
 
-VOID ixheaacd_dec_rearrange_short(WORD32 *ip, WORD32 *op, WORD32 n,
+VOID ixheaacd_dec_rearrange_short(WORD32 *ip, WORD32 *op, WORD32 mdct_len_2,
                                   WORD16 *re_arr_tab);
 
 VOID ixheaacd_pre_twiddle(WORD32 *xptr, WORD32 *data, WORD32 n,

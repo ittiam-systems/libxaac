@@ -25,6 +25,6 @@
 #define SMG_TIME_256 (256)
 #define SMG_TIME_512 (512)
 
-IA_ERRORCODE ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state);
 
 #endif /* IXHEAACD_MPS_SMOOTHING_H */

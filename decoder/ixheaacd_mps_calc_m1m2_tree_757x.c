@@ -42,8 +42,7 @@
 #include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_mps_calc_m1m2_common.h"
 
-IA_ERRORCODE ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -76,14 +75,10 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state) 
   dummy = c_f_r + MAX_PARAMETER_BANDS;
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
-                                c_f_l, dummy, 0, ps, pstr_mps_state->res_bands[0]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
-                                c_f_r, dummy, 1, ps, pstr_mps_state->res_bands[1]);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
+                            c_f_l, dummy, 0, ps, pstr_mps_state->res_bands[0]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
+                            c_f_r, dummy, 1, ps, pstr_mps_state->res_bands[1]);
 
     for (pb = 0; pb < num_parameter_bands; pb++) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
@@ -129,11 +124,10 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state) 
       m2_param->m2_resid_real[idx++][ps][pb] = ONE_IN_Q15;
     }
   }
-  return IA_NO_ERROR;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE err_code = IA_NO_ERROR;
+VOID ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state) {
   ia_mps_dec_auxilary_struct *p_aux_struct = pstr_mps_state->aux_struct;
   ia_mps_dec_m2_param_struct *m2_param = p_aux_struct->m2_param;
   ia_mps_dec_m1_param_struct *m1_param = pstr_mps_state->array_struct->m1_param;
@@ -165,14 +159,10 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state) 
   dummy = c_f_r + MAX_PARAMETER_BANDS;
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
-                                c_f_l, dummy, 0, ps, pstr_mps_state->res_bands[0]);
-    if (err_code) return err_code;
-    err_code =
-        ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
-                                c_f_r, dummy, 1, ps, pstr_mps_state->res_bands[1]);
-    if (err_code) return err_code;
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_l, h12_l, h21_l, h22_l, h12_res_l, h22_res_l,
+                            c_f_l, dummy, 0, ps, pstr_mps_state->res_bands[0]);
+    ixheaacd_param_2_umx_ps(pstr_mps_state, h11_r, h12_r, h21_r, h22_r, h12_res_r, h22_res_r,
+                            c_f_r, dummy, 1, ps, pstr_mps_state->res_bands[1]);
 
     for (pb = 0; pb < num_parameter_bands; pb++) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
@@ -218,5 +208,5 @@ IA_ERRORCODE ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state) 
       m2_param->m2_resid_real[idx++][ps][pb] = ONE_IN_Q15;
     }
   }
-  return IA_NO_ERROR;
+  return;
 }

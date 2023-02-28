@@ -1049,11 +1049,11 @@ static VOID ixheaacd_local_imdet(
   }
 }
 
-static IA_ERRORCODE ixheaacd_local_hybcmdct2qmf(
+static VOID ixheaacd_local_hybcmdct2qmf(
     WORD32 *const v_main, WORD32 *const v_slave, WORD32 *const w, WORD32 const lw, WORD32 *z_real,
     WORD32 *z_imag, const ia_mps_dec_mdct2qmf_cos_table_struct *ia_mps_dec_mdct2qmfcos_tab,
     VOID *scratch, WORD32 is_long) {
-  WORD32 i, start;
+  WORD32 i, start = 0;
   WORD32 m = lw >> 1;
 
   switch (lw) {
@@ -1073,7 +1073,7 @@ static IA_ERRORCODE ixheaacd_local_hybcmdct2qmf(
       break;
 
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_TIMESLOTS;
+      break;
   }
 
   ixheaacd_local_imdet(v_slave, v_main, w, m, z_real, z_imag, ia_mps_dec_mdct2qmfcos_tab, is_long,
@@ -1083,7 +1083,7 @@ static IA_ERRORCODE ixheaacd_local_hybcmdct2qmf(
     z_imag[i] = -(z_imag[i]);
   }
 
-  return IA_NO_ERROR;
+  return;
 }
 
 static VOID ixheaacd_local_p_zero_ts15(WORD32 *const b, WORD32 *src, WORD32 l) {
@@ -1121,9 +1121,8 @@ static VOID ixheaacd_local_p_zero(WORD32 *const b, WORD32 *src, WORD32 l, WORD32
   }
 }
 
-static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 const l,
-                                       WORD32 *const b,
-                                       ia_mps_dec_mdct2qmf_table_struct *mdct2qmf_tab) {
+static VOID ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 const l, WORD32 *const b,
+                               ia_mps_dec_mdct2qmf_table_struct *mdct2qmf_tab) {
   WORD32 *sin_ptr;
 
   switch (t) {
@@ -1142,7 +1141,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           b[1] = 12540;
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case TS_4:
@@ -1168,7 +1167,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           b[3] = *sin_ptr;
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_15:
@@ -1182,7 +1181,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           ixheaacd_local_p_nonzero(b, sin_ptr, l);
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_16:
@@ -1196,7 +1195,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           ixheaacd_local_p_nonzero(b, sin_ptr, l);
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_18:
@@ -1210,7 +1209,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           ixheaacd_local_p_nonzero(b, sin_ptr, l);
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_24:
@@ -1224,7 +1223,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           ixheaacd_local_p_nonzero(b, sin_ptr, l);
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_30:
@@ -1238,7 +1237,7 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
           ixheaacd_local_p_nonzero(b, sin_ptr, l);
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     case UPD_QMF_32:
@@ -1253,13 +1252,13 @@ static IA_ERRORCODE ixheaacd_local_sin(WORD32 const t, WORD32 const p, WORD32 co
 
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+          break;
       }
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_SIN_PARAM;
+      break;
   }
-  return IA_NO_ERROR;
+  return;
 }
 
 static VOID ixheaacd_local_one(WORD32 const l, WORD32 *const b) {
@@ -1290,11 +1289,9 @@ static VOID ixheaacd_local_freq_win(WORD32 const l, WORD32 *const b, const WORD3
   }
 }
 
-static IA_ERRORCODE ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_type,
-                                            WORD32 *const wf, WORD32 const **wf_tab,
-                                            WORD32 *const wt,
-                                            ia_mps_dec_mdct2qmf_table_struct *mdct2qmf_tab) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+static VOID ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_type, WORD32 *const wf,
+                                    WORD32 const **wf_tab, WORD32 *const wt,
+                                    ia_mps_dec_mdct2qmf_table_struct *mdct2qmf_tab) {
   WORD32 length = 0;
   WORD32 length_right = 0;
   WORD32 length_left = 0;
@@ -1304,7 +1301,7 @@ static IA_ERRORCODE ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_
   switch (window_type) {
     case ONLY_LONG_SEQUENCE:
       length = upd_qmf;
-      error_code = ixheaacd_local_sin(upd_qmf, 0, (length << 1), &wt[0], mdct2qmf_tab);
+      ixheaacd_local_sin(upd_qmf, 0, (length << 1), &wt[0], mdct2qmf_tab);
       break;
     case LONG_START_SEQUENCE:
       switch (upd_qmf) {
@@ -1335,16 +1332,16 @@ static IA_ERRORCODE ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_
           length_right = 2;
           break;
         default:
-          error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
+          length_const1 = 6;
+          length_const2 = 7;
+          length_right = 2;
           break;
       }
 
-      if (error_code) return error_code;
-
-      error_code = ixheaacd_local_sin(upd_qmf, 0, upd_qmf, &wt[0], mdct2qmf_tab);
+      ixheaacd_local_sin(upd_qmf, 0, upd_qmf, &wt[0], mdct2qmf_tab);
       ixheaacd_local_one(length_const1, &wt[upd_qmf]);
-      error_code = ixheaacd_local_sin(length_right, length_right, length_right,
-                                      &wt[upd_qmf + length_const1], mdct2qmf_tab);
+      ixheaacd_local_sin(length_right, length_right, length_right, &wt[upd_qmf + length_const1],
+                         mdct2qmf_tab);
 
       ixheaacd_local_zero(length_const2, &wt[upd_qmf + length_const1 + length_right]);
       length = upd_qmf;
@@ -1362,11 +1359,9 @@ static IA_ERRORCODE ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_
           length = 2;
           break;
         default:
-          error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
           break;
       }
-      if (error_code) return error_code;
-      error_code = ixheaacd_local_sin(length, 0, 2 * length, &wt[0], mdct2qmf_tab);
+      ixheaacd_local_sin(length, 0, 2 * length, &wt[0], mdct2qmf_tab);
       break;
     case LONG_STOP_SEQUENCE:
       switch (upd_qmf) {
@@ -1397,45 +1392,36 @@ static IA_ERRORCODE ixheaacd_local_mdct_win(WORD32 upd_qmf, WORD32 const window_
           length_left = 2;
           break;
         default:
-          error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
           break;
       }
-      if (error_code) return error_code;
 
       ixheaacd_local_zero(length_const1, &wt[0]);
-      error_code =
-          ixheaacd_local_sin(length_left, 0, length_left, &wt[length_const1], mdct2qmf_tab);
+      ixheaacd_local_sin(length_left, 0, length_left, &wt[length_const1], mdct2qmf_tab);
       ixheaacd_local_one(length_const2, &wt[length_const1 + length_left]);
-      error_code =
-          ixheaacd_local_sin(upd_qmf, upd_qmf, upd_qmf,
-                             &wt[length_const1 + length_left + length_const2], mdct2qmf_tab);
+      ixheaacd_local_sin(upd_qmf, upd_qmf, upd_qmf,
+                         &wt[length_const1 + length_left + length_const2], mdct2qmf_tab);
       length = upd_qmf;
       break;
     default:
-      error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_WINDOW_TYPE;
       break;
   }
-
-  if (error_code) return error_code;
 
   ixheaacd_local_freq_win(length, &wf[0], wf_tab);
 
   if ((upd_qmf == UPD_QMF_15) && (window_type == EIGHT_SHORT_SEQUENCE)) {
     WORD32 length2 = 3;
 
-    error_code = ixheaacd_local_sin(length, 0, length, &wt[(length << 1)], mdct2qmf_tab);
+    ixheaacd_local_sin(length, 0, length, &wt[(length << 1)], mdct2qmf_tab);
     ixheaacd_local_one(1, &wt[3 * length]);
-    error_code = ixheaacd_local_sin(length, length, length, &wt[3 * length + 1], mdct2qmf_tab);
+    ixheaacd_local_sin(length, length, length, &wt[3 * length + 1], mdct2qmf_tab);
     ixheaacd_local_zero(1, &wt[(length << 2) + 1]);
 
     ixheaacd_local_freq_win(length2, &wf[(length << 1)], wf_tab);
   }
-  return error_code;
+  return;
 }
 
-static IA_ERRORCODE ixheaacd_get_gain(WORD32 l, WORD32 *gain) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
-
+static VOID ixheaacd_get_gain(WORD32 l, WORD32 *gain) {
   switch (l) {
     case TSX2_4:
       *gain = 16384;
@@ -1474,21 +1460,17 @@ static IA_ERRORCODE ixheaacd_get_gain(WORD32 l, WORD32 *gain) {
       break;
 
     default:
-      error_code = IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_TIMESLOTS;
       break;
   }
 
-  return error_code;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
-                                       WORD32 *qmf_real_pre, WORD32 *qmf_real_post,
-                                       WORD32 *qmf_imag_pre, WORD32 *qmf_imag_post,
-                                       WORD32 const window_type, WORD32 qmf_global_offset,
-                                       ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr,
-                                       VOID *scratch, WORD32 time_slots) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
-
+VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qmf_real_pre,
+                               WORD32 *qmf_real_post, WORD32 *qmf_imag_pre, WORD32 *qmf_imag_post,
+                               WORD32 const window_type, WORD32 qmf_global_offset,
+                               ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr,
+                               VOID *scratch, WORD32 time_slots) {
   WORD32 i;
   WORD32 j;
   WORD32 k;
@@ -1557,8 +1539,8 @@ IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
 
   scale = a;
 
-  error_code = ixheaacd_local_mdct_win(upd_qmf, window_type, wf, wf_tab, wt,
-                                       ia_mps_dec_mps_table_ptr->mdct2qmf_table_ptr);
+  ixheaacd_local_mdct_win(upd_qmf, window_type, wf, wf_tab, wt,
+                          ia_mps_dec_mps_table_ptr->mdct2qmf_table_ptr);
 
   switch (window_type) {
     case ONLY_LONG_SEQUENCE:
@@ -1582,10 +1564,8 @@ IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
         *scale++ = ixheaacd_mps_mult32_shr_15(gain, *wp);
         wp++;
       }
-
-      error_code = ixheaacd_local_hybcmdct2qmf(v1, v2, a, l, z1_real, z1_imag,
-                                               ia_mps_dec_mps_table_ptr->mdct2qmfcos_tab_ptr,
-                                               free_scratch, 1);
+      ixheaacd_local_hybcmdct2qmf(v1, v2, a, l, z1_real, z1_imag,
+                                  ia_mps_dec_mps_table_ptr->mdct2qmfcos_tab_ptr, free_scratch, 1);
 
       ptr1 = ia_mps_dec_mps_table_ptr->mdct2qmf_table_ptr->twi_post_cos;
       ptr2 = ia_mps_dec_mps_table_ptr->mdct2qmf_table_ptr->twi_post_sin;
@@ -1697,12 +1677,16 @@ IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
           n_windows = 15;
           break;
         default:
-          error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
+          l = 4;
+          mdct_length = AAC_SHORT_FRAME_LENGTH;
+          qmf_offset = 6;
+          qmf_shift = 2;
+          n_windows = 7;
           break;
       }
 
       wp = wt;
-      error_code = ixheaacd_get_gain(l, &gain);
+      ixheaacd_get_gain(l, &gain);
 
       for (k = 0; k < l; k++) {
         *scale++ = ixheaacd_mps_mult32_shr_15(gain, *wp);
@@ -1761,14 +1745,13 @@ IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
             }
             break;
           default:
-            error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_QMF_UPDATE;
             break;
         }
         ixheaacd_local_fold_out(mdct_sf, mdct_length, &wf[window_offset], l, v1, v2);
 
-        error_code = ixheaacd_local_hybcmdct2qmf(v1, v2, a, l, z1_real, z1_imag,
-                                                 ia_mps_dec_mps_table_ptr->mdct2qmfcos_tab_ptr,
-                                                 free_scratch, is_long);
+        ixheaacd_local_hybcmdct2qmf(v1, v2, a, l, z1_real, z1_imag,
+                                    ia_mps_dec_mps_table_ptr->mdct2qmfcos_tab_ptr, free_scratch,
+                                    is_long);
 
         zr = z1_real;
         zi = z1_imag;
@@ -1859,8 +1842,7 @@ IA_ERRORCODE ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in,
       }
       break;
     default:
-      error_code = IA_XHEAAC_MPS_DEC_EXE_NONFATAL_INVALID_WINDOW_TYPE;
       break;
   }
-  return error_code;
+  return;
 }

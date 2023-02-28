@@ -97,11 +97,11 @@
 #define MAX_NUM_QMF_BANDS_ESBR 128
 
 #define SBR_HF_ADJ_OFFSET 2
-#define MPS_SBR_DELAY 6 /* 6 qmf samples */
+#define MPS_SBR_DELAY (6)
 
 #define MPS_SBR_DELAY_960 5
 
-#define ESBR_HBE_DELAY_OFFSET 32 /* 32 qmf samples */
+#define ESBR_HBE_DELAY_OFFSET (32)
 
 #define ESBR_HBE_DELAY_OFFSET_960 30
 

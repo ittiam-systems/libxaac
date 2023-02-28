@@ -22,6 +22,7 @@
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
+#include "ixheaacd_defines.h"
 #include "ixheaacd_mps_aac_struct.h"
 
 #include "ixheaacd_sbr_common.h"
@@ -41,6 +42,9 @@
 #include "ixheaacd_drc_data_struct.h"
 
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"

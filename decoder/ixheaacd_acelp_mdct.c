@@ -41,6 +41,8 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 
@@ -161,12 +163,11 @@ static void ixheaacd_post_twid(WORD32 *data_re, WORD32 *data_im, WORD32 *out,
   }
 }
 
-WORD32 ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift,
-                           WORD32 length, WORD32 *ptr_scratch) {
+VOID ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift, WORD32 length,
+                         WORD32 *ptr_scratch) {
   WORD32 *ptr_data_r = ptr_scratch;
   WORD32 *ptr_data_i = ptr_scratch + 512;
   const WORD32 *ptr_pre_post_twid;
-  WORD32 err = 0;
 
   switch (length) {
     case 1024:
@@ -207,26 +208,22 @@ WORD32 ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift,
   ixheaacd_pre_twid(ptr_in, ptr_data_r, ptr_data_i, length / 2,
                     ptr_pre_post_twid);
 
-  err = ixheaacd_complex_fft(ptr_data_r, ptr_data_i, length / 2, -1, preshift);
-  if (err) return err;
+  ixheaacd_complex_fft(ptr_data_r, ptr_data_i, length / 2, -1, preshift);
   *preshift += 1;
 
   ixheaacd_post_twid(ptr_data_r, ptr_data_i, ptr_out, length / 2,
                      ptr_pre_post_twid);
   *preshift += 1;
-  return err;
+  return;
 }
 
-WORD32 ixheaacd_acelp_mdct_main(ia_usac_data_struct *usac_data, WORD32 *in,
-                                WORD32 *out, WORD32 l, WORD32 m,
-                                WORD32 *preshift) {
+VOID ixheaacd_acelp_mdct_main(ia_usac_data_struct *usac_data, WORD32 *in, WORD32 *out, WORD32 l,
+                              WORD32 m, WORD32 *preshift) {
   WORD32 i;
   WORD32 *ptr_scratch = &usac_data->scratch_buffer[0];
   WORD32 *output_buffer = &usac_data->x_ac_dec[0];
-  WORD32 err = 0;
 
-  err = ixheaacd_acelp_mdct(in, output_buffer, preshift, l + m, ptr_scratch);
-  if (err == -1) return err;
+  ixheaacd_acelp_mdct(in, output_buffer, preshift, l + m, ptr_scratch);
 
   for (i = 0; i < m / 2; i++) {
     out[l + m / 2 - 1 - i] = -output_buffer[m / 2 + l / 2 + i];
@@ -242,5 +239,5 @@ WORD32 ixheaacd_acelp_mdct_main(ia_usac_data_struct *usac_data, WORD32 *in,
     out[l + m + i] = -output_buffer[l / 2 - 1 - i];
     out[2 * l + m - 1 - i] = -output_buffer[l / 2 - 1 - i];
   }
-  return err;
+  return;
 }

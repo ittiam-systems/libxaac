@@ -49,6 +49,9 @@
 
 #include "ixheaacd_lt_predict.h"
 
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
@@ -626,9 +629,9 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
         aac_state_struct->usac_flag = 1;
 
         ixheaacd_conf_default(&(pstr_audio_specific_config->str_usac_config));
-        err = ixheaacd_config(it_bit_buff,
-                              &(pstr_audio_specific_config->str_usac_config),
-                              &(pstr_audio_specific_config->channel_configuration));
+        err = ixheaacd_config(it_bit_buff, &(pstr_audio_specific_config->str_usac_config),
+                              &(pstr_audio_specific_config->channel_configuration),
+                              aac_state_struct->ec_enable);
         if (err != 0) return err;
 
         pstr_audio_specific_config->sampling_frequency =
@@ -725,6 +728,7 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
                   1;
               aac_state_struct->mps_dec_handle.object_type =
                   aac_state_struct->audio_object_type;
+              aac_state_struct->mps_dec_handle.ec_flag = aac_state_struct->ec_enable;
               err = ixheaacd_ld_spatial_specific_config(
                   &(aac_state_struct->mps_dec_handle.ldmps_config), it_bit_buff);
               if (err) return err;

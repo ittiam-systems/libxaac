@@ -39,6 +39,9 @@
 
 #include "ixheaacd_lt_predict.h"
 
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 
@@ -1176,7 +1179,7 @@ VOID ixheaacd_lap1_512_480(WORD32 *coef, WORD32 *prev, VOID *out_tmp,
 
     accu = ixheaacd_sub32_sat(
         ixheaacd_shl32_dir_sat_limit(
-            ixheaacd_mult32_shl(ixheaacd_negate32(coeff), win2), q_shift),
+            ixheaacd_mult32_shl(ixheaacd_negate32_sat(coeff), win2), q_shift),
         ixheaacd_mac32x16in32_shl(rounding_fac, win1, (WORD16)(prev_data)));
 
     accu = ixheaacd_add32_sat(accu, accu);

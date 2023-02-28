@@ -30,6 +30,9 @@
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
 #include "ixheaacd_drc_data_struct.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_common_rom.h"
@@ -1193,6 +1196,7 @@ IA_ERRORCODE ixheaacd_aac_mps_init(ia_exhaacplus_dec_api_struct *p_obj_mps_dec, 
   IA_ERRORCODE err_code = IA_NO_ERROR;
   ia_heaac_mps_state_struct *curr_state = &p_obj_mps_dec->p_state_aac->heaac_mps_handle;
   ia_mps_spatial_bs_config_struct *p_bs_config = &curr_state->bs_config;
+  curr_state->ec_flag = p_obj_mps_dec->p_state_aac->ec_enable;
   ixheaacd_table_ptr_init(curr_state);
 
   curr_state->ptr_mps_bit_buff =
@@ -1262,6 +1266,7 @@ IA_ERRORCODE ixheaacd_aac_mps_init(ia_exhaacplus_dec_api_struct *p_obj_mps_dec, 
   if (err_code != IA_NO_ERROR) return err_code;
 
   curr_state->mps_init_done = 1;
+  curr_state->first_frame = 1;
 
   return err_code;
 }

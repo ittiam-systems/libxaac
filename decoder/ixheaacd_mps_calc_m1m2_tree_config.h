@@ -20,16 +20,16 @@
 #ifndef IXHEAACD_MPS_CALC_M1M2_TREE_CONFIG_H
 #define IXHEAACD_MPS_CALC_M1M2_TREE_CONFIG_H
 
-IA_ERRORCODE ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_5151(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_5152(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_5151(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_5152(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state);
 VOID ixheaacd_calc_m1m2_5227(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state);
-IA_ERRORCODE ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_7271(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_7272(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_7571(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_calc_m1m2_7572(ia_heaac_mps_state_struct *pstr_mps_state);
 
 #endif /* IXHEAACD_MPS_CALC_M1M2_TREE_CONFIG_H */

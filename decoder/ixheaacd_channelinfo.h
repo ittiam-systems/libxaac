@@ -293,7 +293,7 @@ typedef struct {
 
   WORD16 *ltp_buf;
   UWORD16 ltp_lag;
-
+  ia_ec_state_str str_ec_state;
 } ia_aac_dec_channel_info;
 
 typedef struct {

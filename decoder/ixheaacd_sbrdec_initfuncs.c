@@ -40,6 +40,9 @@
 
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 
@@ -66,7 +69,7 @@
 #include "ixheaacd_env_dec.h"
 #include "ixheaacd_basic_funcs.h"
 #include "ixheaacd_sbr_crc.h"
-#include "ixheaacd_error_standards.h"
+
 #include "ixheaacd_sbrqmftrans.h"
 
 #include "ixheaacd_audioobjtypes.h"

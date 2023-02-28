@@ -19,7 +19,7 @@
 */
 #include <stdlib.h>
 #include <math.h>
-#include <ixheaacd_type_def.h>
+#include "ixheaacd_type_def.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_peak_limiter_struct_def.h"
 #include "ixheaacd_constants.h"
@@ -73,6 +73,109 @@ WORD32 ixheaacd_peak_limiter_init(ia_peak_limiter_struct *peak_limiter,
 
   return 0;
 }
+VOID ixheaacd_peak_limiter_process_float(ia_peak_limiter_struct *peak_limiter,
+                                         FLOAT32 samples[MAX_NUM_CHANNELS][4096],
+                                         UWORD32 frame_len) {
+  UWORD32 i, j;
+  FLOAT32 tmp, gain;
+  FLOAT32 min_gain = 1.0f;
+  FLOAT32 maximum;
+  UWORD32 num_channels = peak_limiter->num_channels;
+  UWORD32 attack_time_samples = peak_limiter->attack_time_samples;
+  FLOAT32 attack_constant = peak_limiter->attack_constant;
+  FLOAT32 release_constant = peak_limiter->release_constant;
+  FLOAT32 *max_buf = peak_limiter->max_buf;
+  FLOAT32 gain_modified = peak_limiter->gain_modified;
+  FLOAT32 *delayed_input = peak_limiter->delayed_input;
+  UWORD32 delayed_input_index = peak_limiter->delayed_input_index;
+  FLOAT64 pre_smoothed_gain = peak_limiter->pre_smoothed_gain;
+  FLOAT32 limit_threshold = PEAK_LIM_THR_FLOAT;
+
+  if (peak_limiter->limiter_on || (FLOAT32)pre_smoothed_gain) {
+    for (i = 0; i < frame_len; i++) {
+      tmp = 0.0f;
+      for (j = 0; j < num_channels; j++) {
+        tmp = (FLOAT32)MAX(tmp, fabs(samples[j][i]));
+      }
+      max_buf[peak_limiter->cir_buf_pnt] = tmp;
+
+      if (peak_limiter->max_idx == peak_limiter->cir_buf_pnt) {
+        peak_limiter->max_idx = 0;
+        for (j = 1; j < (attack_time_samples); j++) {
+          if (max_buf[j] > max_buf[peak_limiter->max_idx]) peak_limiter->max_idx = j;
+        }
+      } else if (tmp >= max_buf[peak_limiter->max_idx]) {
+        peak_limiter->max_idx = peak_limiter->cir_buf_pnt;
+      }
+
+      peak_limiter->cir_buf_pnt++;
+
+      if (peak_limiter->cir_buf_pnt == (WORD32)(attack_time_samples))
+        peak_limiter->cir_buf_pnt = 0;
+      maximum = max_buf[peak_limiter->max_idx];
+
+      if (maximum > limit_threshold) {
+        gain = limit_threshold / maximum;
+      } else {
+        gain = 1;
+      }
+
+      if (gain < pre_smoothed_gain) {
+        gain_modified =
+            MIN(gain_modified, (gain - 0.1f * (FLOAT32)pre_smoothed_gain) * 1.11111111f);
+      } else {
+        gain_modified = gain;
+      }
+
+      if (gain_modified < pre_smoothed_gain) {
+        pre_smoothed_gain = attack_constant * (pre_smoothed_gain - gain_modified) + gain_modified;
+        pre_smoothed_gain = MAX(pre_smoothed_gain, gain);
+      } else {
+        pre_smoothed_gain =
+            release_constant * (pre_smoothed_gain - gain_modified) + gain_modified;
+      }
+
+      gain = (FLOAT32)pre_smoothed_gain;
+
+      for (j = 0; j < num_channels; j++) {
+        tmp = delayed_input[delayed_input_index * num_channels + j];
+        delayed_input[delayed_input_index * num_channels + j] = samples[j][i];
+
+        tmp *= gain;
+
+        if (tmp > limit_threshold)
+          tmp = limit_threshold;
+        else if (tmp < -limit_threshold)
+          tmp = -limit_threshold;
+
+        samples[j][i] = tmp;
+      }
+
+      delayed_input_index++;
+      if (delayed_input_index >= attack_time_samples) delayed_input_index = 0;
+
+      if (gain < min_gain) min_gain = gain;
+    }
+  } else {
+    for (i = 0; i < frame_len; i++) {
+      for (j = 0; j < num_channels; j++) {
+        tmp = delayed_input[delayed_input_index * num_channels + j];
+        delayed_input[delayed_input_index * num_channels + j] = samples[j][i];
+        samples[j][i] = tmp;
+      }
+
+      delayed_input_index++;
+      if (delayed_input_index >= attack_time_samples) delayed_input_index = 0;
+    }
+  }
+
+  peak_limiter->gain_modified = gain_modified;
+  peak_limiter->delayed_input_index = delayed_input_index;
+  peak_limiter->pre_smoothed_gain = pre_smoothed_gain;
+  peak_limiter->min_gain = min_gain;
+
+  return;
+}
 
 /**
 *  ixheaacd_peak_limiter_process
@@ -102,7 +205,7 @@ VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter,
   FLOAT32 *delayed_input = peak_limiter->delayed_input;
   UWORD32 delayed_input_index = peak_limiter->delayed_input_index;
   FLOAT64 pre_smoothed_gain = peak_limiter->pre_smoothed_gain;
-  WORD32 limit_threshold = 2147483647;
+  WORD32 limit_threshold = PEAK_LIM_THR_FIX;
 
   WORD32 *samples = (WORD32 *)samples_t;
 

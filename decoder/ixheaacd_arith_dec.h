@@ -27,7 +27,7 @@ WORD32 ixheaacd_ac_spectral_data(ia_usac_data_struct *usac_data,
                                  ia_bit_buf_struct *it_bit_buff, UWORD8 max_sfb,
                                  WORD32 reset, WORD32 noise_filling, WORD32 ch);
 
-WORD32 ixheaacd_arith_data(ia_td_frame_data_struct *pstr_td_frame_data,
+VOID ixheaacd_arith_data(ia_td_frame_data_struct *pstr_td_frame_data,
                            WORD32 *quant, ia_usac_data_struct *usac_data,
                            ia_bit_buf_struct *it_bit_buff,
                            WORD32 first_tcx_flag, WORD32 k);

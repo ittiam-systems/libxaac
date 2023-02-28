@@ -77,7 +77,7 @@ VOID ixheaacd_res_tns_ar_filter_fixed_32x16(WORD32 *spectrum, WORD32 size, WORD3
                                             WORD16 *lpc, WORD32 order, WORD32 shift_value,
                                             WORD scale_spec) {
   WORD32 i, j;
-  WORD32 y, state[MAX_ORDER];
+  WORD32 y, state[MAX_ORDER + 1];
 
   if ((order & 3) != 0) {
     for (i = order + 1; i < ((WORD32)(order & 0xfffffffc) + 4); i++) {
@@ -85,6 +85,7 @@ VOID ixheaacd_res_tns_ar_filter_fixed_32x16(WORD32 *spectrum, WORD32 size, WORD3
     }
     lpc[i] = 0;
     order = ((order & 0xfffffffc) + 4);
+    order = order & 31;
   }
 
   for (i = 0; i < order; i++) {

@@ -135,6 +135,8 @@ typedef struct {
   WORD32 ui_enh_sbr_ps;
   WORD32 ui_usac_flag;
 
+  WORD32 ui_err_conceal;
+  FLAG first_frame;
 } ia_aac_dec_config_struct;
 
 typedef struct ia_aac_dec_state_struct {
@@ -252,6 +254,8 @@ typedef struct ia_aac_dec_state_struct {
   WORD32 ui_mps_out_bytes;
   WORD32 drc_config_changed;
   WORD32 apply_crossfade;
+  WORD32 ec_enable;
+  WORD32 first_frame;
 } ia_aac_dec_state_struct;
 
 typedef struct ia_exhaacplus_dec_api_struct {
@@ -271,17 +275,13 @@ typedef struct ia_exhaacplus_dec_api_struct {
 
 WORD32 ixheaacd_aacdec_decodeframe(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
-    ia_aac_dec_scratch_struct *aac_scratch_ptrs, VOID *time_data,
-    FLAG frame_status, WORD *type, WORD *ch_idx, WORD init_flag, WORD channel,
-    WORD *element_index_order, WORD skip_full_decode, WORD ch_fac,
-    WORD slot_element, WORD max_channels, WORD32 total_channels,
-    WORD32 frame_length, WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec,
-    WORD32 object_type, WORD32 ch_config,
+    ia_aac_dec_scratch_struct *aac_scratch_ptrs, VOID *time_data, FLAG frame_status, WORD *type,
+    WORD *ch_idx, WORD init_flag, WORD channel, WORD *element_index_order, WORD skip_full_decode,
+    WORD ch_fac, WORD slot_element, WORD max_channels, WORD32 total_channels, WORD32 frame_length,
+    WORD32 frame_size, ia_drc_dec_struct *pstr_drc_dec, WORD32 object_type, WORD32 ch_config,
     ia_eld_specific_config_struct eld_specific_config, WORD16 adtsheader,
-    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos
-    ,
-    UWORD8 *mps_buffer, WORD32 *mps_header, WORD32 *mps_bytes, WORD32 is_init
-);
+    ia_drc_dec_struct *drc_dummy, WORD32 ldmps_present, UWORD8 *slot_pos, UWORD8 *mps_buffer,
+    WORD32 *mps_header, WORD32 *mps_bytes, WORD32 is_init, WORD32 first_frame);
 
 WORD ixheaacd_get_channel_mask(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec);
@@ -316,6 +316,19 @@ WORD32 ixheaacd_dec_table_api(
 IA_ERRORCODE ixheaacd_aac_mps_init(ia_exhaacplus_dec_api_struct *p_obj_mps_dec,
                                    UWORD8 *databuf, WORD32 buffer_size,
                                    WORD32 sample_rate);
+
+WORD32 ixheaacd_peak_limiter_init(ia_peak_limiter_struct *peak_limiter, UWORD32 num_channels,
+                                  UWORD32 sample_rate, FLOAT32 *buffer,
+                                  UWORD32 *delay_in_samples);
+
+VOID ixheaacd_peak_limiter_process(ia_peak_limiter_struct *peak_limiter, VOID *samples,
+                                   UWORD32 frame_len, WORD8 *qshift_adj);
+
+VOID ixheaacd_scale_adjust(VOID *samples, UWORD32 frame_len, WORD8 *qshift_adj,
+                           WORD num_channels);
+VOID ixheaacd_peak_limiter_process_float(ia_peak_limiter_struct *peak_limiter,
+                                         FLOAT32 samples[MAX_NUM_CHANNELS][4096],
+                                         UWORD32 frame_len);
 
 
 #endif /* IXHEAACD_STRUCT_DEF_H */

@@ -43,6 +43,8 @@
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
 
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_func_def.h"
@@ -53,7 +55,6 @@
 #include "ixheaacd_basic_ops32.h"
 #include "ixheaacd_basic_ops40.h"
 
-static FLOAT32 ixheaacd_randomsign(UWORD32 *seed);
 #define ABS(A) ((A) < 0 ? (-A) : (A))
 
 VOID ixheaacd_lpc_coeff_wt_apply(FLOAT32 *a, FLOAT32 *ap) {
@@ -135,6 +136,37 @@ static VOID ixheaacd_low_fq_deemphasis(FLOAT32 x[], WORD32 lg,
   return;
 }
 
+static WORD32 ixheaacd_calc_max_pitch(FLOAT32 x[LEN_SUPERFRAME], WORD32 n) {
+  FLOAT32 max_m;
+  FLOAT32 t_est;
+  WORD32 i, i_max, pitch_tcx;
+
+  max_m = 0;
+  i_max = 1;
+
+  for (i = 1; i < n; i++) {
+    FLOAT32 mag = (x[2 * i] * x[2 * i]) + (x[2 * i + 1] * x[2 * i + 1]);
+    if (mag > max_m) {
+      max_m = mag;
+      i_max = i;
+    }
+  }
+
+  t_est = (n / (FLOAT32)i_max);
+
+  if (t_est >= 256) {
+    pitch_tcx = 256;
+  } else {
+    FLOAT32 tmp_est = t_est;
+    while (tmp_est < 256) {
+      tmp_est += t_est;
+    }
+    pitch_tcx = (WORD32)(tmp_est - t_est);
+  }
+
+  return (pitch_tcx);
+}
+
 WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
                          ia_td_frame_data_struct *pstr_td_frame_data,
                          WORD32 frame_index, FLOAT32 lp_flt_coff_a[], WORD32 lg,
@@ -208,16 +240,18 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
       st->exc_prev[i + fac_length + fac_length_prev + 1] = 0.0f;
     }
   }
-
-  noise_level =
-      0.0625f *
-      (8.0f - ((FLOAT32)pstr_td_frame_data->noise_factor[frame_index]));
+  if (usac_data->frame_ok == 1) {
+    noise_level = 0.0625f * (8.0f - ((FLOAT32)pstr_td_frame_data->noise_factor[frame_index]));
 
   ptr_tcx_quant = pstr_td_frame_data->x_tcx_invquant;
   for (i = 0; i < frame_index; i++)
     ptr_tcx_quant += pstr_td_frame_data->tcx_lg[i];
 
   for (i = 0; i < lg; i++) x[i] = (FLOAT32)ptr_tcx_quant[i];
+
+    if (usac_data->ec_flag) {
+      st->last_tcx_pitch = ixheaacd_calc_max_pitch(x, (lg >> 5));
+    }
 
   for (i = lg / 6; i < lg; i += 8) {
     WORD32 k, max_k = min(lg, i + 8);
@@ -235,12 +269,10 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
   ixheaacd_low_fq_deemphasis(x, lg, alfd_gains);
 
   ixheaacd_lpc_coeff_wt_apply(lp_flt_coff_a + (ORDER + 1), i_ap);
-  err = ixheaacd_lpc_to_td(i_ap, ORDER, gain1, usac_data->len_subfrm / 4);
-  if (err) return err;
+  ixheaacd_lpc_to_td(i_ap, ORDER, gain1, usac_data->len_subfrm / 4);
 
   ixheaacd_lpc_coeff_wt_apply(lp_flt_coff_a + (2 * (ORDER + 1)), i_ap);
-  err = ixheaacd_lpc_to_td(i_ap, ORDER, gain2, usac_data->len_subfrm / 4);
-  if (err) return err;
+  ixheaacd_lpc_to_td(i_ap, ORDER, gain2, usac_data->len_subfrm / 4);
 
   energy = 0.01f;
   for (i = 0; i < lg; i++) energy += x[i] * x[i];
@@ -252,13 +284,38 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
           10.0f,
           ((FLOAT32)pstr_td_frame_data->global_gain[frame_index]) / 28.0f) /
       (temp * 2.0f);
-
+  }
+  if (usac_data->ec_flag) {
+    if (usac_data->frame_ok == 1) {
+      usac_data->past_gain_tcx[usac_data->present_chan] = gain_tcx;
+    } else {
+      gain_tcx = usac_data->past_gain_tcx[usac_data->present_chan];
+    }
+  }
+  if (usac_data->frame_ok == 1) {
   ixheaacd_noise_shaping(x, lg, (usac_data->len_subfrm) / 4, gain1, gain2);
   shiftp = ixheaacd_float2fix(x, int_x, lg);
+  }
+  if (usac_data->ec_flag == 1) {
+    if (st->mode_prev != 0) {
+      if (usac_data->frame_ok == 1) {
+        memcpy(usac_data->tcx_spec_coeffs[usac_data->present_chan], int_x, lg * sizeof(int_x[0]));
+        usac_data->last_shiftp = shiftp;
+      } else {
+        memcpy(int_x, usac_data->tcx_spec_coeffs[usac_data->present_chan], lg * sizeof(int_x[0]));
+        shiftp = usac_data->last_shiftp;
+      }
+    }
+  } else {
+    if (lg & (lg - 1)) {
+      if ((lg != 48) && (lg != 96) && (lg != 192) && (lg != 384) && (lg != 768)) {
+        return -1;
+      }
+    }
+  }
 
-  err = ixheaacd_acelp_mdct_main(usac_data, int_x, int_xn1, (2 * fac_length),
-                                 lg - (2 * fac_length), &preshift);
-  if (err == -1) return err;
+  ixheaacd_acelp_mdct_main(usac_data, int_x, int_xn1, (2 * fac_length), lg - (2 * fac_length),
+                           &preshift);
 
   ixheaacd_fix2float(int_xn1, xn_buf, (lg + (2 * fac_length)), &shiftp,
                      &preshift);
@@ -297,9 +354,16 @@ WORD32 ixheaacd_tcx_mdct(ia_usac_data_struct *usac_data,
     preshift = 0;
     shiftp = ixheaacd_float2fix(x, int_x, fac_length);
 
-    err =
-        ixheaacd_acelp_mdct(int_x, int_xn1, &preshift, fac_length, ptr_scratch);
-    if (err == -1) return err;
+    if (usac_data->ec_flag == 0) {
+      if (fac_length & (fac_length - 1)) {
+        if ((fac_length != 48) && (fac_length != 96) && (fac_length != 192) &&
+            (fac_length != 384) && (fac_length != 768)) {
+          return -1;
+        }
+      }
+    }
+
+    ixheaacd_acelp_mdct(int_x, int_xn1, &preshift, fac_length, ptr_scratch);
 
     ixheaacd_fix2float(int_xn1, xn1, fac_length, &shiftp, &preshift);
 

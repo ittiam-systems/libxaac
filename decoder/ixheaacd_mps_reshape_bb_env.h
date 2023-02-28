@@ -33,8 +33,8 @@
 
 VOID ixheaacd_init_bb_env(ia_heaac_mps_state_struct *pstr_mps_state);
 
-IA_ERRORCODE ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state);
 
-IA_ERRORCODE ixheaacd_pre_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state);
+VOID ixheaacd_pre_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state);
 
 #endif /* IXHEAACD_MPS_RESHAPE_BB_ENV_H */

@@ -9,6 +9,7 @@ target_sources(libxaacdec
                PRIVATE
                "${XAAC_ROOT}/decoder/ixheaacd_aacdecoder.c"
                "${XAAC_ROOT}/decoder/ixheaacd_aacpluscheck.c"
+               "${XAAC_ROOT}/decoder/ixheaacd_aac_ec.c"
                "${XAAC_ROOT}/decoder/ixheaacd_aac_imdct.c"
                "${XAAC_ROOT}/decoder/ixheaacd_aac_rom.c"
                "${XAAC_ROOT}/decoder/ixheaacd_aac_tns.c"
@@ -33,6 +34,7 @@ target_sources(libxaacdec
                "${XAAC_ROOT}/decoder/ixheaacd_decode_main.c"
                "${XAAC_ROOT}/decoder/ixheaacd_drc_freq_dec.c"
                "${XAAC_ROOT}/decoder/ixheaacd_dsp_fft32x32s.c"
+               "${XAAC_ROOT}/decoder/ixheaacd_ec_rom.c"
                "${XAAC_ROOT}/decoder/ixheaacd_env_calc.c"
                "${XAAC_ROOT}/decoder/ixheaacd_env_dec.c"
                "${XAAC_ROOT}/decoder/ixheaacd_env_extr.c"
@@ -126,6 +128,7 @@ target_sources(libxaacdec
                "${XAAC_ROOT}/decoder/ixheaacd_tcx_fwd_mdct.c"
                "${XAAC_ROOT}/decoder/ixheaacd_thumb_ps_dec.c"
                "${XAAC_ROOT}/decoder/ixheaacd_tns.c"
+               "${XAAC_ROOT}/decoder/ixheaacd_usac_ec.c"
                "${XAAC_ROOT}/decoder/ixheaacd_Windowing.c")
 
 set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/decoder ${XAAC_ROOT}/decoder/drc_src)

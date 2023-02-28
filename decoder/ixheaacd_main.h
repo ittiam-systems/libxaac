@@ -61,11 +61,13 @@ typedef struct ia_usac_lpd_decoder {
   FLOAT32 fd_synth_buf[3 * LEN_FRAME + 1 + ORDER];
   FLOAT32 *fd_synth;
   WORD32 bpf_active_prev;
-
+  WORD32 last_tcx_pitch;
+  FLOAT32 synth_prev_ec[ORDER];
 } ia_usac_lpd_decoder, *ia_usac_lpd_decoder_handle;
 
 typedef struct ia_usac_data_main_struct {
   FLOAT32 time_sample_vector[MAX_NUM_CHANNELS][4096];
+  FLOAT32 time_sample_vector_prev[MAX_NUM_CHANNELS][4096];
   WORD32 input_data_ptr[MAX_NUM_CHANNELS][4096];
   WORD32 overlap_data_ptr[MAX_NUM_CHANNELS][4096];
   WORD32 output_data_ptr[MAX_NUM_CHANNELS][4096];
@@ -112,7 +114,7 @@ typedef struct ia_usac_data_main_struct {
   WORD32 *coef_fix[MAX_NUM_CHANNELS];
   FLOAT32 *coef[MAX_NUM_CHANNELS];
   UWORD8 *ms_used[MAX_NUM_CHANNELS];
-  WORD32 *coef_save[chans];
+  WORD32 *coef_save[MAX_NUM_CHANNELS];
 
   WORD16 *factors[MAX_NUM_CHANNELS];
   UWORD8 *group_dis[MAX_NUM_CHANNELS];
@@ -170,7 +172,7 @@ typedef struct ia_usac_data_main_struct {
 
   WORD32 arr_coef_fix[MAX_NUM_CHANNELS][(LN2 + LN2 / 8)];
   FLOAT32 arr_coef[MAX_NUM_CHANNELS][(LN2 + LN2 / 8)];
-  WORD32 arr_coef_save[chans][(LN2 + LN2 / 8)];
+  WORD32 arr_coef_save[MAX_NUM_CHANNELS][(LN2 + LN2 / 8)];
   WORD16 arr_factors[MAX_NUM_CHANNELS][MAXBANDS];
   UWORD8 arr_group_dis[MAX_NUM_CHANNELS][NSHORT];
   WORD32 arr_tw_ratio[MAX_NUM_CHANNELS][NUM_TW_NODES];
@@ -182,6 +184,44 @@ typedef struct ia_usac_data_main_struct {
   WORD32 esbr_hq;
   WORD32 enh_sbr_ps;
   WORD32 drc_config_changed;
+  WORD32 core_mode;
+  WORD32 frame_ok;
+  WORD32 sbr_parse_err_flag;
+  WORD32 last_frame_ok;
+  WORD32 ec_flag;
+  WORD32 first_frame;
+  WORD32 sbr_parse_complete;
+  UWORD8 max_sfb[2];
+  WORD32 num_ch_out;
+  WORD16 spec_scale[MAX_NUM_CHANNELS][128];
+  ia_ec_state_str str_error_concealment[MAX_NUM_CHANNELS];
+  ia_td_frame_data_struct *pstr_td_frame;
+  WORD32 sampling_rate;
+  WORD32 td_frame_prev_ec[MAX_NUM_CHANNELS];
+  FLOAT32 lsp_coeff[5][ORDER];
+  FLOAT32 lsf_adaptive_mean_cand[ORDER];
+  FLOAT32 lsf_adaptive_mean[ORDER];
+  FLOAT32 lpc4_lsf[ORDER];
+  WORD32 bpf_control_info;
+  WORD32 first_lpd_flag;
+  WORD32 short_fac_flag;
+  WORD32 core_mode_last;
+  FLOAT32 stability_factor_old;
+  WORD32 num_lost_lpd_frames[MAX_NUM_CHANNELS];
+  WORD32 pitch_lag_old;
+  WORD32 pitch_lag_frac_old;
+  WORD32 pitch_lag;
+  WORD32 pitch_lag_frac;
+  WORD16 seed_ace;
+  ia_ec_state_str *pstr_ec_state;
+  FLOAT32 past_pitch_gain;
+  FLOAT32 past_gain_code;
+  FLOAT32 past_gain_tcx[MAX_NUM_CHANNELS];
+  WORD32 tcx_spec_coeffs[MAX_NUM_CHANNELS][1280];
+  FLOAT32 lspold_ec[ORDER];
+  FLOAT32 lp_flt_coff_a_ec[ORDER + 1];
+  ia_td_frame_data_struct td_frame_data_prev[MAX_NUM_CHANNELS];
+  WORD32 last_shiftp;
 } ia_usac_data_struct;
 
 IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
@@ -209,21 +249,19 @@ WORD32 ixheaacd_tw_frame_dec(ia_usac_data_struct *usac_data, WORD32 i_ch,
 
 WORD32 ixheaacd_fd_frm_dec(ia_usac_data_struct *usac_data, WORD32 i_ch);
 
-WORD32 ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift,
-                           WORD32 length, WORD32 *ptr_scratch);
+VOID ixheaacd_acelp_mdct(WORD32 *ptr_in, WORD32 *ptr_out, WORD32 *preshift, WORD32 length,
+                         WORD32 *ptr_scratch);
 
-WORD32 ixheaacd_acelp_mdct_main(ia_usac_data_struct *usac_data, WORD32 *x,
-                                WORD32 *y, WORD32 l, WORD32 m,
-                                WORD32 *preshift);
+VOID ixheaacd_acelp_mdct_main(ia_usac_data_struct *usac_data, WORD32 *x, WORD32 *y, WORD32 l,
+                              WORD32 m, WORD32 *preshift);
 
-WORD32 ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len_subfr, WORD32 lfac,
-                                 WORD32 *iaq, WORD32 *izir, WORD32 *ifacdec,
-                                 WORD8 *qshift1, WORD8 qshift2, WORD8 qshift3,
-                                 WORD32 *preshift, WORD32 *ptr_scratch);
+VOID ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len_subfr, WORD32 lfac, WORD32 *iaq,
+                               WORD32 *izir, WORD32 *ifacdec, WORD8 *qshift1, WORD8 qshift2,
+                               WORD8 qshift3, WORD32 *preshift, WORD32 *ptr_scratch);
 
-WORD32 ixheaacd_fwd_alias_cancel_tool(
-    ia_usac_data_struct *usac_data, ia_td_frame_data_struct *pstr_td_frame_data,
-    WORD32 fac_length, FLOAT32 *iaq, WORD32 gain);
+VOID ixheaacd_fwd_alias_cancel_tool(ia_usac_data_struct *usac_data,
+                                    ia_td_frame_data_struct *pstr_td_frame_data,
+                                    WORD32 fac_length, FLOAT32 *iaq, WORD32 gain);
 
 WORD32 ixheaacd_lpd_bpf_fix(ia_usac_data_struct *usac_data, WORD32 is_short,
                             FLOAT32 out_buffer[],
@@ -233,4 +271,6 @@ VOID ixheaacd_reset_acelp_data_fix(ia_usac_data_struct *usac_data,
                                    ia_usac_lpd_decoder_handle st,
                                    WORD32 *ptr_ola_buff, WORD32 last_was_short,
                                    WORD32 tw_mdct);
+
+FLOAT32 ixheaacd_randomsign(UWORD32 *seed);
 #endif

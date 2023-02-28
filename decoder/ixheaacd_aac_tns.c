@@ -38,6 +38,9 @@
 
 #include "ixheaacd_lt_predict.h"
 
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
@@ -213,6 +216,7 @@ VOID ixheaacd_tns_ar_filter_fixed_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
     }
     lpc[i] = 0;
     order = ((order & 0xfffffffc) + 4);
+    order = order & 31;
   }
   {
     for (i = 0; i < order; i++) {

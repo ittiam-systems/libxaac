@@ -44,6 +44,8 @@
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_sbr_const.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_func_def.h"
@@ -313,6 +315,57 @@ static void ixheaacd_acelp_decode_gains(WORD32 index, FLOAT32 code_vec[],
   return;
 }
 
+static VOID ixheaacd_acelp_decode_gains_with_ec(WORD32 index, FLOAT32 code_vec[],
+                                                FLOAT32 *pitch_gain, FLOAT32 *codebook_gain,
+                                                FLOAT32 mean_exc_energy, FLOAT32 *energy,
+                                                FLOAT32 *past_pitch_gain, FLOAT32 *past_gain_code,
+                                                WORD32 bfi) {
+  WORD32 i;
+  FLOAT32 avg_innov_energy, est_gain, gain_inov;
+  const FLOAT32 *gain_table = ixheaacd_int_leave_gain_table;
+
+  avg_innov_energy = 0.01f;
+  for (i = 0; i < LEN_SUBFR; i++) {
+    avg_innov_energy += code_vec[i] * code_vec[i];
+  }
+  *energy = avg_innov_energy;
+  gain_inov = (FLOAT32)(1 / sqrt(avg_innov_energy / LEN_SUBFR));
+
+  if (bfi) {
+    FLOAT32 tgpit = (*past_pitch_gain);
+
+    if (tgpit > 0.95f) {
+      tgpit = 0.95f;
+    } else if (tgpit < 0.5f) {
+      tgpit = 0.5f;
+    }
+    *pitch_gain = (FLOAT32)tgpit;
+    tgpit = tgpit * 0.95f;
+    *past_pitch_gain = (FLOAT32)tgpit;
+
+    tgpit = 1.4f - tgpit;
+    tgpit = *past_gain_code * tgpit;
+    *codebook_gain = tgpit * gain_inov;
+
+    *past_gain_code = tgpit;
+    return;
+  }
+
+  avg_innov_energy = (FLOAT32)(10.0 * log10(avg_innov_energy / (FLOAT32)LEN_SUBFR));
+  est_gain = mean_exc_energy - avg_innov_energy;
+
+  est_gain = (FLOAT32)pow(10.0, 0.05 * est_gain);
+  if (!bfi) {
+    *pitch_gain = gain_table[index * 2];
+    *past_pitch_gain = *pitch_gain;
+  }
+
+  *codebook_gain = gain_table[index * 2 + 1] * est_gain;
+  *past_gain_code = (*codebook_gain) / gain_inov;
+
+  return;
+}
+
 static VOID ixheaacd_cb_exc_calc(FLOAT32 xcitation_curr[], WORD32 pitch_lag,
                                  WORD32 frac) {
   WORD32 i, j;
@@ -339,11 +392,10 @@ static VOID ixheaacd_cb_exc_calc(FLOAT32 xcitation_curr[], WORD32 pitch_lag,
   return;
 }
 
-WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
-                                ia_td_frame_data_struct *pstr_td_frame_data,
-                                WORD32 k, FLOAT32 lp_filt_coeff[],
-                                FLOAT32 stability_factor,
-                                ia_usac_lpd_decoder_handle st) {
+VOID ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
+                              ia_td_frame_data_struct *pstr_td_frame_data, WORD32 k,
+                              FLOAT32 lp_filt_coeff[], FLOAT32 stability_factor,
+                              ia_usac_lpd_decoder_handle st) {
   WORD32 i, subfr_idx;
   WORD32 pitch_lag = 0, pitch_lag_frac = 0, index, pitch_flag, pitch_lag_max;
   WORD32 pitch_lag_min = 0;
@@ -359,7 +411,7 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   WORD32 pitch_fr1;
   WORD32 pitch_max;
   WORD32 subfr_nb = 0;
-  static const WORD16 num_codebits_table[8] = {20, 28, 36, 44, 52, 64, 12, 16};
+  const WORD16 num_codebits_table[8] = {20, 28, 36, 44, 52, 64, 12, 16};
   FLOAT32 x[FAC_LENGTH] = {0}, xn2[2 * FAC_LENGTH + 16] = {0};
   WORD32 int_x[FAC_LENGTH] = {0};
   WORD32 TTT;
@@ -383,8 +435,15 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   WORD32 *ptr_pitch =
       &usac_data->pitch[k * usac_data->num_subfrm +
                         (((NUM_FRAMES * usac_data->num_subfrm) / 2) - 1)];
-  WORD32 err = 0;
   fac_length = len_subfr / 2;
+
+  WORD32 bfi = (usac_data->num_lost_lpd_frames[usac_data->present_chan] > 0) ? 1 : 0;
+  WORD32 i_offset =
+      (usac_data->str_tddec[usac_data->present_chan]->fscale * TMIN + (FSCALE_DENOM / 2)) /
+          FSCALE_DENOM -
+      TMIN;
+  const WORD32 pitch_max_val = TMAX + (6 * i_offset);
+  WORD16 code_t[LEN_SUBFR];
 
   if (st->mode_prev > 0) {
     for (i = 0; i < fac_length / 2; i++) {
@@ -401,9 +460,8 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
     preshift = 0;
     shiftp = ixheaacd_float2fix(x, int_x, fac_length);
 
-    err =
-        ixheaacd_acelp_mdct(int_x, int_xn2, &preshift, fac_length, ptr_scratch);
-    if (err == -1) return err;
+    ixheaacd_acelp_mdct(int_x, int_xn2, &preshift, fac_length, ptr_scratch);
+
     ixheaacd_fix2float(int_xn2, xn2 + fac_length, fac_length, &shiftp,
                        &preshift);
 
@@ -485,6 +543,15 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
       pitch_lag_frac = index - (pitch_lag - pitch_lag_min) * 4;
     }
 
+    if (usac_data->ec_flag) {
+      if (bfi) {
+        if (usac_data->pitch_lag_old >= pitch_max_val) {
+          usac_data->pitch_lag_old = (pitch_max_val - 5);
+        }
+        pitch_lag = usac_data->pitch_lag_old;
+        pitch_lag_frac = usac_data->pitch_lag_frac_old;
+      }
+    }
     ixheaacd_cb_exc_calc(&xcitation_curr[subfr_idx], pitch_lag, pitch_lag_frac);
 
     mean_ener_code =
@@ -498,10 +565,22 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
 
       ixheaacd_mem_cpy(code, &xcitation_curr[subfr_idx], LEN_SUBFR);
     }
-
-    ixheaacd_acelp_decode_pulses_per_track(
-        &(pstr_td_frame_data->icb_index[k * 4 + subfr_nb][0]),
-        num_codebits_table[core_mode], code);
+    if (usac_data->frame_ok == 1) {
+      ixheaacd_acelp_decode_pulses_per_track(
+          &(pstr_td_frame_data->icb_index[k * 4 + subfr_nb][0]), num_codebits_table[core_mode],
+          code);
+    } else {
+      if (usac_data->ec_flag) {
+        WORD32 idx;
+        if (bfi) {
+          for (idx = 0; idx < LEN_SUBFR; idx++) {
+            usac_data->seed_ace = ((((WORD32)usac_data->seed_ace * 31821) >> 1) + 13849);
+            code_t[idx] = (WORD16)((usac_data->seed_ace) >> 4);
+            code[idx] = ((FLOAT32)code_t[idx] / 512);
+          }
+        }
+      }
+    }
 
     tmp = 0.0;
     ixheaacd_preemphsis_tool_float(code, TILT_CODE, LEN_SUBFR, tmp);
@@ -510,9 +589,14 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
     if (i >= 0) ixheaacd_acelp_pitch_sharpening(code, i);
 
     index = pstr_td_frame_data->gains[k * 4 + subfr_nb];
-
-    ixheaacd_acelp_decode_gains(index, code, &pitch_gain, &gain_code,
-                                mean_ener_code, &innov_energy);
+    if (usac_data->ec_flag) {
+      ixheaacd_acelp_decode_gains_with_ec(index, code, &pitch_gain, &gain_code, mean_ener_code,
+                                          &innov_energy, &usac_data->past_pitch_gain,
+                                          &usac_data->past_gain_code, bfi);
+    } else {
+      ixheaacd_acelp_decode_gains(index, code, &pitch_gain, &gain_code, mean_ener_code,
+                                  &innov_energy);
+    }
 
     pitch_energy = 0.0;
     for (i = 0; i < LEN_SUBFR; i++)
@@ -593,5 +677,9 @@ WORD32 ixheaacd_acelp_alias_cnx(ia_usac_data_struct *usac_data,
   ixheaacd_deemphsis_tool(st->exc_prev + 1 + fac_length, fac_length,
                           synth_signal[len_subfr - 1]);
 
-  return err;
+  if (usac_data->ec_flag) {
+    usac_data->pitch_lag_old = pitch_lag;
+    usac_data->pitch_lag_frac_old = pitch_lag_frac;
+  }
+  return;
 }

@@ -108,6 +108,7 @@ FILE *g_pf_meta;
 
 WORD32 raw_testing = 0;
 WORD32 eld_testing = 0;
+WORD32 ec_enable = 0;
 
 #define _IA_PRINT_ERROR(p_mod_err_info, context, e)           \
   if ((e) != IA_NO_ERROR) {                                   \
@@ -638,13 +639,23 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
           IA_XHEAAC_DEC_CONFIG_PARAM_LD_TESTING, &ld_testing);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
-    if (!strncmp((pCHAR8)argv[i], "-peak_limiter_off:", 12))
+    if (!strncmp((pCHAR8)argv[i], "-peak_limiter_off:", 18))
     {
-      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 12);
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 18);
       UWORD32 peak_limiter_flag = atoi(pb_arg_val);
       err_code = (*p_ia_process_api)(p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
           IA_XHEAAC_DEC_CONFIG_PARAM_PEAK_LIMITER, &peak_limiter_flag);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+    /* For Error concealment */
+    if (!strncmp((pCHAR8)argv[i], "-err_conceal:", 13))
+    {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 13);
+      UWORD32 ui_err_conceal = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                                     IA_XHEAAC_DEC_CONFIG_ERROR_CONCEALMENT, &ui_err_conceal);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      ec_enable = ui_err_conceal;
     }
   }
 
@@ -1307,7 +1318,9 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
   } while (!ui_init_done);
-
+  if (ec_enable == 1) {
+    mpeg_d_drc_on = 0;
+  }
   if (mpeg_d_drc_on == 1) {
     err_code = (*p_ia_process_api)(
         pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
@@ -1705,7 +1718,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
           if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size)
             return IA_FATAL_ERROR;
-          if (ixheaacd_i_bytes_to_read <= 0) {
+          if (ixheaacd_i_bytes_to_read <= 0 && ec_enable == 0) {
             err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                            IA_API_CMD_INPUT_OVER, 0, NULL);
 
@@ -1728,7 +1741,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
       if (ixheaacd_i_bytes_to_read > (WORD32)ui_inp_size) return IA_FATAL_ERROR;
 
-      if (ixheaacd_i_bytes_to_read <= 0) {
+      if (ixheaacd_i_bytes_to_read <= 0 && ec_enable == 0) {
         err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                        IA_API_CMD_INPUT_OVER, 0, NULL);
 
@@ -1737,9 +1750,20 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         return IA_NO_ERROR;
       }
 
-      err_code =
-          (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
-                              0, &ixheaacd_i_bytes_to_read);
+        if (ec_enable == 1) {
+          if (ixheaacd_i_bytes_to_read != 0) {
+            err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0,
+                                           &ixheaacd_i_bytes_to_read);
+          } else {
+            if (i_buff_size != 0) {
+              err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0,
+                                             &i_buff_size);
+            }
+          }
+        } else {
+          err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0,
+                                         &ixheaacd_i_bytes_to_read);
+        }
     } else {
       /* Set number of bytes to be processed */
       err_code = (*p_ia_process_api)(
@@ -2171,68 +2195,90 @@ void print_usage() {
   ia_display_id_message(str_lib_info.p_lib_name, str_lib_info.p_version_num);
 #endif
   printf("\n Usage \n");
-  printf("\n <exceutable> -ifile:<input_file> -ofile:<out_file> [options]\n");
+  printf("\n <executable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> "
+         "[options]\n");
   printf("\n[options] can be,");
+  printf("\n[-mp4:<mp4_flag>]");
   printf("\n[-pcmsz:<pcmwordsize>]");
   printf("\n[-dmix:<down_mix>]");
-#ifdef RESAMPLE_SUPPORT
-  /* By default not available */
-  printf("\n[-f08:<out_08khz>]");
-  printf("\n[-f16:<out_16khz>]");
-#endif
+  printf("\n[-esbr_hq:<esbr_hq_flag>]");
+  printf("\n[-esbr_ps:<esbr_ps_flag>]");
   printf("\n[-tostereo:<interleave_to_stereo>]");
   printf("\n[-dsample:<down_sample_sbr>]");
-  printf("\n[-fs:<RAW_sample_rate>]");
+  printf("\n[-drc_cut_fac:<drc_cut_factor>]");
+  printf("\n[-drc_boost_fac:<drc_boost_factor>]");
+  printf("\n[-drc_target_level:<drc_target_level>]");
+  printf("\n[-drc_heavy_comp:<drc_heavy_compression>]");
+  printf("\n[-effect:<effect_type>]");
+  printf("\n[-target_loudness:<target_loudness>]");
   printf("\n[-nosync:<disable_sync>]");
   printf("\n[-sbrup:<auto_sbr_upsample>]");
-
-  printf("\n[-maxchannel:<maximum_num_channels>]");
   printf("\n[-flflag:<framelength_flag>}");
+  printf("\n[-fs:<RAW_sample_rate>]");
+  printf("\n[-maxchannel:<maximum_num_channels>]");
 #ifdef MULTICHANNEL_ENABLE
   printf("\n[-coupchannel:<coupling_channel>]");
   printf("\n[-downmix:<down_mix_stereo>]");
 #endif
-
-  printf("\n\nwhere, \n  <inputfile> is the input AAC file name");
-  printf("\n  <outputfile> is the output file name");
-  printf("\n  <pcmwordsize> is the bits per sample info. Only 16 is valid");
-
-  printf("\n  <down_mix> is to enable/disable always mono output. Default 0");
-#ifdef RESAMPLE_SUPPORT
-  printf("\n  <out_08khz> is to enable/disable 8 kHz output. Default 0 ");
-  printf("\n  <out_16khz> is to enable/disable 16 kHz output. Default 0 ");
-#endif
+  printf("\n[-fs480:<ld_frame_size>]");
+  printf("\n[-ld_testing:<ld_testing_flag>]");
+  printf("\n[-peak_limiter_off:<peak_limiter_off_flag>]");
+  printf("\n[-err_conceal:<error_concealment_flag>]");
+  printf("\n\nwhere, \n  <input_file> is the input AAC/HEAACv1/HEAACv2/USAC file name");
+  printf("\n  <meta_data_file> is a text file which contains metadata.");
+  printf("\n   To be given when -mp4:1 is enabled");
+  printf("\n  <output_file> is the output file name");
+  printf("\n  <mp4_flag> is a flag that should be set to 1 when passing ");
+  printf("\n  raw stream along with meta data text file ");
+  printf("\n  <pcmwordsize> is the bits per sample info. 16/24");
+  printf("\n  <down_mix> is to enable/disable always mono output. Default 1");
+  printf("\n  <esbr_hq_flag> is to enable/disable high quality eSBR. Default 0");
+  printf("\n  <esbr_ps_flag> is to indicate eSBR with PS. Default 0");
   printf("\n  <interleave_to_stereo> is to enable/disable always ");
   printf("\n    interleaved to stereo output. Default 1 ");
   printf("\n  <down_sample_sbr> is to enable/disable down-sampled SBR ");
   printf("\n    output. Default auto identification from header");
-  printf("\n  <RAW_sample_rate> is to indicate the core AAC sample rate for");
-  printf("\n    a RAW stream. If this is specified no other file format");
-  printf("\n    headers are searched for. \n");
+  printf("\n  <drc_cut_factor> is to set DRC cut factor value. Default value is 0");
+  printf("\n  <drc_boost_factor> is to set DRC boost factor. Default value is 0");
+  printf("\n  <drc_target_level> is to set DRC target reference level.");
+  printf("\n    Default value is 108");
+  printf("\n  <drc_heavy_compression> is to enable / disable DRC heavy compression.");
+  printf("\n    Default value is 0");
+  printf("\n  <effect_type> is set DRC effect type. Default value is 0");
+  printf("\n  <target_loudness> is to set target loudness level.");
+  printf("\n    Default value is -24");
   printf("\n  <disable_sync> is to disable the ADTS/ADIF sync search i.e");
   printf("\n    when enabled the decoder expects the header to ");
   printf("\n    be at the start of input buffer. Default 0");
-  printf(
-      "\n  <auto_sbr_upsample> is to enable(1) or disable(0) auto SBR "
-      "upsample ");
-  printf(
-      "\n    in case of stream changing from SBR present to SBR not present. "
-      "Default 1");
-
-  printf("\n  <maximum_num_channels> is the number of maxiumum ");
-  printf("\n    channels the input may have. Default is 6 (5.1)");
-
+  printf("\n  <auto_sbr_upsample> is to enable(1) or disable(0) auto SBR "
+         "upsample ");
+  printf("\n    in case of stream changing from SBR present to SBR not present. "
+         "Default 1");
   printf("\n  <framelength_flag> is flag for decoding framelength of 1024 or 960.");
   printf("\n    1 to decode 960 frame length, 0 to decode 1024 frame length");
   printf("\n    Frame length value in the GA header will override this option.");
   printf("\n    Default 0  ");
-
+  printf("\n  <RAW_sample_rate> is to indicate the core AAC sample rate for");
+  printf("\n    a RAW stream. If this is specified no other file format");
+  printf("\n    headers are searched for.");
+  printf("\n  <maximum_num_channels> is the number of maxiumum ");
+  printf("\n    channels the input may have. Default is 6 ");
+  printf("\n    for multichannel libraries and 2 for stereo libraries");
 #ifdef MULTICHANNEL_ENABLE
   printf("\n  <coupling_channel> is element instance tag of ");
   printf("\n    independent coupling channel to be mixed. Default is 0");
   printf("\n  <down_mix_stereo> is flag for Downmix. Give 1 to");
   printf("\n    get stereo (downmix) output. Default is 0");
 #endif
+  printf("\n  <ld_frame_size> is to indicate ld frame size.");
+  printf("\n   0 is for 512 frame length, 1 is for 480 frame length.");
+  printf("\n    Default value is 512 (0)");
+  printf("\n  <ld_testing_flag> is to enable / disable ld decoder testing.");
+  printf("\n    Default value is 0");
+  printf("\n  <peak_limiter_off_flag> is to enable / disable peak limiter.");
+  printf("\n    Default value is 0");
+  printf("\n  <error_concealment_flag> is to enable / disable error concealment.");
+  printf("\n    Default value is 0\n\n");
 }
 
 /*******************************************************************************/

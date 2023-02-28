@@ -20,7 +20,6 @@
 #ifndef IXHEAACD_AAC_ROM_H
 #define IXHEAACD_AAC_ROM_H
 
-#define AAC_NF_NO_RANDOM_VAL 512
 #define MAX_CB_SIZE 13
 
 typedef struct {

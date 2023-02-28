@@ -371,15 +371,17 @@ typedef struct ia_mps_dec_state_struct {
   ia_qmf_dec_tables_struct *qmf_dec_tables_ptr;
   ia_sbr_tables_struct *sbr_tables_ptr;
   ia_sbr_scale_fact_struct *str_sbr_scale_fact;
+  WORD8 ec_flag;
+  WORD8 frame_ok;
 } ia_mps_dec_state_struct;
 
 VOID ixheaacd_mps_init_pre_and_post_matrix(ia_mps_dec_state_struct *self);
 VOID ixheaacd_pre_and_mix_matrix_calculation(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix_type1(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix_type2(ia_mps_dec_state_struct *self);
-WORD32 ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_apply_pre_matrix(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_apply_mix_matrix(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_apply_mix_matrix_type1(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_apply_mix_matrix_type2(ia_mps_dec_state_struct *self);
+VOID ixheaacd_mps_apply_mix_matrix_type3(ia_mps_dec_state_struct *self);
 
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,
                           WORD32 pcmsize, FLOAT32 (*out_samples)[4096],
@@ -413,7 +415,7 @@ VOID ixheaacd_mps_par2umx_pred(ia_mps_dec_state_struct *self,
                                FLOAT32 *h_real, WORD32 param_set_idx,
                                WORD32 res_bands);
 
-WORD32 ixheaacd_mps_upmix_interp(
+VOID ixheaacd_mps_upmix_interp(
     FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                    [MAX_M_INPUT],
     FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
@@ -421,7 +423,7 @@ WORD32 ixheaacd_mps_upmix_interp(
     FLOAT32 m_matrix_prev[MAX_PARAMETER_BANDS][MAX_M_OUTPUT][MAX_M_INPUT],
     WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self, WORD32 bs_high_rate_mode);
 
-WORD32 ixheaacd_mps_upmix_interp_type1(
+VOID ixheaacd_mps_upmix_interp_type1(
     FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                     [MAX_M_INPUT],
     FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
@@ -430,7 +432,7 @@ WORD32 ixheaacd_mps_upmix_interp_type1(
     WORD32 num_rows, WORD32 num_cols, ia_mps_dec_state_struct *self,
     WORD32 bs_high_rate_mode);
 
-WORD32 ixheaacd_mps_upmix_interp_type2(
+VOID ixheaacd_mps_upmix_interp_type2(
     FLOAT32 m_matrix[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
                     [MAX_M_INPUT],
     FLOAT32 r_matrix[MAX_TIME_SLOTS][MAX_PARAMETER_BANDS][MAX_M_OUTPUT]
@@ -997,6 +999,9 @@ typedef struct ia_heaac_mps_state_struct {
   WORD32 heaac_mps_present;
   WORD32 mps_with_sbr;
   WORD32 mps_init_done;
+  WORD32 ec_flag;
+  WORD32 frame_ok;
+  WORD32 first_frame;
 
 } ia_heaac_mps_state_struct;
 

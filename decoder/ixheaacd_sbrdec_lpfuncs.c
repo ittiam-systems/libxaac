@@ -41,6 +41,9 @@
 
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_lt_predict.h"
+#include "ixheaacd_cnst.h"
+#include "ixheaacd_ec_defines.h"
+#include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
 #include "ixheaacd_drc_dec.h"
 
@@ -112,8 +115,8 @@ VOID ixheaacd_derive_lim_band_tbl(
 
   WORD16 sub_band_start = f_low_tbl[0];
   WORD16 sub_band_end = f_low_tbl[num_low_bnd];
-  static const WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666,
-                                           (WORD16)0x4000, (WORD16)0x6000};
+  const WORD16 limbnd_per_oct[4] = {(WORD16)0x2000, (WORD16)0x2666, (WORD16)0x4000,
+                                    (WORD16)0x6000};
 
   if (limiter_bands == 0) {
     f_lim_tbl[0] = 0;
@@ -571,10 +574,9 @@ VOID ixheaacd_map_34_params_to_20(WORD16 *params) {
 
 extern const WORD16 ixheaacd_num_bands[3];
 
-WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
-                             ia_bit_buf_struct *it_bit_buff,
-                             WORD16 num_bits_left,
-                             ia_ps_tables_struct *ps_tables_ptr) {
+IA_ERRORCODE ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec, ia_bit_buf_struct *it_bit_buff,
+                                   WORD16 num_bits_left, ia_ps_tables_struct *ps_tables_ptr)
+{
   WORD b, e, temp;
   const WORD16 num_env_tab[4] = {0, 1, 2, 4};
   WORD cnt_bits;
@@ -617,8 +619,7 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
     }
     ptr_ps_dec->freq_res_ipd = ptr_ps_dec->iid_mode;
     if (ptr_ps_dec->freq_res_ipd > 2) {
-      longjmp(*(it_bit_buff->xaac_jmp_buf),
-        IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      return IA_FATAL_ERROR;
     }
   }
 
@@ -635,7 +636,9 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
       ixheaacd_read_bits_buf(it_bit_buff, 8);
       num_bits_left -= 8;
     }
-    ixheaacd_read_bits_buf(it_bit_buff, num_bits_left);
+    if (num_bits_left >= 0) {
+      ixheaacd_read_bits_buf(it_bit_buff, num_bits_left);
+    }
 
     return (cnt_bits - it_bit_buff->cnt_bits);
   }
@@ -694,8 +697,7 @@ WORD16 ixheaacd_read_ps_data(ia_ps_dec_struct *ptr_ps_dec,
       }
 
       for (b = 0; b < ixheaacd_num_bands[ptr_ps_dec->icc_mode]; b++) {
-        ptr_ps_dec->icc_par_table[e][b] =
-            ixheaacd_ssc_huff_dec(huffman_table, it_bit_buff);
+        ptr_ps_dec->icc_par_table[e][b] = ixheaacd_ssc_huff_dec(huffman_table, it_bit_buff);
       }
     }
   }
@@ -964,15 +966,13 @@ VOID ixheaacd_pre_processing(FLOAT32 ptr_src_buf_real[][64],
   }
 }
 
-WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
-                            FLOAT32 ptr_src_buf_imag[][64],
+WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64], FLOAT32 ptr_src_buf_imag[][64],
                             FLOAT32 ptr_ph_vocod_buf_real[][64],
-                            FLOAT32 ptr_ph_vocod_buf_imag[][64],
-                            FLOAT32 ptr_dst_buf_real[][64],
+                            FLOAT32 ptr_ph_vocod_buf_imag[][64], FLOAT32 ptr_dst_buf_real[][64],
                             FLOAT32 ptr_dst_buf_imag[][64],
                             ia_sbr_frame_info_data_struct *ptr_frame_data,
-                            ia_sbr_header_data_struct *ptr_header_data,
-                            WORD32 ldmps_present, WORD32 time_slots) {
+                            ia_sbr_header_data_struct *ptr_header_data, WORD32 ldmps_present,
+                            WORD32 time_slots, WORD32 ec_flag) {
   WORD32 bw_index, i, k, k2, patch = 0;
   WORD32 co_var_len;
   WORD32 start_sample, end_sample, goal_sb;
@@ -1051,6 +1051,7 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
   }
 
   if (sbr_patching_mode || !hbe_flag) {
+    WORD32 flag_break = 0;
     FLOAT32 alpha_real[64][2] = {{0}}, alpha_imag[64][2] = {{0}};
     if (ptr_frame_data->mps_sbr_flag) {
       cov_count = (f_master_tbl[0] < ptr_frame_data->cov_count)
@@ -1123,7 +1124,13 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
 
     patch = 0;
     while (sb < usb) {
-      if (MAX_NUM_PATCHES <= patch) return -1;
+      if (MAX_NUM_PATCHES <= patch) {
+        if (ec_flag) {
+          break;
+        } else {
+          return -1;
+        }
+      }
       ptr_frame_data->patch_param.start_subband[patch] = sb;
       num_bands_in_patch = goal_sb - sb;
 
@@ -1158,8 +1165,16 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
 
         break;
       }
+
+      if (num_bands_in_patch < 0 && flag_break == 1) {
+        break;
+      }
+
       if (num_bands_in_patch < 0) {
+        flag_break = 1;
         continue;
+      } else {
+        flag_break = 0;
       }
 
       for (k2 = sb; k2 < sb + num_bands_in_patch; k2++) {
@@ -1167,10 +1182,21 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
         bw_index = 0;
         while (k2 >= ptr_invf_band_tbl[bw_index]) {
           bw_index++;
-          if (bw_index >= MAX_NOISE_COEFFS) return -1;
+          if (bw_index >= MAX_NOISE_COEFFS) {
+            if (ec_flag) {
+              bw_index = MAX_NOISE_COEFFS - 1;
+              break;
+            } else
+              return -1;
+          }
         }
 
-        if (bw_index >= MAX_NUM_PATCHES) return -1;
+        if (bw_index >= MAX_NUM_PATCHES) {
+          if (ec_flag)
+            bw_index = MAX_NUM_PATCHES - 1;
+          else
+            return -1;
+        }
         bw = bw_array[bw_index];
 
         a0r = bw * alpha_real[k][0];
@@ -1210,99 +1236,110 @@ WORD32 ixheaacd_generate_hf(FLOAT32 ptr_src_buf_real[][64],
     }
   }
 
-  if (hbe_flag && !sbr_patching_mode) {
-    FLOAT32 alpha_real[2], alpha_imag[2];
+  if (NULL != ptr_ph_vocod_buf_real && NULL != ptr_ph_vocod_buf_imag) {
+    if (hbe_flag && !sbr_patching_mode) {
+      FLOAT32 alpha_real[2], alpha_imag[2];
 
-    bw_index = 0, patch = 1;
-    if (NULL == ptr_ph_vocod_buf_real || NULL == ptr_ph_vocod_buf_imag)
-      return -1;
+      bw_index = 0, patch = 1;
 
-    for (k2 = sub_band_start; k2 < f_master_tbl[num_mf_bands]; k2++) {
-      ixheaacd_esbr_calc_co_variance(&str_auto_corr, &ptr_ph_vocod_buf_real[0],
-                                     &ptr_ph_vocod_buf_imag[0], k2, co_var_len);
+      for (k2 = sub_band_start; k2 < f_master_tbl[num_mf_bands]; k2++) {
+        ixheaacd_esbr_calc_co_variance(&str_auto_corr, &ptr_ph_vocod_buf_real[0],
+                                       &ptr_ph_vocod_buf_imag[0], k2, co_var_len);
 
-      if (str_auto_corr.det == 0.0f) {
-        alpha_real[1] = alpha_imag[1] = 0;
-      } else {
-        fac = 1.0f / str_auto_corr.det;
-        alpha_real[1] =
-            (str_auto_corr.phi_0_1_real * str_auto_corr.phi_1_2_real -
-             str_auto_corr.phi_0_1_imag * str_auto_corr.phi_1_2_imag -
-             str_auto_corr.phi_0_2_real * str_auto_corr.phi_1_1) *
-            fac;
-        alpha_imag[1] =
-            (str_auto_corr.phi_0_1_imag * str_auto_corr.phi_1_2_real +
-             str_auto_corr.phi_0_1_real * str_auto_corr.phi_1_2_imag -
-             str_auto_corr.phi_0_2_imag * str_auto_corr.phi_1_1) *
-            fac;
-      }
-
-      if (str_auto_corr.phi_1_1 == 0) {
-        alpha_real[0] = alpha_imag[0] = 0;
-      } else {
-        fac = 1.0f / str_auto_corr.phi_1_1;
-        alpha_real[0] = -(str_auto_corr.phi_0_1_real +
-                          alpha_real[1] * str_auto_corr.phi_1_2_real +
-                          alpha_imag[1] * str_auto_corr.phi_1_2_imag) *
-                        fac;
-        alpha_imag[0] = -(str_auto_corr.phi_0_1_imag +
-                          alpha_imag[1] * str_auto_corr.phi_1_2_real -
-                          alpha_real[1] * str_auto_corr.phi_1_2_imag) *
-                        fac;
-      }
-
-      if (alpha_real[0] * alpha_real[0] + alpha_imag[0] * alpha_imag[0] >=
-              16.0f ||
-          alpha_real[1] * alpha_real[1] + alpha_imag[1] * alpha_imag[1] >=
-              16.0f) {
-        alpha_real[0] = 0.0f;
-        alpha_imag[0] = 0.0f;
-        alpha_real[1] = 0.0f;
-        alpha_imag[1] = 0.0f;
-      }
-
-      while (k2 >= ptr_invf_band_tbl[bw_index]) {
-        bw_index++;
-        if (bw_index >= MAX_NOISE_COEFFS) return -1;
-      }
-
-      if (bw_index >= MAX_NUM_PATCHES) return -1;
-      bw = bw_array[bw_index];
-
-      a0r = bw * alpha_real[0];
-      a0i = bw * alpha_imag[0];
-      bw *= bw;
-      a1r = bw * alpha_real[1];
-      a1i = bw * alpha_imag[1];
-
-      if (bw > 0.0f) {
-        for (i = start_sample; i < end_sample; i++) {
-          FLOAT32 real1, imag1, real2, imag2, realTarget, imag_target;
-
-          realTarget = ptr_ph_vocod_buf_real[i][k2];
-          imag_target = ptr_ph_vocod_buf_imag[i][k2];
-          real1 = ptr_ph_vocod_buf_real[i - 1][k2];
-          imag1 = ptr_ph_vocod_buf_imag[i - 1][k2];
-          real2 = ptr_ph_vocod_buf_real[i - 2][k2];
-          imag2 = ptr_ph_vocod_buf_imag[i - 2][k2];
-          realTarget +=
-              ((a0r * real1 - a0i * imag1) + (a1r * real2 - a1i * imag2));
-          imag_target +=
-              ((a0i * real1 + a0r * imag1) + (a1i * real2 + a1r * imag2));
-
-          ptr_dst_buf_real[i][k2] = realTarget;
-          ptr_dst_buf_imag[i][k2] = imag_target;
+        if (str_auto_corr.det == 0.0f) {
+          alpha_real[1] = alpha_imag[1] = 0;
+        } else {
+          fac = 1.0f / str_auto_corr.det;
+          alpha_real[1] = (str_auto_corr.phi_0_1_real * str_auto_corr.phi_1_2_real -
+                           str_auto_corr.phi_0_1_imag * str_auto_corr.phi_1_2_imag -
+                           str_auto_corr.phi_0_2_real * str_auto_corr.phi_1_1) *
+                          fac;
+          alpha_imag[1] = (str_auto_corr.phi_0_1_imag * str_auto_corr.phi_1_2_real +
+                           str_auto_corr.phi_0_1_real * str_auto_corr.phi_1_2_imag -
+                           str_auto_corr.phi_0_2_imag * str_auto_corr.phi_1_1) *
+                          fac;
         }
-      } else {
-        for (i = start_sample; i < end_sample; i++) {
-          ptr_dst_buf_real[i][k2] = ptr_ph_vocod_buf_real[i][k2];
-          ptr_dst_buf_imag[i][k2] = ptr_ph_vocod_buf_imag[i][k2];
+
+        if (str_auto_corr.phi_1_1 == 0) {
+          alpha_real[0] = alpha_imag[0] = 0;
+        } else {
+          fac = 1.0f / str_auto_corr.phi_1_1;
+          alpha_real[0] =
+              -(str_auto_corr.phi_0_1_real + alpha_real[1] * str_auto_corr.phi_1_2_real +
+                alpha_imag[1] * str_auto_corr.phi_1_2_imag) *
+              fac;
+          alpha_imag[0] =
+              -(str_auto_corr.phi_0_1_imag + alpha_imag[1] * str_auto_corr.phi_1_2_real -
+                alpha_real[1] * str_auto_corr.phi_1_2_imag) *
+              fac;
+        }
+
+        if (alpha_real[0] * alpha_real[0] + alpha_imag[0] * alpha_imag[0] >= 16.0f ||
+            alpha_real[1] * alpha_real[1] + alpha_imag[1] * alpha_imag[1] >= 16.0f) {
+          alpha_real[0] = 0.0f;
+          alpha_imag[0] = 0.0f;
+          alpha_real[1] = 0.0f;
+          alpha_imag[1] = 0.0f;
+        }
+
+        while (k2 >= ptr_invf_band_tbl[bw_index]) {
+          bw_index++;
+          if (bw_index >= MAX_NOISE_COEFFS) {
+            if (ec_flag) {
+              bw_index = MAX_NOISE_COEFFS - 1;
+              break;
+            } else
+              return -1;
+          }
+        }
+
+        if (bw_index >= MAX_NUM_PATCHES) {
+          if (ec_flag)
+            bw_index = MAX_NUM_PATCHES - 1;
+          else
+            return -1;
+        }
+        bw = bw_array[bw_index];
+
+        a0r = bw * alpha_real[0];
+        a0i = bw * alpha_imag[0];
+        bw *= bw;
+        a1r = bw * alpha_real[1];
+        a1i = bw * alpha_imag[1];
+
+        if (bw > 0.0f) {
+          for (i = start_sample; i < end_sample; i++) {
+            FLOAT32 real1, imag1, real2, imag2, realTarget, imag_target;
+
+            realTarget = ptr_ph_vocod_buf_real[i][k2];
+            imag_target = ptr_ph_vocod_buf_imag[i][k2];
+            real1 = ptr_ph_vocod_buf_real[i - 1][k2];
+            imag1 = ptr_ph_vocod_buf_imag[i - 1][k2];
+            real2 = ptr_ph_vocod_buf_real[i - 2][k2];
+            imag2 = ptr_ph_vocod_buf_imag[i - 2][k2];
+            realTarget += ((a0r * real1 - a0i * imag1) + (a1r * real2 - a1i * imag2));
+            imag_target += ((a0i * real1 + a0r * imag1) + (a1i * real2 + a1r * imag2));
+
+            ptr_dst_buf_real[i][k2] = realTarget;
+            ptr_dst_buf_imag[i][k2] = imag_target;
+          }
+        } else {
+          for (i = start_sample; i < end_sample; i++) {
+            ptr_dst_buf_real[i][k2] = ptr_ph_vocod_buf_real[i][k2];
+            ptr_dst_buf_imag[i][k2] = ptr_ph_vocod_buf_imag[i][k2];
+          }
         }
       }
     }
   }
+  if ((MAX_NUM_PATCHES + 1) <= patch) {
+    if (ec_flag) {
+      patch = MAX_NUM_PATCHES;
+    } else {
+      return -1;
+    }
+  }
   ptr_frame_data->patch_param.num_patches = patch;
-  if (patch >= (MAX_NUM_PATCHES + 1)) return -1;
   for (i = 0; i < num_if_bands; i++) {
     bw_array_prev[i] = bw_array[i];
   }

@@ -276,9 +276,9 @@ WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
 
   if (self->ldmps_config.ldmps_present_flag != 1) {
     for (ch = 0; ch < self->out_ch_count; ch++) {
-      err = ixheaacd_sbr_dec_from_mps(
-          &self->qmf_out_dir[ch][0][0].re, self->p_sbr_dec[ch],
-          self->p_sbr_frame[ch], self->p_sbr_header[ch]);
+      err =
+          ixheaacd_sbr_dec_from_mps(&self->qmf_out_dir[ch][0][0].re, self->p_sbr_dec[ch],
+                                    self->p_sbr_frame[ch], self->p_sbr_header[ch], self->ec_flag);
       if (err) return err;
     }
   }
@@ -300,9 +300,7 @@ WORD32 ixheaacd_mps_temp_process(ia_mps_dec_state_struct* self) {
   return err;
 }
 
-static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state,
-                                        WORD32 ts) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ts) {
   ia_mps_dec_tp_process_tables_struct *tp_process_table_ptr =
       pstr_mps_state->ia_mps_dec_mps_table.tp_process_table_ptr;
   const WORD32 *sqrt_tab =
@@ -351,9 +349,9 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
   WORD32 *p_hyb_out_dry_real, *p_hyb_out_dry_imag;
 
   WORD32 ch, n, no_scaling, i, k = 0, offset;
-  WORD32 i_lf, i_rf, i_c, i_lfe, i_ls, i_rs, i_al, i_ar;
+  WORD32 i_lf = 0, i_rf = 0, i_c = 0, i_lfe = 0, i_ls = 0, i_rs = 0, i_al = 0, i_ar = 0;
 
-  WORD32 loop_counter;
+  WORD32 loop_counter = 0;
 
   WORD32 num_input_channels = pstr_mps_state->num_input_channels;
   WORD32 num_output_channels = pstr_mps_state->num_output_channels;
@@ -452,7 +450,7 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
       loop_counter = 5;
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+      break;
   }
 
   offset = ts * MAX_HYBRID_BANDS;
@@ -623,7 +621,7 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
 
         break;
       default:
-        return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+        break;
     }
   }
   dmx_real -= DMX_OFFSET;
@@ -725,7 +723,7 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
 
         break;
       default:
-        return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+        break;
     }
   }
   dmx_imag -= DMX_OFFSET;
@@ -1103,7 +1101,7 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
 
       break;
     default:
-      return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+      break;
   }
 
   for (ch = 0; ch < num_output_channels; ch++) {
@@ -1129,7 +1127,7 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
   for (ch = 0; ch < num_output_channels; ch++) {
     no_scaling = 1;
 
-    error_code = ixheaacd_get_ch_idx(pstr_mps_state, ch, &i);
+    ixheaacd_get_ch_idx(pstr_mps_state, ch, &i);
     if (i != -1) {
       no_scaling = !pstr_mps_state->aux_struct->temp_shape_enable_channel_stp[i];
     }
@@ -1193,11 +1191,10 @@ static IA_ERRORCODE ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_stat
     p_hyb_out_dry_imag += TSXHB;
   }
 
-  return error_code;
+  return;
 }
 
-IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
-  IA_ERRORCODE error_code = IA_NO_ERROR;
+VOID ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 ch, ts, hyb, n;
   WORD32 temp, temp_1, temp_2;
   ia_mps_dec_synthesis_interface *syn = pstr_mps_state->syn;
@@ -1369,8 +1366,7 @@ IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
     }
 
     for (ts = 0; ts < time_slots; ts++) {
-      error_code = ixheaacd_subband_tp(pstr_mps_state, ts);
-      if (error_code != IA_NO_ERROR) return error_code;
+      ixheaacd_subband_tp(pstr_mps_state, ts);
     }
   }
 
@@ -1385,7 +1381,7 @@ IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
     p_buf_imag = p_array_struct->buffer_imag;
 
     for (ch = 0; ch < num_output_channels_at; ch++) {
-      WORD32 tempch;
+      WORD32 tempch = 0;
       switch (tree_config) {
         case TREE_5151:
           tempch = ch;
@@ -1401,7 +1397,7 @@ IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
           tempch = time_out_7xxx[ch];
           break;
         default:
-          return IA_XHEAAC_MPS_DEC_EXE_FATAL_UNSUPPRORTED_TREE_CONFIG;
+          break;
       }
       p_time_out = p_array_struct->time_out + tempch * QBXTS;
       syn->syn_filter_bank(&pstr_mps_state->syn_qmf_bank, p_buf_real, p_buf_imag,
@@ -1424,5 +1420,5 @@ IA_ERRORCODE ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
     }
   }
 
-  return IA_NO_ERROR;
+  return;
 }

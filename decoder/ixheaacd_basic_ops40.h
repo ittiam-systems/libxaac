@@ -116,6 +116,14 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_shl(WORD32 a, WORD32 b,
   return (result);
 }
 
+static PLATFORM_INLINE WORD32 ixheaacd_mac32x16in32_shl_sat(WORD32 a, WORD32 b, WORD16 c) {
+  WORD32 result;
+
+  result = ixheaacd_add32_sat(a, ixheaacd_mult32x16in32_shl_sat(b, c));
+
+  return (result);
+}
+
 static PLATFORM_INLINE WORD32 ixheaacd_mac32(WORD32 a, WORD32 b, WORD32 c) {
   WORD32 result;
 
@@ -197,9 +205,9 @@ static PLATFORM_INLINE WORD32 ixheaacd_sat64_32(WORD64 a) {
     result = MAX_32;
   } else if (a <= MIN_32) {
     result = MIN_32;
-  } else
+  } else {
     result = (WORD32)a;
-
+  }
   return (result);
 }
 
