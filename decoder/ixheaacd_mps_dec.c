@@ -2024,6 +2024,15 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
     }
   }
 
+  if (curr_state->num_input_channels > 2 && pstr_mps_state->mps_with_sbr == 1) {
+    if (pstr_mps_state->ec_flag) {
+      curr_state->num_input_channels = 2;
+      pstr_mps_state->frame_ok = 0;
+    } else {
+      return IA_FATAL_ERROR;
+    }
+  }
+
   n_channels = curr_state->num_input_channels;
   n_time_slots = curr_state->time_slots;
   qmf_bands = curr_state->qmf_bands;

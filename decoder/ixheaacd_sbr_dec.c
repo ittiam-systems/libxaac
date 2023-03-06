@@ -987,6 +987,13 @@ WORD32 ixheaacd_sbr_dec(
   }
 
   if (ldmps_present) {
+    if (ptr_sbr_dec->str_codec_qmf_bank.no_channels > 32) {
+      if (ec_flag) {
+        ptr_sbr_dec->str_codec_qmf_bank.no_channels = 32;
+      } else {
+        return IA_FATAL_ERROR;
+      }
+    }
     ixheaacd_cplx_anal_qmffilt_32(
         (WORD32 *)ptr_time_data, &ptr_sbr_dec->str_sbr_scale_fact,
         &p_arr_qmf_buf_real[op_delay], &p_arr_qmf_buf_imag[op_delay],

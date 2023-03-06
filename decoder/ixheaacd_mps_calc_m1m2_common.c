@@ -388,7 +388,7 @@ VOID ixheaacd_param_2_umx_ps_core_tables(
 
       quant_band_icc = icc[band];
 
-      if (quant_band_icc >= 8) {
+      if (quant_band_icc < 0 || quant_band_icc >= 8) {
         quant_band_icc = 7;
       }
       h11[band] = ixheaacd_mps_dec_m1_m2_tables->cos_table[quant_band_icc][quant_band_cld];
