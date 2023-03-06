@@ -910,7 +910,7 @@ WORD32 ixheaacd_sbr_dec(
 
       if (sbr_mode == PVC_SBR) {
         ixheaacd_qmf_enrg_calc(ptr_sbr_dec, upsample_ratio_idx, low_pow_flag);
-        if ((ptr_pvc_data->pvc_mode != 1 || ptr_pvc_data->pvc_mode != 2) && ec_flag) {
+        if (ec_flag) {
           ptr_pvc_data->pvc_mode = 1;
         }
         err_code = ixheaacd_pvc_process(

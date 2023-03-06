@@ -965,7 +965,7 @@ VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
       compression_factor = (FLOAT32)(48.164 - 6.0206 * val_x - 0.4014 * val_y);
 
       temp = (FLOAT32)(pow(10, (float)compression_factor / 20.0));
-      drc_freq_fac = (WORD32)(temp * 33554431);
+      drc_freq_fac = (WORD32)(temp * 33554431.0f);
 
     } else {
       if (pstr_drc_data->drc_fac[drc_band] < 0) {
