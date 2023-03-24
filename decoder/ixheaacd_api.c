@@ -1304,7 +1304,7 @@ VOID ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
     p_mem_info_aac->ui_size += 8300;
 
-    p_mem_info_aac->ui_alignment = 8;
+    p_mem_info_aac->ui_alignment = 16;
     p_mem_info_aac->ui_type = IA_MEMTYPE_PERSIST;
   }
 
@@ -3553,9 +3553,11 @@ IA_ERRORCODE ixheaacd_dec_execute(
   WORD32 i, j;
 
   if (channel_coupling_flag) {
-    ixheaacd_dec_ind_coupling(p_obj_exhaacplus_dec,
-                              p_state_enhaacplus_dec->coup_ch_output,
-                              num_of_out_samples, total_channels, time_data);
+    error_code = ixheaacd_dec_ind_coupling(p_obj_exhaacplus_dec,
+                                           p_state_enhaacplus_dec->coup_ch_output,
+                                           num_of_out_samples, total_channels, time_data);
+    if (error_code)
+      return error_code;
   }
 
   for (i = 0; i < total_channels; i++) {

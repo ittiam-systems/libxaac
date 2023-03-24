@@ -339,7 +339,7 @@ VOID ia_display_id_message(WORD8 lib_name[], WORD8 lib_version[]) {
   }
 
   for (i = 0; i < 4; i++) {
-    spclen = IA_SCREEN_WIDTH / 2 - strlen((pCHAR8)str[i]) / 2;
+    spclen = IA_SCREEN_WIDTH / 2 - (WORD32)strlen((pCHAR8)str[i]) / 2;
     spaces[spclen] = '\0';
     printf("%s", (pCHAR8)spaces);
     spaces[spclen] = ' ';

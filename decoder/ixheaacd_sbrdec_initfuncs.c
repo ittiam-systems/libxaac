@@ -910,7 +910,7 @@ VOID ixheaacd_create_psdec(ia_ps_dec_struct *ptr_ps_dec,
       2 * delay * (NUM_OF_QUAD_MIRROR_FILTER_ICC_CHNLS -
                    (NUM_OF_QUAD_MIRROR_FILTER_ALL_PASS_CHNLS + SMALL_DEL_STRT));
 
-  temp = ptr1 - initial_ptr;
+  temp = (WORD32)(ptr1 - initial_ptr);
   memset(ptr_ps_dec->delay_buf_qmf_ser_re_im, 0, temp * sizeof(WORD16));
 
   memset(ptr_ps_dec->delay_buf_idx_ser, 0, NUM_SER_AP_LINKS * sizeof(WORD16));
