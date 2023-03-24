@@ -1304,7 +1304,7 @@ VOID ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
     p_mem_info_aac->ui_size += 8300;
 
-    p_mem_info_aac->ui_alignment = 8;
+    p_mem_info_aac->ui_alignment = 16;
     p_mem_info_aac->ui_type = IA_MEMTYPE_PERSIST;
   }
 

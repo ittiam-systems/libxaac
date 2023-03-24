@@ -322,8 +322,8 @@ VOID ixheaacd_section_data(ia_usac_data_struct *usac_data,
   g_bs->bit_pos = 7 - bit_pos;
   {
     WORD32 bits_consumed;
-    bits_consumed = ((g_bs->ptr_read_next - start_read_pos) << 3) +
-                             (start_bit_pos - g_bs->bit_pos);
+    bits_consumed = (WORD32)(((g_bs->ptr_read_next - start_read_pos) << 3) +
+                             (start_bit_pos - g_bs->bit_pos));
     g_bs->cnt_bits -= bits_consumed;
   }
 }

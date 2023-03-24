@@ -16,9 +16,18 @@ else()
   target_link_libraries(xaacdec LINK_PUBLIC libxaacdec m)
 endif()
 
-set_target_properties(
-  xaacdec
-  PROPERTIES
-  COMPILE_FLAGS
-  "-UARM_PROFILE_HW -UARM_PROFILE_BOARD -DDRC_ENABLE -DMULTICHANNEL_ENABLE -DECLIPSE -DWIN32"
-)
+if(MSVC)
+  set_target_properties(
+    xaacdec
+    PROPERTIES
+    COMPILE_FLAGS
+    "-UARM_PROFILE_HW -UARM_PROFILE_BOARD -DDRC_ENABLE -DMULTICHANNEL_ENABLE -DECLIPSE -DWIN32 -D_CRT_SECURE_NO_WARNINGS"
+  )
+else()
+  set_target_properties(
+    xaacdec
+    PROPERTIES
+    COMPILE_FLAGS
+    "-UARM_PROFILE_HW -UARM_PROFILE_BOARD -DDRC_ENABLE -DMULTICHANNEL_ENABLE -DECLIPSE -DWIN32"
+  )
+endif()

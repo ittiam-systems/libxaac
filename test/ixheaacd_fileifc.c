@@ -151,7 +151,7 @@ int FileWrapper_Read(FileWrapperPtr transport, unsigned char *buffer,
   }
 
 #else
-  *length = fread(buffer, 1, bufSize, transport->inputFile);
+  *length = (unsigned int)fread(buffer, 1, bufSize, transport->inputFile);
 #endif
 
   return 0;
