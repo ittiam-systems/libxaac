@@ -28,7 +28,7 @@ IA_ERRORCODE ixheaacd_dec_coupling_channel_element(
     WORD32 frame_size, WORD32 audio_object_type,
     ia_eld_specific_config_struct eld_specific_config, WORD32 ele_type);
 
-void ixheaacd_dec_ind_coupling(
+IA_ERRORCODE ixheaacd_dec_ind_coupling(
     ia_exhaacplus_dec_api_struct *p_obj_enhaacplus_dec, WORD32 *coup_ch_output,
     WORD16 frame_size, WORD total_channels, VOID *ptr_time_data);
 

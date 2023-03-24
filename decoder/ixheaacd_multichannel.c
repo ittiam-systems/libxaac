@@ -280,14 +280,14 @@ void ixheaacd_dec_couple_channel(WORD32 *p_time_data, WORD32 *out_samp_cc,
   }
 }
 
-void ixheaacd_dec_ind_coupling(
+IA_ERRORCODE ixheaacd_dec_ind_coupling(
     ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec, WORD32 *coup_ch_output,
     WORD16 frame_size, WORD total_channels, VOID *ptr_time_data_tmp)
 
 {
   WORD c, j, k;
   WORD l;
-  WORD32 *out_samp_cc;
+  WORD32 *out_samp_cc, err = 0;
 
   ia_enhaacplus_dec_ind_cc *ind_channel_info;
 
@@ -297,6 +297,15 @@ void ixheaacd_dec_ind_coupling(
     ind_channel_info = &p_obj_exhaacplus_dec->p_state_aac->ind_cc_info;
 
     out_samp_cc = coup_ch_output;
+
+    if (ind_channel_info->num_coupled_elements > 0 && coup_ch_output == NULL) {
+      if (p_obj_exhaacplus_dec->p_state_aac->ec_enable) {
+        ind_channel_info->num_coupled_elements = 0;
+        p_obj_exhaacplus_dec->aac_config.frame_status = 0;
+      } else {
+        return IA_FATAL_ERROR;
+      }
+    }
 
     j = 0;
     for (c = 0; c < ind_channel_info->num_coupled_elements + 1; c++) {
@@ -349,6 +358,7 @@ void ixheaacd_dec_ind_coupling(
       }
     }
   }
+  return err;
 }
 
 void ixheaacd_dec_downmix_to_stereo(

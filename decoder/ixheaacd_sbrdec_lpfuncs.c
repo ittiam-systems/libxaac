@@ -309,7 +309,7 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
   WORD32 lsb = f_master_tbl[0];
   WORD16 xover_offset = sub_band_start - lsb;
 
-  WORD16 goal_sb;
+  WORD16 goal_sb, flag_break_1 = 0;
   WORD32 fs = ptr_header_data->out_sampling_freq;
 
   if (lsb < (SHIFT_START_SB + 4)) {
@@ -396,10 +396,20 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     src_start_band = SHIFT_START_SB;
     abs_sb = ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3;
 
+    if (num_bands_in_patch <= 0 && flag_break_1 == 1) {
+      break;
+    }
+
     if (abs_sb < 0) {
       goal_sb = usb;
     } else {
       if (flag_break == 1) break;
+    }
+
+    if (num_bands_in_patch <= 0) {
+      flag_break_1 = 1;
+    } else {
+      flag_break_1 = 0;
     }
   }
 

@@ -368,18 +368,18 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld_mps(WORD32 *inp1, WORD32 *inp2,
   for (n = 0; n < 64; n += 2) {
     WORD32 accu;
     accu = ixheaacd_mul32_sh(inp1[n + 0], p_qmf1[(n + 0)], 31);
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp1[n + 2 * resolution],
-                                            p_qmf1[(n + 2 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp1[n + 4 * resolution],
-                                            p_qmf1[(n + 4 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp1[n + 6 * resolution],
-                                            p_qmf1[(n + 6 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp1[n + 8 * resolution],
-                                            p_qmf1[(n + 8 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp1[n + 2 * resolution],
+                                p_qmf1[(n + 2 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp1[n + 4 * resolution],
+                                p_qmf1[(n + 4 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp1[n + 6 * resolution],
+                                p_qmf1[(n + 6 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp1[n + 8 * resolution],
+                                p_qmf1[(n + 8 * resolution)], 31));
     p_out[n] = accu;
 
     accu = ixheaacd_mul32_sh(inp1[n + 1 + 0], p_qmf1[(n + 1 + 0)], 31);
@@ -398,18 +398,18 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld_mps(WORD32 *inp1, WORD32 *inp2,
     p_out[n + 1] = accu;
 
     accu = ixheaacd_mul32_sh(inp2[n + 0], p_qmf2[(n + 0)], 31);
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp2[n + 2 * resolution],
-                                            p_qmf2[(n + 2 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp2[n + 4 * resolution],
-                                            p_qmf2[(n + 4 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp2[n + 6 * resolution],
-                                            p_qmf2[(n + 6 * resolution)], 31));
-    accu = ixheaacd_add32(accu,
-                          ixheaacd_mul32_sh(inp2[n + 8 * resolution],
-                                            p_qmf2[(n + 8 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp2[n + 2 * resolution],
+                                p_qmf2[(n + 2 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp2[n + 4 * resolution],
+                                p_qmf2[(n + 4 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp2[n + 6 * resolution],
+                                p_qmf2[(n + 6 * resolution)], 31));
+    accu = ixheaacd_add32_sat(
+        accu, ixheaacd_mul32_sh(inp2[n + 8 * resolution],
+                                p_qmf2[(n + 8 * resolution)], 31));
     p_out[n + 64] = accu;
 
     accu = ixheaacd_mul32_sh(inp2[n + 1 + 0], p_qmf2[(n + 1 + 0)], 31);
@@ -437,13 +437,13 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld_32(WORD32 *inp1, WORD32 *inp2,
   for (n = 0; n < 32; n += 2) {
     WORD32 accu;
     accu = ixheaacd_mul32_sh(inp1[n + 0], p_qmf1[(n + 0)], 31);
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp1[n + 64], p_qmf1[(n + 64)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp1[n + 128], p_qmf1[(n + 128)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp1[n + 192], p_qmf1[(n + 192)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp1[n + 256], p_qmf1[(n + 256)], 31));
     p_out[n] = accu;
 
@@ -459,13 +459,13 @@ VOID ixheaacd_sbr_qmfanal32_winadd_eld_32(WORD32 *inp1, WORD32 *inp2,
     p_out[n + 1] = accu;
 
     accu = ixheaacd_mul32_sh(inp2[n + 0], p_qmf2[(n + 0)], 31);
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp2[n + 64], p_qmf2[(n + 64)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp2[n + 128], p_qmf2[(n + 128)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp2[n + 192], p_qmf2[(n + 192)], 31));
-    accu = ixheaacd_add32(
+    accu = ixheaacd_add32_sat(
         accu, ixheaacd_mul32_sh(inp2[n + 256], p_qmf2[(n + 256)], 31));
     p_out[n + 32] = accu;
 
