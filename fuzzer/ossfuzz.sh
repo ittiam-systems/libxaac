@@ -24,20 +24,8 @@ mkdir -p ${build_dir}
 pushd ${build_dir}
 
 cmake $SRC/libxaac
-make -j$(nproc)
+make -j$(nproc) xaac_dec_fuzzer
+cp ${build_dir}/xaac_dec_fuzzer $OUT/
 popd
 
-# build fuzzers
-$CXX $CXXFLAGS -std=c++11 \
-    -I$SRC/libxaac \
-    -I$SRC/libxaac/common \
-    -I$SRC/libxaac/decoder \
-    -I$SRC/libxaac/decoder/drc_src \
-    -I${build_dir} \
-    -Wl,--start-group \
-    $LIB_FUZZING_ENGINE \
-    $SRC/libxaac/fuzzer/xaac_dec_fuzzer.cpp -o $OUT/xaac_dec_fuzzer \
-    ${build_dir}/libxaacdec.a \
-    -Wl,--end-group
-
-cp $SRC/libxaac/fuzzer/xaac_dec_fuzzer.dict $OUT/xaacdec_fuzzer.dict
+cp $SRC/libxaac/fuzzer/xaac_dec_fuzzer.dict $OUT/xaac_dec_fuzzer.dict
