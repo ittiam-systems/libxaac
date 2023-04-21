@@ -226,6 +226,9 @@ IA_ERRORCODE ixheaacd_parse_specific_config(ia_heaac_mps_state_struct *pstr_mps_
   config->bs_fixed_gain_dmx = (temp >> 6) & THREE_BIT_MASK;
   config->bs_matrix_mode = (temp >> 5) & ONE_BIT_MASK;
   config->bs_temp_shape_config = (temp >> 3) & TWO_BIT_MASK;
+  if (config->bs_temp_shape_config == 3)
+    return IA_FATAL_ERROR;
+
   config->bs_decorr_config = (temp >> 1) & TWO_BIT_MASK;
   config->bs_3d_audio_mode = (temp)&ONE_BIT_MASK;
 
