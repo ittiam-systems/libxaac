@@ -15,15 +15,8 @@ libxaac_add_definitions()
 
 if(NOT COMPILER_HAS_SANITIZER)
   libxaac_set_link_libraries()
-else()
-  libxaac_fuzzer_set_link_libraries()
 endif()
 
-add_subdirectory(decoder)
-
-if(NOT COMPILER_HAS_SANITIZER)
-  add_subdirectory(test)
-else()
-  add_subdirectory(fuzzer)
-endif()
-
+include("${XAAC_ROOT}/decoder/libxaacdec.cmake")
+include("${XAAC_ROOT}/test/xaacdec.cmake")
+include("${XAAC_ROOT}/fuzzer/xaac_dec_fuzzer.cmake")

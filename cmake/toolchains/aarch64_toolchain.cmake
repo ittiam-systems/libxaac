@@ -2,7 +2,7 @@ SET(CMAKE_SYSTEM_NAME Linux)
 SET(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # Modify these variables with paths to appropriate compilers that can produce
-# armv7 targets
+# armv8 targets
 
 # Specify the cross compiler
 SET(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
