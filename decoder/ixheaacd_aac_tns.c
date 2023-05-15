@@ -18,13 +18,13 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
@@ -62,7 +62,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mac32_tns_sat(WORD32 a, WORD32 b,
 
   temp_result = (WORD64)a * (WORD64)b;
   result = (WORD32)(temp_result >> 32);
-  result = ixheaacd_add32_sat(c, result);
+  result = ixheaac_add32_sat(c, result);
   return (result);
 }
 
@@ -119,16 +119,16 @@ VOID ixheaacd_tns_parcor_to_lpc(WORD32 *parcor, WORD32 *lpc, WORD16 *scale,
       for (j = 0; j < order; j++) {
         w[j] = (accu1);
 
-        accu1 = ixheaacd_add32_sat(accu1,
-                                   ixheaacd_mult32_shl_sat(parcor[j], (z[j])));
-        if (ixheaacd_abs32_sat(accu1) == 0x7fffffff) status = 1;
+        accu1 = ixheaac_add32_sat(accu1,
+                                   ixheaac_mult32_shl_sat(parcor[j], (z[j])));
+        if (ixheaac_abs32_sat(accu1) == 0x7fffffff) status = 1;
       }
       for (j = (order - 1); j >= 0; j--) {
         accu2 = (z[j]);
-        accu2 = ixheaacd_add32_sat(accu2,
-                                   ixheaacd_mult32_shl_sat(parcor[j], (w[j])));
+        accu2 = ixheaac_add32_sat(accu2,
+                                   ixheaac_mult32_shl_sat(parcor[j], (w[j])));
         z[j + 1] = (accu2);
-        if (ixheaacd_abs32_sat(accu2) == 0x7fffffff) status = 1;
+        if (ixheaac_abs32_sat(accu2) == 0x7fffffff) status = 1;
       }
 
       z[0] = (z1);
@@ -171,25 +171,25 @@ VOID ixheaacd_tns_parcor_lpc_convert_dec(WORD16 *parcor, WORD16 *lpc,
       accu = accu1;
 
       for (j = 0; j < order; j++) {
-        temp_buf2[j] = ixheaacd_round16(accu1);
-        accu1 = ixheaacd_mac16x16in32_shl_sat(accu1, parcor[j], temp_buf1[j]);
+        temp_buf2[j] = ixheaac_round16(accu1);
+        accu1 = ixheaac_mac16x16in32_shl_sat(accu1, parcor[j], temp_buf1[j]);
 
-        if (ixheaacd_abs32_sat(accu1) == 0x7fffffff) {
+        if (ixheaac_abs32_sat(accu1) == 0x7fffffff) {
           status = 1;
         }
       }
 
       for (j = (order - 1); j >= 0; j--) {
-        accu2 = ixheaacd_deposit16h_in32(temp_buf1[j]);
-        accu2 = ixheaacd_mac16x16in32_shl_sat(accu2, parcor[j], temp_buf2[j]);
-        temp_buf1[j + 1] = ixheaacd_round16(accu2);
-        if (ixheaacd_abs32_sat(accu2) == 0x7fffffff) {
+        accu2 = ixheaac_deposit16h_in32(temp_buf1[j]);
+        accu2 = ixheaac_mac16x16in32_shl_sat(accu2, parcor[j], temp_buf2[j]);
+        temp_buf1[j + 1] = ixheaac_round16(accu2);
+        if (ixheaac_abs32_sat(accu2) == 0x7fffffff) {
           status = 1;
         }
       }
 
-      temp_buf1[0] = ixheaacd_round16(accu);
-      lpc[i] = ixheaacd_round16(accu1);
+      temp_buf1[0] = ixheaac_round16(accu);
+      lpc[i] = ixheaac_round16(accu1);
       accu1 = 0;
     }
 
@@ -220,28 +220,28 @@ VOID ixheaacd_tns_ar_filter_fixed_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   }
   {
     for (i = 0; i < order; i++) {
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
         acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
     }
     for (i = order; i < size; i++) {
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       acc = 0;
       for (j = order; j > 0; j--) {
         acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -267,15 +267,15 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
   }
   {
     for (i = 0; i < order; i++) {
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
         acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -283,15 +283,15 @@ VOID ixheaacd_tns_ar_filter_fixed_non_neon_armv7(WORD32 *spectrum, WORD32 size,
     for (i = order; i < size; i++) {
       WORD64 acc = 0;
       WORD32 acc1;
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
-        acc = ixheaacd_mac32x32in64_dual(state[j - 1], lpc[j], acc);
+        acc = ixheaac_mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc1, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc1, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -315,15 +315,15 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
   }
   {
     for (i = 0; i < order; i++) {
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       acc = 0;
 
       for (j = i; j > 0; j--) {
         acc = ixheaacd_mac32_tns_sat(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -331,15 +331,15 @@ VOID ixheaacd_tns_ar_filter_fixed_armv8(WORD32 *spectrum, WORD32 size,
     for (i = order; i < size; i++) {
       WORD64 acc = 0;
       WORD32 acc1;
-      y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+      y = ixheaac_shl32_sat((*spectrum), scale_spec);
       for (j = order; j > 0; j--) {
-        acc = ixheaacd_mac32x32in64_dual(state[j - 1], lpc[j], acc);
+        acc = ixheaac_mac32x32in64_dual(state[j - 1], lpc[j], acc);
         state[j] = state[j - 1];
       }
       acc1 = (WORD32)(acc >> 32);
 
-      y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc1, 1));
-      state[0] = ixheaacd_shl32_sat(y, shift_value);
+      y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc1, 1));
+      state[0] = ixheaac_shl32_sat(y, shift_value);
 
       *spectrum = y >> scale_spec;
       spectrum += inc;
@@ -358,11 +358,11 @@ void ixheaacd_tns_ma_filter_fixed_ld(WORD32 *spectrum, WORD32 size, WORD32 inc,
   for (i = 0; i < size; i++) {
     y = *spectrum;
 
-    for (j = 0; j < order; j++) y += ixheaacd_mult32_shl(state[j], lpc[j + 1]);
+    for (j = 0; j < order; j++) y += ixheaac_mult32_shl(state[j], lpc[j + 1]);
 
     for (j = order - 1; j > 0; j--) state[j] = state[j - 1];
 
-    state[0] = ixheaacd_shl32_dir_sat(*spectrum, shift_value);
+    state[0] = ixheaac_shl32_dir_sat(*spectrum, shift_value);
     *spectrum = y;
     spectrum += inc;
   }
@@ -388,32 +388,32 @@ VOID ixheaacd_tns_ar_filter_dec(WORD32 *spectrum, WORD32 size, WORD32 inc,
   }
 
   for (i = 0; i < order; i++) {
-    y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+    y = ixheaac_shl32_sat((*spectrum), scale_spec);
     acc = 0;
 
     for (j = i; j > 0; j--) {
-      acc = ixheaacd_add32_sat(
-          acc, ixheaacd_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
+      acc = ixheaac_add32_sat(
+          acc, ixheaac_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
 
-    y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-    ptr_filter_state[0] = ixheaacd_shl32_sat(y, shift_value);
+    y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+    ptr_filter_state[0] = ixheaac_shl32_sat(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }
 
   for (i = order; i < size; i++) {
-    y = ixheaacd_shl32_sat((*spectrum), scale_spec);
+    y = ixheaac_shl32_sat((*spectrum), scale_spec);
     acc = 0;
     for (j = order; j > 0; j--) {
-      acc = ixheaacd_add32_sat(
-          acc, ixheaacd_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
+      acc = ixheaac_add32_sat(
+          acc, ixheaac_mult32x16in32(ptr_filter_state[j - 1], lpc[j]));
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
 
-    y = ixheaacd_sub32_sat(y, ixheaacd_shl32_sat(acc, 1));
-    ptr_filter_state[0] = ixheaacd_shl32_sat(y, shift_value);
+    y = ixheaac_sub32_sat(y, ixheaac_shl32_sat(acc, 1));
+    ptr_filter_state[0] = ixheaac_shl32_sat(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }
@@ -425,24 +425,24 @@ WORD32 ixheaacd_calc_max_spectral_line_dec(WORD32 *ptr_tmp, WORD32 size) {
 
   unroll_cnt = size >> 3;
   for (i = unroll_cnt; i--;) {
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
 
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
-    max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
+    max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
   }
 
   rem = size - (unroll_cnt << 3);
 
   if (rem) {
     for (i = rem; i--;) {
-      max_spec_line = ixheaacd_abs32_nrm(*ptr_tmp++) | max_spec_line;
+      max_spec_line = ixheaac_abs32_nrm(*ptr_tmp++) | max_spec_line;
     }
   }
 
-  return ixheaacd_norm32(max_spec_line);
+  return ixheaac_norm32(max_spec_line);
 }

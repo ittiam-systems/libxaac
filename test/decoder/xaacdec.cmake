@@ -1,8 +1,8 @@
-list(APPEND XAACDEC_SRCS "${XAAC_ROOT}/test/ixheaacd_error.c"
-     "${XAAC_ROOT}/test/ixheaacd_fileifc.c" "${XAAC_ROOT}/test/ixheaacd_main.c"
-     "${XAAC_ROOT}/test/ixheaacd_metadata_read.c")
+list(APPEND XAACDEC_SRCS "${XAAC_ROOT}/test/decoder/ixheaacd_error.c"
+     "${XAAC_ROOT}/test/decoder/ixheaacd_fileifc.c" "${XAAC_ROOT}/test/decoder/ixheaacd_main.c"
+     "${XAAC_ROOT}/test/decoder/ixheaacd_metadata_read.c")
 
-set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/decoder ${XAAC_ROOT}/test
+set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/decoder ${XAAC_ROOT}/test/decoder/
                         ${XAAC_ROOT}/decoder/drc_src)
 
 include_directories(${LIBXAACDEC_INCLUDES})

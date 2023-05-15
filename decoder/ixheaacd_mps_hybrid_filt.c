@@ -18,7 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -30,13 +30,13 @@
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_mps_macro_def.h"
 #include "ixheaacd_mps_basic_op.h"
 
@@ -426,7 +426,7 @@ VOID ixheaacd_mps_fft(complex *out, LOOPINDEX idx, WORD32 nob,
   increment += 1;
 
   index = 11 - increment;
-  tab_modifier = ixheaacd_shl32(1, index);
+  tab_modifier = ixheaac_shl32(1, index);
 
   out1_w32 = (WORD32 *)&out[index_1];
   out2_w32 = (WORD32 *)&out[index_1 + 1];
@@ -453,7 +453,7 @@ VOID ixheaacd_mps_fft(complex *out, LOOPINDEX idx, WORD32 nob,
     increment += 1;
 
     index = 11 - increment;
-    tab_modifier = ixheaacd_shl32(1, index);
+    tab_modifier = ixheaac_shl32(1, index);
 
     for (block_per_stage = 0; block_per_stage < len; block_per_stage++) {
       index_2 = index_1 + i;
@@ -496,7 +496,7 @@ VOID ixheaacd_mps_fft(complex *out, LOOPINDEX idx, WORD32 nob,
         index1 += tab_modifier;
       }
 
-      index_1 += ixheaacd_shl32(1, increment);
+      index_1 += ixheaac_shl32(1, increment);
     }
     i <<= 1;
   }
@@ -513,70 +513,70 @@ VOID ixheaacd_8ch_filtering(const WORD32 *p_qmf_real, const WORD32 *p_qmf_imag,
   WORD32 *p_complex;
   const WORD16 *p8_13 = hyb_tab->p8_13;
 
-  real = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[4], p8_13[4]) +
-                         ixheaacd_mult32x16in32(p_qmf_real[12], p8_13[12])),
+  real = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[4], p8_13[4]) +
+                         ixheaac_mult32x16in32(p_qmf_real[12], p8_13[12])),
                         1);
-  imag = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[4], p8_13[4]) +
-                         ixheaacd_mult32x16in32(p_qmf_imag[12], p8_13[12])),
+  imag = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[4], p8_13[4]) +
+                         ixheaac_mult32x16in32(p_qmf_imag[12], p8_13[12])),
                         1);
 
   cum[5] = imag - real;
   cum[4] = -(imag + real);
 
-  real = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[3], p8_13[3]) +
-                         ixheaacd_mult32x16in32(p_qmf_real[11], p8_13[11])),
+  real = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[3], p8_13[3]) +
+                         ixheaac_mult32x16in32(p_qmf_real[11], p8_13[11])),
                         1);
-  imag = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[3], p8_13[3]) +
-                         ixheaacd_mult32x16in32(p_qmf_imag[11], p8_13[11])),
-                        1);
-
-  cum[13] = ixheaacd_shl32(
-      (ixheaacd_mult32x16in32(imag, tcos) - ixheaacd_mult32x16in32(real, tsin)), 1);
-  cum[12] = ixheaacd_shl32(
-      -((ixheaacd_mult32x16in32(imag, tsin) + ixheaacd_mult32x16in32(real, tcos))), 1);
-
-  cum[2] = ixheaacd_shl32(ixheaacd_mult32x16in32((p_qmf_real[2] - p_qmf_real[10]), p8_13[10]), 1);
-  cum[3] = ixheaacd_shl32(ixheaacd_mult32x16in32((p_qmf_imag[2] - p_qmf_imag[10]), p8_13[2]), 1);
-
-  real = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[1], p8_13[1]) +
-                         ixheaacd_mult32x16in32(p_qmf_real[9], p8_13[9])),
-                        1);
-  imag = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[1], p8_13[1]) +
-                         ixheaacd_mult32x16in32(p_qmf_imag[9], p8_13[9])),
+  imag = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[3], p8_13[3]) +
+                         ixheaac_mult32x16in32(p_qmf_imag[11], p8_13[11])),
                         1);
 
-  cum[11] = ixheaacd_shl32(
-      (ixheaacd_mult32x16in32(imag, tcos) + ixheaacd_mult32x16in32(real, tsin)), 1);
-  cum[10] = ixheaacd_shl32(
-      (ixheaacd_mult32x16in32(imag, tsin) - ixheaacd_mult32x16in32(real, tcos)), 1);
+  cum[13] = ixheaac_shl32(
+      (ixheaac_mult32x16in32(imag, tcos) - ixheaac_mult32x16in32(real, tsin)), 1);
+  cum[12] = ixheaac_shl32(
+      -((ixheaac_mult32x16in32(imag, tsin) + ixheaac_mult32x16in32(real, tcos))), 1);
 
-  real = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[0], p8_13[0]) +
-                         ixheaacd_mult32x16in32(p_qmf_real[8], p8_13[8])),
+  cum[2] = ixheaac_shl32(ixheaac_mult32x16in32((p_qmf_real[2] - p_qmf_real[10]), p8_13[10]), 1);
+  cum[3] = ixheaac_shl32(ixheaac_mult32x16in32((p_qmf_imag[2] - p_qmf_imag[10]), p8_13[2]), 1);
+
+  real = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[1], p8_13[1]) +
+                         ixheaac_mult32x16in32(p_qmf_real[9], p8_13[9])),
                         1);
-  imag = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[0], p8_13[0]) +
-                         ixheaacd_mult32x16in32(p_qmf_imag[8], p8_13[8])),
+  imag = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[1], p8_13[1]) +
+                         ixheaac_mult32x16in32(p_qmf_imag[9], p8_13[9])),
+                        1);
+
+  cum[11] = ixheaac_shl32(
+      (ixheaac_mult32x16in32(imag, tcos) + ixheaac_mult32x16in32(real, tsin)), 1);
+  cum[10] = ixheaac_shl32(
+      (ixheaac_mult32x16in32(imag, tsin) - ixheaac_mult32x16in32(real, tcos)), 1);
+
+  real = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[0], p8_13[0]) +
+                         ixheaac_mult32x16in32(p_qmf_real[8], p8_13[8])),
+                        1);
+  imag = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[0], p8_13[0]) +
+                         ixheaac_mult32x16in32(p_qmf_imag[8], p8_13[8])),
                         1);
 
   cum[7] = imag + real;
   cum[6] = imag - real;
 
-  cum[15] = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[7], p8_13[14]) +
-                            ixheaacd_mult32x16in32(p_qmf_real[7], p8_13[13])),
+  cum[15] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[7], p8_13[14]) +
+                            ixheaac_mult32x16in32(p_qmf_real[7], p8_13[13])),
                            1);
-  cum[14] = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_imag[7], p8_13[13]) -
-                            ixheaacd_mult32x16in32(p_qmf_real[7], p8_13[14])),
+  cum[14] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[7], p8_13[13]) -
+                            ixheaac_mult32x16in32(p_qmf_real[7], p8_13[14])),
                            1);
 
-  cum[1] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(p_qmf_real[HYBRID_FILTER_DELAY], p8_13[HYBRID_FILTER_DELAY]), 1);
-  cum[0] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(p_qmf_imag[HYBRID_FILTER_DELAY], p8_13[HYBRID_FILTER_DELAY]), 1);
+  cum[1] = ixheaac_shl32(
+      ixheaac_mult32x16in32(p_qmf_real[HYBRID_FILTER_DELAY], p8_13[HYBRID_FILTER_DELAY]), 1);
+  cum[0] = ixheaac_shl32(
+      ixheaac_mult32x16in32(p_qmf_imag[HYBRID_FILTER_DELAY], p8_13[HYBRID_FILTER_DELAY]), 1);
 
-  cum[9] = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[5], p8_13[13]) -
-                           ixheaacd_mult32x16in32(p_qmf_imag[5], p8_13[14])),
+  cum[9] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[5], p8_13[13]) -
+                           ixheaac_mult32x16in32(p_qmf_imag[5], p8_13[14])),
                           1);
-  cum[8] = ixheaacd_shl32((ixheaacd_mult32x16in32(p_qmf_real[5], p8_13[14]) +
-                           ixheaacd_mult32x16in32(p_qmf_imag[5], p8_13[13])),
+  cum[8] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[5], p8_13[14]) +
+                           ixheaac_mult32x16in32(p_qmf_imag[5], p8_13[13])),
                           1);
 
   ixheaacd_mps_fft((complex *)cum, 8, 3, hyb_tab);

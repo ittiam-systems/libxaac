@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_interface.h"
@@ -37,16 +37,16 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_function_selector.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 #define sfb_offset(x) (((x) > 0) ? sfb_top[(x)-1] : 0)
 
@@ -105,18 +105,18 @@ static VOID ixheaacd_tns_parcor_lpc_convert_usac(WORD32 *parcor,
       for (j = 0; j < order; j++) {
         temp_buf2[j] = (accu1);
 
-        accu1 = ixheaacd_add32_sat(
-            accu1, ixheaacd_mult32_shl_sat(parcor[j], temp_buf1[j]));
-        if (ixheaacd_abs32_sat(accu1) == 0x7fffffff) status = 1;
+        accu1 = ixheaac_add32_sat(
+            accu1, ixheaac_mult32_shl_sat(parcor[j], temp_buf1[j]));
+        if (ixheaac_abs32_sat(accu1) == 0x7fffffff) status = 1;
       }
 
       for (j = (order - 1); j >= 0; j--) {
         accu2 = (temp_buf1[j]);
-        accu2 = ixheaacd_add32_sat(
-            accu2, ixheaacd_mult32_shl_sat(parcor[j], temp_buf2[j]));
+        accu2 = ixheaac_add32_sat(
+            accu2, ixheaac_mult32_shl_sat(parcor[j], temp_buf2[j]));
         temp_buf1[j + 1] = (accu2);
 
-        if (ixheaacd_abs32_sat(accu2) == 0x7fffffff) status = 1;
+        if (ixheaac_abs32_sat(accu2) == 0x7fffffff) status = 1;
       }
 
       temp_buf1[0] = (accu);
@@ -153,13 +153,13 @@ static VOID ixheaacd_tns_ar_filter_usac(WORD32 *spectrum, WORD32 size,
     acc = 0;
 
     for (j = i; j > 0; j--) {
-      acc = ixheaacd_add64_sat(
-          acc, ixheaacd_mult64(ptr_filter_state[j - 1], lpc_coeff[j]));
+      acc = ixheaac_add64_sat(
+          acc, ixheaac_mult64(ptr_filter_state[j - 1], lpc_coeff[j]));
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
 
-    y = ixheaacd_sub32_sat(y, (WORD32)(acc >> 31));
-    ptr_filter_state[0] = ixheaacd_shl32(y, shift_value);
+    y = ixheaac_sub32_sat(y, (WORD32)(acc >> 31));
+    ptr_filter_state[0] = ixheaac_shl32(y, shift_value);
     *spectrum = y;
     spectrum += inc;
   }
@@ -168,13 +168,13 @@ static VOID ixheaacd_tns_ar_filter_usac(WORD32 *spectrum, WORD32 size,
     y = *spectrum;
     acc = 0;
     for (j = order; j > 0; j--) {
-      acc = ixheaacd_add64_sat(
-          acc, ixheaacd_mult64(ptr_filter_state[j - 1], lpc_coeff[j]));
+      acc = ixheaac_add64_sat(
+          acc, ixheaac_mult64(ptr_filter_state[j - 1], lpc_coeff[j]));
       ;
       ptr_filter_state[j] = ptr_filter_state[j - 1];
     }
-    y = ixheaacd_sub32_sat(y, (WORD32)(acc >> 31));
-    ptr_filter_state[0] = ixheaacd_shl32(y, shift_value);
+    y = ixheaac_sub32_sat(y, (WORD32)(acc >> 31));
+    ptr_filter_state[0] = ixheaac_shl32(y, shift_value);
     *spectrum = y;
     spectrum += inc;
   }
@@ -235,18 +235,18 @@ IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
         tmp = (*usac_data->tns_max_bands_tbl_usac)[usac_data->sampling_rate_idx]
                                                   [idx];
 
-        start = ixheaacd_min32(start, tmp);
+        start = ixheaac_min32(start, tmp);
 
-        start = ixheaacd_min32(start, nbands);
+        start = ixheaac_min32(start, nbands);
         if (start > pstr_sfb_info->sfb_per_sbk) return -1;
         start = sfb_offset(start);
 
-        stop = ixheaacd_min32(stop, tmp);
-        stop = ixheaacd_min32(stop, nbands);
+        stop = ixheaac_min32(stop, tmp);
+        stop = ixheaac_min32(stop, nbands);
         if (stop > pstr_sfb_info->sfb_per_sbk) return -1;
         stop = sfb_offset(stop);
 
-        guard_band = 31 - ixheaacd_norm32(filt->order);
+        guard_band = 31 - ixheaac_norm32(filt->order);
 
         if ((size = stop - start) <= 0) continue;
 
@@ -277,7 +277,7 @@ IA_ERRORCODE ixheaacd_tns_apply(ia_usac_data_struct *usac_data, WORD32 *spec,
           WORD32 *ptr_temp = ptr_spec + start;
 
           scale_spec = -scale_spec;
-          scale_spec = ixheaacd_min32(scale_spec, 31);
+          scale_spec = ixheaac_min32(scale_spec, 31);
 
           for (i = size; i != 0; i--) {
             *ptr_temp = *ptr_temp >> scale_spec;

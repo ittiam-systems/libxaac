@@ -21,7 +21,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_tns_usac.h"
@@ -35,15 +35,15 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_windows.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_acelp_com.h"
 
@@ -77,14 +77,14 @@ static VOID ixheaacd_synthesis_tool(WORD32 a[], WORD32 x[], WORD32 l,
   for (i = 0; i < l; i++) {
     s = x[i];
     for (j = 1; j <= ORDER; j += 4) {
-      s = ixheaacd_sub32_sat(
-          s, ixheaacd_mul32_sh(a[j], x[i - j], (WORD8)(qshift)));
-      s = ixheaacd_sub32_sat(
-          s, ixheaacd_mul32_sh(a[j + 1], x[i - (j + 1)], (WORD8)(qshift)));
-      s = ixheaacd_sub32_sat(
-          s, ixheaacd_mul32_sh(a[j + 2], x[i - (j + 2)], (WORD8)(qshift)));
-      s = ixheaacd_sub32_sat(
-          s, ixheaacd_mul32_sh(a[j + 3], x[i - (j + 3)], (WORD8)(qshift)));
+      s = ixheaac_sub32_sat(
+          s, ixheaac_mul32_sh(a[j], x[i - j], (WORD8)(qshift)));
+      s = ixheaac_sub32_sat(
+          s, ixheaac_mul32_sh(a[j + 1], x[i - (j + 1)], (WORD8)(qshift)));
+      s = ixheaac_sub32_sat(
+          s, ixheaac_mul32_sh(a[j + 2], x[i - (j + 2)], (WORD8)(qshift)));
+      s = ixheaac_sub32_sat(
+          s, ixheaac_mul32_sh(a[j + 3], x[i - (j + 3)], (WORD8)(qshift)));
     }
     x[i] = s;
   }
@@ -128,9 +128,9 @@ VOID ixheaacd_fwd_alias_cancel_tool(
     fac_signal[i] = (WORD32)(ptr_fac_signal_flt[i] * (1 << (16 - qshift)));
 
   for (i = 0; i < fac_length; i++)
-    ptr_overlap_buf[i] = ixheaacd_add32_sat(
+    ptr_overlap_buf[i] = ixheaac_add32_sat(
         ptr_overlap_buf[i],
-        (WORD32)ixheaacd_mul32_sh(fac_signal[i], gain, (WORD8)(16 - qshift)));
+        (WORD32)ixheaac_mul32_sh(fac_signal[i], gain, (WORD8)(16 - qshift)));
 
   return;
 }
@@ -179,16 +179,16 @@ VOID ixheaacd_fr_alias_cnx_fix(WORD32 *x_in, WORD32 len, WORD32 fac_length,
         WORD32 temp1;
         WORD32 temp2;
 
-        temp1 = ixheaacd_mul32_sh(
+        temp1 = ixheaac_mul32_sh(
             izir[1 + (len / 2) + i], fac_window[fac_length + i],
             (char)((qshift3 - *qshift1 + 31 + (WORD8)(*preshift))));
 
-        temp2 = ixheaacd_mul32_sh(
+        temp2 = ixheaac_mul32_sh(
             izir[1 + (len / 2) - 1 - i], fac_window[fac_length - 1 - i],
             (char)((qshift3 - *qshift1 + 31 + (WORD8)(*preshift))));
 
         fac_data_out[i] =
-            ixheaacd_add32_sat3((fac_data_out[i] / 2), temp1, temp2);
+            ixheaac_add32_sat3((fac_data_out[i] / 2), temp1, temp2);
 
         fac_data_out[fac_length + i] = (fac_data_out[fac_length + i] / 2);
       }

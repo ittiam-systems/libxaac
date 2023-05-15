@@ -17,13 +17,13 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -32,7 +32,7 @@
 #include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
@@ -540,12 +540,12 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
       m_ttt[2][1] = ixheaacd_mps_mult32_shr_15(m_ttt[2][1], one_by_icc);
     }
 
-    m_ttt[0][0] = ixheaacd_mult32x16in32(m_ttt[0][0], TWO_BY_THREE_Q15);
-    m_ttt[0][1] = ixheaacd_mult32x16in32(m_ttt[0][1], TWO_BY_THREE_Q15);
-    m_ttt[1][0] = ixheaacd_mult32x16in32(m_ttt[1][0], TWO_BY_THREE_Q15);
-    m_ttt[1][1] = ixheaacd_mult32x16in32(m_ttt[1][1], TWO_BY_THREE_Q15);
-    m_ttt[2][0] = ixheaacd_mult32x16in32(m_ttt[2][0], TWO_BY_THREE_Q15);
-    m_ttt[2][1] = ixheaacd_mult32x16in32(m_ttt[2][1], TWO_BY_THREE_Q15);
+    m_ttt[0][0] = ixheaac_mult32x16in32(m_ttt[0][0], TWO_BY_THREE_Q15);
+    m_ttt[0][1] = ixheaac_mult32x16in32(m_ttt[0][1], TWO_BY_THREE_Q15);
+    m_ttt[1][0] = ixheaac_mult32x16in32(m_ttt[1][0], TWO_BY_THREE_Q15);
+    m_ttt[1][1] = ixheaac_mult32x16in32(m_ttt[1][1], TWO_BY_THREE_Q15);
+    m_ttt[2][0] = ixheaac_mult32x16in32(m_ttt[2][0], TWO_BY_THREE_Q15);
+    m_ttt[2][1] = ixheaac_mult32x16in32(m_ttt[2][1], TWO_BY_THREE_Q15);
   } else {
     WORD32 center_wiener;
     WORD32 center_subtraction;
@@ -617,17 +617,17 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
       const WORD32 *sqrt_tab = pstr_mps_state->ia_mps_dec_mps_table.common_table_ptr->sqrt_tab;
       prod = ixheaacd_mps_mult32_shr_15(c1d, c2d);
 
-      temporary = ixheaacd_add32_sat(ONE_IN_Q15, c2d);
-      temporary = ixheaacd_add32_sat(temporary, (WORD32)prod);
+      temporary = ixheaac_add32_sat(ONE_IN_Q15, c2d);
+      temporary = ixheaac_add32_sat(temporary, (WORD32)prod);
       w00 = ixheaacd_mps_div_32((WORD32)prod, temporary, &q_w00);
 
-      w11 = ixheaacd_mps_div_32(c1d, (ixheaacd_add32_sat3(c1d, c2d, ONE_IN_Q15)), &q_w11);
+      w11 = ixheaacd_mps_div_32(c1d, (ixheaac_add32_sat3(c1d, c2d, ONE_IN_Q15)), &q_w11);
 
-      w20 = ixheaacd_mps_div_32((ixheaacd_add32_sat(c2d, ONE_IN_Q15)),
-                                ixheaacd_add32_sat3(ONE_IN_Q15, (WORD32)prod, c2d), &q_w20);
+      w20 = ixheaacd_mps_div_32((ixheaac_add32_sat(c2d, ONE_IN_Q15)),
+                                ixheaac_add32_sat3(ONE_IN_Q15, (WORD32)prod, c2d), &q_w20);
 
-      w21 = ixheaacd_mps_div_32(ixheaacd_add32_sat(c2d, ONE_IN_Q15),
-                                (ixheaacd_add32_sat3(c1d, c2d, ONE_IN_Q15)), &q_w21);
+      w21 = ixheaacd_mps_div_32(ixheaac_add32_sat(c2d, ONE_IN_Q15),
+                                (ixheaac_add32_sat3(c1d, c2d, ONE_IN_Q15)), &q_w21);
 
       m_ttt[0][0] = ixheaacd_mps_sqrt(w00, &q_w00, sqrt_tab);
       m_ttt[0][0] = ixheaacd_mps_convert_to_qn(m_ttt[0][0], q_w00, 15);
@@ -723,8 +723,8 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
         WORD32 l;
         const WORD32 *sqrt_tab = pstr_mps_state->ia_mps_dec_mps_table.common_table_ptr->sqrt_tab;
 
-        c = ixheaacd_mps_div_32(ONE_IN_Q15, (ixheaacd_add32_sat(c1d, ONE_IN_Q15)), &q_c);
-        r = ixheaacd_mps_div_32(c1d, (ixheaacd_add32_sat(c2d, ONE_IN_Q15)), &q_r);
+        c = ixheaacd_mps_div_32(ONE_IN_Q15, (ixheaac_add32_sat(c1d, ONE_IN_Q15)), &q_c);
+        r = ixheaacd_mps_div_32(c1d, (ixheaac_add32_sat(c2d, ONE_IN_Q15)), &q_r);
         r = ixheaacd_mps_mult32_shr_30(r, c);
         q_r = q_r + q_c - 30;
 
@@ -741,7 +741,7 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
 
         temp += ((1 << q_temp) - 1);
 
-        temp = ixheaacd_add32_sat(
+        temp = ixheaac_add32_sat(
             ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - q_r)), r);
         q_temp = q_r;
 
@@ -753,15 +753,15 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
           q_temp1 = q_c;
         }
 
-        temp = ixheaacd_div32(temp_1, temp, &q_a);
+        temp = ixheaac_div32(temp_1, temp, &q_a);
         q_wl1 = q_a + q_temp1 - q_temp;
         wl1 = ixheaacd_mps_sqrt(temp, &q_wl1, sqrt_tab);
         m_ttt[0][0] = ixheaacd_mps_convert_to_qn(wl1, q_wl1, 15);
 
-        temp = ixheaacd_div32(wl1, temp_1, &q_a);
+        temp = ixheaac_div32(wl1, temp_1, &q_a);
         q_temp = q_a + (q_wl1 - q_temp1);
         wl2 = ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - 15));
-        m_ttt[0][1] = ixheaacd_negate32_sat(wl2);
+        m_ttt[0][1] = ixheaac_negate32_sat(wl2);
 
         temp = ixheaacd_mps_div_32(l, r, &q_temp);
         q_temp += (q_l - q_r);
@@ -771,9 +771,9 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
           q_temp = 28;
         }
 
-        temp = ixheaacd_add32_sat((1 << q_temp) - 1, temp);
+        temp = ixheaac_add32_sat((1 << q_temp) - 1, temp);
 
-        temp = ixheaacd_add32_sat(
+        temp = ixheaac_add32_sat(
                    ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - q_l)), l);
 
         q_temp = q_l;
@@ -786,15 +786,15 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
           q_temp1 = q_c;
         }
 
-        temp = ixheaacd_div32(temp_1, temp, &q_a);
+        temp = ixheaac_div32(temp_1, temp, &q_a);
         q_wr1 = q_a + q_temp1 - q_temp;
         wr1 = ixheaacd_mps_sqrt(temp, &q_wr1, sqrt_tab);
         m_ttt[1][1] = ixheaacd_mps_convert_to_qn(wr1, q_wr1, 15);
 
-        temp = ixheaacd_div32(wr1, temp_1, &q_a);
+        temp = ixheaac_div32(wr1, temp_1, &q_a);
         q_temp = q_a + (q_wl1 - q_temp1);
         wr2 = ixheaacd_mps_mult32_shr_n(c, temp, (WORD16)(q_c + q_temp - 15));
-        m_ttt[1][0] = ixheaacd_negate32_sat(wr2);
+        m_ttt[1][0] = ixheaac_negate32_sat(wr2);
       }
     }
   }

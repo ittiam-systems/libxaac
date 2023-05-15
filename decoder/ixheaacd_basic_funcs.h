@@ -27,19 +27,16 @@
 WORD32 ixheaacd_sqrt(WORD32 op);
 
 VOID ixheaacd_fix_mant_exp_add(WORD16 a_m, WORD16 a_e, WORD16 b_m, WORD16 b_e,
-                               WORD16 *ptr_sum_mant, WORD16 *ptr_sum_exp);
+                              WORD16 *ptr_sum_mant, WORD16 *ptr_sum_exp);
 
 WORD32 ixheaacd_fix_mant_div(WORD16 a_m, WORD16 b_m, WORD16 *ptr_result,
-                             ixheaacd_misc_tables *pstr_common_tables);
+                            ixheaacd_misc_tables *pstr_common_tables);
 
 VOID ixheaacd_fix_mant_exp_sqrt(WORD16 *mant, WORD16 *sqrt_table);
 
 WORD32 ixheaacd_fix_div_dec(WORD32 divident, WORD32 divisor);
 
 WORD32 ixheaacd_fix_div_armv7(WORD32 divident, WORD32 divisor);
-
-VOID ixheaacd_mantisa_mod(WORD32 b_m, WORD32 b_e, WORD32 *ptr_sum_mant,
-                          WORD32 *ptr_sum_exp);
 
 extern VOID ixheaacd_scale_short_vec_left(WORD16 *word16_arr, WORD32 n,
                                           WORD16 shift);

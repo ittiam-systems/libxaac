@@ -19,11 +19,11 @@
 */
 #include <math.h>
 #include <string.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 
@@ -39,7 +39,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
@@ -1982,7 +1982,7 @@ static VOID ixheaacd_esc_iquant(WORD32 *q, WORD32 *coef, WORD32 noise_level,
 
       coef[i] = flag * (coef[i] << 1);
     }
-    temp = ixheaacd_mult64_sat(fac_fix, (WORD64)coef[i]);
+    temp = ixheaac_mult64_sat(fac_fix, (WORD64)coef[i]);
 
     coef[i] = (WORD32)(temp >> 22);
   }

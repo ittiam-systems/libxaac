@@ -29,10 +29,10 @@ cc_test {
     ],
 
     srcs: [
-        "ixheaacd_error.c",
-        "ixheaacd_fileifc.c",
-        "ixheaacd_main.c",
-        "ixheaacd_metadata_read.c"
+        "decoder/ixheaacd_error.c",
+        "decoder/ixheaacd_fileifc.c",
+        "decoder/ixheaacd_main.c",
+        "decoder/ixheaacd_metadata_read.c"
     ],
 
     static_libs: ["libxaacdec"],

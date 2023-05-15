@@ -18,13 +18,13 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_rom.h"
@@ -33,7 +33,7 @@
 #include "ixheaacd_mps_res_block.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_mps_res_channel.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_mps_res_tns.h"
 #include "ixheaacd_mps_res.h"
 #include "ixheaacd_mps_res_huffman.h"
@@ -163,7 +163,7 @@ WORD16 ixheaacd_res_c_block_read_spec_data(
   WORD32 *p_spectral_coefficient;
   ia_mps_dec_residual_ics_info_struct *p_ics_info = &p_aac_decoder_channel_info->ics_info;
   WORD16 *band_offsets;
-  WORD32 maximum_bins_short = ixheaacd_shr16_dir_sat(p_ics_info->frame_length, 3);
+  WORD32 maximum_bins_short = ixheaac_shr16_dir_sat(p_ics_info->frame_length, 3);
 
   WORD32 *p_spec_coeff_out;
 

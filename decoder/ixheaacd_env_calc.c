@@ -18,13 +18,13 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_bitbuffer.h"
@@ -55,7 +55,7 @@
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
 
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_freq_sca.h"
 
@@ -63,7 +63,7 @@
 #include "ixheaacd_env_extr.h"
 
 #include "ixheaacd_env_calc.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 
 #include "ixheaacd_qmf_dec.h"
 
@@ -148,7 +148,7 @@ static VOID ixheaacd_alias_reduction(WORD16 *deg_patched, WORD16 *nrg_gain,
         WORD16 one_minus_alpha, alpha = deg_patched[k];
 
         if (k < (num_sub_bands - 1)) {
-          alpha = ixheaacd_max16(deg_patched[k + 1], alpha);
+          alpha = ixheaac_max16(deg_patched[k + 1], alpha);
         }
         gain_m = (alpha * grp_gain_mant);
         one_minus_alpha = 0x7fff - alpha;
@@ -165,13 +165,13 @@ static VOID ixheaacd_alias_reduction(WORD16 *deg_patched, WORD16 *nrg_gain,
 
           if (exp_diff >= 0) {
             tmp_gain_exp = grp_gain_exp;
-            tmp_gain_mant = ixheaacd_shr32(tmp_gain_mant, exp_diff);
+            tmp_gain_mant = ixheaac_shr32(tmp_gain_mant, exp_diff);
 
             tmp_gain_mant = (gain_m >> 15) + tmp_gain_mant;
 
           } else {
             tmp_gain_mant =
-                (ixheaacd_shr32(gain_m, (15 - exp_diff))) + tmp_gain_mant;
+                (ixheaac_shr32(gain_m, (15 - exp_diff))) + tmp_gain_mant;
           }
         }
         *ptr_nrg_gain_mant++ = tmp_gain_mant;
@@ -184,11 +184,11 @@ static VOID ixheaacd_alias_reduction(WORD16 *deg_patched, WORD16 *nrg_gain,
           WORD32 exp_diff;
           exp_diff = tmp_e - nrg_mod_exp;
           if (exp_diff >= 0) {
-            nrg_mod_mant = tmp_mant + (ixheaacd_shr32(nrg_mod_mant, exp_diff));
+            nrg_mod_mant = tmp_mant + (ixheaac_shr32(nrg_mod_mant, exp_diff));
             nrg_mod_exp = tmp_e;
           } else {
             exp_diff = -exp_diff;
-            nrg_mod_mant = (ixheaacd_shr32(tmp_mant, exp_diff)) + nrg_mod_mant;
+            nrg_mod_mant = (ixheaac_shr32(tmp_mant, exp_diff)) + nrg_mod_mant;
           }
         }
       }
@@ -196,7 +196,7 @@ static VOID ixheaacd_alias_reduction(WORD16 *deg_patched, WORD16 *nrg_gain,
 
     {
       WORD32 norm_val;
-      norm_val = 16 - ixheaacd_pnorm32(nrg_mod_mant);
+      norm_val = 16 - ixheaac_pnorm32(nrg_mod_mant);
       if (norm_val > 0) {
         nrg_mod_mant >>= norm_val;
         nrg_mod_exp += norm_val;
@@ -257,10 +257,10 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
                             &sum_orig_mant, &sum_orig_exp, &max_gain_mant,
                             &max_gain_exp, pstr_common_tables, 0);
 
-      max_temp = ixheaacd_mult16x16in32_shl(max_gain_mant, limit_gain_mant);
+      max_temp = ixheaac_mult16x16in32_shl(max_gain_mant, limit_gain_mant);
       max_gain_exp = (max_gain_exp + limit_gain_exp);
 
-      temp_val = ixheaacd_norm32(max_temp);
+      temp_val = ixheaac_norm32(max_temp);
 
       max_gain_exp = (WORD16)(max_gain_exp - temp_val);
       max_gain_mant = (WORD16)((max_temp << temp_val) >> 16);
@@ -288,8 +288,8 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
                                       &noise_amp_mant, pstr_common_tables);
             noise_amp_exp += (max_gain_exp - t_gain_exp) + 1;
 
-            *p_noise_level = ixheaacd_extract16h(ixheaacd_shl32_dir_sat_limit(
-                ixheaacd_mult16x16in32_shl(*p_noise_level, noise_amp_mant),
+            *p_noise_level = ixheaac_extract16h(ixheaac_shl32_dir_sat_limit(
+                ixheaac_mult16x16in32_shl(*p_noise_level, noise_amp_mant),
                 noise_amp_exp));
 
             *ptr_nrg_gain = max_gain_mant;
@@ -327,22 +327,22 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
             WORD32 exp_diff;
             exp_diff = tmp_e - accu_e_t;
             if (exp_diff >= 0) {
-              accu_m_t = tmp_mant + ixheaacd_shr32(accu_m_t, exp_diff);
+              accu_m_t = tmp_mant + ixheaac_shr32(accu_m_t, exp_diff);
               accu_e_t = tmp_e;
             } else {
               exp_diff = -exp_diff;
-              accu_m_t = ixheaacd_shr32(tmp_mant, exp_diff) + accu_m_t;
+              accu_m_t = ixheaac_shr32(tmp_mant, exp_diff) + accu_m_t;
             }
           }
 
           if (p_nrg_sine[0] != 0) {
             WORD32 exp_diff = p_nrg_sine[1] - accu_e_t;
             if (exp_diff >= 0) {
-              accu_m_t = p_nrg_sine[0] + ixheaacd_shr32(accu_m_t, exp_diff);
+              accu_m_t = p_nrg_sine[0] + ixheaac_shr32(accu_m_t, exp_diff);
               accu_e_t = p_nrg_sine[1];
             } else {
               exp_diff = -exp_diff;
-              accu_m_t = accu_m_t + ixheaacd_shr32(p_nrg_sine[0], exp_diff);
+              accu_m_t = accu_m_t + ixheaac_shr32(p_nrg_sine[0], exp_diff);
             }
 
           } else {
@@ -350,12 +350,12 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
               WORD32 exp_diff = p_noise_level[1] - accu_e_t;
               if (exp_diff >= 0) {
                 accu_m_t =
-                    p_noise_level[0] + ixheaacd_shr32(accu_m_t, exp_diff);
+                    p_noise_level[0] + ixheaac_shr32(accu_m_t, exp_diff);
                 accu_e_t = p_noise_level[1];
               } else {
                 exp_diff = -exp_diff;
                 accu_m_t =
-                    accu_m_t + ixheaacd_shr32(p_noise_level[0], exp_diff);
+                    accu_m_t + ixheaac_shr32(p_noise_level[0], exp_diff);
               }
             }
           }
@@ -365,7 +365,7 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
 
         {
           WORD32 norm_val;
-          norm_val = 16 - ixheaacd_norm32(accu_m_t);
+          norm_val = 16 - ixheaac_norm32(accu_m_t);
           if (norm_val > 0) {
             accu_m_t >>= norm_val;
             accu_e_t += norm_val;
@@ -397,9 +397,9 @@ VOID ixheaacd_noiselimiting(ia_freq_band_data_struct *pstr_freq_band_data,
           temp2 = *p_nrg_sine;
           temp3 = *p_noise_level;
 
-          temp1 = ixheaacd_mult16_shl(temp1, boost_gain_mant);
-          temp2 = ixheaacd_mult16_shl(temp2, boost_gain_mant);
-          temp3 = ixheaacd_mult16_shl(temp3, boost_gain_mant);
+          temp1 = ixheaac_mult16_shl(temp1, boost_gain_mant);
+          temp2 = ixheaac_mult16_shl(temp2, boost_gain_mant);
+          temp3 = ixheaac_mult16_shl(temp3, boost_gain_mant);
           *ptr_nrg_gain++ = temp1;
           *p_nrg_sine++ = temp2;
           *p_noise_level++ = temp3;
@@ -441,9 +441,9 @@ VOID ixheaacd_conv_ergtoamplitudelp_dec(WORD32 bands, WORD16 noise_e,
 
     shift = (nrg_sine[2 * k + 1] - noise_e);
     if (shift > 0)
-      nrg_sine[2 * k] = ixheaacd_shl16_sat(nrg_sine[2 * k], (WORD16)shift);
+      nrg_sine[2 * k] = ixheaac_shl16_sat(nrg_sine[2 * k], (WORD16)shift);
     else
-      nrg_sine[2 * k] = ixheaacd_shr16(nrg_sine[2 * k], (WORD16)-shift);
+      nrg_sine[2 * k] = ixheaac_shr16(nrg_sine[2 * k], (WORD16)-shift);
   }
 }
 
@@ -779,7 +779,7 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
         max_noise = ptr_sbr_calc_env->filt_buf_noise_m[i];
       }
     }
-    adj_e = ((ptr_sbr_calc_env->filt_buf_noise_e - ixheaacd_norm32(max_noise)) -
+    adj_e = ((ptr_sbr_calc_env->filt_buf_noise_e - ixheaac_norm32(max_noise)) -
              16);
   }
 
@@ -936,7 +936,7 @@ IA_ERRORCODE ixheaacd_calc_sbrenvelope(
                                       (WORD16 *)pstr_common_tables->sqrt_table);
     }
 
-    lb_scale = ixheaacd_sub16(15, ptr_sbr_scale_fac->lb_scale);
+    lb_scale = ixheaac_sub16(15, ptr_sbr_scale_fac->lb_scale);
 
     ixheaacd_adapt_noise_gain_calc(
         ptr_sbr_calc_env, noise_e, num_sub_bands, skip_bands, nrg_gain,
@@ -1027,7 +1027,7 @@ VOID ixheaacd_equalize_filt_buff_exp(WORD16 *ptr_filt_buf, WORD16 *nrg_gain,
       *ptr_filt_buf = (WORD16)(*ptr_filt_buf >> diff);
     } else {
       WORD32 reserve;
-      reserve = (ixheaacd_norm32(filt_buf_mant) - 16);
+      reserve = (ixheaac_norm32(filt_buf_mant) - 16);
 
       if ((diff + reserve) >= 0) {
         *ptr_filt_buf = (WORD16)(filt_buf_mant << -diff);
@@ -1098,8 +1098,8 @@ VOID ixheaacd_adjust_scale_dec(WORD32 **re, WORD32 **im, WORD32 sub_band_start,
   if (shift != 0) {
     WORD32 num_sub_bands = (sub_band_end - sub_band_start);
 
-    shift = ixheaacd_min32(shift, 31);
-    shift = ixheaacd_max32(shift, -31);
+    shift = ixheaac_min32(shift, 31);
+    shift = ixheaac_max32(shift, -31);
 
     if (low_pow_flag) {
       if (shift > 0) {
@@ -1172,12 +1172,12 @@ WORD16 ixheaacd_expsubbandsamples_dec(WORD32 **re, WORD32 **im,
       ptr_real = re[l] + sub_band_start;
       temp_real = *ptr_real++;
       for (k = num_sub_bands; k > 0; k--) {
-        value = ixheaacd_abs32_nrm(temp_real);
+        value = ixheaac_abs32_nrm(temp_real);
         max_abs |= value;
         temp_real = *ptr_real++;
       }
     }
-    max_shift = ixheaacd_pnorm32(max_abs);
+    max_shift = ixheaac_pnorm32(max_abs);
   } else {
     for (l = start_pos; l < next_pos; l++) {
       ptr_real = re[l] + sub_band_start;
@@ -1187,13 +1187,13 @@ WORD16 ixheaacd_expsubbandsamples_dec(WORD32 **re, WORD32 **im,
         WORD32 temp_real = *ptr_real++;
         WORD32 tempIm = *ptr_imag++;
 
-        temp_real = ixheaacd_abs32_nrm(temp_real);
+        temp_real = ixheaac_abs32_nrm(temp_real);
         max_abs |= temp_real;
-        tempIm = ixheaacd_abs32_nrm(tempIm);
+        tempIm = ixheaac_abs32_nrm(tempIm);
         max_abs |= tempIm;
       }
     }
-    max_shift = ixheaacd_pnorm32(max_abs);
+    max_shift = ixheaac_pnorm32(max_abs);
   }
 
   return max_shift;
@@ -1239,14 +1239,14 @@ VOID ixheaacd_enery_calc_per_subband_dec(WORD32 start_pos, WORD32 next_pos,
       ptr = p_real;
 
       for (l = num_cols; l != 0; l -= 2) {
-        WORD32 value = ixheaacd_abs32_nrm(*ptr);
+        WORD32 value = ixheaac_abs32_nrm(*ptr);
         ptr += 64;
-        max_val = ixheaacd_max32(value, max_val);
-        value = ixheaacd_abs32_nrm(*ptr);
+        max_val = ixheaac_max32(value, max_val);
+        value = ixheaac_abs32_nrm(*ptr);
         ptr += 64;
-        max_val = ixheaacd_max32(value, max_val);
+        max_val = ixheaac_max32(value, max_val);
       }
-      pre_shift_val = (ixheaacd_pnorm32(max_val) - max_shift_gap);
+      pre_shift_val = (ixheaac_pnorm32(max_val) - max_shift_gap);
 
       accu = 0L;
       shift = 16 - pre_shift_val;
@@ -1272,9 +1272,9 @@ VOID ixheaacd_enery_calc_per_subband_dec(WORD32 start_pos, WORD32 next_pos,
         }
 
       if (accu != 0L) {
-        shift = -(ixheaacd_pnorm32(accu));
-        sum_m = (WORD16)(ixheaacd_shr32_dir_sat_limit(accu, (16 + shift)));
-        *nrg_est++ = ixheaacd_mult16_shl_sat(sum_m, inv_width);
+        shift = -(ixheaac_pnorm32(accu));
+        sum_m = (WORD16)(ixheaac_shr32_dir_sat_limit(accu, (16 + shift)));
+        *nrg_est++ = ixheaac_mult16_shl_sat(sum_m, inv_width);
         shift = (shift - (pre_shift_val << 1));
         shift += extra_shift;
         *nrg_est++ = (WORD16)(frame_exp + shift + 1);
@@ -1336,26 +1336,26 @@ VOID ixheaacd_enery_calc_persfb(WORD32 **anal_buf_real, WORD32 **anal_buf_imag,
           WORD32 inc = !low_pow_flag;
           for (l = (next_pos - start_pos) << inc; l != 0; l--) {
             WORD16 temp;
-            temp = ixheaacd_extract16l(ixheaacd_shr32_dir(*ptr, pre_shift1));
+            temp = ixheaac_extract16l(ixheaac_shr32_dir(*ptr, pre_shift1));
             ptr += 64;
-            accu_line = ixheaacd_mac16x16in32_sat(accu_line, temp, temp);
+            accu_line = ixheaac_mac16x16in32_sat(accu_line, temp, temp);
           }
         }
         accumulate =
-            ixheaacd_add32_sat(accumulate, ixheaacd_shr32(accu_line, 9));
+            ixheaac_add32_sat(accumulate, ixheaac_shr32(accu_line, 9));
       }
 
-      shift = ixheaacd_pnorm32(accumulate);
+      shift = ixheaac_pnorm32(accumulate);
 
-      sum_m = ixheaacd_extract16l(
-          ixheaacd_shr32_dir_sat_limit(accumulate, (16 - shift)));
+      sum_m = ixheaac_extract16l(
+          ixheaac_shr32_dir_sat_limit(accumulate, (16 - shift)));
 
       if (sum_m == 0) {
         sum_e = 0;
       } else {
-        sum_m = ixheaacd_mult16_shl_sat(sum_m, inv_width);
+        sum_m = ixheaac_mult16_shl_sat(sum_m, inv_width);
 
-        sum_m = ixheaacd_mult16_shl_sat(
+        sum_m = ixheaac_mult16_shl_sat(
             sum_m,
             ptr_sbr_tables->env_calc_tables_ptr->sbr_inv_int_table[ui - li]);
 
@@ -1393,7 +1393,7 @@ VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
     nrg_est_exp = 1;
   }
 
-  var1_mant = ixheaacd_mult16_shl_sat(e_orig_mant_matrix, tmp_noise_mant);
+  var1_mant = ixheaac_mult16_shl_sat(e_orig_mant_matrix, tmp_noise_mant);
   var1_exp = (nrg_ref_exp + tmp_noise_exp);
 
   {
@@ -1402,14 +1402,14 @@ VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
     exp_diff = tmp_noise_exp - 1;
 
     if (exp_diff >= 0) {
-      accu = tmp_noise_mant + ixheaacd_shr32(0x4000, exp_diff);
+      accu = tmp_noise_mant + ixheaac_shr32(0x4000, exp_diff);
       var2_exp = tmp_noise_exp;
     } else {
       exp_diff = -exp_diff;
-      accu = ixheaacd_shr32((WORD32)tmp_noise_mant, exp_diff) + 0x4000;
+      accu = ixheaac_shr32((WORD32)tmp_noise_mant, exp_diff) + 0x4000;
       var2_exp = 1;
     }
-    if (ixheaacd_abs32(accu) >= 0x8000) {
+    if (ixheaac_abs32(accu) >= 0x8000) {
       accu = accu >> 1;
       var2_exp++;
     }
@@ -1421,7 +1421,7 @@ VOID ixheaacd_subbandgain_calc(WORD16 e_orig_mant_matrix, WORD16 tmp_noise_mant,
   *(ptr_noise_floor_mant + 1) = temp + (var1_exp - var2_exp) + 1;
 
   if (sine_present_flag || !noise_absc_flag) {
-    var3_mant = ixheaacd_mult16_shl_sat(var2_mant, nrg_est_mant);
+    var3_mant = ixheaac_mult16_shl_sat(var2_mant, nrg_est_mant);
     var3_exp = (var2_exp + nrg_est_exp);
   } else {
     var3_mant = nrg_est_mant;
@@ -1488,12 +1488,12 @@ VOID ixheaacd_avggain_calc(WORD16 *ptr_enrg_orig, WORD16 *nrg_est,
       exp_diff = tmp_e - accu_sum_orig_exp;
       if (exp_diff >= 0) {
         accu_sum_orig_mant =
-            tmp_mant + ixheaacd_shr32(accu_sum_orig_mant, exp_diff);
+            tmp_mant + ixheaac_shr32(accu_sum_orig_mant, exp_diff);
         accu_sum_orig_exp = tmp_e;
       } else {
         exp_diff = -exp_diff;
         accu_sum_orig_mant =
-            ixheaacd_shr32(tmp_mant, exp_diff) + accu_sum_orig_mant;
+            ixheaac_shr32(tmp_mant, exp_diff) + accu_sum_orig_mant;
       }
     }
     if (flag) {
@@ -1510,23 +1510,23 @@ VOID ixheaacd_avggain_calc(WORD16 *ptr_enrg_orig, WORD16 *nrg_est,
       exp_diff = tmp_e - accu_sum_est_exp;
       if (exp_diff >= 0) {
         accu_sum_est_mant =
-            tmp_mant + ixheaacd_shr32(accu_sum_est_mant, exp_diff);
+            tmp_mant + ixheaac_shr32(accu_sum_est_mant, exp_diff);
         accu_sum_est_exp = tmp_e;
       } else {
         exp_diff = -exp_diff;
         accu_sum_est_mant =
-            ixheaacd_shr32(tmp_mant, exp_diff) + accu_sum_est_mant;
+            ixheaac_shr32(tmp_mant, exp_diff) + accu_sum_est_mant;
       }
     }
   }
   {
     WORD32 norm_val;
-    norm_val = 16 - ixheaacd_pnorm32(accu_sum_orig_mant);
+    norm_val = 16 - ixheaac_pnorm32(accu_sum_orig_mant);
     if (norm_val > 0) {
       accu_sum_orig_mant >>= norm_val;
       accu_sum_orig_exp += norm_val;
     }
-    norm_val = 16 - ixheaacd_pnorm32(accu_sum_est_mant);
+    norm_val = 16 - ixheaac_pnorm32(accu_sum_est_mant);
     if (norm_val > 0) {
       accu_sum_est_mant >>= norm_val;
       accu_sum_est_exp += norm_val;
@@ -1568,7 +1568,7 @@ VOID ixheaacd_harm_idx_zerotwolp_dec(WORD32 *ptr_real_buf, WORD16 *ptr_gain_buf,
   scale_change = scale_change - 1;
   if (!noise_absc_flag) {
     for (k = 0; k < num_sub_bands; k++) {
-      signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
+      signal_real = ixheaac_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
       shift = (*ptr_gain_buf++ - scale_change);
 
       if (shift > 0)
@@ -1579,17 +1579,17 @@ VOID ixheaacd_harm_idx_zerotwolp_dec(WORD32 *ptr_real_buf, WORD16 *ptr_gain_buf,
       sine_level = (ptr_sine_level_buf[2 * k] << 16);
 
       if (sine_level == 0) {
-        *ptr_real_buf++ = ixheaacd_mac16x16in32_shl_sat(
-            signal_real, ixheaacd_extract16h(ptr_rand_ph[k]),
+        *ptr_real_buf++ = ixheaac_mac16x16in32_shl_sat(
+            signal_real, ixheaac_extract16h(ptr_rand_ph[k]),
             noise_level_mant[2 * k]);
       } else if (harm_index == 0)
-        *ptr_real_buf++ = ixheaacd_add32_sat(signal_real, sine_level);
+        *ptr_real_buf++ = ixheaac_add32_sat(signal_real, sine_level);
       else
-        *ptr_real_buf++ = ixheaacd_sub32_sat(signal_real, sine_level);
+        *ptr_real_buf++ = ixheaac_sub32_sat(signal_real, sine_level);
     }
   } else {
     for (k = 0; k < num_sub_bands; k++) {
-      signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
+      signal_real = ixheaac_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
       shift = (*ptr_gain_buf++ - scale_change);
 
       if (shift > 0)
@@ -1600,9 +1600,9 @@ VOID ixheaacd_harm_idx_zerotwolp_dec(WORD32 *ptr_real_buf, WORD16 *ptr_gain_buf,
       sine_level = (ptr_sine_level_buf[2 * k] << 16);
 
       if (harm_index == 0)
-        *ptr_real_buf++ = ixheaacd_add32_sat(signal_real, sine_level);
+        *ptr_real_buf++ = ixheaac_add32_sat(signal_real, sine_level);
       else
-        *ptr_real_buf++ = ixheaacd_sub32_sat(signal_real, sine_level);
+        *ptr_real_buf++ = ixheaac_sub32_sat(signal_real, sine_level);
     }
   }
 }
@@ -1620,7 +1620,7 @@ VOID ixheaacd_harm_idx_onethreelp(
 
   scale_change = scale_change - 1;
 
-  signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
+  signal_real = ixheaac_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
   shift = (*ptr_gain_buf++ - scale_change);
 
   if (shift > 0)
@@ -1640,28 +1640,28 @@ VOID ixheaacd_harm_idx_onethreelp(
     tone_count++;
   } else {
     if (!noise_absc_flag) {
-      signal_real = ixheaacd_mac16x16in32_shl_sat(
-          signal_real, ixheaacd_extract16h(ptr_rand_ph[k]), *noise_level_mant);
+      signal_real = ixheaac_mac16x16in32_shl_sat(
+          signal_real, ixheaac_extract16h(ptr_rand_ph[k]), *noise_level_mant);
     }
   }
 
   noise_level_mant += 2;
-  temp_mult2 = ixheaacd_mult32x16in32(FACTOR, sine_level_next);
-  temp_mult = ixheaacd_mult32x16in32(FACTOR, sine_level);
+  temp_mult2 = ixheaac_mult32x16in32(FACTOR, sine_level_next);
+  temp_mult = ixheaac_mult32x16in32(FACTOR, sine_level);
   tmp = noise_e;
 
   if (tmp > 0) {
-    temp_mult = ixheaacd_shl32(temp_mult, tmp);
+    temp_mult = ixheaac_shl32(temp_mult, tmp);
   } else {
-    temp_mult = ixheaacd_shr32(temp_mult, -tmp);
+    temp_mult = ixheaac_shr32(temp_mult, -tmp);
   }
 
   if (freq_inv_flag < 0) {
-    *(ptr_real_buf - 1) = ixheaacd_add32_sat(*(ptr_real_buf - 1), temp_mult);
-    signal_real = ixheaacd_sub32_sat(signal_real, temp_mult2);
+    *(ptr_real_buf - 1) = ixheaac_add32_sat(*(ptr_real_buf - 1), temp_mult);
+    signal_real = ixheaac_sub32_sat(signal_real, temp_mult2);
   } else {
-    *(ptr_real_buf - 1) = ixheaacd_sub32_sat(*(ptr_real_buf - 1), temp_mult);
-    signal_real = ixheaacd_add32_sat(signal_real, temp_mult2);
+    *(ptr_real_buf - 1) = ixheaac_sub32_sat(*(ptr_real_buf - 1), temp_mult);
+    signal_real = ixheaac_add32_sat(signal_real, temp_mult2);
   }
   *ptr_real_buf++ = signal_real;
 
@@ -1671,7 +1671,7 @@ VOID ixheaacd_harm_idx_onethreelp(
     WORD16 gain_e = *ptr_gain_buf++;
     WORD32 q_real = *ptr_real_buf;
 
-    signal_real = ixheaacd_mult32x16in32(q_real, gain_m);
+    signal_real = ixheaac_mult32x16in32(q_real, gain_m);
 
     if ((shift = (gain_e - scale_change)) >= 0)
       signal_real = (signal_real << shift);
@@ -1686,17 +1686,17 @@ VOID ixheaacd_harm_idx_onethreelp(
     sine_level_next = (ptr_sine_level_buf[2 * (k + 1)]);
 
     if ((!noise_absc_flag) && (sine_level == 0)) {
-      signal_real = ixheaacd_mac16x16in32_shl_sat(
-          signal_real, ixheaacd_extract16h(ptr_rand_ph[k]), *noise_level_mant);
+      signal_real = ixheaac_mac16x16in32_shl_sat(
+          signal_real, ixheaac_extract16h(ptr_rand_ph[k]), *noise_level_mant);
     }
     noise_level_mant += 2;
 
     if (tone_count <= 16) {
       WORD32 temp_mult;
-      WORD32 add_sine = ixheaacd_mult32x16in32(
-          FACTOR, ixheaacd_sub16(sine_level_prev, sine_level_next));
+      WORD32 add_sine = ixheaac_mult32x16in32(
+          FACTOR, ixheaac_sub16(sine_level_prev, sine_level_next));
       temp_mult = add_sine * freq_inv_flag;
-      signal_real = ixheaacd_add32_sat(signal_real, temp_mult);
+      signal_real = ixheaac_add32_sat(signal_real, temp_mult);
     }
     *ptr_real_buf++ = signal_real;
     freq_inv_flag = -(freq_inv_flag);
@@ -1706,7 +1706,7 @@ VOID ixheaacd_harm_idx_onethreelp(
 
   if (num_sub_bands > 0) {
     WORD32 temp_mult_sine;
-    signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
+    signal_real = ixheaac_mult32x16in32(*ptr_real_buf, *ptr_gain_buf++);
     shift = (*ptr_gain_buf - scale_change);
 
     if (shift > 0)
@@ -1714,33 +1714,33 @@ VOID ixheaacd_harm_idx_onethreelp(
     else
       signal_real = (signal_real >> -(shift));
 
-    temp_mult_sine = ixheaacd_mult32x16in32(FACTOR, sine_level);
+    temp_mult_sine = ixheaac_mult32x16in32(FACTOR, sine_level);
     sine_level = sine_level_next;
 
     if (sine_level != 0) {
       tone_count++;
     } else {
       if (!noise_absc_flag) {
-        signal_real = ixheaacd_mac16x16in32_shl_sat(
-            signal_real, ixheaacd_extract16h(ptr_rand_ph[k]),
+        signal_real = ixheaac_mac16x16in32_shl_sat(
+            signal_real, ixheaac_extract16h(ptr_rand_ph[k]),
             *noise_level_mant);
       }
     }
 
     if (tone_count <= 16) {
-      temp_mult2 = ixheaacd_mult32x16in32(FACTOR, sine_level);
+      temp_mult2 = ixheaac_mult32x16in32(FACTOR, sine_level);
 
       if (freq_inv_flag) {
-        *ptr_real_buf++ = ixheaacd_add32_sat(signal_real, temp_mult_sine);
+        *ptr_real_buf++ = ixheaac_add32_sat(signal_real, temp_mult_sine);
 
         if ((k + sub_band_start) < 62) {
-          *ptr_real_buf = ixheaacd_sub32_sat(*ptr_real_buf, temp_mult2);
+          *ptr_real_buf = ixheaac_sub32_sat(*ptr_real_buf, temp_mult2);
         }
       } else {
-        *ptr_real_buf++ = ixheaacd_sub32_sat(signal_real, temp_mult_sine);
+        *ptr_real_buf++ = ixheaac_sub32_sat(signal_real, temp_mult_sine);
 
         if ((k + sub_band_start) < 62) {
-          *ptr_real_buf = ixheaacd_add32_sat(*ptr_real_buf, temp_mult2);
+          *ptr_real_buf = ixheaac_add32_sat(*ptr_real_buf, temp_mult2);
         }
       }
     } else {
@@ -1763,35 +1763,35 @@ VOID ixheaacd_harm_idx_zerotwo(FLAG noise_absc_flag, WORD16 num_sub_bands,
   ptr_gain_buf++;
 
   for (k = 0; k < num_sub_bands; k++) {
-    signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, smoothed_gain[0]);
-    sig_imag = ixheaacd_mult32x16in32(*ptr_imag, smoothed_gain[0]);
+    signal_real = ixheaac_mult32x16in32(*ptr_real_buf, smoothed_gain[0]);
+    sig_imag = ixheaac_mult32x16in32(*ptr_imag, smoothed_gain[0]);
 
-    shift = ixheaacd_sub16(*ptr_gain_buf, scale_change);
+    shift = ixheaac_sub16(*ptr_gain_buf, scale_change);
     ptr_gain_buf += 2;
 
     if (shift > 0) {
-      signal_real = ixheaacd_shl32(signal_real, shift);
-      sig_imag = ixheaacd_shl32(sig_imag, shift);
+      signal_real = ixheaac_shl32(signal_real, shift);
+      sig_imag = ixheaac_shl32(sig_imag, shift);
     } else {
       shift = -shift;
-      signal_real = ixheaacd_shr32(signal_real, shift);
-      sig_imag = ixheaacd_shr32(sig_imag, shift);
+      signal_real = ixheaac_shr32(signal_real, shift);
+      sig_imag = ixheaac_shr32(sig_imag, shift);
     }
 
     ptr_rand_ph++;
 
     if (*ptr_sine_level_buf != 0) {
-      WORD32 tmp = ixheaacd_sub16(ptr_sine_level_buf[1], noise_e);
+      WORD32 tmp = ixheaac_sub16(ptr_sine_level_buf[1], noise_e);
 
       if (tmp > 0)
-        sine_level = ixheaacd_shl32(ptr_sine_level_buf[0], tmp);
+        sine_level = ixheaac_shl32(ptr_sine_level_buf[0], tmp);
       else
-        sine_level = ixheaacd_shr32(ptr_sine_level_buf[0], tmp);
+        sine_level = ixheaac_shr32(ptr_sine_level_buf[0], tmp);
 
       if (harm_index == 0)
-        *ptr_real_buf = ixheaacd_add32_sat(signal_real, sine_level);
+        *ptr_real_buf = ixheaac_add32_sat(signal_real, sine_level);
       else
-        *ptr_real_buf = ixheaacd_sub32_sat(signal_real, sine_level);
+        *ptr_real_buf = ixheaac_sub32_sat(signal_real, sine_level);
 
       *ptr_imag = sig_imag;
     } else {
@@ -1799,10 +1799,10 @@ VOID ixheaacd_harm_idx_zerotwo(FLAG noise_absc_flag, WORD16 num_sub_bands,
         WORD32 random = *ptr_rand_ph;
         WORD16 noise = smoothed_noise[0];
 
-        *ptr_real_buf = ixheaacd_mac16x16in32_shl_sat(
-            signal_real, ixheaacd_extract16h(random), noise);
-        *ptr_imag = ixheaacd_mac16x16in32_shl_sat(
-            sig_imag, ixheaacd_extract16l(random), noise);
+        *ptr_real_buf = ixheaac_mac16x16in32_shl_sat(
+            signal_real, ixheaac_extract16h(random), noise);
+        *ptr_imag = ixheaac_mac16x16in32_shl_sat(
+            sig_imag, ixheaac_extract16l(random), noise);
       } else {
         *ptr_real_buf = signal_real;
         *ptr_imag = sig_imag;
@@ -1834,37 +1834,37 @@ VOID ixheaacd_harm_idx_onethree(FLAG noise_absc_flag, WORD16 num_sub_bands,
   if (harm_index == 1) freq_inv_flag = !freq_inv_flag;
 
   for (k = 0; k < num_sub_bands; k++) {
-    signal_real = ixheaacd_mult32x16in32(*ptr_real_buf, smoothed_gain[0]);
-    sig_imag = ixheaacd_mult32x16in32(*ptr_imag, smoothed_gain[0]);
+    signal_real = ixheaac_mult32x16in32(*ptr_real_buf, smoothed_gain[0]);
+    sig_imag = ixheaac_mult32x16in32(*ptr_imag, smoothed_gain[0]);
 
-    shift = ixheaacd_sub16(*ptr_gain_buf, scale_change);
+    shift = ixheaac_sub16(*ptr_gain_buf, scale_change);
     ptr_gain_buf += 2;
 
     if (shift > 0) {
-      signal_real = ixheaacd_shl32(signal_real, shift);
-      sig_imag = ixheaacd_shl32(sig_imag, shift);
+      signal_real = ixheaac_shl32(signal_real, shift);
+      sig_imag = ixheaac_shl32(sig_imag, shift);
     } else {
       shift = -shift;
-      signal_real = ixheaacd_shr32(signal_real, shift);
-      sig_imag = ixheaacd_shr32(sig_imag, shift);
+      signal_real = ixheaac_shr32(signal_real, shift);
+      sig_imag = ixheaac_shr32(sig_imag, shift);
     }
 
     ptr_rand_ph++;
 
     if (*ptr_sine_level_buf != 0) {
-      WORD32 tmp = ixheaacd_sub16(ptr_sine_level_buf[1], noise_e);
+      WORD32 tmp = ixheaac_sub16(ptr_sine_level_buf[1], noise_e);
 
       if (tmp > 0)
-        sine_level = ixheaacd_shl32(ptr_sine_level_buf[0], tmp);
+        sine_level = ixheaac_shl32(ptr_sine_level_buf[0], tmp);
       else
-        sine_level = ixheaacd_shr32(ptr_sine_level_buf[0], -tmp);
+        sine_level = ixheaac_shr32(ptr_sine_level_buf[0], -tmp);
 
       *ptr_real_buf = signal_real;
 
       if (freq_inv_flag) {
-        *ptr_imag = ixheaacd_add32_sat(sig_imag, sine_level);
+        *ptr_imag = ixheaac_add32_sat(sig_imag, sine_level);
       } else {
-        *ptr_imag = ixheaacd_sub32_sat(sig_imag, sine_level);
+        *ptr_imag = ixheaac_sub32_sat(sig_imag, sine_level);
       }
 
     } else {
@@ -1872,10 +1872,10 @@ VOID ixheaacd_harm_idx_onethree(FLAG noise_absc_flag, WORD16 num_sub_bands,
         WORD32 random = *ptr_rand_ph;
         WORD16 noise = smoothed_noise[0];
 
-        *ptr_real_buf = ixheaacd_mac16x16in32_shl_sat(
-            signal_real, ixheaacd_extract16h(random), noise);
-        *ptr_imag = ixheaacd_mac16x16in32_shl_sat(
-            sig_imag, ixheaacd_extract16l(random), noise);
+        *ptr_real_buf = ixheaac_mac16x16in32_shl_sat(
+            signal_real, ixheaac_extract16h(random), noise);
+        *ptr_imag = ixheaac_mac16x16in32_shl_sat(
+            sig_imag, ixheaac_extract16l(random), noise);
       } else {
         *ptr_real_buf = signal_real;
         *ptr_imag = sig_imag;

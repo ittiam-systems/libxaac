@@ -18,14 +18,14 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_drc_data_struct.h"
 #include "ixheaacd_drc_dec.h"
 
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_env_extr_part.h"
@@ -43,7 +43,7 @@
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
 #include "ixheaacd_qmf_poly.h"
-#include "ixheaacd_esbr_rom.h"
+#include "ixheaac_esbr_rom.h"
 
 WORD32 ixheaacd_complex_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
   WORD32 idx;
@@ -164,7 +164,7 @@ WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
   FLOAT32 accu_r;
   WORD32 synth_size = ptr_hbe_txposer->synth_size;
   FLOAT32 *ptr_cos_tab_trans_qmf =
-      (FLOAT32 *)&ixheaacd_cos_table_trans_qmf[0][0] +
+      (FLOAT32 *)&ixheaac_cos_table_trans_qmf[0][0] +
       ptr_hbe_txposer->k_start * 32;
   FLOAT32 *buffer = ptr_hbe_txposer->synth_buf;
   FLOAT32 *ptr_inp_buf = ptr_hbe_txposer->ptr_input_buf + ptr_hbe_txposer->ana_fft_size[0];

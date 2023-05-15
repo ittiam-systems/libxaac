@@ -18,13 +18,13 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -32,7 +32,7 @@
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 
 #include "ixheaacd_pulsedata.h"
@@ -90,10 +90,10 @@ VOID ixheaacd_ms_stereo_process(
             WORD32 left_coef2 = *(l_spec + 1);
             WORD32 right_coef2 = *(r_spec + 1);
 
-            *l_spec++ = ixheaacd_add32_sat(left_coef, right_coef);
-            *r_spec++ = ixheaacd_sub32_sat(left_coef, right_coef);
-            *l_spec++ = ixheaacd_add32_sat(left_coef2, right_coef2);
-            *r_spec++ = ixheaacd_sub32_sat(left_coef2, right_coef2);
+            *l_spec++ = ixheaac_add32_sat(left_coef, right_coef);
+            *r_spec++ = ixheaac_sub32_sat(left_coef, right_coef);
+            *l_spec++ = ixheaac_add32_sat(left_coef2, right_coef2);
+            *r_spec++ = ixheaac_sub32_sat(left_coef2, right_coef2);
           }
         } else {
           l_spec += ptr_sfb_width[sfb];
@@ -186,7 +186,7 @@ VOID ixheaacd_intensity_stereo_process(
           scf_exp = (sfb_factor >> 2);
           scale = *(ptr_scale_table + (sfb_factor & 3));
           if (!((ptr_ms_used[sfb]) ^ (code_book & 0x1))) {
-            scale = ixheaacd_negate32(scale);
+            scale = ixheaac_negate32(scale);
           }
 
           scf_exp = -(scf_exp + 2);
@@ -195,16 +195,16 @@ VOID ixheaacd_intensity_stereo_process(
             WORD32 temp, shift_val;
             temp = *l_spec++;
 
-            shift_val = ixheaacd_norm32(temp);
-            temp = ixheaacd_shl32(temp, shift_val);
+            shift_val = ixheaac_norm32(temp);
+            temp = ixheaac_shl32(temp, shift_val);
 
             temp = ixheaacd_mult32x16in32l(temp, scale);
             shift_val = shift_val + scf_exp;
 
             if (shift_val < 0) {
-              temp = ixheaacd_shl32_sat(temp, -shift_val);
+              temp = ixheaac_shl32_sat(temp, -shift_val);
             } else {
-              temp = ixheaacd_shr32(temp, shift_val);
+              temp = ixheaac_shr32(temp, shift_val);
             }
             *r_spec++ = temp;
           }

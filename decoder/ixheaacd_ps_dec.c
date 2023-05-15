@@ -19,17 +19,17 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops_arr.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops_arr.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_defines.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -65,7 +65,7 @@
 
 #include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_env_calc.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
@@ -77,7 +77,7 @@ static PLATFORM_INLINE WORD16 ixheaacd_shl16_saturate(WORD16 op1,
   WORD32 temp;
 
   temp = (WORD32)(op1 << shift);
-  var_out = ixheaacd_sat16(temp);
+  var_out = ixheaac_sat16(temp);
   return (var_out);
 }
 
@@ -98,16 +98,16 @@ VOID ixheaacd_scale_short_vec_left(WORD16 *word16_arr, WORD32 n, WORD16 shift) {
 }
 
 VOID ixheaacd_scale_int_vec_left(WORD32 *word32_arr, WORD32 n, WORD16 shift) {
-  ixheaacd_shl32_arr_sat(word32_arr, shift, n);
+  ixheaac_shl32_arr_sat(word32_arr, shift, n);
 }
 
 VOID ixheaacd_scale_int_vec_right(WORD32 *word32_arr, WORD32 n, WORD16 shift) {
-  ixheaacd_shr32_arr(word32_arr, shift, n);
+  ixheaac_shr32_arr(word32_arr, shift, n);
 }
 
 VOID ixheaacd_scale_short_vec_right(WORD16 *word16_arr, WORD32 n,
                                     WORD16 shift) {
-  ixheaacd_shr16_arr(word16_arr, shift, n);
+  ixheaac_shr16_arr(word16_arr, shift, n);
 }
 
 WORD32 ixheaacd_calc_max(WORD16 *array, WORD32 size) {
@@ -119,8 +119,8 @@ WORD32 ixheaacd_calc_max(WORD16 *array, WORD32 size) {
     temp1 = *array++;
     temp2 = *array++;
 
-    max_val = max_val | ixheaacd_abs32_nrm(temp1);
-    max_val = max_val | ixheaacd_abs32_nrm(temp2);
+    max_val = max_val | ixheaac_abs32_nrm(temp1);
+    max_val = max_val | ixheaac_abs32_nrm(temp2);
   }
 
   return max_val;
@@ -177,12 +177,12 @@ static WORD ixheaacd_get_ps_scale(ia_ps_dec_struct *ptr_ps_dec) {
       WORD32 temp3 = *ptr_re_temp++;
       WORD32 temp4 = *ptr_im++;
 
-      max_val = max_val | ixheaacd_abs32_nrm(temp3);
-      max_val = max_val | ixheaacd_abs32_nrm(temp4);
+      max_val = max_val | ixheaac_abs32_nrm(temp3);
+      max_val = max_val | ixheaac_abs32_nrm(temp4);
     }
   }
 
-  return ixheaacd_pnorm32(max_val);
+  return ixheaac_pnorm32(max_val);
 }
 
 VOID ixheaacd_init_ps_scale(ia_ps_dec_struct *ptr_ps_dec,
@@ -196,9 +196,9 @@ VOID ixheaacd_init_ps_scale(ia_ps_dec_struct *ptr_ps_dec,
 
   ptr_ps_dec->delay_buffer_scale = (ptr_ps_dec->delay_buffer_scale + reserve);
   temp =
-      ixheaacd_min16(sbr_scale_factor->lb_scale, sbr_scale_factor->ov_lb_scale);
-  temp = ixheaacd_min16(temp, sbr_scale_factor->hb_scale);
-  temp = ixheaacd_min16(temp, ptr_ps_dec->delay_buffer_scale);
+      ixheaac_min16(sbr_scale_factor->lb_scale, sbr_scale_factor->ov_lb_scale);
+  temp = ixheaac_min16(temp, sbr_scale_factor->hb_scale);
+  temp = ixheaac_min16(temp, ptr_ps_dec->delay_buffer_scale);
   sbr_scale_factor->ps_scale = (temp - 1);
 
   change = (sbr_scale_factor->ps_scale - ptr_ps_dec->delay_buffer_scale);
@@ -214,7 +214,7 @@ WORD32 ixheaacd_divide16_pos_dec(WORD32 op1, WORD32 op2) {
   UWORD32 u;
   WORD k, nrm;
 
-  nrm = ixheaacd_norm32(op2);
+  nrm = ixheaac_norm32(op2);
   u = (op1 << nrm);
   v = (op2 << nrm);
   u = (u & 0xffff0000);
@@ -272,19 +272,19 @@ VOID ixheaacd_decorr_filter1_dec(ia_ps_dec_struct *ptr_ps_dec,
     imag_tmp0 = p_delay_buf_sub_re_im[1];
 
     real_in = (WORD16)(
-        ixheaacd_sub32_sat(
-            ixheaacd_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[0]),
-            ixheaacd_mult16x16in32(imag_tmp0,
+        ixheaac_sub32_sat(
+            ixheaac_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[0]),
+            ixheaac_mult16x16in32(imag_tmp0,
                                    p_frac_delay_phase_fac_re_im[1])) >>
         15);
     imag_in = (WORD16)(
-        ixheaacd_add32_sat(
-            ixheaacd_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[1]),
-            ixheaacd_mult16x16in32(imag_tmp0,
+        ixheaac_add32_sat(
+            ixheaac_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[1]),
+            ixheaac_mult16x16in32(imag_tmp0,
                                    p_frac_delay_phase_fac_re_im[0])) >>
         15);
-    *p_delay_buf_sub_re_im++ = ixheaacd_round16(p_left_real[sb]);
-    *p_delay_buf_sub_re_im++ = ixheaacd_round16(p_left_imag[sb]);
+    *p_delay_buf_sub_re_im++ = ixheaac_round16(p_left_real[sb]);
+    *p_delay_buf_sub_re_im++ = ixheaac_round16(p_left_imag[sb]);
     p_frac_delay_phase_fac_re_im += 2;
 
     p_frac_delay_phase_fac_ser_re_im1 = p_frac_delay_phase_fac_ser_re_im;
@@ -299,29 +299,29 @@ VOID ixheaacd_decorr_filter1_dec(ia_ps_dec_struct *ptr_ps_dec,
           (*p_delay_buf_ser_sub_re_im)[delay_buf_idx_ser][m][2 * sb + 1];
 
       real_tmp =
-          (WORD16)(ixheaacd_sub32_sat(
-                       ixheaacd_mult16x16in32(
+          (WORD16)(ixheaac_sub32_sat(
+                       ixheaac_mult16x16in32(
                            real_tmp0, p_frac_delay_phase_fac_ser_re_im1[0]),
-                       ixheaacd_mult16x16in32(
+                       ixheaac_mult16x16in32(
                            imag_tmp0, p_frac_delay_phase_fac_ser_re_im1[1])) >>
                    15);
       imag_tmp =
-          (WORD16)(ixheaacd_add32_sat(
-                       ixheaacd_mult16x16in32(
+          (WORD16)(ixheaac_add32_sat(
+                       ixheaac_mult16x16in32(
                            real_tmp0, p_frac_delay_phase_fac_ser_re_im1[1]),
-                       ixheaacd_mult16x16in32(
+                       ixheaac_mult16x16in32(
                            imag_tmp0, p_frac_delay_phase_fac_ser_re_im1[0])) >>
                    15);
 
       decay = ps_tables_ptr->rev_link_decay_ser[m];
 
-      real_tmp = ixheaacd_sub16(real_tmp, ixheaacd_mult16_shl(real_in, decay));
-      imag_tmp = ixheaacd_sub16(imag_tmp, ixheaacd_mult16_shl(imag_in, decay));
+      real_tmp = ixheaac_sub16(real_tmp, ixheaac_mult16_shl(real_in, decay));
+      imag_tmp = ixheaac_sub16(imag_tmp, ixheaac_mult16_shl(imag_in, decay));
 
       (*p_delay_buf_ser_sub_re_im)[delay_buf_idx_ser][m][sb * 2] =
-          ixheaacd_add16(real_in, ixheaacd_mult16_shl(real_tmp, decay));
+          ixheaac_add16(real_in, ixheaac_mult16_shl(real_tmp, decay));
       (*p_delay_buf_ser_sub_re_im)[delay_buf_idx_ser][m][sb * 2 + 1] =
-          ixheaacd_add16(imag_in, ixheaacd_mult16_shl(imag_tmp, decay));
+          ixheaac_add16(imag_in, ixheaac_mult16_shl(imag_tmp, decay));
 
       real_in = real_tmp;
       imag_in = imag_tmp;
@@ -330,9 +330,9 @@ VOID ixheaacd_decorr_filter1_dec(ia_ps_dec_struct *ptr_ps_dec,
 
     bin = ps_tables_ptr->hybrid_to_bin[sb];
     p_right_real[sb] =
-        ixheaacd_mult16x16in32_shl(real_in, transient_ratio[bin]);
+        ixheaac_mult16x16in32_shl(real_in, transient_ratio[bin]);
     p_right_imag[sb] =
-        ixheaacd_mult16x16in32_shl(imag_in, transient_ratio[bin]);
+        ixheaac_mult16x16in32_shl(imag_in, transient_ratio[bin]);
   }
 }
 
@@ -379,20 +379,20 @@ VOID ixheaacd_decorr_filter2_dec(
     imag_tmp0 = p_delay_buf_ap_re_im[1];
 
     real_in = (WORD16)(
-        ixheaacd_sub32_sat(
-            ixheaacd_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[0]),
-            ixheaacd_mult16x16in32(imag_tmp0,
+        ixheaac_sub32_sat(
+            ixheaac_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[0]),
+            ixheaac_mult16x16in32(imag_tmp0,
                                    p_frac_delay_phase_fac_re_im[1])) >>
         15);
     imag_in = (WORD16)(
-        ixheaacd_add32_sat(
-            ixheaacd_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[1]),
-            ixheaacd_mult16x16in32(imag_tmp0,
+        ixheaac_add32_sat(
+            ixheaac_mult16x16in32(real_tmp0, p_frac_delay_phase_fac_re_im[1]),
+            ixheaac_mult16x16in32(imag_tmp0,
                                    p_frac_delay_phase_fac_re_im[0])) >>
         15);
 
-    *p_delay_buf_ap_re_im++ = ixheaacd_round16(p_left_real[sb]);
-    *p_delay_buf_ap_re_im++ = ixheaacd_round16(p_left_imag[sb]);
+    *p_delay_buf_ap_re_im++ = ixheaac_round16(p_left_real[sb]);
+    *p_delay_buf_ap_re_im++ = ixheaac_round16(p_left_imag[sb]);
 
     p_frac_delay_phase_fac_re_im += 2;
 
@@ -410,29 +410,29 @@ VOID ixheaacd_decorr_filter2_dec(
           (*p_delay_buf_ser_re_im)[delay_buf_idx_ser][m][sb_delay * 2 + 1];
 
       real_tmp = (WORD16)(
-          ixheaacd_sub32_sat(
-              ixheaacd_mult16x16in32(
+          ixheaac_sub32_sat(
+              ixheaac_mult16x16in32(
                   real_tmp0, p_frac_delay_phase_fac_ser_ap_re_im_temp[0]),
-              ixheaacd_mult16x16in32(
+              ixheaac_mult16x16in32(
                   imag_tmp0, p_frac_delay_phase_fac_ser_ap_re_im_temp[1])) >>
           15);
       imag_tmp = (WORD16)(
-          ixheaacd_add32_sat(
-              ixheaacd_mult16x16in32(
+          ixheaac_add32_sat(
+              ixheaac_mult16x16in32(
                   real_tmp0, p_frac_delay_phase_fac_ser_ap_re_im_temp[1]),
-              ixheaacd_mult16x16in32(
+              ixheaac_mult16x16in32(
                   imag_tmp0, p_frac_delay_phase_fac_ser_ap_re_im_temp[0])) >>
           15);
 
       decay = ps_tables_ptr->decay_scale_factor[di];
 
-      real_tmp = ixheaacd_sub16(real_tmp, ixheaacd_mult16_shl(real_in, decay));
-      imag_tmp = ixheaacd_sub16(imag_tmp, ixheaacd_mult16_shl(imag_in, decay));
+      real_tmp = ixheaac_sub16(real_tmp, ixheaac_mult16_shl(real_in, decay));
+      imag_tmp = ixheaac_sub16(imag_tmp, ixheaac_mult16_shl(imag_in, decay));
 
       (*p_delay_buf_ser_re_im)[delay_buf_idx_ser][m][sb_delay * 2] =
-          ixheaacd_add16(real_in, ixheaacd_mult16_shl(real_tmp, decay));
+          ixheaac_add16(real_in, ixheaac_mult16_shl(real_tmp, decay));
       (*p_delay_buf_ser_re_im)[delay_buf_idx_ser][m][sb_delay * 2 + 1] =
-          ixheaacd_add16(imag_in, ixheaacd_mult16_shl(imag_tmp, decay));
+          ixheaac_add16(imag_in, ixheaac_mult16_shl(imag_tmp, decay));
 
       real_in = real_tmp;
       imag_in = imag_tmp;
@@ -441,9 +441,9 @@ VOID ixheaacd_decorr_filter2_dec(
 
     bin = ps_tables_ptr->delay_to_bin[sb_delay];
     p_right_real[sb] =
-        ixheaacd_mult16x16in32_shl(real_in, transient_ratio[bin]);
+        ixheaac_mult16x16in32_shl(real_in, transient_ratio[bin]);
     p_right_imag[sb] =
-        ixheaacd_mult16x16in32_shl(imag_in, transient_ratio[bin]);
+        ixheaac_mult16x16in32_shl(imag_in, transient_ratio[bin]);
   }
 }
 
@@ -485,26 +485,26 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
     re1 = (p_left_real[5]);
     im1 = (p_left_imag[5]);
 
-    power_buf[0] = ixheaacd_mult32x16in32(re0, (WORD16)(re0 >> 16));
-    power_buf[0] = ixheaacd_add32_sat(
-        power_buf[0], ixheaacd_mult32x16in32(im0, (WORD16)(im0 >> 16)));
-    power_buf[0] = ixheaacd_add32_sat(
-        power_buf[0], ixheaacd_mult32x16in32(re1, (WORD16)(re1 >> 16)));
-    power_buf[0] = ixheaacd_add32_sat(
-        power_buf[0], ixheaacd_mult32x16in32(im1, (WORD16)(im1 >> 16)));
+    power_buf[0] = ixheaac_mult32x16in32(re0, (WORD16)(re0 >> 16));
+    power_buf[0] = ixheaac_add32_sat(
+        power_buf[0], ixheaac_mult32x16in32(im0, (WORD16)(im0 >> 16)));
+    power_buf[0] = ixheaac_add32_sat(
+        power_buf[0], ixheaac_mult32x16in32(re1, (WORD16)(re1 >> 16)));
+    power_buf[0] = ixheaac_add32_sat(
+        power_buf[0], ixheaac_mult32x16in32(im1, (WORD16)(im1 >> 16)));
 
     re0 = (p_left_real[4]);
     im0 = (p_left_imag[4]);
     re1 = (p_left_real[1]);
     im1 = (p_left_imag[1]);
 
-    power_buf[1] = ixheaacd_mult32x16in32(re0, (WORD16)(re0 >> 16));
-    power_buf[1] = ixheaacd_add32_sat(
-        power_buf[1], ixheaacd_mult32x16in32(im0, (WORD16)(im0 >> 16)));
-    power_buf[1] = ixheaacd_add32_sat(
-        power_buf[1], ixheaacd_mult32x16in32(re1, (WORD16)(re1 >> 16)));
-    power_buf[1] = ixheaacd_add32_sat(
-        power_buf[1], ixheaacd_mult32x16in32(im1, (WORD16)(im1 >> 16)));
+    power_buf[1] = ixheaac_mult32x16in32(re0, (WORD16)(re0 >> 16));
+    power_buf[1] = ixheaac_add32_sat(
+        power_buf[1], ixheaac_mult32x16in32(im0, (WORD16)(im0 >> 16)));
+    power_buf[1] = ixheaac_add32_sat(
+        power_buf[1], ixheaac_mult32x16in32(re1, (WORD16)(re1 >> 16)));
+    power_buf[1] = ixheaac_add32_sat(
+        power_buf[1], ixheaac_mult32x16in32(im1, (WORD16)(im1 >> 16)));
   }
 
   bin = 4 - 2;
@@ -513,9 +513,9 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
     sb = ps_tables_ptr->borders_group[gr];
     re = (p_left_real[sb]);
     im = (p_left_imag[sb]);
-    power_buf[bin] = ixheaacd_mult32x16in32(re, (WORD16)(re >> 16));
-    power_buf[bin] = ixheaacd_add32_sat(
-        power_buf[bin], ixheaacd_mult32x16in32(im, (WORD16)(im >> 16)));
+    power_buf[bin] = ixheaac_mult32x16in32(re, (WORD16)(re >> 16));
+    power_buf[bin] = ixheaac_add32_sat(
+        power_buf[bin], ixheaac_mult32x16in32(im, (WORD16)(im >> 16)));
     bin++;
   }
 
@@ -527,9 +527,9 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
        sband++) {
     WORD32 re = (p_left_real[sband]);
     WORD32 im = (p_left_imag[sband]);
-    power_buf[bin] = ixheaacd_mult32x16in32(re, (WORD16)(re >> 16));
-    power_buf[bin] = ixheaacd_add32_sat(
-        power_buf[bin], ixheaacd_mult32x16in32(im, (WORD16)(im >> 16)));
+    power_buf[bin] = ixheaac_mult32x16in32(re, (WORD16)(re >> 16));
+    power_buf[bin] = ixheaac_add32_sat(
+        power_buf[bin], ixheaac_mult32x16in32(im, (WORD16)(im >> 16)));
     bin++;
   }
 
@@ -538,18 +538,18 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
     WORD32 accu = 0, tmp;
     WORD32 re, im;
 
-    maxsband = ixheaacd_min32(usb, ps_tables_ptr->borders_group[gr + 1]);
+    maxsband = ixheaac_min32(usb, ps_tables_ptr->borders_group[gr + 1]);
 
     for (sband = ps_tables_ptr->borders_group[gr]; sband < maxsband; sband++) {
       re = (p_left_real[sband]);
       im = (p_left_imag[sband]);
 
-      tmp = ixheaacd_mult32x16in32(re, (WORD16)(re >> 16));
-      tmp = ixheaacd_add32_sat(tmp,
-                               ixheaacd_mult32x16in32(im, (WORD16)(im >> 16)));
+      tmp = ixheaac_mult32x16in32(re, (WORD16)(re >> 16));
+      tmp = ixheaac_add32_sat(tmp,
+                               ixheaac_mult32x16in32(im, (WORD16)(im >> 16)));
       tmp = (tmp >> ps_tables_ptr->group_shift[gr - (SUBQMF_GROUPS + 6)]);
 
-      accu = ixheaacd_add32_sat(accu, tmp);
+      accu = ixheaac_add32_sat(accu, tmp);
     }
     power_buf[bin] = accu;
     bin++;
@@ -559,37 +559,37 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
   p_left_imag = ptr_ps_dec->ptr_hyb_left_im;
 
   for (bin = 0; bin < NUM_OF_BINS; bin++) {
-    power_buf[bin] = ixheaacd_shl32(power_buf[bin], 1);
+    power_buf[bin] = ixheaac_shl32(power_buf[bin], 1);
 
-    power_buf[bin] = ixheaacd_max32(0, power_buf[bin]);
+    power_buf[bin] = ixheaac_max32(0, power_buf[bin]);
 
-    ptr_ps_dec->peak_decay_diff[bin] = ixheaacd_mult32x16in32_shl(
+    ptr_ps_dec->peak_decay_diff[bin] = ixheaac_mult32x16in32_shl(
         ptr_ps_dec->peak_decay_diff[bin], PEAK_DECAYING_FACT);
 
     ptr_ps_dec->peak_decay_diff[bin] =
-        ixheaacd_max32(ptr_ps_dec->peak_decay_diff[bin], power_buf[bin]);
+        ixheaac_max32(ptr_ps_dec->peak_decay_diff[bin], power_buf[bin]);
 
-    peak_diff = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32_shl(ptr_ps_dec->peak_decay_diff_prev[bin],
+    peak_diff = ixheaac_add32_sat(
+        ixheaac_mult32x16in32_shl(ptr_ps_dec->peak_decay_diff_prev[bin],
                                    0x6000),
-        ((ixheaacd_sub32_sat(ptr_ps_dec->peak_decay_diff[bin],
+        ((ixheaac_sub32_sat(ptr_ps_dec->peak_decay_diff[bin],
                              power_buf[bin]) >>
           2)));
 
     ptr_ps_dec->peak_decay_diff_prev[bin] = peak_diff;
 
-    nrg = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32_shl(ptr_ps_dec->energy_prev[bin], 0x6000),
+    nrg = ixheaac_add32_sat(
+        ixheaac_mult32x16in32_shl(ptr_ps_dec->energy_prev[bin], 0x6000),
         (power_buf[bin] >> 2));
     ptr_ps_dec->energy_prev[bin] = nrg;
 
-    peak_diff = ixheaacd_add32_sat(peak_diff, (peak_diff >> 1));
+    peak_diff = ixheaac_add32_sat(peak_diff, (peak_diff >> 1));
 
     if (peak_diff <= nrg) {
       transient_ratio[bin] = 0x7fff;
     } else {
       transient_ratio[bin] =
-          ixheaacd_extract16l((*ixheaacd_divide16_pos)(nrg, peak_diff));
+          ixheaac_extract16l((*ixheaacd_divide16_pos)(nrg, peak_diff));
     }
   }
 
@@ -609,7 +609,7 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
     p_right_real = p_buf_right_real;
     p_right_imag = p_buf_right_imag;
 
-    maxsband = ixheaacd_min32((WORD16)usb, ps_tables_ptr->borders_group[21]);
+    maxsband = ixheaac_min32((WORD16)usb, ps_tables_ptr->borders_group[21]);
     delay_buf_idx = ptr_ps_dec->delay_buf_idx_long;
     p_delay_buf_re_im_ld =
         &ptr_ps_dec->delay_buf_qmf_ld_re_im[delay_buf_idx][0];
@@ -619,15 +619,15 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
 
       real_in = p_delay_buf_re_im_ld[0];
       imag_in = p_delay_buf_re_im_ld[1];
-      *p_delay_buf_re_im_ld++ = ixheaacd_round16(p_left_real[sband]);
-      *p_delay_buf_re_im_ld++ = ixheaacd_round16(p_left_imag[sband]);
+      *p_delay_buf_re_im_ld++ = ixheaac_round16(p_left_real[sband]);
+      *p_delay_buf_re_im_ld++ = ixheaac_round16(p_left_imag[sband]);
 
-      p_right_real[sband] = ixheaacd_mult16x16in32_shl(real_in, trans_ratio);
-      p_right_imag[sband] = ixheaacd_mult16x16in32_shl(imag_in, trans_ratio);
+      p_right_real[sband] = ixheaac_mult16x16in32_shl(real_in, trans_ratio);
+      p_right_imag[sband] = ixheaac_mult16x16in32_shl(imag_in, trans_ratio);
     }
 
     ptr_ps_dec->delay_buf_idx_long =
-        ixheaacd_add16(ptr_ps_dec->delay_buf_idx_long, 1);
+        ixheaac_add16(ptr_ps_dec->delay_buf_idx_long, 1);
 
     if (ptr_ps_dec->delay_buf_idx_long >= 14) {
       ptr_ps_dec->delay_buf_idx_long = 0;
@@ -636,17 +636,17 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
     p_delay_buf_re_im_sd = &ptr_ps_dec->delay_buf_qmf_sd_re_im[0][0];
 
     trans_ratio = transient_ratio[19];
-    maxsband = ixheaacd_min32((WORD16)usb, ps_tables_ptr->borders_group[22]);
+    maxsband = ixheaac_min32((WORD16)usb, ps_tables_ptr->borders_group[22]);
     for (sband = ps_tables_ptr->borders_group[21]; sband < maxsband; sband++) {
       WORD16 real_in, imag_in;
 
       real_in = p_delay_buf_re_im_sd[0];
       imag_in = p_delay_buf_re_im_sd[1];
-      *p_delay_buf_re_im_sd++ = ixheaacd_round16(p_left_real[sband]);
-      *p_delay_buf_re_im_sd++ = ixheaacd_round16(p_left_imag[sband]);
+      *p_delay_buf_re_im_sd++ = ixheaac_round16(p_left_real[sband]);
+      *p_delay_buf_re_im_sd++ = ixheaac_round16(p_left_imag[sband]);
 
-      p_right_real[sband] = ixheaacd_mult16x16in32_shl(real_in, trans_ratio);
-      p_right_imag[sband] = ixheaacd_mult16x16in32_shl(imag_in, trans_ratio);
+      p_right_real[sband] = ixheaac_mult16x16in32_shl(real_in, trans_ratio);
+      p_right_imag[sband] = ixheaac_mult16x16in32_shl(imag_in, trans_ratio);
     }
   }
 
@@ -676,7 +676,7 @@ VOID ixheaacd_decorrelation_dec(ia_ps_dec_struct *ptr_ps_dec,
 
 static WORD16 ixheaacd_cos512(WORD phi_by_4, const WORD16 *cos_sin_lookup_tab) {
   WORD index;
-  index = ixheaacd_round16(ixheaacd_abs32_sat(phi_by_4));
+  index = ixheaac_round16(ixheaac_abs32_sat(phi_by_4));
 
   index = (index & 0x3FF);
 
@@ -690,7 +690,7 @@ static WORD16 ixheaacd_cos512(WORD phi_by_4, const WORD16 *cos_sin_lookup_tab) {
 static WORD16 ixheaacd_sin512(WORD phi_by_4, const WORD16 *cos_sin_lookup_tab) {
   WORD index;
 
-  index = ixheaacd_round16(phi_by_4);
+  index = ixheaac_round16(phi_by_4);
 
   if (index < 0) {
     index = (-(index)&0x3FF);
@@ -785,8 +785,8 @@ VOID ixheaacd_init_rot_env(ia_ps_dec_struct *ptr_ps_dec, WORD16 env, WORD16 usb,
   }
 
   inv_env_len =
-      sbr_tables_ptr->env_calc_tables_ptr->sbr_inv_int_table[ixheaacd_abs16(
-          ixheaacd_sub16_sat(ptr_ps_dec->border_position[env + 1],
+      sbr_tables_ptr->env_calc_tables_ptr->sbr_inv_int_table[ixheaac_abs16(
+          ixheaac_sub16_sat(ptr_ps_dec->border_position[env + 1],
                              ptr_ps_dec->border_position[env]))];
 
   p_iid_idx = &ptr_ps_dec->iid_par_table[env][0];
@@ -803,43 +803,43 @@ VOID ixheaacd_init_rot_env(ia_ps_dec_struct *ptr_ps_dec, WORD16 env, WORD16 usb,
     c1 = p_scale_factors[(num_iid_steps + num_iid_idx)];
     c2 = p_scale_factors[(num_iid_steps - num_iid_idx)];
 
-    beta = ixheaacd_mult32x16in32_shl(
-        ixheaacd_mult16x16in32_shl(
+    beta = ixheaac_mult32x16in32_shl(
+        ixheaac_mult16x16in32_shl(
             sbr_tables_ptr->ps_tables_ptr->alpha_values[num_icc_idx],
-            ixheaacd_sub16(c1, c2)),
+            ixheaac_sub16(c1, c2)),
         PSC_SQRT05F);
-    alpha = ixheaacd_shr32_dir_sat_limit(
-        ixheaacd_deposit16h_in32(
+    alpha = ixheaac_shr32_dir_sat_limit(
+        ixheaac_deposit16h_in32(
             sbr_tables_ptr->ps_tables_ptr->alpha_values[num_icc_idx]),
         1);
 
-    bplusa = ixheaacd_round16(ixheaacd_add32_sat(beta, alpha));
-    bminusa = ixheaacd_round16(ixheaacd_sub32_sat(beta, alpha));
+    bplusa = ixheaac_round16(ixheaac_add32_sat(beta, alpha));
+    bminusa = ixheaac_round16(ixheaac_sub32_sat(beta, alpha));
 
-    indexplusa = ixheaacd_mult32x16in32(rescale, bplusa);
-    indexminusa = ixheaacd_mult32x16in32(rescale, bminusa);
+    indexplusa = ixheaac_mult32x16in32(rescale, bplusa);
+    indexminusa = ixheaac_mult32x16in32(rescale, bminusa);
 
-    h11 = ixheaacd_mult16_shl(ixheaacd_cos512(indexplusa, cos_sin_lookup_tab),
+    h11 = ixheaac_mult16_shl(ixheaacd_cos512(indexplusa, cos_sin_lookup_tab),
                               c2);
-    h12 = ixheaacd_mult16_shl(ixheaacd_cos512(indexminusa, cos_sin_lookup_tab),
+    h12 = ixheaac_mult16_shl(ixheaacd_cos512(indexminusa, cos_sin_lookup_tab),
                               c1);
-    h21 = ixheaacd_mult16_shl(ixheaacd_sin512(indexplusa, cos_sin_lookup_tab),
+    h21 = ixheaac_mult16_shl(ixheaacd_sin512(indexplusa, cos_sin_lookup_tab),
                               c2);
-    h22 = ixheaacd_mult16_shl(ixheaacd_sin512(indexminusa, cos_sin_lookup_tab),
+    h22 = ixheaac_mult16_shl(ixheaacd_sin512(indexminusa, cos_sin_lookup_tab),
                               c1);
 
-    ptr_ps_dec->delta_h11_h12[2 * group + 0] = ixheaacd_mult16_shl(
+    ptr_ps_dec->delta_h11_h12[2 * group + 0] = ixheaac_mult16_shl(
         inv_env_len,
-        ixheaacd_sub16(h11, ptr_ps_dec->h11_h12_vec[2 * group + 0]));
-    ptr_ps_dec->delta_h11_h12[2 * group + 1] = ixheaacd_mult16_shl(
+        ixheaac_sub16(h11, ptr_ps_dec->h11_h12_vec[2 * group + 0]));
+    ptr_ps_dec->delta_h11_h12[2 * group + 1] = ixheaac_mult16_shl(
         inv_env_len,
-        ixheaacd_sub16(h12, ptr_ps_dec->h11_h12_vec[2 * group + 1]));
-    ptr_ps_dec->delta_h21_h22[2 * group + 0] = ixheaacd_mult16_shl(
+        ixheaac_sub16(h12, ptr_ps_dec->h11_h12_vec[2 * group + 1]));
+    ptr_ps_dec->delta_h21_h22[2 * group + 0] = ixheaac_mult16_shl(
         inv_env_len,
-        ixheaacd_sub16(h21, ptr_ps_dec->h21_h22_vec[2 * group + 0]));
-    ptr_ps_dec->delta_h21_h22[2 * group + 1] = ixheaacd_mult16_shl(
+        ixheaac_sub16(h21, ptr_ps_dec->h21_h22_vec[2 * group + 0]));
+    ptr_ps_dec->delta_h21_h22[2 * group + 1] = ixheaac_mult16_shl(
         inv_env_len,
-        ixheaacd_sub16(h22, ptr_ps_dec->h21_h22_vec[2 * group + 1]));
+        ixheaac_sub16(h22, ptr_ps_dec->h21_h22_vec[2 * group + 1]));
 
     ptr_ps_dec->H11_H12[2 * group + 0] = ptr_ps_dec->h11_h12_vec[2 * group + 0];
     ptr_ps_dec->H11_H12[2 * group + 1] = ptr_ps_dec->h11_h12_vec[2 * group + 1];
@@ -879,45 +879,45 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
 
   for (group = 0; group < NO_IID_GROUPS; group++) {
     ptr_ps_dec->H11_H12[2 * group + 0] =
-        ixheaacd_add16(ptr_ps_dec->H11_H12[2 * group + 0],
+        ixheaac_add16(ptr_ps_dec->H11_H12[2 * group + 0],
                        ptr_ps_dec->delta_h11_h12[2 * group + 0]);
     ptr_ps_dec->H11_H12[2 * group + 1] =
-        ixheaacd_add16(ptr_ps_dec->H11_H12[2 * group + 1],
+        ixheaac_add16(ptr_ps_dec->H11_H12[2 * group + 1],
                        ptr_ps_dec->delta_h11_h12[2 * group + 1]);
 
     ptr_ps_dec->H21_H22[2 * group + 0] =
-        ixheaacd_add16(ptr_ps_dec->H21_H22[2 * group + 0],
+        ixheaac_add16(ptr_ps_dec->H21_H22[2 * group + 0],
                        ptr_ps_dec->delta_h21_h22[2 * group + 0]);
     ptr_ps_dec->H21_H22[2 * group + 1] =
-        ixheaacd_add16(ptr_ps_dec->H21_H22[2 * group + 1],
+        ixheaac_add16(ptr_ps_dec->H21_H22[2 * group + 1],
                        ptr_ps_dec->delta_h21_h22[2 * group + 1]);
   }
 
   for (subband = 0; subband < SUBQMF_GROUPS; subband++) {
-    temp_left_real = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32(p_hyb_left_re1[subband],
+    temp_left_real = ixheaac_add32_sat(
+        ixheaac_mult32x16in32(p_hyb_left_re1[subband],
                                ptr_ps_dec->H11_H12[2 * subband + 0]),
-        ixheaacd_mult32x16in32(p_hyb_right_re1[subband],
+        ixheaac_mult32x16in32(p_hyb_right_re1[subband],
                                ptr_ps_dec->H21_H22[2 * subband + 0]));
-    temp_left_imag = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32(p_hyb_left_im1[subband],
+    temp_left_imag = ixheaac_add32_sat(
+        ixheaac_mult32x16in32(p_hyb_left_im1[subband],
                                ptr_ps_dec->H11_H12[2 * subband + 0]),
-        ixheaacd_mult32x16in32(p_hyb_right_im1[subband],
+        ixheaac_mult32x16in32(p_hyb_right_im1[subband],
                                ptr_ps_dec->H21_H22[2 * subband + 0]));
-    temp_right_real = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32(p_hyb_left_re1[subband],
+    temp_right_real = ixheaac_add32_sat(
+        ixheaac_mult32x16in32(p_hyb_left_re1[subband],
                                ptr_ps_dec->H11_H12[2 * subband + 1]),
-        ixheaacd_mult32x16in32(p_hyb_right_re1[subband],
+        ixheaac_mult32x16in32(p_hyb_right_re1[subband],
                                ptr_ps_dec->H21_H22[2 * subband + 1]));
-    temp_right_imag = ixheaacd_add32_sat(
-        ixheaacd_mult32x16in32(p_hyb_left_im1[subband],
+    temp_right_imag = ixheaac_add32_sat(
+        ixheaac_mult32x16in32(p_hyb_left_im1[subband],
                                ptr_ps_dec->H11_H12[2 * subband + 1]),
-        ixheaacd_mult32x16in32(p_hyb_right_im1[subband],
+        ixheaac_mult32x16in32(p_hyb_right_im1[subband],
                                ptr_ps_dec->H21_H22[2 * subband + 1]));
-    p_hyb_left_re1[subband] = ixheaacd_shl32(temp_left_real, 2);
-    p_hyb_left_im1[subband] = ixheaacd_shl32(temp_left_imag, 2);
-    p_hyb_right_re1[subband] = ixheaacd_shl32(temp_right_real, 2);
-    p_hyb_right_im1[subband] = ixheaacd_shl32(temp_right_imag, 2);
+    p_hyb_left_re1[subband] = ixheaac_shl32(temp_left_real, 2);
+    p_hyb_left_im1[subband] = ixheaac_shl32(temp_left_imag, 2);
+    p_hyb_right_re1[subband] = ixheaac_shl32(temp_right_real, 2);
+    p_hyb_right_im1[subband] = ixheaac_shl32(temp_right_imag, 2);
   }
 
   p_hyb_left_re = p_qmf_left_re;
@@ -931,7 +931,7 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
     WORD32 *h11_h12_dst = (WORD32 *)H11_H12;
 
     for (group = SUBQMF_GROUPS; group < NO_IID_GROUPS; group++) {
-      max_subband = ixheaacd_min32(
+      max_subband = ixheaac_min32(
           usb, sbr_tables_ptr->ps_tables_ptr->borders_group[group + 1]);
       for (subband = sbr_tables_ptr->ps_tables_ptr->borders_group[group];
            subband < max_subband; subband++) {
@@ -947,13 +947,13 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
     tmp_real1 = *p_hyb_right_re1++;
     tmp_img1 = *p_hyb_right_im1++;
 
-    hybrid_resol = ixheaacd_min16(*ptr_res++, 6);
+    hybrid_resol = ixheaac_min16(*ptr_res++, 6);
 
     for (k = hybrid_resol - 2; k >= 0; k--) {
-      tmp_real = ixheaacd_add32_sat(tmp_real, *p_hyb_left_re1++);
-      tmp_img = ixheaacd_add32_sat(tmp_img, *p_hyb_left_im1++);
-      tmp_real1 = ixheaacd_add32_sat(tmp_real1, *p_hyb_right_re1++);
-      tmp_img1 = ixheaacd_add32_sat(tmp_img1, *p_hyb_right_im1++);
+      tmp_real = ixheaac_add32_sat(tmp_real, *p_hyb_left_re1++);
+      tmp_img = ixheaac_add32_sat(tmp_img, *p_hyb_left_im1++);
+      tmp_real1 = ixheaac_add32_sat(tmp_real1, *p_hyb_right_re1++);
+      tmp_img1 = ixheaac_add32_sat(tmp_img1, *p_hyb_right_im1++);
     }
 
     p_hyb_left_re[subband] = tmp_real;
@@ -964,28 +964,28 @@ VOID ixheaacd_apply_rot_dec(ia_ps_dec_struct *ptr_ps_dec, WORD32 *p_qmf_left_re,
 
   for (; subband < usb; subband++) {
     temp_left_real =
-        ixheaacd_add32_sat(ixheaacd_mult32x16in32(p_hyb_left_re[subband],
+        ixheaac_add32_sat(ixheaac_mult32x16in32(p_hyb_left_re[subband],
                                                   H11_H12[4 * subband + 0]),
-                           ixheaacd_mult32x16in32(p_hyb_right_re[subband],
+                           ixheaac_mult32x16in32(p_hyb_right_re[subband],
                                                   H11_H12[4 * subband + 2]));
     temp_left_imag =
-        ixheaacd_add32_sat(ixheaacd_mult32x16in32(p_hyb_left_im[subband],
+        ixheaac_add32_sat(ixheaac_mult32x16in32(p_hyb_left_im[subband],
                                                   H11_H12[4 * subband + 0]),
-                           ixheaacd_mult32x16in32(p_hyb_right_im[subband],
+                           ixheaac_mult32x16in32(p_hyb_right_im[subband],
                                                   H11_H12[4 * subband + 2]));
     temp_right_real =
-        ixheaacd_add32_sat(ixheaacd_mult32x16in32(p_hyb_left_re[subband],
+        ixheaac_add32_sat(ixheaac_mult32x16in32(p_hyb_left_re[subband],
                                                   H11_H12[4 * subband + 1]),
-                           ixheaacd_mult32x16in32(p_hyb_right_re[subband],
+                           ixheaac_mult32x16in32(p_hyb_right_re[subband],
                                                   H11_H12[4 * subband + 3]));
     temp_right_imag =
-        ixheaacd_add32_sat(ixheaacd_mult32x16in32(p_hyb_left_im[subband],
+        ixheaac_add32_sat(ixheaac_mult32x16in32(p_hyb_left_im[subband],
                                                   H11_H12[4 * subband + 1]),
-                           ixheaacd_mult32x16in32(p_hyb_right_im[subband],
+                           ixheaac_mult32x16in32(p_hyb_right_im[subband],
                                                   H11_H12[4 * subband + 3]));
-    p_hyb_left_re[subband] = ixheaacd_shl32(temp_left_real, 2);
-    p_hyb_left_im[subband] = ixheaacd_shl32(temp_left_imag, 2);
-    p_hyb_right_re[subband] = ixheaacd_shl32(temp_right_real, 2);
-    p_hyb_right_im[subband] = ixheaacd_shl32(temp_right_imag, 2);
+    p_hyb_left_re[subband] = ixheaac_shl32(temp_left_real, 2);
+    p_hyb_left_im[subband] = ixheaac_shl32(temp_left_imag, 2);
+    p_hyb_right_re[subband] = ixheaac_shl32(temp_right_real, 2);
+    p_hyb_right_im[subband] = ixheaac_shl32(temp_right_imag, 2);
   }
 }

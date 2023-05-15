@@ -17,7 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -32,11 +32,11 @@
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_mps_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_error_codes.h"
 #include "ixheaacd_mps_macro_def.h"
 #include "ixheaacd_mps_smoothing.h"
@@ -180,13 +180,13 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
         rtemp += 2 * PI_IN_Q27;
 
       self->opd_smooth.smooth_l_phase[pb] =
-          (ixheaacd_mult32_shl(delta, ltemp) +
-           ixheaacd_mult32_shl(one_minus_delta,
+          (ixheaac_mult32_shl(delta, ltemp) +
+           ixheaac_mult32_shl(one_minus_delta,
                                self->opd_smooth.smooth_l_phase[pb]))
           << 1;
       self->opd_smooth.smooth_r_phase[pb] =
-          (ixheaacd_mult32_shl(delta, rtemp) +
-           ixheaacd_mult32_shl(one_minus_delta,
+          (ixheaac_mult32_shl(delta, rtemp) +
+           ixheaac_mult32_shl(one_minus_delta,
                                self->opd_smooth.smooth_r_phase[pb]))
           << 1;
 
@@ -195,7 +195,7 @@ VOID ixheaacd_mps_smoothing_opd(ia_mps_dec_state_struct *self) {
       while (tmp > PI_IN_Q27) tmp -= 2 * PI_IN_Q27;
       while (tmp < -PI_IN_Q27) tmp += 2 * PI_IN_Q27;
 
-      if (ixheaacd_abs32(tmp) > thr) {
+      if (ixheaac_abs32(tmp) > thr) {
         self->opd_smooth.smooth_l_phase[pb] = ltemp;
         self->opd_smooth.smooth_r_phase[pb] = rtemp;
       }

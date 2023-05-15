@@ -19,18 +19,18 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_intrinsics.h"
-#include "ixheaacd_sbr_const.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_sbr_const.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pns.h"
@@ -437,10 +437,10 @@ static PLATFORM_INLINE VOID ixheaacd_init_headerdata(
 
     if (tmp < 0)
       ptr_header_data->num_time_slots =
-          ixheaacd_extract16l(samp_per_frame << (-tmp));
+          ixheaac_extract16l(samp_per_frame << (-tmp));
     else
       ptr_header_data->num_time_slots =
-          ixheaacd_extract16l(samp_per_frame >> tmp);
+          ixheaac_extract16l(samp_per_frame >> tmp);
   } else {
     ptr_header_data->time_step = 1;
 

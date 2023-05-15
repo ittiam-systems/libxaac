@@ -21,9 +21,9 @@
 #include <math.h>
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_sbr_common.h"
@@ -41,7 +41,7 @@
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_env_extr.h"
 
-#include "ixheaacd_esbr_rom.h"
+#include "ixheaac_esbr_rom.h"
 
 #define ABS(A) fabs(A)
 
@@ -293,7 +293,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
       if (prev_sbr_mode == ORIG_SBR) noise_absc_flag = 0;
 
       smooth_length = (noise_absc_flag ? 0 : smoothing_length);
-      smooth_filt = *ixheaacd_fir_table[smooth_length];
+      smooth_filt = *ixheaac_fir_table[smooth_length];
 
       for (t = start_pos; t < frame_data->sin_len_for_cur_top; t++) {
         band_loop_end =
@@ -394,7 +394,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             p_est += nrg_est_pvc[k][t];
           }
           avg_gain = (FLOAT32)sqrt((p_ref + EPS) / (p_est + EPS));
-          g_max = avg_gain * ixheaacd_g_lim_gains[limiter_gains];
+          g_max = avg_gain * ixheaac_g_lim_gains[limiter_gains];
           g_max > 1.0e5f ? g_max = 1.0e5f : 0;
           for (k = (*lim_table)[limiter_band][c];
                k < (*lim_table)[limiter_band][c + 1]; k++) {
@@ -510,7 +510,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             p_est += nrg_est_pvc[k][t];
           }
           avg_gain = (FLOAT32)sqrt((p_ref + EPS) / (p_est + EPS));
-          g_max = avg_gain * ixheaacd_g_lim_gains[limiter_gains];
+          g_max = avg_gain * ixheaac_g_lim_gains[limiter_gains];
           g_max > 1.0e5f ? g_max = 1.0e5f : 0;
 
           for (k = (*lim_table)[limiter_band][c];
@@ -580,12 +580,12 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
 
           *ptr_real_buf =
               *ptr_real_buf * sb_gain +
-              sb_noise * ixheaacd_random_phase[phase_index][0] +
-              nrg_tone_pvc[k][slot_idx] * ixheaacd_hphase_tbl[0][harm_index];
+              sb_noise * ixheaac_random_phase[phase_index][0] +
+              nrg_tone_pvc[k][slot_idx] * ixheaac_hphase_tbl[0][harm_index];
           *ptr_imag_buf = *ptr_imag_buf * sb_gain +
-                          sb_noise * ixheaacd_random_phase[phase_index][1] +
+                          sb_noise * ixheaac_random_phase[phase_index][1] +
                           nrg_tone_pvc[k][slot_idx] * freq_inv *
-                              ixheaacd_hphase_tbl[1][harm_index];
+                              ixheaac_hphase_tbl[1][harm_index];
 
           ptr_real_buf++;
           ptr_imag_buf++;
@@ -634,7 +634,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
           (i == trans_env || i == frame_data->env_short_flag_prev) ? 1 : 0;
 
       smooth_length = (noise_absc_flag ? 0 : smoothing_length);
-      smooth_filt = *ixheaacd_fir_table[smooth_length];
+      smooth_filt = *ixheaac_fir_table[smooth_length];
 
       if (sbr_mode == ORIG_SBR) {
         for (c = 0, o = 0, j = 0; j < num_sf_bands[p_frame_info->freq_res[i]];
@@ -712,7 +712,7 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             p_est += nrg_est[k];
           }
           avg_gain = (FLOAT32)sqrt((p_ref + EPS) / (p_est + EPS));
-          g_max = avg_gain * ixheaacd_g_lim_gains[limiter_gains];
+          g_max = avg_gain * ixheaac_g_lim_gains[limiter_gains];
           g_max > 1.0e5f ? g_max = 1.0e5f : 0;
           for (k = (*lim_table)[limiter_band][c];
                k < (*lim_table)[limiter_band][c + 1]; k++) {
@@ -772,19 +772,19 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
 
             if (ldmps_present == 1) {
               *ptr_real_buf = *ptr_real_buf * sb_gain +
-                              sb_noise * ixheaacd_random_phase[phase_index][0] +
-                              nrg_tone[k] * ixheaacd_hphase_tbl[0][harm_index];
+                              sb_noise * ixheaac_random_phase[phase_index][0] +
+                              nrg_tone[k] * ixheaac_hphase_tbl[0][harm_index];
               *ptr_imag_buf =
                   *ptr_imag_buf * sb_gain +
-                  sb_noise * ixheaacd_random_phase[phase_index][1] +
-                  nrg_tone[k] * freq_inv * ixheaacd_hphase_tbl[1][harm_index];
+                  sb_noise * ixheaac_random_phase[phase_index][1] +
+                  nrg_tone[k] * freq_inv * ixheaac_hphase_tbl[1][harm_index];
 
               freq_inv = -freq_inv;
             } else {
                 *ptr_real_buf = *ptr_real_buf * sb_gain +
-                            sb_noise * ixheaacd_random_phase[phase_index][0];
+                            sb_noise * ixheaac_random_phase[phase_index][0];
                 *ptr_imag_buf = *ptr_imag_buf * sb_gain +
-                            sb_noise * ixheaacd_random_phase[phase_index][1];
+                            sb_noise * ixheaac_random_phase[phase_index][1];
             }
 
             ptr_real_buf++;
@@ -824,9 +824,9 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             freq_inv = 1;
           }
           for (k = 0; k < num_subbands; k++) {
-            *ptr_real_buf += nrg_tone[k] * ixheaacd_hphase_tbl[0][harm_index];
+            *ptr_real_buf += nrg_tone[k] * ixheaac_hphase_tbl[0][harm_index];
             *ptr_imag_buf +=
-                nrg_tone[k] * freq_inv * ixheaacd_hphase_tbl[1][harm_index];
+                nrg_tone[k] * freq_inv * ixheaac_hphase_tbl[1][harm_index];
 
             ptr_real_buf++;
             ptr_imag_buf++;
@@ -1010,7 +1010,7 @@ WORD32 ixheaacd_apply_inter_tes(FLOAT32 *qmf_real1, FLOAT32 *qmf_imag1,
   FLOAT32 total_power_low = 0.0f, total_power_high_after = 1.0e-6f;
   FLOAT32 gain[TIMESLOT_BUFFER_SIZE];
   FLOAT32 gain_adj, gain_adj_2;
-  FLOAT32 gamma = ixheaacd_q_gamma_table[gamma_idx];
+  FLOAT32 gamma = ixheaac_q_gamma_table[gamma_idx];
   WORD32 i, j;
 
   if (num_sample > TIMESLOT_BUFFER_SIZE)

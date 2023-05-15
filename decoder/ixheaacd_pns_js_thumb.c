@@ -21,12 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -36,7 +36,7 @@
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
 #include "ixheaacd_aac_imdct.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 
 #include "ixheaacd_pulsedata.h"
@@ -83,26 +83,26 @@ VOID ixheaacd_gen_rand_vec(WORD32 scale, WORD shift, WORD32 *ptr_spec_coef,
 
     *spec = (*seed >> 3);
 
-    nrg = ixheaacd_add32_sat(nrg, ixheaacd_mult32_shl_sat(*spec, *spec));
+    nrg = ixheaac_add32_sat(nrg, ixheaac_mult32_shl_sat(*spec, *spec));
 
     spec++;
   }
 
-  nrg_scale = ixheaacd_norm32(nrg);
+  nrg_scale = ixheaac_norm32(nrg);
 
   if (nrg_scale > 0) {
     nrg_scale &= ~1;
-    nrg = ixheaacd_shl32_sat(nrg, nrg_scale);
+    nrg = ixheaac_shl32_sat(nrg, nrg_scale);
     shift = shift - (nrg_scale >> 1);
   }
 
   nrg = ixheaacd_sqrt(nrg);
-  scale = ixheaacd_div32_pos_normb(scale, nrg);
+  scale = ixheaac_div32_pos_normb(scale, nrg);
 
   spec = ptr_spec_coef;
 
   for (sfb = 0; sfb <= sfb_width; sfb++) {
-    *spec = ixheaacd_shr32_dir_sat_limit(ixheaacd_mult32_shl_sat(*spec, scale),
+    *spec = ixheaac_shr32_dir_sat_limit(ixheaac_mult32_shl_sat(*spec, scale),
                                          shift);
     spec++;
   }
@@ -331,12 +331,12 @@ VOID ixheaacd_aac_tns_process(
         ixheaacd_tns_decode_coef(filter, parcor_coef_16, ptr_aac_tables);
       }
 
-      start = ixheaacd_min32(ixheaacd_min32(filter->start_band, tns_max_bands),
+      start = ixheaac_min32(ixheaac_min32(filter->start_band, tns_max_bands),
                              ptr_ics_info->max_sfb);
 
       start = ptr_sfb_table[start];
 
-      stop = ixheaacd_min32(ixheaacd_min32(filter->stop_band, tns_max_bands),
+      stop = ixheaac_min32(ixheaac_min32(filter->stop_band, tns_max_bands),
                             ptr_ics_info->max_sfb);
 
       stop = ptr_sfb_table[stop];
@@ -399,7 +399,7 @@ VOID ixheaacd_aac_tns_process(
       }
 
       if (scale_spec > 0) {
-        scale_spec = ixheaacd_min32(scale_spec, 31);
+        scale_spec = ixheaac_min32(scale_spec, 31);
 
         if ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_AAC_LTP) ||
             (num_ch > 2)) {
@@ -452,7 +452,7 @@ VOID ixheaacd_aac_tns_process(
           ptr_tmp = spec + (win >> 7) + start;
 
         scale_spec = -scale_spec;
-        scale_spec = ixheaacd_min32(scale_spec, 31);
+        scale_spec = ixheaac_min32(scale_spec, 31);
 
         for (i = size; i != 0; i--) {
           *ptr_tmp = (*ptr_tmp >> scale_spec);

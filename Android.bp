@@ -31,11 +31,15 @@ cc_library_static {
     ],
 
     export_include_dirs: [
+        "common",
         "decoder",
         "decoder/drc_src",
     ],
 
     srcs: [
+        "common/ixheaac_esbr_fft.c",
+        "common/ixheaac_esbr_rom.c",
+        "common/ixheaac_fft_ifft_32x32_rom.c",
         "decoder/ixheaacd_aacdecoder.c",
         "decoder/ixheaacd_aacpluscheck.c",
         "decoder/ixheaacd_aac_ec.c",
@@ -68,13 +72,10 @@ cc_library_static {
         "decoder/ixheaacd_env_dec.c",
         "decoder/ixheaacd_env_extr.c",
         "decoder/ixheaacd_esbr_envcal.c",
-        "decoder/ixheaacd_esbr_fft.c",
         "decoder/ixheaacd_esbr_polyphase.c",
-        "decoder/ixheaacd_esbr_rom.c",
         "decoder/ixheaacd_ext_ch_ele.c",
         "decoder/ixheaacd_fft.c",
         "decoder/ixheaacd_fft_ifft_32x32.c",
-        "decoder/ixheaacd_fft_ifft_32x32_rom.c",
         "decoder/ixheaacd_freq_sca.c",
         "decoder/ixheaacd_fwd_alias_cnx.c",
         "decoder/ixheaacd_hbe_dft_trans.c",

@@ -19,13 +19,13 @@
  */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
@@ -991,9 +991,9 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
 
     if (sp1 == 16) {
       i = 4;
-      value = ixheaacd_extu(*read_word, *bit_pos, 23);
+      value = ixheaac_extu(*read_word, *bit_pos, 23);
       value = value | 0xfffffe00;
-      norm_val = ixheaacd_norm32(value);
+      norm_val = ixheaac_norm32(value);
 
       i += (norm_val - 22);
       *bit_pos += (norm_val - 21);
@@ -1005,7 +1005,7 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
       ixheaacd_aac_read_byte_corr(&ptr_read_next, bit_pos, read_word,
                                   it_bit_buff->ptr_bit_buf_end);
 
-      off = ixheaacd_extu(*read_word, *bit_pos, 32 - i);
+      off = ixheaac_extu(*read_word, *bit_pos, 32 - i);
 
       *bit_pos += i;
       *p_remaining_bits_in_seg -= i;
@@ -1032,9 +1032,9 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
 
     if (sp2 == 16) {
       i = 4;
-      value = ixheaacd_extu(*read_word, *bit_pos, 23);
+      value = ixheaac_extu(*read_word, *bit_pos, 23);
       value = value | 0xfffffe00;
-      norm_val = ixheaacd_norm32(value);
+      norm_val = ixheaac_norm32(value);
 
       i += (norm_val - 22);
 
@@ -1046,7 +1046,7 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
       ixheaacd_aac_read_byte_corr(&ptr_read_next, bit_pos, read_word,
                                   it_bit_buff->ptr_bit_buf_end);
 
-      off = ixheaacd_extu(*read_word, *bit_pos, 32 - i);
+      off = ixheaac_extu(*read_word, *bit_pos, 32 - i);
 
       *bit_pos += i;
       *p_remaining_bits_in_seg -= i;
@@ -1414,9 +1414,9 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
   if (sp1 == 16) {
     i = 4;
-    value = ixheaacd_extu(read_word, length, 23);
+    value = ixheaac_extu(read_word, length, 23);
     value = value | 0xfffffe00;
-    norm_val = ixheaacd_norm32(value);
+    norm_val = ixheaac_norm32(value);
 
     i += (norm_val - 22);
     length += (norm_val - 21);
@@ -1424,7 +1424,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
     ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
-    off = ixheaacd_extu(read_word, length, 32 - i);
+    off = ixheaac_extu(read_word, length, 32 - i);
     length += i;
     cw_len += i;
 
@@ -1442,9 +1442,9 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
   if (sp2 == 16) {
     i = 4;
-    value = ixheaacd_extu(read_word, length, 23);
+    value = ixheaac_extu(read_word, length, 23);
     value = value | 0xfffffe00;
-    norm_val = ixheaacd_norm32(value);
+    norm_val = ixheaac_norm32(value);
 
     i += (norm_val - 22);
     length += (norm_val - 21);
@@ -1452,7 +1452,7 @@ static PLATFORM_INLINE UWORD16 ixheaacd_huff_dec_word_hcr_non_pcw(
 
     ixheaacd_aac_read_byte_corr1(&ptr_read_next, &length, &read_word, NULL);
 
-    off = ixheaacd_extu(read_word, length, 32 - i);
+    off = ixheaac_extu(read_word, length, 32 - i);
     length += i;
     cw_len += i;
 
@@ -1779,7 +1779,7 @@ static VOID ixheaacd_hcr_reorder_quantized_spec_coeff(
     ptr_teva = &arr_temp_values[*ptr_reorder_offset++];
     for (j = num_spec_val_sect; j != 0; j--) {
       qsc = *ptr_quant_spec_coeff++;
-      abs_qsc = ixheaacd_abs32(qsc);
+      abs_qsc = ixheaac_abs32(qsc);
       if (abs_qsc <= ptr_lav_tbl[*ptr_sorted_cb]) {
         *ptr_teva++ = (WORD32)qsc;
       } else {

@@ -34,7 +34,7 @@
 static PLATFORM_INLINE WORD32 ixheaacd_mps_get_rshift_bits(WORD64 a) {
   WORD32 temp_1, temp_2;
   temp_1 = (WORD32)(a >> 32);
-  temp_2 = ixheaacd_norm32(temp_1);
+  temp_2 = ixheaac_norm32(temp_1);
   if (temp_2 < 31) {
     return (32 - temp_2);
   } else {
@@ -60,14 +60,14 @@ static PLATFORM_INLINE WORD32 ixheaacd_mps_sqrt(WORD32 num, WORD16 *q, const WOR
 
   if (num == 0) return 0;
 
-  k = ixheaacd_norm32(num);
-  temp = ixheaacd_shr32(ixheaacd_shl32(num, k), 21);
+  k = ixheaac_norm32(num);
+  temp = ixheaac_shr32(ixheaac_shl32(num, k), 21);
   *q += k;
   index = temp & 0x1FF;
   answer = sqrt_tab[index];
   if (*q & 1) {
     *q -= 1;
-    answer = ixheaacd_mult32_shl(answer, INV_SQRT_2_Q31);
+    answer = ixheaac_mult32_shl(answer, INV_SQRT_2_Q31);
   }
   *q = *q >> 1;
   *q += Q_SQRT_TAB;
@@ -254,9 +254,9 @@ static PLATFORM_INLINE WORD32 ixheaacd_mps_div_32(WORD32 a, WORD32 b, WORD16 *q_
 
   quotient = 0;
 
-  q_nr = ixheaacd_norm32(a);
+  q_nr = ixheaac_norm32(a);
   mantissa_nr = (UWORD32)a << (q_nr);
-  q_dr = ixheaacd_norm32(b);
+  q_dr = ixheaac_norm32(b);
   mantissa_dr = (UWORD32)b << (q_dr);
   *q_format = (WORD)(30 + q_nr - q_dr);
 
@@ -307,7 +307,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mps_log10(WORD32 a, WORD16 q_a) {
   WORD16 q_x;
   WORD32 j, k, temp;
   WORD16 q_num;
-  q_num = ixheaacd_norm32(a);
+  q_num = ixheaac_norm32(a);
   a = a << q_num;
   x = ixheaacd_mps_div_32(a, NORM32, &q_x);
 

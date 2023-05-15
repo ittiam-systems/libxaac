@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_interface.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
 #include "ixheaacd_function_selector.h"
 
 extern const WORD32 ixheaacd_twiddle_table_fft_32x32[514];
@@ -21,8 +21,8 @@ VOID ixheaacd_complex_fft_p2_armv7(WORD32 *xr, WORD32 *xi, WORD32 nlength,
   WORD32 npoints = nlength;
   WORD32 n = 0;
   WORD32 *ptr_y = y;
-  dig_rev_shift = ixheaacd_norm32(npoints) + 1 - 16;
-  n_stages = 30 - ixheaacd_norm32(npoints);  // log2(npoints), if npoints=2^m
+  dig_rev_shift = ixheaac_norm32(npoints) + 1 - 16;
+  n_stages = 30 - ixheaac_norm32(npoints);  // log2(npoints), if npoints=2^m
   not_power_4 = n_stages & 1;
 
   n_stages = n_stages >> 1;
@@ -71,7 +71,7 @@ VOID ixheaacd_mps_complex_fft_64_armv7(WORD32 *ptr_x, WORD32 *fin_re,
   WORD32 npoints = nlength;
   WORD32 *ptr_y = y;
   const WORD32 *ptr_w;
-  n_stages = 30 - ixheaacd_norm32(npoints);  // log2(npoints), if npoints=2^m
+  n_stages = 30 - ixheaac_norm32(npoints);  // log2(npoints), if npoints=2^m
 
   n_stages = n_stages >> 1;
 

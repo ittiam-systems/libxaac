@@ -22,8 +22,8 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_defines.h"
@@ -69,7 +69,7 @@
 #include "ixheaacd_interface.h"
 #include "ixheaacd_info.h"
 #include "ixheaacd_struct.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #include "ixheaacd_error_codes.h"
 

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -39,7 +39,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_sbr_rom.h"
@@ -56,46 +56,46 @@
 #include "ixheaacd_pvc_dec.h"
 
 #include "ixheaacd_sbr_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_sbrqmftrans.h"
 #include "ixheaacd_qmf_poly.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_op.h"
 
-#include "ixheaacd_esbr_rom.h"
+#include "ixheaac_esbr_rom.h"
 
 #define SBR_CONST_PMIN 1.0f
 
 static FLOAT32 *ixheaacd_map_prot_filter(WORD32 filt_length) {
   switch (filt_length) {
     case 4:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[0];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[0];
       break;
     case 8:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[40];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[40];
       break;
     case 12:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[120];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[120];
       break;
     case 16:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[240];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[240];
       break;
     case 20:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[400];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[400];
       break;
     case 24:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[600];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[600];
       break;
     case 32:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[840];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[840];
       break;
     case 40:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[1160];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[1160];
       break;
     default:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[0];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[0];
   }
 }
 
@@ -111,7 +111,7 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     ptr_hbe_txposer->synth_size =
         4 * ((ptr_hbe_txposer->start_band + 4) / 8 + 1);
     ptr_hbe_txposer->k_start =
-        ixheaacd_start_subband2kL_tbl[ptr_hbe_txposer->start_band];
+        ixheaac_start_subband2kL_tbl[ptr_hbe_txposer->start_band];
 
     ptr_hbe_txposer->upsamp_4_flag = upsamp_4_flag;
     ptr_hbe_txposer->esbr_hq = 0;
@@ -130,49 +130,49 @@ WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     switch (synth_size) {
       case 4:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_4;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_8;
-        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_8;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaac_cmplx_anal_fft_p2;
         break;
       case 8:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_8;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_8;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_16;
-        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_16;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaac_cmplx_anal_fft_p2;
         break;
       case 12:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_12;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_12;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_24;
-        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p3;
-        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p3;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_24;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p3;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaac_cmplx_anal_fft_p3;
         break;
       case 16:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_16;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_16;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_32;
-        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_32;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaac_cmplx_anal_fft_p2;
         break;
       case 20:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_20;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_20;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_40;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_40;
         break;
       default:
         ptr_hbe_txposer->synth_cos_tab =
-            (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
+            (FLOAT32 *)ixheaac_synth_cos_table_kl_4;
         ptr_hbe_txposer->analy_cos_sin_tab =
-            (FLOAT32 *)ixheaacd_analy_cos_sin_table_kl_8;
-        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
-        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaacd_cmplx_anal_fft_p2;
+            (FLOAT32 *)ixheaac_analy_cos_sin_table_kl_8;
+        ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
+        ptr_hbe_txposer->ixheaacd_cmplx_anal_fft = &ixheaac_cmplx_anal_fft_p2;
     }
 
     ptr_hbe_txposer->synth_wind_coeff = ixheaacd_map_prot_filter(synth_size);
@@ -281,15 +281,15 @@ WORD32 ixheaacd_qmf_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
          qmf_band_idx < ptr_hbe_txposer->end_band; qmf_band_idx++) {
       pv_qmf_buf_real[i][qmf_band_idx] =
           (FLOAT32)(ptr_hbe_txposer->qmf_out_buf[i][2 * qmf_band_idx] *
-                        ixheaacd_phase_vocoder_cos_table[qmf_band_idx] -
+                        ixheaac_phase_vocoder_cos_table[qmf_band_idx] -
                     ptr_hbe_txposer->qmf_out_buf[i][2 * qmf_band_idx + 1] *
-                        ixheaacd_phase_vocoder_sin_table[qmf_band_idx]);
+                        ixheaac_phase_vocoder_sin_table[qmf_band_idx]);
 
       pv_qmf_buf_imag[i][qmf_band_idx] =
           (FLOAT32)(ptr_hbe_txposer->qmf_out_buf[i][2 * qmf_band_idx] *
-                        ixheaacd_phase_vocoder_sin_table[qmf_band_idx] +
+                        ixheaac_phase_vocoder_sin_table[qmf_band_idx] +
                     ptr_hbe_txposer->qmf_out_buf[i][2 * qmf_band_idx + 1] *
-                        ixheaacd_phase_vocoder_cos_table[qmf_band_idx]);
+                        ixheaac_phase_vocoder_cos_table[qmf_band_idx]);
     }
   }
   return 0;
@@ -436,8 +436,8 @@ VOID ixheaacd_hbe_xprod_proc_3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
       idx = max_n2 & 3;
       idx = (idx + 1) & 3;
-      coeff_real[0] = ixheaacd_hbe_post_anal_proc_interp_coeff[idx][0];
-      coeff_imag[0] = ixheaacd_hbe_post_anal_proc_interp_coeff[idx][1];
+      coeff_real[0] = ixheaac_hbe_post_anal_proc_interp_coeff[idx][0];
+      coeff_imag[0] = ixheaac_hbe_post_anal_proc_interp_coeff[idx][1];
 
       coeff_real[1] = coeff_real[0];
       coeff_imag[1] = -coeff_imag[0];
@@ -474,8 +474,8 @@ VOID ixheaacd_hbe_xprod_proc_3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
       idx = (max_n1 & 3);
       idx = (idx + 1) & 3;
-      coeff_real[0] = ixheaacd_hbe_post_anal_proc_interp_coeff[idx][0];
-      coeff_imag[0] = ixheaacd_hbe_post_anal_proc_interp_coeff[idx][1];
+      coeff_real[0] = ixheaac_hbe_post_anal_proc_interp_coeff[idx][0];
+      coeff_imag[0] = ixheaac_hbe_post_anal_proc_interp_coeff[idx][1];
 
       coeff_real[1] = coeff_real[0];
       coeff_imag[1] = -coeff_imag[0];
@@ -505,14 +505,14 @@ VOID ixheaacd_hbe_xprod_proc_3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     base = 1e-17;
     base = base + x_zero_band_r * x_zero_band_r;
     base = base + x_zero_band_i * x_zero_band_i;
-    mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base));
+    mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base));
     x_zero_band_r *= mag_scaling_fac;
     x_zero_band_i *= mag_scaling_fac;
     for (k = 0; k < 2; k++) {
       base = 1e-17;
       base = base + vec_y_r[k] * vec_y_r[k];
       base = base + vec_y_i[k] * vec_y_i[k];
-      mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base));
+      mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base));
       vec_y_r[k] *= mag_scaling_fac;
       vec_y_i[k] *= mag_scaling_fac;
     }
@@ -542,9 +542,9 @@ VOID ixheaacd_hbe_xprod_proc_3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
     {
       FLOAT32 cos_theta =
-          ixheaacd_hbe_x_prod_cos_table_trans_3[(pitch_in_bins_idx << 1) + 0];
+          ixheaac_hbe_x_prod_cos_table_trans_3[(pitch_in_bins_idx << 1) + 0];
       FLOAT32 sin_theta =
-          ixheaacd_hbe_x_prod_cos_table_trans_3[(pitch_in_bins_idx << 1) + 1];
+          ixheaac_hbe_x_prod_cos_table_trans_3[(pitch_in_bins_idx << 1) + 1];
       if (d2 < d1) {
         sin_theta = -sin_theta;
       }
@@ -718,16 +718,16 @@ VOID ixheaacd_hbe_xprod_proc_4(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
       if (d2 == 1) {
         cos_theta =
-            ixheaacd_hbe_x_prod_cos_table_trans_4_1[(pitch_in_bins_idx << 1) +
+            ixheaac_hbe_x_prod_cos_table_trans_4_1[(pitch_in_bins_idx << 1) +
                                                     0];
         sin_theta =
-            ixheaacd_hbe_x_prod_cos_table_trans_4_1[(pitch_in_bins_idx << 1) +
+            ixheaac_hbe_x_prod_cos_table_trans_4_1[(pitch_in_bins_idx << 1) +
                                                     1];
       } else {
         cos_theta =
-            ixheaacd_hbe_x_prod_cos_table_trans_4[(pitch_in_bins_idx << 1) + 0];
+            ixheaac_hbe_x_prod_cos_table_trans_4[(pitch_in_bins_idx << 1) + 0];
         sin_theta =
-            ixheaacd_hbe_x_prod_cos_table_trans_4[(pitch_in_bins_idx << 1) + 1];
+            ixheaac_hbe_x_prod_cos_table_trans_4[(pitch_in_bins_idx << 1) + 1];
         if (d2 < d1) {
           sin_theta = -sin_theta;
         }
@@ -805,8 +805,8 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     const FLOAT32 *ptr_sel, *ptr_sel1;
 
     inp_band_idx = (2 * qmf_band_idx) / 3;
-    ptr_sel = &ixheaacd_sel_case[(inp_band_idx + 1) & 3][0];
-    ptr_sel1 = &ixheaacd_sel_case[((inp_band_idx + 1) & 3) + 1][0];
+    ptr_sel = &ixheaac_sel_case[(inp_band_idx + 1) & 3][0];
+    ptr_sel1 = &ixheaac_sel_case[((inp_band_idx + 1) & 3) + 1][0];
     rem = 2 * qmf_band_idx - 3 * inp_band_idx;
 
     if (rem == 0 || rem == 1) {
@@ -832,7 +832,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r * temp_r;
           base1 = base1 + temp_i * temp_i;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[0] = temp_r * mag_scaling_fac;
           ptr_vec_x[1] = temp_i * mag_scaling_fac;
@@ -856,7 +856,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
           base1 = base + temp_r1 * temp_r1;
           base1 = base1 + temp_i1 * temp_i1;
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[2] = temp_r1 * mag_scaling_fac;
           ptr_vec_x[3] = temp_i1 * mag_scaling_fac;
@@ -915,7 +915,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r * temp_r;
           base1 = base1 + temp_i * temp_i;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[0] = temp_r * mag_scaling_fac;
           ptr_vec_x[1] = temp_i * mag_scaling_fac;
@@ -923,7 +923,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r1 * temp_r1;
           base1 = base1 + temp_i1 * temp_i1;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x_cap[0] = temp_r1 * mag_scaling_fac;
           ptr_vec_x_cap[1] = temp_i1 * mag_scaling_fac;
@@ -969,7 +969,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + tmp_vr * tmp_vr;
           base1 = base1 + tmp_vi * tmp_vi;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[2] = tmp_vr * mag_scaling_fac;
           ptr_vec_x[3] = tmp_vi * mag_scaling_fac;
@@ -977,7 +977,7 @@ VOID ixheaacd_hbe_post_anal_prod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + tmp_cr * tmp_cr;
           base1 = base1 + tmp_ci * tmp_ci;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x_cap[2] = tmp_cr * mag_scaling_fac;
           ptr_vec_x_cap[3] = tmp_ci * mag_scaling_fac;
@@ -1260,8 +1260,8 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
     const FLOAT32 *ptr_sel, *ptr_sel1;
 
     inp_band_idx = (2 * qmf_band_idx) / 3;
-    ptr_sel = &ixheaacd_sel_case[(inp_band_idx + 1) & 3][0];
-    ptr_sel1 = &ixheaacd_sel_case[((inp_band_idx + 1) & 3) + 1][0];
+    ptr_sel = &ixheaac_sel_case[(inp_band_idx + 1) & 3][0];
+    ptr_sel1 = &ixheaac_sel_case[((inp_band_idx + 1) & 3) + 1][0];
     rem = 2 * qmf_band_idx - 3 * inp_band_idx;
 
     if (rem == 0 || rem == 1) {
@@ -1287,7 +1287,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r * temp_r;
           base1 = base1 + temp_i * temp_i;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[0] = temp_r * mag_scaling_fac;
           ptr_vec_x[1] = temp_i * mag_scaling_fac;
@@ -1311,7 +1311,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
           base1 = base + temp_r1 * temp_r1;
           base1 = base1 + temp_i1 * temp_i1;
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[2] = temp_r1 * mag_scaling_fac;
           ptr_vec_x[3] = temp_i1 * mag_scaling_fac;
@@ -1373,7 +1373,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r * temp_r;
           base1 = base1 + temp_i * temp_i;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[0] = temp_r * mag_scaling_fac;
           ptr_vec_x[1] = temp_i * mag_scaling_fac;
@@ -1381,7 +1381,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + temp_r1 * temp_r1;
           base1 = base1 + temp_i1 * temp_i1;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x_cap[0] = temp_r1 * mag_scaling_fac;
           ptr_vec_x_cap[1] = temp_i1 * mag_scaling_fac;
@@ -1427,7 +1427,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + tmp_vr * tmp_vr;
           base1 = base1 + tmp_vi * tmp_vi;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x[2] = tmp_vr * mag_scaling_fac;
           ptr_vec_x[3] = tmp_vi * mag_scaling_fac;
@@ -1435,7 +1435,7 @@ VOID ixheaacd_hbe_post_anal_xprod3(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
           base1 = base + tmp_cr * tmp_cr;
           base1 = base1 + tmp_ci * tmp_ci;
 
-          mag_scaling_fac = (FLOAT32)(ixheaacd_cbrt_calc((FLOAT32)base1));
+          mag_scaling_fac = (FLOAT32)(ixheaac_cbrt_calc((FLOAT32)base1));
 
           ptr_vec_x_cap[2] = tmp_cr * mag_scaling_fac;
           ptr_vec_x_cap[3] = tmp_ci * mag_scaling_fac;
@@ -1578,9 +1578,9 @@ IA_ERRORCODE ixheaacd_hbe_post_anal_process(
   } else {
     trans_fac = 2;
     if (trans_fac <= ptr_hbe_txposer->max_stretch) {
-      cos_sin_theta[0] = ixheaacd_hbe_x_prod_cos_table_trans_2
+      cos_sin_theta[0] = ixheaac_hbe_x_prod_cos_table_trans_2
           [((pitch_in_bins + sbr_upsamp_4_flg * 128) << 1) + 0];
-      cos_sin_theta[1] = ixheaacd_hbe_x_prod_cos_table_trans_2
+      cos_sin_theta[1] = ixheaac_hbe_x_prod_cos_table_trans_2
           [((pitch_in_bins + sbr_upsamp_4_flg * 128) << 1) + 1];
 
       ixheaacd_hbe_post_anal_xprod2(ptr_hbe_txposer, qmf_voc_columns,

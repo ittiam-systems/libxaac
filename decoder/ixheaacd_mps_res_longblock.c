@@ -17,11 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_rom.h"
@@ -208,7 +208,7 @@ VOID ixheaacd_res_c_block_read_scf_data(
             *p_scale_factor_tmp++ = factor;
           } else {
             p_pns_data->current_energy =
-                ixheaacd_add16_sat(p_pns_data->current_energy, norm_value);
+                ixheaac_add16_sat(p_pns_data->current_energy, norm_value);
 
             pns_band = (group << 4) + sfb_transmitted - band - 1;
             p_aac_decoder_channel_info->p_scale_factor[pns_band] = p_pns_data->current_energy;

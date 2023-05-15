@@ -17,15 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_FFT_IFFT_ROM_H
-#define IXHEAACD_FFT_IFFT_ROM_H
+#ifndef IXHEAAC_BASIC_OP_H
+#define IXHEAAC_BASIC_OP_H
 
-extern const FLOAT64 ixheaacd_twid_tbl_fft_double[514];
-extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3r[1155];
-extern const FLOAT64 ixheaacd_twid_tbl_fft_ntwt3i[1155];
-extern const FLOAT32 ixheaacd_twid_tbl_fft_224[372];
-extern const FLOAT32 ixheaacd_twid_tbl_fft_288[380];
-extern const FLOAT32 ixheaacd_twid_tbl_fft_336[564];
-extern const FLOAT32 ixheaacd_twid_tbl_fft_168[276];
+#define add_d(a, b) ((a) + (b))
+#define sub_d(a, b) ((a) - (b))
+#define ixheaac_cbrt_calc(a) cbrt(1.0f / a)
 
-#endif /* IXHEAACD_FFT_IFFT_ROM_H */
+#endif /* IXHEAAC_BASIC_OP_H */

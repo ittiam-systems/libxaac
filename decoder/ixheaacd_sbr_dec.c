@@ -19,15 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -67,7 +67,7 @@
 #include "ixheaacd_qmf_dec.h"
 
 #include "ixheaacd_env_calc.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"
@@ -1057,19 +1057,19 @@ WORD32 ixheaacd_sbr_dec(
       reserve_ov1 = reservea[1];
     else
       reserve_ov1 = reserve;
-    ptr_sbr_dec->max_samp_val = ixheaacd_min32(reserve, reserve_ov1);
+    ptr_sbr_dec->max_samp_val = ixheaac_min32(reserve, reserve_ov1);
 
     reserve_ov2 = (*ixheaacd_ixheaacd_expsubbandsamples)(
         ptr_sbr_dec->str_hf_generator.lpc_filt_states_real,
         ptr_sbr_dec->str_hf_generator.lpc_filt_states_imag, 0, usb, 0,
         LPC_ORDER, low_pow_flag);
 
-    reserve_ov1 = ixheaacd_min32(reserve_ov1, reserve_ov2);
+    reserve_ov1 = ixheaac_min32(reserve_ov1, reserve_ov2);
 
     shift1 = ptr_sbr_dec->str_sbr_scale_fact.lb_scale + reserve;
 
     shift2 = ptr_sbr_dec->str_sbr_scale_fact.ov_lb_scale + reserve_ov1;
-    min_shift = ixheaacd_min32(shift1, shift2);
+    min_shift = ixheaac_min32(shift1, shift2);
     shift_over = (shift2 - min_shift);
     reserve -= (shift1 - min_shift);
 
@@ -1118,7 +1118,7 @@ WORD32 ixheaacd_sbr_dec(
           &ptr_sbr_dec->str_hf_generator, p_arr_qmf_buf_real, degree_alias,
           border_vec[0] * ptr_header_data->time_step,
           ptr_header_data->time_step *
-              ixheaacd_sub16_sat(
+              ixheaac_sub16_sat(
                   border_vec[ptr_frame_data->str_frame_info_details.num_env],
                   ptr_header_data->num_time_slots),
           ptr_header_data->pstr_freq_band_data->num_if_bands,
@@ -1127,7 +1127,7 @@ WORD32 ixheaacd_sbr_dec(
           ptr_work_buf_core);
 
       com_low_band_scale =
-          ixheaacd_min32(ptr_sbr_dec->str_sbr_scale_fact.ov_lb_scale,
+          ixheaac_min32(ptr_sbr_dec->str_sbr_scale_fact.ov_lb_scale,
                          ptr_sbr_dec->str_sbr_scale_fact.lb_scale);
 
       ptr_sbr_dec->str_sbr_scale_fact.hb_scale =
@@ -1148,7 +1148,7 @@ WORD32 ixheaacd_sbr_dec(
             &ptr_sbr_dec->str_hf_generator, &ptr_sbr_dec->str_sbr_scale_fact,
             p_arr_qmf_buf_real, p_arr_qmf_buf_imag, ptr_header_data->time_step,
             border_vec[0],
-            ixheaacd_sub16_sat(
+            ixheaac_sub16_sat(
                 border_vec[ptr_frame_data->str_frame_info_details.num_env],
                 ptr_header_data->num_time_slots),
             ptr_header_data->pstr_freq_band_data->num_if_bands,

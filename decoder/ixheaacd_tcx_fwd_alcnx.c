@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_interface.h"
@@ -41,7 +41,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
@@ -51,9 +51,9 @@
 #include "ixheaacd_windows.h"
 #include "ixheaacd_acelp_com.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 #define ABS(A) ((A) < 0 ? (-A) : (A))
 
@@ -78,7 +78,7 @@ WORD8 ixheaacd_float2fix(FLOAT32 *x, WORD32 *int_x, WORD32 length) {
   }
 
   itemp = (WORD32)(ftemp);
-  shiftp = ixheaacd_norm32(itemp);
+  shiftp = ixheaac_norm32(itemp);
 
   for (k = 0; k < length; k++) {
     int_x[k] = (WORD32)(x[k] * (FLOAT32)((WORD64)1 << shiftp));

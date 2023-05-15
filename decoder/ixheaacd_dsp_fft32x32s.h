@@ -38,4 +38,4 @@ VOID ixheaacd_inv_dit_fft_8pt_armv8(WORD32 *x, WORD32 *real, WORD32 *imag);
     im = (-(a * d) + (b * c));            \
   } while (0)
 
-#endif
+#endif /* IXHEAACD_DSP_FFT32X32S_H */

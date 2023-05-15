@@ -17,38 +17,38 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_BASIC_OPS_H
-#define IXHEAACD_BASIC_OPS_H
+#ifndef IXHEAAC_BASIC_OPS_H
+#define IXHEAAC_BASIC_OPS_H
 
-static PLATFORM_INLINE WORD16 ixheaacd_extract16h(WORD32 var) {
+static PLATFORM_INLINE WORD16 ixheaac_extract16h(WORD32 var) {
   WORD16 var_out;
 
   var_out = (WORD16)(var >> 16);
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD16 ixheaacd_extract16l(WORD32 var) {
+static PLATFORM_INLINE WORD16 ixheaac_extract16l(WORD32 var) {
   WORD16 var_out;
 
   var_out = (WORD16)var;
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_deposit16h_in32(WORD16 var) {
+static PLATFORM_INLINE WORD32 ixheaac_deposit16h_in32(WORD16 var) {
   WORD32 var_out;
 
   var_out = (WORD32)var << 16;
   return (var_out);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_deposit16l_in32(WORD16 var) {
+static PLATFORM_INLINE WORD32 ixheaac_deposit16l_in32(WORD16 var) {
   WORD32 var_out;
 
   var_out = (WORD32)var;
   return (var_out);
 }
 
-static PLATFORM_INLINE UWORD32 ixheaacd_extu(UWORD32 a, WORD32 shift_left,
+static PLATFORM_INLINE UWORD32 ixheaac_extu(UWORD32 a, WORD32 shift_left,
                                              WORD32 shift_right) {
   UWORD32 x;
   x = (UWORD32)a << shift_left;
@@ -57,20 +57,20 @@ static PLATFORM_INLINE UWORD32 ixheaacd_extu(UWORD32 a, WORD32 shift_left,
   return x;
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_mult32x16h_in32_shl_sat(WORD32 a,
+static PLATFORM_INLINE WORD32 ixheaac_mult32x16h_in32_shl_sat(WORD32 a,
                                                                WORD32 b) {
   WORD32 result;
 
   if (a == (WORD32)0x80000000 && b == (WORD16)0x8000) {
     result = (WORD32)0x7fffffff;
   } else {
-    result = ixheaacd_mult32x16in32_shl(a, ixheaacd_extract16h(b));
+    result = ixheaac_mult32x16in32_shl(a, ixheaac_extract16h(b));
   }
 
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_div32_pos_normb(WORD32 a, WORD32 b) {
+static PLATFORM_INLINE WORD32 ixheaac_div32_pos_normb(WORD32 a, WORD32 b) {
   WORD32 quotient;
   UWORD32 mantissa_nr = a;
   UWORD32 mantissa_dr = b;
@@ -97,41 +97,41 @@ static PLATFORM_INLINE WORD32 ixheaacd_div32_pos_normb(WORD32 a, WORD32 b) {
   return quotient;
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_shr32_dir_sat_limit(WORD32 a, WORD b) {
+static PLATFORM_INLINE WORD32 ixheaac_shr32_dir_sat_limit(WORD32 a, WORD b) {
   WORD32 out_val;
 
   if (b < 0) {
-    out_val = ixheaacd_shl32_sat(a, -b);
+    out_val = ixheaac_shl32_sat(a, -b);
   } else {
-    b = ixheaacd_min32(b, 31);
-    out_val = ixheaacd_shr32(a, b);
+    b = ixheaac_min32(b, 31);
+    out_val = ixheaac_shr32(a, b);
   }
 
   return out_val;
 }
 
-static PLATFORM_INLINE WORD32 ixheaacd_shl32_dir_sat_limit(WORD32 a, WORD b) {
+static PLATFORM_INLINE WORD32 ixheaac_shl32_dir_sat_limit(WORD32 a, WORD b) {
   WORD32 out_val;
 
   if (b < 0) {
     b = -b;
-    b = ixheaacd_min32(b, 31);
-    out_val = ixheaacd_shr32(a, b);
+    b = ixheaac_min32(b, 31);
+    out_val = ixheaac_shr32(a, b);
   } else {
-    out_val = ixheaacd_shl32_sat(a, b);
+    out_val = ixheaac_shl32_sat(a, b);
   }
 
   return out_val;
 }
 
-static PLATFORM_INLINE WORD64 ixheaacd_mac32x32in64_dual(WORD32 a, WORD32 b,
+static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_dual(WORD32 a, WORD32 b,
                                                          WORD64 c) {
   WORD64 result;
   WORD64 temp_result;
 
   temp_result = (WORD64)a * (WORD64)b;
-  result = ixheaacd_add64_sat(c, temp_result);
+  result = ixheaac_add64_sat(c, temp_result);
   return (result);
 }
 
-#endif /* IXHEAACD_BASIC_OPS_H */
+#endif /* IXHEAAC_BASIC_OPS_H */

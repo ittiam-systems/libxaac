@@ -20,15 +20,15 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -46,7 +46,7 @@
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
 
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_intrinsics.h"
 
 #include "ixheaacd_pvc_dec.h"
@@ -54,6 +54,24 @@
 #include "ixheaacd_ps_bitdec.h"
 
 #include "ixheaacd_audioobjtypes.h"
+
+
+static const int ixheaacd_ld_env_table_512[LD_ENV_TBL_512][LD_ENV_TBL_SIZE] = {
+    {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
+    {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
+    {3, 8, 12, 1},  {3, 9, 13, 1},  {3, 10, 14, 1}, {2, 11, -1, 1},
+    {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1}, {2, 15, -1, 1},
+};
+
+static const int ixheaacd_ld_env_table_480[LD_ENV_TBL_480][LD_ENV_TBL_SIZE] = {
+    {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
+    {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
+    {3, 8, 12, 1},  {3, 9, 13, 1},  {2, 10, -1, 1}, {2, 11, -1, 1},
+    {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1},
+};
+
+static const int ixheaacd_ld_env_table_time_slot[LD_ENV_TIME_SLOT] = {
+    8, 5, 0, 0, 0, 0, 0};
 
 WORD32 ixheaacd_cnt_leading_ones(WORD32 a) {
   WORD32 count = 0;
@@ -1436,7 +1454,7 @@ WORD16 ixheaacd_read_sbr_env_data(
   for (i = 0; i < num_env; i++) {
     no_band[i] = p_num_sf_bands[*p_freq_res++];
     ptr_frame_data->num_env_sfac =
-        ixheaacd_add16(ptr_frame_data->num_env_sfac, no_band[i]);
+        ixheaac_add16(ptr_frame_data->num_env_sfac, no_band[i]);
   }
 
   if (ptr_frame_data->num_env_sfac > MAX_NUM_ENVELOPE_VALUES) return 0;

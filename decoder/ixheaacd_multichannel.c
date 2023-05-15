@@ -19,14 +19,14 @@
 */
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_sbr_common.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -85,7 +85,7 @@
 #include "ixheaacd_headerdecode.h"
 
 #include "ixheaacd_multichannel.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 
 WORD cblock_decode_huff_symbol(UWORD8 *ptr_read_next, WORD32 bit_pos,
                                const UWORD16 *huff_ori, WORD16 *input,
@@ -249,7 +249,7 @@ IA_ERRORCODE ixheaacd_dec_coupling_channel_element(
         ind_channel_info->cc_gain[c] =
             common_tables_ptr->cc_gain_scale[gain_element_scale];
         for (i = 0; i < (-norm_value) - 1; i++) {
-          ind_channel_info->cc_gain[c] = ixheaacd_mul32_sh(
+          ind_channel_info->cc_gain[c] = ixheaac_mul32_sh(
               ind_channel_info->cc_gain[c],
               common_tables_ptr->cc_gain_scale[gain_element_scale], 29);
         }
@@ -273,9 +273,9 @@ void ixheaacd_dec_couple_channel(WORD32 *p_time_data, WORD32 *out_samp_cc,
   WORD32 out_cc;
   WORD32 *ptr_out_samp = &out_samp_cc[0];
   for (i = frame_size - 1; i >= 0; i--) {
-    out_cc = (ixheaacd_shl32_sat(
-        ixheaacd_mult32x16in32(*ptr_out_samp++, gain_cc), 3));
-    *p_time_data = ixheaacd_add32_sat(out_cc, *p_time_data);
+    out_cc = (ixheaac_shl32_sat(
+        ixheaac_mult32x16in32(*ptr_out_samp++, gain_cc), 3));
+    *p_time_data = ixheaac_add32_sat(out_cc, *p_time_data);
     p_time_data += total_channels;
   }
 }
@@ -326,7 +326,7 @@ IA_ERRORCODE ixheaacd_dec_ind_coupling(
       if (ind_channel_info->cc_target_is_cpe[c] == 0) {
         WORD32 *p_time_data = &ptr_time_data[k];
 
-        WORD16 gain_cc = ixheaacd_round16(ind_channel_info->cc_gain[j]);
+        WORD16 gain_cc = ixheaac_round16(ind_channel_info->cc_gain[j]);
 
         ixheaacd_dec_couple_channel(p_time_data, out_samp_cc, frame_size,
                                     total_channels, gain_cc);
@@ -335,7 +335,7 @@ IA_ERRORCODE ixheaacd_dec_ind_coupling(
         if (ind_channel_info->cc_l[c] == 1) {
           WORD32 *p_time_data = &ptr_time_data[k];
 
-          WORD16 gain_cc = ixheaacd_round16(ind_channel_info->cc_gain[j]);
+          WORD16 gain_cc = ixheaac_round16(ind_channel_info->cc_gain[j]);
 
           ixheaacd_dec_couple_channel(p_time_data, out_samp_cc, frame_size,
                                       total_channels, gain_cc);
@@ -345,7 +345,7 @@ IA_ERRORCODE ixheaacd_dec_ind_coupling(
 
         if (ind_channel_info->cc_r[c] == 1) {
           WORD32 *p_time_data = &ptr_time_data[k + 1];
-          WORD16 gain_cc = ixheaacd_round16(ind_channel_info->cc_gain[j + 1]);
+          WORD16 gain_cc = ixheaac_round16(ind_channel_info->cc_gain[j + 1]);
 
           ixheaacd_dec_couple_channel(p_time_data, out_samp_cc, frame_size,
                                       total_channels, gain_cc);
@@ -377,7 +377,7 @@ void ixheaacd_dec_downmix_to_stereo(
       if (0 == p_obj_exhaacplus_dec->aac_config.element_type[i] ||
           3 == p_obj_exhaacplus_dec->aac_config.element_type[i]) {
         temp_l += (WORD16)(
-            ixheaacd_mult32x16in32(
+            ixheaac_mult32x16in32(
                 p_obj_exhaacplus_dec->common_tables->down_mix_martix
                     [k][0][p_obj_exhaacplus_dec->aac_config.slot_element[i]],
                 ptr_time_data[j * total_channels +
@@ -386,7 +386,7 @@ void ixheaacd_dec_downmix_to_stereo(
             14);
 
         temp_r += (WORD16)(
-            ixheaacd_mult32x16in32(
+            ixheaac_mult32x16in32(
                 p_obj_exhaacplus_dec->common_tables->down_mix_martix
                     [k][1][p_obj_exhaacplus_dec->aac_config.slot_element[i]],
                 ptr_time_data[j * total_channels +
@@ -396,7 +396,7 @@ void ixheaacd_dec_downmix_to_stereo(
       }
       if (1 == p_obj_exhaacplus_dec->aac_config.element_type[i]) {
         temp_l += (WORD16)(
-            ixheaacd_mult32x16in32(
+            ixheaac_mult32x16in32(
                 p_obj_exhaacplus_dec->common_tables->down_mix_martix
                     [k][0][p_obj_exhaacplus_dec->aac_config.slot_element[i]],
                 ptr_time_data[j * total_channels +
@@ -405,7 +405,7 @@ void ixheaacd_dec_downmix_to_stereo(
             14);
 
         temp_r += (WORD16)(
-            ixheaacd_mult32x16in32(
+            ixheaac_mult32x16in32(
                 p_obj_exhaacplus_dec->common_tables->down_mix_martix
                     [k][1]
                     [p_obj_exhaacplus_dec->aac_config.slot_element[i] + 1],

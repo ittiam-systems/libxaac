@@ -24,8 +24,8 @@
 #define AOSP_CHANGE
 
 #include "ixheaacd_fileifc.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_error_handler.h"
 #include "ixheaacd_apicmd_standards.h"
 #include "ixheaacd_memory_standards.h"

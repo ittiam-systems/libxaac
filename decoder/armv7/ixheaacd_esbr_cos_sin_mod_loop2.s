@@ -36,7 +36,7 @@ ixheaacd_esbr_cos_sin_mod_loop2:
     SUB             R11, R11, #4
     MOV             R8, #-4
     LDR             R6, [R0]
-    MOV             R4, R2, ASR #1      @M_2 = ixheaacd_shr32(M, 1);
+    MOV             R4, R2, ASR #1      @M_2 = ixheaac_shr32(M, 1);
     SUB             R4, R4, #1
 
     ASR             R6, R6, #1          @*psubband = *psubband >> 1;

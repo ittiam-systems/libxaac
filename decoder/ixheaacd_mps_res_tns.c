@@ -17,12 +17,12 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 VOID ixheaacd_res_tns_parcor_2_lpc_32x16(WORD16 *parcor, WORD16 *lpc, WORD16 *scale, WORD order)
@@ -50,20 +50,20 @@ VOID ixheaacd_res_tns_parcor_2_lpc_32x16(WORD16 *parcor, WORD16 *lpc, WORD16 *sc
       z1 = accu1;
 
       for (j = 0; j < order; j++) {
-        w[j] = ixheaacd_round16(accu1);
+        w[j] = ixheaac_round16(accu1);
 
-        accu1 = ixheaacd_mac16x16in32_shl_sat(accu1, parcor[j], z[j]);
-        if (ixheaacd_abs32_sat(accu1) == 0x7fffffff) status = 1;
+        accu1 = ixheaac_mac16x16in32_shl_sat(accu1, parcor[j], z[j]);
+        if (ixheaac_abs32_sat(accu1) == 0x7fffffff) status = 1;
       }
       for (j = (order - 1); j >= 0; j--) {
-        accu2 = ixheaacd_deposit16h_in32(z[j]);
-        accu2 = ixheaacd_mac16x16in32_shl_sat(accu2, parcor[j], w[j]);
-        z[j + 1] = ixheaacd_round16(accu2);
-        if (ixheaacd_abs32_sat(accu2) == 0x7fffffff) status = 1;
+        accu2 = ixheaac_deposit16h_in32(z[j]);
+        accu2 = ixheaac_mac16x16in32_shl_sat(accu2, parcor[j], w[j]);
+        z[j + 1] = ixheaac_round16(accu2);
+        if (ixheaac_abs32_sat(accu2) == 0x7fffffff) status = 1;
       }
 
-      z[0] = ixheaacd_round16(z1);
-      lpc[i] = ixheaacd_round16(accu1);
+      z[0] = ixheaac_round16(z1);
+      lpc[i] = ixheaac_round16(accu1);
       accu1 = 0;
     }
     accu1 = (status - 1);
@@ -91,11 +91,11 @@ VOID ixheaacd_res_tns_ar_filter_fixed_32x16(WORD32 *spectrum, WORD32 size, WORD3
   for (i = 0; i < order; i++) {
     y = (*spectrum) << scale_spec;
     for (j = i; j > 0; j--) {
-      y = ixheaacd_sub32_sat(y, ixheaacd_mult32x16in32_shl_sat(state[j - 1], lpc[j]));
+      y = ixheaac_sub32_sat(y, ixheaac_mult32x16in32_shl_sat(state[j - 1], lpc[j]));
       state[j] = state[j - 1];
     }
 
-    state[0] = ixheaacd_shl32_dir_sat_limit(y, shift_value);
+    state[0] = ixheaac_shl32_dir_sat_limit(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }
@@ -104,11 +104,11 @@ VOID ixheaacd_res_tns_ar_filter_fixed_32x16(WORD32 *spectrum, WORD32 size, WORD3
     y = (*spectrum) << scale_spec;
 
     for (j = order; j > 0; j--) {
-      y = ixheaacd_sub32_sat(y, ixheaacd_mult32x16in32_shl_sat(state[j - 1], lpc[j]));
+      y = ixheaac_sub32_sat(y, ixheaac_mult32x16in32_shl_sat(state[j - 1], lpc[j]));
       state[j] = state[j - 1];
     }
 
-    state[0] = ixheaacd_shl32_dir_sat_limit(y, shift_value);
+    state[0] = ixheaac_shl32_dir_sat_limit(y, shift_value);
     *spectrum = y >> scale_spec;
     spectrum += inc;
   }
@@ -125,28 +125,28 @@ WORD32 ixheaacd_res_calc_max_spectral_line(WORD32 *p_tmp, WORD32 size) {
     temp3 = *p_tmp++;
     temp4 = *p_tmp++;
 
-    max_spectral_line = ixheaacd_abs32_nrm(temp_1) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp_2) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp3) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp4) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp_1) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp_2) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp3) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp4) | max_spectral_line;
     temp_1 = *p_tmp++;
     temp_2 = *p_tmp++;
     temp3 = *p_tmp++;
     temp4 = *p_tmp++;
 
-    max_spectral_line = ixheaacd_abs32_nrm(temp_1) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp_2) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp3) | max_spectral_line;
-    max_spectral_line = ixheaacd_abs32_nrm(temp4) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp_1) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp_2) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp3) | max_spectral_line;
+    max_spectral_line = ixheaac_abs32_nrm(temp4) | max_spectral_line;
   }
 
   remaining = size - (count << 3);
   if (remaining) {
     for (i = remaining; i--;) {
-      max_spectral_line = ixheaacd_abs32_nrm(*p_tmp) | max_spectral_line;
+      max_spectral_line = ixheaac_abs32_nrm(*p_tmp) | max_spectral_line;
       p_tmp++;
     }
   }
 
-  return ixheaacd_norm32(max_spectral_line);
+  return ixheaac_norm32(max_spectral_line);
 }

@@ -19,8 +19,8 @@
 */
 #include <stdlib.h>
 #include <string.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbr_scale.h"
@@ -57,7 +57,7 @@
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_bitbuffer.h"
@@ -69,14 +69,14 @@
 #include "ixheaacd_info.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_struct.h"
 #include "ixheaacd_create.h"
 #include "ixheaacd_dec_main.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_headerdecode.h"
 #include "ixheaacd_error_codes.h"
 VOID ixheaacd_samples_sat(WORD8 *outbuffer, WORD32 num_samples_out,

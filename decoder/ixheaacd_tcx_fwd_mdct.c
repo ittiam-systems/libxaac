@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_acelp_com.h"
 
@@ -45,11 +45,11 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
@@ -147,7 +147,7 @@ VOID ixheaacd_lpc_to_td(FLOAT32 *coeff, WORD32 order, FLOAT32 *gains, WORD32 lg)
   }
 
   itemp = (WORD32)ftemp;
-  qshift = ixheaacd_norm32(itemp);
+  qshift = ixheaac_norm32(itemp);
 
   for (i = 0; i < size_n; i++) {
     idata_r[i] = (WORD32)(data_r[i] * ((WORD64)1 << qshift));

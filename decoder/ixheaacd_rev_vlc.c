@@ -20,13 +20,13 @@
 
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_error_codes.h"
@@ -52,7 +52,7 @@
 
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 
 #include "ixheaacd_aacdec.h"
 
@@ -77,7 +77,7 @@
 #include "ixheaacd_mps_interface.h"
 #include "ixheaacd_struct_def.h"
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #define RVLC_ERROR_ALL_ESCAPE_WORDS_INVALID 0x80000000
 #define RVLC_ERROR_FORBIDDEN_CW_DETECTED_FWD 0x08000000
@@ -1061,14 +1061,14 @@ VOID ixheaacd_bi_dir_est_scf_prev_frame_reference(
                INTENSITY_HCB) ||
               (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] ==
                INTENSITY_HCB2)) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
           }
@@ -1077,14 +1077,14 @@ VOID ixheaacd_bi_dir_est_scf_prev_frame_reference(
         case NOISE_HCB:
           if (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] ==
               NOISE_HCB) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
           }
@@ -1099,14 +1099,14 @@ VOID ixheaacd_bi_dir_est_scf_prev_frame_reference(
                INTENSITY_HCB) &&
               (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] !=
                INTENSITY_HCB2)) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
           }
@@ -1469,10 +1469,10 @@ VOID ixheaacd_predictive_interpolation(
                INTENSITY_HCB) ||
               (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] ==
                INTENSITY_HCB2)) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
@@ -1483,10 +1483,10 @@ VOID ixheaacd_predictive_interpolation(
         case NOISE_HCB:
           if (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] ==
               NOISE_HCB) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
@@ -1503,10 +1503,10 @@ VOID ixheaacd_predictive_interpolation(
                INTENSITY_HCB) &&
               (ptr_aac_dec_static_channel_info->rvlc_prev_cb[bnds] !=
                INTENSITY_HCB2)) {
-            common_min = ixheaacd_min32(
+            common_min = ixheaac_min32(
                 ptr_aac_dec_channel_info->rvlc_scf_fwd_arr[bnds],
                 ptr_aac_dec_channel_info->rvlc_scf_bwd_arr[bnds]);
-            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaacd_min32(
+            ptr_aac_dec_channel_info->ptr_scale_factor[bnds] = ixheaac_min32(
                 common_min,
                 ptr_aac_dec_static_channel_info->rvlc_prev_sf[bnds]);
           } else {
@@ -1612,13 +1612,13 @@ static VOID ixheaacd_rvlc_final_error_detection(
         (ptr_rvlc->conceal_min == CONCEAL_MIN_INIT)) {
       ptr_rvlc->conceal_max = 0;
       ptr_rvlc->conceal_min =
-          ixheaacd_max32(0, (ptr_rvlc->num_wind_grps - 1) * 16 +
+          ixheaac_max32(0, (ptr_rvlc->num_wind_grps - 1) * 16 +
                                 ptr_rvlc->max_sfb_transmitted - 1);
     } else {
       ptr_rvlc->conceal_max =
-          ixheaacd_min32(ptr_rvlc->conceal_max, ptr_rvlc->conceal_max_esc);
+          ixheaac_min32(ptr_rvlc->conceal_max, ptr_rvlc->conceal_max_esc);
       ptr_rvlc->conceal_min =
-          ixheaacd_max32(ptr_rvlc->conceal_min, ptr_rvlc->conceal_min_esc);
+          ixheaac_max32(ptr_rvlc->conceal_min, ptr_rvlc->conceal_min_esc);
     }
   }
 

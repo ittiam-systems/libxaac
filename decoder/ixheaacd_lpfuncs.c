@@ -19,16 +19,16 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_bitbuffer.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 
 #include "ixheaacd_defines.h"
@@ -109,15 +109,15 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD32 *out,
 
   if (flag == 1) {
     for (i = 0; i < size_07; i++) {
-      WORD32 temp1 = ixheaacd_shl32_dir_sat_limit(
-          ixheaacd_mult32x16in32(coef[size_08 + i], window_long[2 * i]),
+      WORD32 temp1 = ixheaac_shl32_dir_sat_limit(
+          ixheaac_mult32x16in32(coef[size_08 + i], window_long[2 * i]),
           (q_shift + 1));
 
-      accu = ixheaacd_add32_sat(temp1, ((WORD32)prev[i] << 16));
+      accu = ixheaac_add32_sat(temp1, ((WORD32)prev[i] << 16));
       out[ch_fac * i] = accu;
 
-      accu = ixheaacd_shl32_dir_sat_limit(
-          ixheaacd_mult32x16in32(-(coef[size_15 - 1 - i]),
+      accu = ixheaac_shl32_dir_sat_limit(
+          ixheaac_mult32x16in32(-(coef[size_15 - 1 - i]),
                                  window_long[2 * (size_07 - i) - 1]),
           q_shift);
       out[ch_fac * (i + size_09)] = (accu << 1);
@@ -132,14 +132,14 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD32 *out,
 
   } else {
     for (i = 0; i < size_07; i++) {
-      accu = ixheaacd_mult32x16in32_sat(
-          prev[size_08 - 1 - i], ixheaacd_negate16(window_long[2 * i + 1]));
+      accu = ixheaac_mult32x16in32_sat(
+          prev[size_08 - 1 - i], ixheaac_negate16(window_long[2 * i + 1]));
 
       out[ch_fac * i] = accu;
 
-      accu = ixheaacd_sub32_sat(
-          ixheaacd_shl32_dir_sat_limit(-(coef[size_15 - 1 - i]), (q_shift - 1)),
-          ixheaacd_mult32x16in32_sat(prev[i + size_01],
+      accu = ixheaac_sub32_sat(
+          ixheaac_shl32_dir_sat_limit(-(coef[size_15 - 1 - i]), (q_shift - 1)),
+          ixheaac_mult32x16in32_sat(prev[i + size_01],
                                      window_long[2 * size_07 - 2 - 2 * i]));
 
       out[ch_fac * (size_09 + i)] = accu;
@@ -160,18 +160,18 @@ VOID ixheaacd_process_win_seq(WORD32 *coef, WORD32 *prev, WORD32 *out,
     WORD32 prev1 = *temp_prev--;
     WORD16 win4 = *temp_win_sh++;
     WORD16 win3 = *temp_win_sh++;
-    accu = ixheaacd_sub32_sat(
-        ixheaacd_shl32_dir_sat_limit(ixheaacd_mult32x16in32(temp_coef, win1),
+    accu = ixheaac_sub32_sat(
+        ixheaac_shl32_dir_sat_limit(ixheaac_mult32x16in32(temp_coef, win1),
                                      q_shift),
-        ixheaacd_mult32x16in32_sat(prev1, win3));
+        ixheaac_mult32x16in32_sat(prev1, win3));
     *out1 = accu << flag;
     out1 += ch_fac;
 
-    accu = ixheaacd_sub32_sat(
-        ixheaacd_shl32_dir_sat_limit(
-            ixheaacd_mult32x16in32(ixheaacd_negate32_sat(temp_coef), win2),
+    accu = ixheaac_sub32_sat(
+        ixheaac_shl32_dir_sat_limit(
+            ixheaac_mult32x16in32(ixheaac_negate32_sat(temp_coef), win2),
             q_shift),
-        ixheaacd_mult32x16in32_sat(prev1, win4));
+        ixheaac_mult32x16in32_sat(prev1, win4));
     *out2 = accu << flag;
     out2 -= ch_fac;
   }
@@ -195,20 +195,20 @@ static PLATFORM_INLINE VOID ixheaacd_long_short_win_process(
     WORD32 tmp2_cur = *current_tmp2++;
     WORD16 short1 = *short_ptr--;
     WORD16 short2 = *short_ptr--;
-    accu = ixheaacd_sub32_sat(
-        ixheaacd_shl32_dir_sat_limit((ixheaacd_mult32x16in32(tmp1_cur, short2) -
-                                      ixheaacd_mult32x16in32(tmp2_cur, short1)),
+    accu = ixheaac_sub32_sat(
+        ixheaac_shl32_dir_sat_limit((ixheaac_mult32x16in32(tmp1_cur, short2) -
+                                      ixheaac_mult32x16in32(tmp2_cur, short1)),
                                      q_shift),
-        ixheaacd_mult32x16in32_sat(prev[i], long_window_prev[0 - 2 - 2 * i]));
+        ixheaac_mult32x16in32_sat(prev[i], long_window_prev[0 - 2 - 2 * i]));
     out[ch_fac * (0 + i)] = accu;
 
     if (flag) {
-      accu = ixheaacd_sub32_sat(
-          ixheaacd_shl32_dir_sat_limit(
-              (ixheaacd_mult32x16in32(ixheaacd_negate32_sat(tmp1_cur), short1) -
-               ixheaacd_mult32x16in32(tmp2_cur, short2)),
+      accu = ixheaac_sub32_sat(
+          ixheaac_shl32_dir_sat_limit(
+              (ixheaac_mult32x16in32(ixheaac_negate32_sat(tmp1_cur), short1) -
+               ixheaac_mult32x16in32(tmp2_cur, short2)),
               q_shift),
-          ixheaacd_mult32x16in32_sat(prev[size_02 - 1 - i],
+          ixheaac_mult32x16in32_sat(prev[size_02 - 1 - i],
                                      long_window_prev[-2 * size_02 + 2 * i]));
       out[ch_fac * (size_02 - 1 - i)] = accu;
     }
@@ -232,29 +232,29 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD32 *out,
   WORD32 i, flag;
   WORD32 accu;
   for (i = 0; i < size_07; i++) {
-    accu = ixheaacd_mult32x16in32_sat(
-        prev[size_08 - 1 - i], ixheaacd_negate16(long_window_prev[2 * i + 1]));
+    accu = ixheaac_mult32x16in32_sat(
+        prev[size_08 - 1 - i], ixheaac_negate16(long_window_prev[2 * i + 1]));
     out[ch_fac * i] = accu;
   }
 
   for (i = 0; i < size_01; i++) {
-    accu = ixheaacd_sub32_sat(
-        ixheaacd_shl32_dir_sat_limit(
-            ixheaacd_mult32x16in32(current[size_01 + i],
+    accu = ixheaac_sub32_sat(
+        ixheaac_shl32_dir_sat_limit(
+            ixheaac_mult32x16in32(current[size_01 + i],
                                    short_window_prev[2 * i]),
             q_shift),
-        ixheaacd_mult32x16in32_sat(prev[size_01 - 1 - i],
+        ixheaac_mult32x16in32_sat(prev[size_01 - 1 - i],
                                    long_window_prev[2 * size_07 + 1 + 2 * i]));
     out[ch_fac * (size_07 + i)] = accu;
   }
 
   for (i = 0; i < size_01; i++) {
-    accu = ixheaacd_sub32_sat(
-        ixheaacd_shl32_dir_sat_limit(
-            ixheaacd_mult32x16in32(ixheaacd_negate32_sat(current[size_02 - 1 - i]),
+    accu = ixheaac_sub32_sat(
+        ixheaac_shl32_dir_sat_limit(
+            ixheaac_mult32x16in32(ixheaac_negate32_sat(current[size_02 - 1 - i]),
                                    short_window_prev[size_02 - 2 * i - 1]),
             q_shift),
-        ixheaacd_mult32x16in32_sat(prev[i],
+        ixheaac_mult32x16in32_sat(prev[i],
                                    long_window_prev[size_16 - 2 - (2 * i)]));
     out[ch_fac * (size_08 + i)] = accu;
   }
@@ -274,12 +274,12 @@ VOID ixheaacd_long_short_win_seq(WORD32 *current, WORD32 *prev, WORD32 *out,
   }
 
   for (i = 0; i < size_01; i++) {
-    accu = (ixheaacd_mult32x16in32(-(current[size_10 - 1 - i]),
+    accu = (ixheaac_mult32x16in32(-(current[size_10 - 1 - i]),
                                    short_window[size_02 - 2 * i - 1]) -
-            ixheaacd_mult32x16in32(current[size_06 + i],
+            ixheaac_mult32x16in32(current[size_06 + i],
                                    short_window[size_02 - 2 * i - 2]));
     prev[i] =
-        ixheaacd_round16(ixheaacd_shl32_dir_sat_limit(accu, (q_shift + 1)));
+        ixheaac_round16(ixheaac_shl32_dir_sat_limit(accu, (q_shift + 1)));
   }
 }
 
@@ -289,8 +289,8 @@ VOID ixheaacd_nolap1_32(WORD32 *coef, WORD32 *out, WORD16 q_shift,
   WORD32 i;
 
   for (i = 0; i < size_07; i++) {
-    out[ch_fac * i] = ixheaacd_shr32_sat(
-        ixheaacd_negate32_sat(coef[size_07 - 1 - i]), 16 - q_shift);
+    out[ch_fac * i] = ixheaac_shr32_sat(
+        ixheaac_negate32_sat(coef[size_07 - 1 - i]), 16 - q_shift);
   }
 }
 
@@ -298,8 +298,8 @@ VOID ixheaacd_neg_shift_spec_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
                                  WORD16 ch_fac) {
   WORD32 i;
   for (i = 0; i < SIZE07; i++) {
-    out[ch_fac * i] = (ixheaacd_shl32_dir_sat_limit(
-        ixheaacd_negate32_sat(coef[SIZE07 - 1 - i]), q_shift));
+    out[ch_fac * i] = (ixheaac_shl32_dir_sat_limit(
+        ixheaac_negate32_sat(coef[SIZE07 - 1 - i]), q_shift));
   }
 }
 
@@ -308,8 +308,8 @@ VOID ixheaacd_Nolap_dec(WORD32 *coef, WORD32 *out, WORD16 q_shift,
   WORD16 size_07 = 7 * size_01;
   WORD32 i;
   for (i = 0; i < size_07; i++) {
-    out[ch_fac * i] = ixheaacd_shl32_dir_sat_limit(
-        ixheaacd_negate32_sat(coef[size_07 - 1 - i]), q_shift);
+    out[ch_fac * i] = ixheaac_shl32_dir_sat_limit(
+        ixheaac_negate32_sat(coef[size_07 - 1 - i]), q_shift);
   }
 }
 
@@ -318,7 +318,7 @@ VOID ixheaacd_spec_to_overlapbuf_dec(WORD32 *ptr_overlap_buf,
                                      WORD32 size) {
   WORD32 i;
   for (i = 0; i < size; i++) {
-    ptr_overlap_buf[i] = ixheaacd_shr32_sat(ptr_spec_coeff[i], 16 - q_shift);
+    ptr_overlap_buf[i] = ixheaac_shr32_sat(ptr_spec_coeff[i], 16 - q_shift);
   }
 }
 
@@ -328,7 +328,7 @@ VOID ixheaacd_overlap_buf_out_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
 
   for (i = 0; i < size; i++) {
     out_samples[ch_fac * i] =
-        (ixheaacd_shl32_sat((WORD16)ptr_overlap_buf[i], 15));
+        (ixheaac_shl32_sat((WORD16)ptr_overlap_buf[i], 15));
   }
 }
 
@@ -339,7 +339,7 @@ VOID ixheaacd_overlap_out_copy_dec(WORD32 *out_samples, WORD32 *ptr_overlap_buf,
 
   for (i = 0; i < size_01; i++) {
     out_samples[ch_fac * i] =
-        ixheaacd_shl32_sat((WORD16)ptr_overlap_buf[i], 15);
+        ixheaac_shl32_sat((WORD16)ptr_overlap_buf[i], 15);
     ptr_overlap_buf[i] = ptr_overlap_buf1[i];
   }
 }
@@ -829,41 +829,41 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32_sat(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32_sat(win_ovadd_op, 1));
       out_samples += stride;
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32_sat(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32_sat(win_ovadd_op, 1));
       out_samples += stride;
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32_sat(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32_sat(win_ovadd_op, 1));
       out_samples += stride;
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32_sat(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32_sat(win_ovadd_op, 1));
       out_samples += stride;
     }
 
@@ -874,24 +874,24 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
     }
 
     loop_size = ((((framesize << 2) - delay) - (framesize * 3)) >> 2) - 1;
@@ -900,20 +900,20 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
       WORD16 win_val;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
     }
   } else {
     q_shift = -q_shift;
@@ -924,39 +924,39 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
       WORD16 win_val;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32(win_ovadd_op, 1));
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32(win_ovadd_op, 1));
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32(win_ovadd_op, 1));
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       win_ovadd_op =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
-      *out_samples = ixheaacd_round16(ixheaacd_shl32(win_ovadd_op, 1));
+      *out_samples = ixheaac_round16(ixheaac_shl32(win_ovadd_op, 1));
       out_samples += stride;
     }
 
@@ -967,44 +967,44 @@ void ixheaacd_eld_dec_windowing(WORD32 *ptr_spect_coeff, const WORD16 *p_win,
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
     }
     loop_size = ((((framesize << 2) - delay) - (framesize * 3)) >> 2) - 1;
     for (i = loop_size; i >= 0; i--) {
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
     }
   }
 }
@@ -1036,36 +1036,36 @@ void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
 
       win_val = *p_win++;
 
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
     }
@@ -1077,24 +1077,24 @@ void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shl32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shl32(win_op, q_shift), *ptr_out++);
     }
 
     loop_size = ((((framesize << 2) - delay) - (framesize * 3)) >> 2) - 1;
@@ -1103,20 +1103,20 @@ void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
       WORD16 win_val;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shl32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shl32(win_op, q_shift);
     }
   } else {
     q_shift = -q_shift;
@@ -1126,34 +1126,34 @@ void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
       WORD16 win_val;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
 
       *out_samples =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       out_samples += stride;
     }
@@ -1165,44 +1165,44 @@ void ixheaacd_eld_dec_windowing_32bit(WORD32 *ptr_spect_coeff,
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
       *p_out2++ =
-          ixheaacd_add32_sat(ixheaacd_shr32(win_op, q_shift), *ptr_out++);
+          ixheaac_add32_sat(ixheaac_shr32(win_op, q_shift), *ptr_out++);
     }
     loop_size = ((((framesize << 2) - delay) - (framesize * 3)) >> 2) - 1;
     for (i = loop_size; i >= 0; i--) {
       WORD32 win_op;
       WORD16 win_val;
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
 
       win_val = *p_win++;
-      win_op = ixheaacd_mult32x16in32(*ptr_z++, (win_val));
-      *p_out2++ = ixheaacd_shr32(win_op, q_shift);
+      win_op = ixheaac_mult32x16in32(*ptr_z++, (win_val));
+      *p_out2++ = ixheaac_shr32(win_op, q_shift);
     }
   }
 }

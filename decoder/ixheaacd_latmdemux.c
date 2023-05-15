@@ -19,15 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_bitbuffer.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 
 #include "ixheaacd_defines.h"
@@ -84,7 +84,7 @@
 
 #include "ixheaacd_multichannel.h"
 #include "ixheaacd_headerdecode.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 WORD32 ixheaacd_latm_au_chunk_length_info(
     struct ia_bit_buf_struct *it_bit_buff) {
@@ -151,7 +151,7 @@ static UWORD32 ixheaacd_latm_get_value(ia_bit_buf_struct *it_bit_buff) {
   if (bytes_read <= 3)
     return ixheaacd_read_bits_buf(it_bit_buff, 8 * bytes_read);
   else
-    return ixheaacd_add32_sat(ixheaacd_shl32_sat(ixheaacd_read_bits_buf(it_bit_buff, 24), 8),
+    return ixheaac_add32_sat(ixheaac_shl32_sat(ixheaacd_read_bits_buf(it_bit_buff, 24), 8),
                               ixheaacd_read_bits_buf(it_bit_buff, 8));
 }
 

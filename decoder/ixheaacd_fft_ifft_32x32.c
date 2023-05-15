@@ -19,10 +19,10 @@
 */
 #include <stdlib.h>
 #include <math.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_fft_ifft_rom.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_fft_ifft_rom.h"
 #include "ixheaacd_dsp_fft32x32s.h"
 
 #define DIG_REV(i, m, j)                                    \
@@ -262,13 +262,13 @@ VOID ixheaacd_hbe_apply_cfftn(FLOAT32 re[], FLOAT32 *scratch, WORD32 n_pass, WOR
   FLOAT32 *y = scratch + (2 * n_pass);
   FLOAT32 *ptr_y = y;
 
-  dig_rev_shift = ixheaacd_norm32(mpass) + 1 - 16;
-  n_stages = 30 - ixheaacd_norm32(mpass);
+  dig_rev_shift = ixheaac_norm32(mpass) + 1 - 16;
+  n_stages = 30 - ixheaac_norm32(mpass);
   not_power_4 = n_stages & 1;
 
   n_stages = n_stages >> 1;
 
-  ptr_w = ixheaacd_twid_tbl_fft_double;
+  ptr_w = ixheaac_twid_tbl_fft_double;
   ptr_x = re;
 
   if (i_sign == -1) {
@@ -1347,8 +1347,8 @@ VOID ixheaacd_hbe_apply_cfftn_gen(FLOAT32 re[], FLOAT32 *scratch, WORD32 n_pass,
   {
     FLOAT64 *w1r, *w1i;
     FLOAT32 tmp;
-    w1r = (FLOAT64 *)ixheaacd_twid_tbl_fft_ntwt3r;
-    w1i = (FLOAT64 *)ixheaacd_twid_tbl_fft_ntwt3i;
+    w1r = (FLOAT64 *)ixheaac_twid_tbl_fft_ntwt3r;
+    w1i = (FLOAT64 *)ixheaac_twid_tbl_fft_ntwt3i;
 
     if (i_sign < 0) {
 
@@ -1457,7 +1457,7 @@ VOID ixheaacd_hbe_apply_fft_288(FLOAT32 *inp, FLOAT32 *scratch, WORD32 len, WORD
     }
   }
 
-  ixheaacd_hbe_apply_tw_mult_fft(inp, op, fpoints, mpoints, ixheaacd_twid_tbl_fft_288);
+  ixheaacd_hbe_apply_tw_mult_fft(inp, op, fpoints, mpoints, ixheaac_twid_tbl_fft_288);
 
   for (ii = 0; ii < fpoints; ii++) {
     ixheaacd_hbe_apply_fft_3(op, scratch, i_sign);
@@ -1505,7 +1505,7 @@ VOID ixheaacd_hbe_apply_ifft_224(FLOAT32 *inp, FLOAT32 *scratch, WORD32 len, WOR
     }
   }
 
-  ixheaacd_hbe_apply_tw_mult_ifft(inp, op, fpoints, mpoints, ixheaacd_twid_tbl_fft_224);
+  ixheaacd_hbe_apply_tw_mult_ifft(inp, op, fpoints, mpoints, ixheaac_twid_tbl_fft_224);
 
   for (ii = 0; ii < fpoints; ii++) {
     ixheaacd_hbe_apply_ifft_7(op, scratch);
@@ -1559,10 +1559,10 @@ VOID ixheaacd_hbe_apply_ifft_336(FLOAT32 *inp, FLOAT32 *ptr_scratch, WORD32 len,
 
   if (m_points == 48)
     ixheaacd_hbe_apply_tw_mult_ifft(inp, p_scratch, n_points, m_points,
-                                    ixheaacd_twid_tbl_fft_336);
+                                    ixheaac_twid_tbl_fft_336);
   else
     ixheaacd_hbe_apply_tw_mult_ifft(inp, p_scratch, n_points, m_points,
-                                    ixheaacd_twid_tbl_fft_168);
+                                    ixheaac_twid_tbl_fft_168);
 
   for (i = 0; i < len; i++) {
     ptr_real[2 * i + 0] = p_scratch[2 * i + 0];

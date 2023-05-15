@@ -18,7 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 
-#include <ixheaacd_type_def.h>
+#include <ixheaac_type_def.h>
 #include "ixheaacd_ec_defines.h"
 
 const WORD16 ia_ec_interpolation_fac[4] = {(0x4000), (0x4c1b), (0x5a82), (0x6ba2)};

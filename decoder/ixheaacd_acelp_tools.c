@@ -19,12 +19,12 @@
 */
 #include <math.h>
 #include <memory.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 const FLOAT32 ixheaacd_gamma_table[17] = {
     1.0f,      0.92f,     0.8464f,   0.778688f, 0.716393f, 0.659082f,
@@ -40,9 +40,9 @@ VOID ixheaacd_preemphsis_tool(WORD32 *signal, WORD32 mu, WORD32 len,
                               WORD32 mem) {
   WORD32 i;
   for (i = len - 1; i > 0; i--) {
-    signal[i] -= (WORD32)ixheaacd_mul32_sh(mu, signal[i - 1], 16);
+    signal[i] -= (WORD32)ixheaac_mul32_sh(mu, signal[i - 1], 16);
   }
-  signal[0] -= (WORD32)ixheaacd_mul32_sh(mu, mem, 16);
+  signal[0] -= (WORD32)ixheaac_mul32_sh(mu, mem, 16);
   return;
 }
 
@@ -132,7 +132,7 @@ VOID ixheaacd_residual_tool(WORD32 *a, WORD32 *x, WORD32 *y, WORD32 l,
   for (i = 0; i < n; i++) {
     s = x[i];
     for (j = 1; j <= 16; j++)
-      s += (WORD32)ixheaacd_mul32_sh(a[j], x[i - j], 24);
+      s += (WORD32)ixheaac_mul32_sh(a[j], x[i - j], 24);
     y[i] = s;
   }
 

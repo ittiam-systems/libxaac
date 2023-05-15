@@ -34,13 +34,10 @@ list(
   "${XAAC_ROOT}/decoder/ixheaacd_env_dec.c"
   "${XAAC_ROOT}/decoder/ixheaacd_env_extr.c"
   "${XAAC_ROOT}/decoder/ixheaacd_esbr_envcal.c"
-  "${XAAC_ROOT}/decoder/ixheaacd_esbr_fft.c"
   "${XAAC_ROOT}/decoder/ixheaacd_esbr_polyphase.c"
-  "${XAAC_ROOT}/decoder/ixheaacd_esbr_rom.c"
   "${XAAC_ROOT}/decoder/ixheaacd_ext_ch_ele.c"
   "${XAAC_ROOT}/decoder/ixheaacd_fft.c"
   "${XAAC_ROOT}/decoder/ixheaacd_fft_ifft_32x32.c"
-  "${XAAC_ROOT}/decoder/ixheaacd_fft_ifft_32x32_rom.c"
   "${XAAC_ROOT}/decoder/ixheaacd_freq_sca.c"
   "${XAAC_ROOT}/decoder/ixheaacd_fwd_alias_cnx.c"
   "${XAAC_ROOT}/decoder/ixheaacd_hbe_dft_trans.c"
@@ -139,4 +136,4 @@ else()
   include("${XAAC_ROOT}/decoder/x86/libxaacdec_x86.cmake")
 endif()
 
-add_library(libxaacdec STATIC ${LIBXAACDEC_SRCS} ${LIBXAACCDEC_ASMS})
+add_library(libxaacdec STATIC ${LIBXAAC_COMMON_SRCS} ${LIBXAACDEC_SRCS} ${LIBXAACCDEC_ASMS})

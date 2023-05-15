@@ -19,7 +19,7 @@
 */
 #ifndef IXHEAACD_ENV_EXTR_H
 #define IXHEAACD_ENV_EXTR_H
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #define ENV_EXP_FRACT 0
 
 #define EXP_BITS 6

@@ -18,19 +18,19 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_op.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_op.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
 
-#define sat16_m(a) ixheaacd_sat16(a)
+#define sat16_m(a) ixheaac_sat16(a)
 
 VOID ixheaacd_fix_mant_exp_add(WORD16 op1_mant, WORD16 op1_exp, WORD16 op2_mant,
                                WORD16 op2_exp, WORD16 *ptr_result_mant,
@@ -48,7 +48,7 @@ VOID ixheaacd_fix_mant_exp_add(WORD16 op1_mant, WORD16 op1_exp, WORD16 op2_mant,
 
   new_mant = op1_mant + op2_mant;
 
-  if (ixheaacd_abs32(new_mant) >= 0x8000) {
+  if (ixheaac_abs32(new_mant) >= 0x8000) {
     new_mant = new_mant >> 1;
     new_exp++;
   }
@@ -66,14 +66,14 @@ WORD32 ixheaacd_fix_mant_div(WORD16 op1_mant, WORD16 op2_mant,
   WORD32 index;
   WORD16 one_by_op2_mant;
 
-  pre_shift_val = ixheaacd_norm32(op2_mant) - 16;
+  pre_shift_val = ixheaac_norm32(op2_mant) - 16;
 
   index = (op2_mant << pre_shift_val) >> (SHORT_BITS - 3 - 8);
 
   index &= (1 << (8 + 1)) - 1;
 
   if (index == 0) {
-    post_shift_val = ixheaacd_norm32(op1_mant) - 16;
+    post_shift_val = ixheaac_norm32(op1_mant) - 16;
 
     *ptr_result_mant = (op1_mant << post_shift_val);
   } else {
@@ -83,9 +83,9 @@ WORD32 ixheaacd_fix_mant_div(WORD16 op1_mant, WORD16 op2_mant,
 
     one_by_op2_mant = pstr_common_tables->inv_table[index];
 
-    ratio_m = ixheaacd_mult16x16in32(one_by_op2_mant, op1_mant);
+    ratio_m = ixheaac_mult16x16in32(one_by_op2_mant, op1_mant);
 
-    post_shift_val = ixheaacd_norm32(ratio_m) - 1;
+    post_shift_val = ixheaac_norm32(ratio_m) - 1;
 
     *ptr_result_mant = (WORD16)((ratio_m << post_shift_val) >> 15);
   }
@@ -101,7 +101,7 @@ VOID ixheaacd_fix_mant_exp_sqrt(WORD16 *ptr_in_out, WORD16 *sqrt_table) {
   WORD32 result_e;
 
   if (op_mant > 0) {
-    pre_shift_val = (ixheaacd_norm32((WORD16)op_mant) - 16);
+    pre_shift_val = (ixheaac_norm32((WORD16)op_mant) - 16);
     op_exp = (op_exp - pre_shift_val);
     index = (op_mant << pre_shift_val) >> (SHORT_BITS - 3 - 8);
     index &= (1 << (8 + 1)) - 1;
@@ -127,8 +127,8 @@ WORD32 ixheaacd_fix_div_dec(WORD32 op1, WORD32 op2) {
   WORD32 k;
   WORD32 sign;
 
-  abs_num = ixheaacd_abs32(op1 >> 1);
-  abs_den = ixheaacd_abs32(op2 >> 1);
+  abs_num = ixheaac_abs32(op1 >> 1);
+  abs_den = ixheaac_abs32(op2 >> 1);
   sign = op1 ^ op2;
 
   if (abs_num != 0) {
@@ -149,27 +149,27 @@ WORD32 ixheaacd_fix_div_dec(WORD32 op1, WORD32 op2) {
 #define ONE_IN_Q30 0x40000000
 
 static PLATFORM_INLINE WORD32 ixheaacd_one_by_sqrt_calc(WORD32 op) {
-  WORD32 a = ixheaacd_add32_sat(0x900ebee0,
-                                ixheaacd_mult32x16in32_shl_sat(op, 0x39d9));
+  WORD32 a = ixheaac_add32_sat(0x900ebee0,
+                                ixheaac_mult32x16in32_shl_sat(op, 0x39d9));
   WORD32 iy =
-      ixheaacd_add32_sat(0x573b645a, ixheaacd_mult32x16h_in32_shl_sat(op, a));
+      ixheaac_add32_sat(0x573b645a, ixheaac_mult32x16h_in32_shl_sat(op, a));
 
-  iy = ixheaacd_shl32_dir_sat_limit(iy, 1);
+  iy = ixheaac_shl32_dir_sat_limit(iy, 1);
 
-  a = ixheaacd_mult32_shl_sat(op, iy);
-  a = ixheaacd_sub32_sat(ONE_IN_Q30, ixheaacd_shl32_dir_sat_limit(
-                                         ixheaacd_mult32_shl_sat(a, iy), 1));
-  iy = ixheaacd_add32_sat(iy, ixheaacd_mult32_shl_sat(a, iy));
+  a = ixheaac_mult32_shl_sat(op, iy);
+  a = ixheaac_sub32_sat(ONE_IN_Q30, ixheaac_shl32_dir_sat_limit(
+                                         ixheaac_mult32_shl_sat(a, iy), 1));
+  iy = ixheaac_add32_sat(iy, ixheaac_mult32_shl_sat(a, iy));
 
-  a = ixheaacd_mult32_shl_sat(op, iy);
-  a = ixheaacd_sub32_sat(ONE_IN_Q30, ixheaacd_shl32_dir_sat_limit(
-                                         ixheaacd_mult32_shl_sat(a, iy), 1));
-  iy = ixheaacd_add32_sat(iy, ixheaacd_mult32_shl_sat(a, iy));
+  a = ixheaac_mult32_shl_sat(op, iy);
+  a = ixheaac_sub32_sat(ONE_IN_Q30, ixheaac_shl32_dir_sat_limit(
+                                         ixheaac_mult32_shl_sat(a, iy), 1));
+  iy = ixheaac_add32_sat(iy, ixheaac_mult32_shl_sat(a, iy));
 
-  a = ixheaacd_mult32_shl_sat(op, iy);
-  a = ixheaacd_sub32_sat(ONE_IN_Q30, ixheaacd_shl32_dir_sat_limit(
-                                         ixheaacd_mult32_shl_sat(a, iy), 1));
-  iy = ixheaacd_add32_sat(iy, ixheaacd_mult32_shl_sat(a, iy));
+  a = ixheaac_mult32_shl_sat(op, iy);
+  a = ixheaac_sub32_sat(ONE_IN_Q30, ixheaac_shl32_dir_sat_limit(
+                                         ixheaac_mult32_shl_sat(a, iy), 1));
+  iy = ixheaac_add32_sat(iy, ixheaac_mult32_shl_sat(a, iy));
 
   return iy;
 }
@@ -179,11 +179,11 @@ WORD32 ixheaacd_sqrt(WORD32 op) {
   WORD16 shift;
 
   if (op != 0) {
-    shift = (WORD16)(ixheaacd_norm32(op) & ~1);
-    op = ixheaacd_shl32_dir_sat_limit(op, shift);
-    shift = ixheaacd_shr32_dir_sat_limit(shift, 1);
-    op = ixheaacd_mult32_shl_sat(ixheaacd_one_by_sqrt_calc(op), op);
-    result = ixheaacd_shr32_dir_sat_limit(op, ixheaacd_sat16(shift - 1));
+    shift = (WORD16)(ixheaac_norm32(op) & ~1);
+    op = ixheaac_shl32_dir_sat_limit(op, shift);
+    shift = ixheaac_shr32_dir_sat_limit(shift, 1);
+    op = ixheaac_mult32_shl_sat(ixheaacd_one_by_sqrt_calc(op), op);
+    result = ixheaac_shr32_dir_sat_limit(op, ixheaac_sat16(shift - 1));
   }
 
   return result;

@@ -18,7 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_acelp_com.h"
 #include "ixheaacd_bitbuffer.h"
@@ -32,7 +32,7 @@
 #include "ixheaacd_aac_rom.h"
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_acelp_info.h"
@@ -44,8 +44,8 @@
 #include "ixheaacd_ec.h"
 #include "ixheaacd_arith_dec.h"
 #include "ixheaacd_func_def.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_error_codes.h"
 
 extern const ia_usac_samp_rate_info ixheaacd_samp_rate_info[];
@@ -570,8 +570,8 @@ VOID ixheaacd_td_frm_dec(ia_usac_data_struct *usac_data, WORD32 k, WORD32 mod0) 
     for (i = 0; i < nlong / 2; i++) {
       p_out_idata[i] = p_ioverlap[i] << 1;
       p_out_idata[i + nlong / 2] =
-          ixheaacd_add32_sat(p_ioverlap[i + nlong / 2] << 1, p_in_idata[i]);
-      p_ioverlap[i] = ixheaacd_add32_sat(p_in_idata[i + (nlong / 2)] >> 1, p_ioverlap[i + nlong]);
+          ixheaac_add32_sat(p_ioverlap[i + nlong / 2] << 1, p_in_idata[i]);
+      p_ioverlap[i] = ixheaac_add32_sat(p_in_idata[i + (nlong / 2)] >> 1, p_ioverlap[i + nlong]);
       p_ioverlap[i + (nlong / 2)] = 0;
       p_ioverlap[i + nlong] = 0;
       p_ioverlap[i + nlong + (nlong / 2)] = 0;
@@ -587,7 +587,7 @@ VOID ixheaacd_td_frm_dec(ia_usac_data_struct *usac_data, WORD32 k, WORD32 mod0) 
       }
     }
     for (i = 0; i < nlong; i++) {
-      p_out_idata[i] = ixheaacd_add32_sat(p_ioverlap[i] << 1, p_in_idata[i]);
+      p_out_idata[i] = ixheaac_add32_sat(p_ioverlap[i] << 1, p_in_idata[i]);
       p_ioverlap[i] = 0;
     }
   }
