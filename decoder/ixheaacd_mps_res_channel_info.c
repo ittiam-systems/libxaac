@@ -17,12 +17,12 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_rom.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_mps_res.h"
 
 const WORD16 *ixheaacd_res_get_sfb_offsets(

@@ -17,6 +17,7 @@ if(NOT COMPILER_HAS_SANITIZER)
   libxaac_set_link_libraries()
 endif()
 
+include("${XAAC_ROOT}/common/common.cmake")
 include("${XAAC_ROOT}/decoder/libxaacdec.cmake")
-include("${XAAC_ROOT}/test/xaacdec.cmake")
+include("${XAAC_ROOT}/test/decoder/xaacdec.cmake")
 include("${XAAC_ROOT}/fuzzer/xaac_dec_fuzzer.cmake")

@@ -17,14 +17,14 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -33,7 +33,7 @@
 #include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
@@ -136,7 +136,7 @@ VOID ixheaacd_calc_m1m2_5151(ia_heaac_mps_state_struct *pstr_mps_state) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
       m1_param->m1_param_real[1][0][ps][pb] = ONE_IN_Q15;
       m1_param->m1_param_real[2][0][ps][pb] = c_l_fs[pb];
-      m1_param->m1_param_real[3][0][ps][pb] = ixheaacd_mult16_shl(c_l_fs[pb], c_l_c[pb]);
+      m1_param->m1_param_real[3][0][ps][pb] = ixheaac_mult16_shl(c_l_fs[pb], c_l_c[pb]);
       m1_param->m1_param_real[4][0][ps][pb] = c_r_fs[pb];
     }
 
@@ -339,8 +339,8 @@ VOID ixheaacd_calc_m1m2_5152(ia_heaac_mps_state_struct *pstr_mps_state) {
       m1_param->m1_param_real[0][0][ps][pb] = ONE_IN_Q15;
       m1_param->m1_param_real[1][0][ps][pb] = ONE_IN_Q15;
       m1_param->m1_param_real[2][0][ps][pb] = c_l_c[pb];
-      m1_param->m1_param_real[3][0][ps][pb] = ixheaacd_mult16_shl(c_l_c[pb], c_l_lr[pb]);
-      m1_param->m1_param_real[4][0][ps][pb] = ixheaacd_mult16_shl(c_l_c[pb], c_r_lr[pb]);
+      m1_param->m1_param_real[3][0][ps][pb] = ixheaac_mult16_shl(c_l_c[pb], c_l_lr[pb]);
+      m1_param->m1_param_real[4][0][ps][pb] = ixheaac_mult16_shl(c_l_c[pb], c_r_lr[pb]);
     }
 
     for (pb = 0; pb < num_parameter_bands; pb++) {

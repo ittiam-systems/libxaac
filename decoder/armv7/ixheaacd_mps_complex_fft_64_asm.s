@@ -170,7 +170,7 @@ RADIX4_BFLY:
     LDR             r1, [sp, #0x14]
     LDR             r2, [sp, #0x10]
 
-    SMULL           r3, r4, r6, r2      @ixheaacd_mult32(x1r,w1l)
+    SMULL           r3, r4, r6, r2      @ixheaac_mult32(x1r,w1l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r6, r6, r1      @mult32x16hin32(x1r,W1h)
@@ -179,7 +179,7 @@ RADIX4_BFLY:
     SMULL           r3, r5, r7, r1      @mult32x16hin32(x1i,W1h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r7, r7, r2      @ixheaacd_mac32(ixheaacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r7, r7, r2      @ixheaac_mac32(ixheaac_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r7, r3, r7, LSL#1
     ADD             r7, r7, r6
@@ -188,7 +188,7 @@ RADIX4_BFLY:
     LDR             r1, [sp, #0x0c]
     LDR             r2, [sp, #0x08]
 
-    SMULL           r3, r4, r8, r2      @ixheaacd_mult32(x2r,w2l)
+    SMULL           r3, r4, r8, r2      @ixheaac_mult32(x2r,w2l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r8, r8, r1      @mult32x16hin32(x2r,W2h)
@@ -197,7 +197,7 @@ RADIX4_BFLY:
     SMULL           r3, r5, r9, r1      @mult32x16hin32(x2i,W2h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r9, r9, r2      @ixheaacd_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r9, r9, r2      @ixheaac_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r9, r3, r9, LSL#1
     ADD             r9, r9, r8
@@ -206,7 +206,7 @@ RADIX4_BFLY:
     LDR             r1, [sp, #0x04]
     LDR             r2, [sp]
 
-    SMULL           r3, r4, r10, r2     @ixheaacd_mult32(x3r,w3l)
+    SMULL           r3, r4, r10, r2     @ixheaac_mult32(x3r,w3l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r10, r10, r1    @mult32x16hin32(x3r,W3h)
@@ -215,7 +215,7 @@ RADIX4_BFLY:
     SMULL           r3, r5, r11, r1     @mult32x16hin32(x3i,W3h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r11, r11, r2    @ixheaacd_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
+    SMULL           r3, r11, r11, r2    @ixheaac_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
     LSR             r3, r3, #31
     ORR             r11, r3, r11, LSL#1
     ADD             r11, r11, r10
@@ -298,7 +298,7 @@ RADIX4_BFLY_2:
     LDR             r1, [sp, #0x14]
     LDR             r2, [sp, #0x10]
 
-    SMULL           r3, r4, r6, r2      @ixheaacd_mult32(x1r,w1l)
+    SMULL           r3, r4, r6, r2      @ixheaac_mult32(x1r,w1l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r6, r6, r1      @mult32x16hin32(x1r,W1h)
@@ -307,7 +307,7 @@ RADIX4_BFLY_2:
     SMULL           r3, r5, r7, r1      @mult32x16hin32(x1i,W1h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r7, r7, r2      @ixheaacd_mac32(ixheaacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r7, r7, r2      @ixheaac_mac32(ixheaac_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r7, r3, r7, LSL#1
     ADD             r7, r7, r6
@@ -316,7 +316,7 @@ RADIX4_BFLY_2:
     LDR             r1, [sp, #0x0c]
     LDR             r2, [sp, #0x08]
 
-    SMULL           r3, r4, r8, r2      @ixheaacd_mult32(x2r,w2l)
+    SMULL           r3, r4, r8, r2      @ixheaac_mult32(x2r,w2l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r8, r8, r1      @mult32x16hin32(x2r,W2h)
@@ -325,7 +325,7 @@ RADIX4_BFLY_2:
     SMULL           r3, r5, r9, r1      @mult32x16hin32(x2i,W2h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r9, r9, r2      @ixheaacd_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r9, r9, r2      @ixheaac_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r9, r3, r9, LSL#1
     ADD             r9, r9, r8
@@ -334,7 +334,7 @@ RADIX4_BFLY_2:
     LDR             r1, [sp, #0x04]
     LDR             r2, [sp]
 
-    SMULL           r3, r4, r10, r2     @ixheaacd_mult32(x3r,w3l)
+    SMULL           r3, r4, r10, r2     @ixheaac_mult32(x3r,w3l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r10, r10, r1    @mult32x16hin32(x3r,W3h)
@@ -343,7 +343,7 @@ RADIX4_BFLY_2:
     SMULL           r3, r5, r11, r1     @mult32x16hin32(x3i,W3h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r11, r11, r2    @ixheaacd_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
+    SMULL           r3, r11, r11, r2    @ixheaac_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
     LSR             r3, r3, #31
     ORR             r11, r3, r11, LSL#1
     ADD             r10, r11, r10
@@ -430,7 +430,7 @@ RADIX4_BFLY_3:
     LDR             r1, [sp, #0x14]
     LDR             r2, [sp, #0x10]
 
-    SMULL           r3, r4, r6, r2      @ixheaacd_mult32(x1r,w1l)
+    SMULL           r3, r4, r6, r2      @ixheaac_mult32(x1r,w1l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r6, r6, r1      @mult32x16hin32(x1r,W1h)
@@ -439,7 +439,7 @@ RADIX4_BFLY_3:
     SMULL           r3, r5, r7, r1      @mult32x16hin32(x1i,W1h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r7, r7, r2      @ixheaacd_mac32(ixheaacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r7, r7, r2      @ixheaac_mac32(ixheaac_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r7, r3, r7, LSL#1
     ADD             r7, r7, r6
@@ -448,7 +448,7 @@ RADIX4_BFLY_3:
     LDR             r1, [sp, #0x0c]
     LDR             r2, [sp, #0x08]
 
-    SMULL           r3, r4, r8, r2      @ixheaacd_mult32(x2r,w2l)
+    SMULL           r3, r4, r8, r2      @ixheaac_mult32(x2r,w2l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r8, r8, r1      @mult32x16hin32(x2r,W2h)
@@ -457,7 +457,7 @@ RADIX4_BFLY_3:
     SMULL           r3, r5, r9, r1      @mult32x16hin32(x2i,W2h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r9, r9, r2      @ixheaacd_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r9, r9, r2      @ixheaac_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r9, r3, r9, LSL#1
     ADD             r8, r9, r8
@@ -466,7 +466,7 @@ RADIX4_BFLY_3:
     LDR             r1, [sp, #0x04]
     LDR             r2, [sp]
 
-    SMULL           r3, r4, r10, r2     @ixheaacd_mult32(x3r,w3l)
+    SMULL           r3, r4, r10, r2     @ixheaac_mult32(x3r,w3l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r10, r10, r1    @mult32x16hin32(x3r,W3h)
@@ -475,7 +475,7 @@ RADIX4_BFLY_3:
     SMULL           r3, r5, r11, r1     @mult32x16hin32(x3i,W3h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r11, r11, r2    @ixheaacd_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
+    SMULL           r3, r11, r11, r2    @ixheaac_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
     LSR             r3, r3, #31
     ORR             r11, r3, r11, LSL#1
     ADD             r10, r11, r10
@@ -560,7 +560,7 @@ RADIX4_BFLY_4:
     LDR             r1, [sp, #0x14]
     LDR             r2, [sp, #0x10]
 
-    SMULL           r3, r4, r6, r2      @ixheaacd_mult32(x1r,w1l)
+    SMULL           r3, r4, r6, r2      @ixheaac_mult32(x1r,w1l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r6, r6, r1      @mult32x16hin32(x1r,W1h)
@@ -569,7 +569,7 @@ RADIX4_BFLY_4:
     SMULL           r3, r5, r7, r1      @mult32x16hin32(x1i,W1h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r7, r7, r2      @ixheaacd_mac32(ixheaacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r7, r7, r2      @ixheaac_mac32(ixheaac_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r7, r3, r7, LSL#1
     ADD             r7, r7, r6
@@ -578,7 +578,7 @@ RADIX4_BFLY_4:
     LDR             r1, [sp, #0x0c]
     LDR             r2, [sp, #0x08]
 
-    SMULL           r3, r4, r8, r2      @ixheaacd_mult32(x2r,w2l)
+    SMULL           r3, r4, r8, r2      @ixheaac_mult32(x2r,w2l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r8, r8, r1      @mult32x16hin32(x2r,W2h)
@@ -587,7 +587,7 @@ RADIX4_BFLY_4:
     SMULL           r3, r5, r9, r1      @mult32x16hin32(x2i,W2h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r9, r9, r2      @ixheaacd_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
+    SMULL           r3, r9, r9, r2      @ixheaac_mac32(ixheacd_mult32(x1r,w1h) ,x1i,w1l)
     LSR             r3, r3, #31
     ORR             r9, r3, r9, LSL#1
     ADD             r8, r9, r8
@@ -596,7 +596,7 @@ RADIX4_BFLY_4:
     LDR             r1, [sp, #0x04]
     LDR             r2, [sp]
 
-    SMULL           r3, r4, r10, r2     @ixheaacd_mult32(x3r,w3l)
+    SMULL           r3, r4, r10, r2     @ixheaac_mult32(x3r,w3l)
     LSR             r3, r3, #31
     ORR             r4, r3, r4, LSL#1
     SMULL           r3, r10, r10, r1    @mult32x16hin32(x3r,W3h)
@@ -605,7 +605,7 @@ RADIX4_BFLY_4:
     SMULL           r3, r5, r11, r1     @mult32x16hin32(x3i,W3h)
     LSR             r3, r3, #31
     ORR             r5, r3, r5, LSL#1
-    SMULL           r3, r11, r11, r2    @ixheaacd_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
+    SMULL           r3, r11, r11, r2    @ixheaac_mac32(ixheacd_mult32(x3r,w3h) ,x3i,w3l)
     LSR             r3, r3, #31
     ORR             r11, r3, r11, LSL#1
     ADD             r11, r11, r10

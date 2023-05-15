@@ -23,9 +23,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"

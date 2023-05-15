@@ -20,14 +20,14 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -40,14 +40,14 @@
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_env_dec.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_basic_funcs.h"
 #include "ixheaacd_audioobjtypes.h"
 
 #define add16_m(a, b) ((a) + (b))
 #define sub16_m(a, b) ((a) - (b))
 
-#define mult16x16_16(a, b) ixheaacd_mult16((a), (b))
+#define mult16x16_16(a, b) ixheaac_mult16((a), (b))
 
 static VOID ixheaacd_dequant_esbr_env_data(FLOAT32 *ptr_env_sf,
                                            WORD32 num_env_sf,
@@ -166,7 +166,7 @@ VOID ixheaacd_process_del_cod_env_data(
         if (ixheaacd_drc_offset < 0) {
           WORD32 tar, index_3;
           ixheaacd_drc_offset = -ixheaacd_drc_offset;
-          tar = ixheaacd_min32(ixheaacd_drc_offset, band);
+          tar = ixheaac_min32(ixheaacd_drc_offset, band);
 
           for (band = 0; band < tar; band++) {
             index_3 = ((band + band) + band);
@@ -193,7 +193,7 @@ VOID ixheaacd_process_del_cod_env_data(
         } else {
           WORD32 tar, index_2;
           WORD16 *ptr2 = ptr_prev_env_sf;
-          tar = ixheaacd_min32(ixheaacd_drc_offset, band);
+          tar = ixheaac_min32(ixheaacd_drc_offset, band);
           for (band = 0; band < tar; band++) {
             *ptr_env_sf = add16_m(*ptr_env_sf, *ptr2);
             *ptr2 = *ptr_env_sf;
@@ -263,7 +263,7 @@ ixheaacd_wrong_timing_compensate(ia_sbr_header_data_struct *ptr_header_data,
   delta_exp -= pstr_common_tables->log_dual_is_table[new_len];
 
   shift = (SHORT_BITS - ENV_EXP_FRACT - 3 - ptr_sbr_data->amp_res);
-  delta_exp = ixheaacd_shr16(delta_exp, (WORD16)shift);
+  delta_exp = ixheaac_shr16(delta_exp, (WORD16)shift);
   p_frame_info->border_vec[0] = start_pos_est;
   p_frame_info->noise_border_vec[0] = start_pos_est;
 
@@ -546,7 +546,7 @@ VOID ixheaacd_sbr_env_dequant_coup_fix(
 
     new_right_exp += temp_left_exp - temp_rightplus1_exp + 2;
 
-    new_left_mant = ixheaacd_mult16_shl(temp_right_mant, new_right_mant);
+    new_left_mant = ixheaac_mult16_shl(temp_right_mant, new_right_mant);
 
     new_left_exp = add16_m(temp_right_exp, new_right_exp);
 
@@ -566,7 +566,7 @@ VOID ixheaacd_sbr_env_dequant_coup_fix(
         sub16_m((WORD16)(*l_data & (WORD16)MASK_FOR_EXP), NOISE_EXP_OFFSET);
     temp_right_exp = sub16_m(*r_data, 12);
 
-    ixheaacd_fix_mant_exp_add(0x4000, ixheaacd_add16(1, temp_right_exp), 0x4000,
+    ixheaacd_fix_mant_exp_add(0x4000, ixheaac_add16(1, temp_right_exp), 0x4000,
                               1, &temp_right_plus1_mant, &temp_rightplus1_exp);
 
     new_right_exp = ixheaacd_fix_mant_div(0x4000, temp_right_plus1_mant,
@@ -860,7 +860,7 @@ VOID ixheaacd_adj_timeslot(WORD32 *ptr_buf_real, WORD32 *ptr_buf_imag,
   const WORD32 *ptr_rand_ph_buf;
   WORD32 factor = 0;
 
-  direct_ratio = ixheaacd_sub16_sat(0x7fff, smooth_ratio);
+  direct_ratio = ixheaac_sub16_sat(0x7fff, smooth_ratio);
   freq_inv_flag = (sub_band_start & 1);
 
   scale_change = scale_change - 1;

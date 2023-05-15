@@ -29,13 +29,13 @@ WORD32 ixheaacd_real_synth_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                 WORD32 num_columns, FLOAT32 qmf_buf_real[][64],
                                 FLOAT32 qmf_buf_imag[][64]);
 
-VOID ixheaacd_cmplx_anal_fft_p2(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
+VOID ixheaac_cmplx_anal_fft_p2(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
-VOID ixheaacd_cmplx_anal_fft_p3(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
+VOID ixheaac_cmplx_anal_fft_p3(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
-VOID ixheaacd_real_synth_fft_p2(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
+VOID ixheaac_real_synth_fft_p2(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
-VOID ixheaacd_real_synth_fft_p3(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
+VOID ixheaac_real_synth_fft_p3(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
 WORD32 ixheaacd_dft_hbe_cplx_anal_filt(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                        FLOAT32 qmf_buf_real[][64],

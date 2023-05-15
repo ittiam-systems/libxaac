@@ -39,9 +39,9 @@ into better quality at lower bit-rates.
 
 ## Files to be included are
 * [`ixheaacd_apicmd_standards.h`](decoder/ixheaacd_apicmd_standards.h)
-* [`ixheaacd_type_def.h`](decoder/ixheaacd_type_def.h)
+* [`ixheaac_type_def.h`](common/ixheaac_type_def.h)
 * [`ixheaacd_memory_standards.h`](decoder/ixheaacd_memory_standards.h)
-* [`ixheaacd_error_standards.h`](decoder/ixheaacd_error_standards.h)
+* [`ixheaac_error_standards.h`](common/ixheaac_error_standards.h)
 * [`ixheaacd_error_handler.h`](decoder/ixheaacd_error_handler.h)
 * [`ixheaacd_aac_config.h`](decoder/ixheaacd_aac_config.h)
 

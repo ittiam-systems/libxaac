@@ -17,9 +17,9 @@
 *****************************************************************************
 * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_error_standards.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_config.h"

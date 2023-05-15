@@ -17,11 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_cnst.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_rom.h"
@@ -79,7 +79,7 @@ VOID ixheaacd_res_ctns_apply(ia_mps_dec_residual_channel_info_struct *p_aac_deco
   WORD window, index, start, stop, size, scale_spec;
   ia_mps_dec_residual_ics_info_struct *p_ics_info = &p_aac_decoder_channel_info->ics_info;
   WORD win_len, tns_max_bands;
-  WORD16 maximum_bins_short = ixheaacd_shr16_dir_sat(p_ics_info->frame_length, 3);
+  WORD16 maximum_bins_short = ixheaac_shr16_dir_sat(p_ics_info->frame_length, 3);
 
   WORD32 coeff_parc[MAX_ORDER + 1];
   WORD32 lpc[MAX_ORDER + 1];
@@ -103,11 +103,11 @@ VOID ixheaacd_res_ctns_apply(ia_mps_dec_residual_channel_info_struct *p_aac_deco
 
       ixheaacd_res_tns_decode_coeffs_32x16(filter, (WORD16 *)coeff_parc, aac_tables_ptr);
 
-      start = ixheaacd_min32(ixheaacd_min32(filter->start_band, tns_max_bands), max_sfb);
+      start = ixheaac_min32(ixheaac_min32(filter->start_band, tns_max_bands), max_sfb);
 
       start = scale_factor_bands_tbl[start];
 
-      stop = ixheaacd_min32(ixheaacd_min32(filter->stop_band, tns_max_bands), max_sfb);
+      stop = ixheaac_min32(ixheaac_min32(filter->stop_band, tns_max_bands), max_sfb);
 
       stop = scale_factor_bands_tbl[stop];
 
@@ -126,7 +126,7 @@ VOID ixheaacd_res_ctns_apply(ia_mps_dec_residual_channel_info_struct *p_aac_deco
       if (scale_spec > 0) {
         WORD shift;
 
-        scale_spec = ixheaacd_min32(scale_spec, 31);
+        scale_spec = ixheaac_min32(scale_spec, 31);
 
         if (filter->direction == -1)
           shift = stop - 1;
@@ -141,7 +141,7 @@ VOID ixheaacd_res_ctns_apply(ia_mps_dec_residual_channel_info_struct *p_aac_deco
         WORD32 *p_tmp = p_spectrum + (window * maximum_bins_short) + start;
 
         scale_spec = -scale_spec;
-        scale_spec = ixheaacd_min32(scale_spec, 31);
+        scale_spec = ixheaac_min32(scale_spec, 31);
 
         for (i = size; i != 0; i--) {
           *p_tmp = (*p_tmp >> scale_spec);

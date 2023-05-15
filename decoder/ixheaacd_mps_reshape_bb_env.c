@@ -17,13 +17,13 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_error_codes.h"
 #include "ixheaacd_common_rom.h"
@@ -41,7 +41,7 @@
 #include "ixheaacd_mps_macro_def.h"
 #include "ixheaacd_mps_basic_op.h"
 #include "ixheaacd_mps_reshape_bb_env.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #define ALIGN_SIZE64(x) ((((x) + 7) >> 3) << 3)
 
@@ -189,8 +189,8 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         for (pb = start_p; pb <= end_p; pb++) {
           *n_slot_nrg = ixheaacd_mps_narrow(*slot_nrg, q_slot_nrg);
           slot_nrg++;
-          temp_1 = ixheaacd_mult32x16in32(*n_slot_nrg, one_min_alpha_fix);
-          temp4 = ixheaacd_mult32x16in32((part_nrg_fix[pb]) << 1, alpha_fix);
+          temp_1 = ixheaac_mult32x16in32(*n_slot_nrg, one_min_alpha_fix);
+          temp4 = ixheaac_mult32x16in32((part_nrg_fix[pb]) << 1, alpha_fix);
           part_nrg_fix[pb] =
               ixheaacd_mps_reshape_add32(temp4, temp_1, &q_part_nrg_fix[pb], *q_slot_nrg);
 
@@ -198,10 +198,10 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
                                                      &q_frame_nrg_fix, *q_slot_nrg++);
         }
 
-        frame_nrg_fix = ixheaacd_mult32x16in32(frame_nrg_fix, one_by_nine);
+        frame_nrg_fix = ixheaac_mult32x16in32(frame_nrg_fix, one_by_nine);
 
-        temp_1 = ixheaacd_mult32x16in32(frame_nrg_fix, one_min_alpha_fix);
-        temp4 = ixheaacd_mult32x16in32((frame_nrg_prev) << 1, alpha_fix);
+        temp_1 = ixheaac_mult32x16in32(frame_nrg_fix, one_min_alpha_fix);
+        temp4 = ixheaac_mult32x16in32((frame_nrg_prev) << 1, alpha_fix);
         frame_nrg_fix =
             ixheaacd_mps_reshape_add32(temp_1, temp4, &q_frame_nrg_fix, q_frame_nrg_prev);
 
@@ -223,8 +223,8 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         env_fix_l =
             ixheaacd_mps_mult32x32(env_fix_l, frame_nrg_fix, &q_env_fix_l, q_frame_nrg_fix);
 
-        temp_1 = ixheaacd_mult32x16in32(env_fix_l, one_min_beta_fix);
-        temp4 = ixheaacd_mult32x16in32((*norm_nrg_fix) << 1, beta_fix);
+        temp_1 = ixheaac_mult32x16in32(env_fix_l, one_min_beta_fix);
+        temp4 = ixheaac_mult32x16in32((*norm_nrg_fix) << 1, beta_fix);
         *norm_nrg_fix = ixheaacd_mps_reshape_add32(temp4, temp_1, q_norm_nrg_fix, q_env_fix_l);
 
         if (flag) {
@@ -307,18 +307,18 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         for (pb = start_p; pb <= end_p; pb++) {
           *n_slot_nrg = ixheaacd_mps_narrow(*slot_nrg, q_slot_nrg);
           slot_nrg++;
-          temp_1 = ixheaacd_mult32x16in32(*n_slot_nrg, one_min_alpha_fix);
-          temp4 = ixheaacd_mult32x16in32((part_nrg_fix[pb]) << 1, alpha_fix);
+          temp_1 = ixheaac_mult32x16in32(*n_slot_nrg, one_min_alpha_fix);
+          temp4 = ixheaac_mult32x16in32((part_nrg_fix[pb]) << 1, alpha_fix);
           part_nrg_fix[pb] =
               ixheaacd_mps_reshape_add32(temp4, temp_1, &q_part_nrg_fix[pb], *q_slot_nrg);
           frame_nrg_fix = ixheaacd_mps_reshape_add32(frame_nrg_fix, *n_slot_nrg++,
                                                      &q_frame_nrg_fix, *q_slot_nrg++);
         }
 
-        frame_nrg_fix = ixheaacd_mult32x16in32(frame_nrg_fix, one_by_nine);
+        frame_nrg_fix = ixheaac_mult32x16in32(frame_nrg_fix, one_by_nine);
 
-        temp_1 = ixheaacd_mult32x16in32(frame_nrg_fix, one_min_alpha_fix);
-        temp4 = ixheaacd_mult32x16in32((frame_nrg_prev) << 1, alpha_fix);
+        temp_1 = ixheaac_mult32x16in32(frame_nrg_fix, one_min_alpha_fix);
+        temp4 = ixheaac_mult32x16in32((frame_nrg_prev) << 1, alpha_fix);
         frame_nrg_fix =
             ixheaacd_mps_reshape_add32(temp_1, temp4, &q_frame_nrg_fix, q_frame_nrg_prev);
 
@@ -340,8 +340,8 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         env_fix_l =
             ixheaacd_mps_mult32x32(env_fix_l, frame_nrg_fix, &q_env_fix_l, q_frame_nrg_fix);
 
-        temp_1 = ixheaacd_mult32x16in32(env_fix_l, one_min_beta_fix);
-        temp4 = ixheaacd_mult32x16in32((*norm_nrg_fix) << 1, beta_fix);
+        temp_1 = ixheaac_mult32x16in32(env_fix_l, one_min_beta_fix);
+        temp4 = ixheaac_mult32x16in32((*norm_nrg_fix) << 1, beta_fix);
         *norm_nrg_fix = ixheaacd_mps_reshape_add32(temp4, temp_1, q_norm_nrg_fix, q_env_fix_l);
 
         temp_1 = ixheaacd_mps_div_32(env_fix_l, *norm_nrg_fix, &qtemp1);

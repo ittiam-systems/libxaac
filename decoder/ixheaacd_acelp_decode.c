@@ -23,7 +23,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -43,7 +43,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"

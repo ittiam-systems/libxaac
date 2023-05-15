@@ -19,12 +19,12 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_aac_rom.h"
@@ -84,7 +84,7 @@
 
 #include "ixheaacd_multichannel.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_adts_crc_check.h"
 #include "ixheaacd_function_selector.h"
 

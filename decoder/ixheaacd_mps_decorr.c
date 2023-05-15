@@ -19,7 +19,7 @@
 */
 #include <math.h>
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -35,13 +35,13 @@
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_mps_dec.h"
 #include "ixheaacd_mps_decor.h"
 #include "ixheaacd_mps_hybfilter.h"
-#include "ixheaacd_error_standards.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_mps_macro_def.h"
 #include "ixheaacd_mps_basic_op.h"
 
@@ -412,12 +412,12 @@ static VOID ixheaacd_convert_lattice_coefs_complex(WORD32 const order,
       temp = (WORD64)((WORD64)rfc_real[i] * (WORD64)tmp_real[i - j - 1] +
                       (WORD64)rfc_imag[i] * (WORD64)tmp_imag[i - j - 1]);
       temp >>= 15;
-      apar_real[j + 1] = ixheaacd_add32(tmp_real[j], (WORD32)temp);
+      apar_real[j + 1] = ixheaac_add32(tmp_real[j], (WORD32)temp);
 
       temp = (WORD64)((WORD64)rfc_real[i] * (WORD64)tmp_imag[i - j - 1] +
                       (WORD64)rfc_imag[i] * (WORD64)tmp_real[i - j - 1]);
       temp >>= 15;
-      apar_imag[j + 1] = ixheaacd_sub32(tmp_imag[j], (WORD32)temp);
+      apar_imag[j + 1] = ixheaac_sub32(tmp_imag[j], (WORD32)temp);
     }
     for (j = 0; j <= i; j++) {
       tmp_real[j] = apar_real[j + 1];

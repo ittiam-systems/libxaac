@@ -17,8 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_CONSTANTS_H
-#define IXHEAACD_CONSTANTS_H
+#ifndef IXHEAAC_CONSTANTS_H
+#define IXHEAAC_CONSTANTS_H
 
 /*****************************************************************************/
 /* constant macros                                                           */
@@ -83,4 +83,4 @@
 #define C76 (0.5339693427f)   //(sin(u) - 2 * sin(2 * u) - sin(3 * u)) / 3;
 #define C77 (-0.8748422265f)  //(sin(u) + sin(2 * u) + 2 * sin(3 * u)) / 3;
 
-#endif /* IXHEAACD_CONSTANTS_H */
+#endif /* IXHEAAC_CONSTANTS_H */

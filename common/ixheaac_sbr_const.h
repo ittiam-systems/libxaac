@@ -17,8 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_SBR_CONST_H
-#define IXHEAACD_SBR_CONST_H
+#ifndef IXHEAAC_SBR_CONST_H
+#define IXHEAAC_SBR_CONST_H
 
 #define SBR_AMPLITUDE_RESOLUTION_1_5 0
 #define SBR_AMPLITUDE_RESOLUTION_3_0 1
@@ -219,23 +219,6 @@
 #define SBR_ENVT_NUMENV 0
 #define SBR_ENVT_TRANIDX 3
 
-static const int ixheaacd_ld_env_table_512[LD_ENV_TBL_512][LD_ENV_TBL_SIZE] = {
-    {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
-    {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
-    {3, 8, 12, 1},  {3, 9, 13, 1},  {3, 10, 14, 1}, {2, 11, -1, 1},
-    {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1}, {2, 15, -1, 1},
-};
-
-static const int ixheaacd_ld_env_table_480[LD_ENV_TBL_480][LD_ENV_TBL_SIZE] = {
-    {2, 4, -1, 0},  {2, 5, -1, 0},  {3, 2, 6, 1},   {3, 3, 7, 1},
-    {3, 4, 8, 1},   {3, 5, 9, 1},   {3, 6, 10, 1},  {3, 7, 11, 1},
-    {3, 8, 12, 1},  {3, 9, 13, 1},  {2, 10, -1, 1}, {2, 11, -1, 1},
-    {2, 12, -1, 1}, {2, 13, -1, 1}, {2, 14, -1, 1},
-};
-
-static const int ixheaacd_ld_env_table_time_slot[LD_ENV_TIME_SLOT] = {
-    8, 5, 0, 0, 0, 0, 0};
-
 #define SBR_CLA_BITS 2
 #define SBR_ABS_BITS 2
 #define SBR_RES_BITS 1
@@ -250,4 +233,4 @@ static const int ixheaacd_ld_env_table_time_slot[LD_ENV_TIME_SLOT] = {
 
 #define LEN_NIBBLE (4)
 
-#endif
+#endif /* IXHEAAC_SBR_CONST_H */

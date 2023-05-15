@@ -20,13 +20,13 @@
 #include <string.h>
 
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
@@ -41,7 +41,7 @@
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_qmf_dec.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_env_calc.h"
 
 #include "ixheaacd_interface.h"
@@ -367,7 +367,7 @@ VOID ixheaacd_esbr_cos_sin_mod(WORD32 *subband,
   WORD32 scaleshift = 0;
 
   WORD32 M_2;
-  WORD32 M = ixheaacd_shr32(qmf_bank->no_channels, 1);
+  WORD32 M = ixheaac_shr32(qmf_bank->no_channels, 1);
 
   const WORD32 *p_sin;
   const WORD32 *p_sin_cos;
@@ -377,7 +377,7 @@ VOID ixheaacd_esbr_cos_sin_mod(WORD32 *subband,
   p_sin_cos = qmf_bank->esbr_cos_twiddle;
   ixheaacd_esbr_cos_sin_mod_loop1(subband, M, p_sin_cos, subband_tmp);
 
-  M_2 = ixheaacd_shr32(M, 1);
+  M_2 = ixheaac_shr32(M, 1);
   if (M == 32) {
     ixheaacd_esbr_radix4bfly(p_twiddle, subband_tmp, 1, 8);
     ixheaacd_esbr_radix4bfly(p_twiddle + 48, subband_tmp, 4, 2);
@@ -464,26 +464,26 @@ VOID ixheaacd_esbr_qmfsyn32_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
     WORD64 syn_out = 0;
 
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[0 + k], inp1[2 * (k + 0)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp1[0 + k], inp1[2 * (k + 0)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[128 + k], inp1[2 * (k + 64)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp1[128 + k], inp1[2 * (k + 64)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[256 + k], inp1[2 * (k + 128)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp1[256 + k], inp1[2 * (k + 128)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[384 + k], inp1[2 * (k + 192)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp1[384 + k], inp1[2 * (k + 192)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp1[512 + k], inp1[2 * (k + 256)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp1[512 + k], inp1[2 * (k + 256)]));
 
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[64 + k], inp1[2 * (k + 32)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp2[64 + k], inp1[2 * (k + 32)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[192 + k], inp1[2 * (k + 96)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp2[192 + k], inp1[2 * (k + 96)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[320 + k], inp1[2 * (k + 160)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp2[320 + k], inp1[2 * (k + 160)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[448 + k], inp1[2 * (k + 224)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp2[448 + k], inp1[2 * (k + 224)]));
     syn_out =
-        ixheaacd_add64(syn_out, ixheaacd_mult64(tmp2[576 + k], inp1[2 * (k + 288)]));
+        ixheaac_add64(syn_out, ixheaac_mult64(tmp2[576 + k], inp1[2 * (k + 288)]));
 
     sample_buffer[ch_fac * k] = (WORD32)(syn_out >> 31);
   }

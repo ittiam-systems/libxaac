@@ -18,13 +18,13 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -33,7 +33,7 @@
 #include "ixheaacd_sbr_rom.h"
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_mps_polyphase.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
@@ -130,8 +130,8 @@ VOID ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) {
       temp_2 = ixheaacd_mps_mult32_shr_15(left_f, right_f);
       temp_2 = ixheaacd_mps_mult32_shr_15(temp_2, p_aux_struct->ott_icc[3][ps][pb]);
 
-      temp_1 = ixheaacd_add32_sat(temp_1, temp_2);
-      cross = ixheaacd_add32_sat(center, temp_1);
+      temp_1 = ixheaac_add32_sat(temp_1, temp_2);
+      cross = ixheaac_add32_sat(center, temp_1);
 
       temp_1 = ixheaacd_mps_div32_in_q15(left, right);
       qtemp1 = 15;
@@ -243,30 +243,30 @@ VOID ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) {
       temp_1 = ixheaacd_mps_convert_to_qn(temp_1, qtemp1, 15);
       cross = ixheaacd_mps_mult32_shr_15(temp_1, p_aux_struct->ott_icc[1][ps][pb]);
 
-      temp_1 = ixheaacd_add32_sat((left + right), cross);
+      temp_1 = ixheaac_add32_sat((left + right), cross);
       temp_1 = ixheaacd_mps_mult32_shr_15(temp_1, center);
       qtemp1 = 15;
       temp_1 = ixheaacd_mps_sqrt(temp_1, &qtemp1, sqrt_tab);
       temp_1 = ixheaacd_mps_convert_to_qn(temp_1, qtemp1, 15);
       temp_1 = ixheaacd_mps_mult32_shr_15(temp_1, p_aux_struct->ott_icc[0][ps][pb]);
-      temp_1 = ixheaacd_add32_sat(temp_1, center);
-      cross = ixheaacd_add32_sat(cross, temp_1);
+      temp_1 = ixheaac_add32_sat(temp_1, center);
+      cross = ixheaac_add32_sat(cross, temp_1);
 
       temp_1 = ixheaacd_mps_mult32_shr_15(left, center);
       qtemp1 = 15;
       temp_1 = ixheaacd_mps_sqrt(temp_1, &qtemp1, sqrt_tab);
       temp_1 = ixheaacd_mps_convert_to_qn(2 * temp_1, qtemp1, 15);
       temp_1 = ixheaacd_mps_mult32_shr_15(temp_1, p_aux_struct->ott_icc[0][ps][pb]);
-      temp_1 = ixheaacd_add32_sat(temp_1, center);
-      left = ixheaacd_add32_sat(left, temp_1);
+      temp_1 = ixheaac_add32_sat(temp_1, center);
+      left = ixheaac_add32_sat(left, temp_1);
 
       temp_1 = ixheaacd_mps_mult32_shr_15(right, center);
       qtemp1 = 15;
       temp_1 = ixheaacd_mps_sqrt(temp_1, &qtemp1, sqrt_tab);
       temp_1 = ixheaacd_mps_convert_to_qn(2 * temp_1, qtemp1, 15);
       temp_1 = ixheaacd_mps_mult32_shr_15(temp_1, p_aux_struct->ott_icc[0][ps][pb]);
-      temp_1 = ixheaacd_add32_sat(temp_1, center);
-      right = ixheaacd_add32_sat(right, temp_1);
+      temp_1 = ixheaac_add32_sat(temp_1, center);
+      right = ixheaac_add32_sat(right, temp_1);
 
       temp_1 = ixheaacd_mps_div32_in_q15(left, right);
       qtemp1 = 15;
@@ -282,7 +282,7 @@ VOID ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) {
 
       icc[pb] = ixheaacd_mps_div32_in_q15(cross, temp_1);
 
-      temp_1 = ixheaacd_add32_sat(left, right);
+      temp_1 = ixheaac_add32_sat(left, right);
       qtemp1 = 15;
       temp_1 = ixheaacd_mps_sqrt(temp_1, &qtemp1, sqrt_tab);
       g_s[pb] = ixheaacd_mps_convert_to_qn(temp_1, qtemp1, 15);

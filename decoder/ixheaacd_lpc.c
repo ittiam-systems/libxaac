@@ -24,7 +24,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
 #include "ixheaacd_defines.h"
@@ -40,7 +40,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_pulsedata.h"
 #include "ixheaacd_pns.h"
@@ -55,9 +55,9 @@
 #include "ixheaacd_func_def.h"
 #include "ixheaacd_windows.h"
 #include "ixheaacd_acelp_com.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 #define LSF_GAP_F 50.0f
 #define FREQ_MAX_F 6400.0f

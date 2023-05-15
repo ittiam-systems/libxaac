@@ -22,8 +22,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_cnst.h"
 
 #include "ixheaacd_bitbuffer.h"
@@ -46,7 +46,7 @@
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_qmf_dec.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_lpp_tran.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_env_extr.h"

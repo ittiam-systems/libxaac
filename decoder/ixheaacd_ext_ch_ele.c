@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_cnst.h"
 
@@ -42,7 +42,7 @@
 
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_rom.h"
@@ -53,9 +53,9 @@
 
 #include "ixheaacd_bit_extract.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 #include "ixheaacd_func_def.h"
 
@@ -333,8 +333,8 @@ VOID ixheaacd_ms_stereo(ia_usac_data_struct *usac_data, WORD32 *r_spec,
           for (k = 0; k < ptr_sfb_info->sfb_width[sfb]; k++) {
             temp_r = *r_spec;
             temp_l = *l_spec;
-            *l_spec = ixheaacd_add32_sat(temp_r, temp_l);
-            *r_spec = ixheaacd_sub32_sat(temp_l, temp_r);
+            *l_spec = ixheaac_add32_sat(temp_r, temp_l);
+            *r_spec = ixheaac_sub32_sat(temp_l, temp_r);
             r_spec++;
             l_spec++;
           }
@@ -359,67 +359,67 @@ static VOID ixheaacd_filter_and_add(const WORD32 *in, const WORD32 length,
   WORD32 i;
   WORD64 sum;
 
-  sum = ixheaacd_mult32x32in64(in[2], filter[0]);
-  sum = ixheaacd_mac32x32in64(sum, in[1], filter[1]);
-  sum = ixheaacd_mac32x32in64(sum, in[0], filter[2]);
-  sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[3], 4);
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
+  sum = ixheaac_mult32x32in64(in[2], filter[0]);
+  sum = ixheaac_mac32x32in64(sum, in[1], filter[1]);
+  sum = ixheaac_mac32x32in64(sum, in[0], filter[2]);
+  sum = ixheaac_mac32x32in64_n(sum, &in[0], &filter[3], 4);
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
-  sum = ixheaacd_mult32x32in64(in[1], filter[0]);
-  sum = ixheaacd_mac32x32in64(sum, in[0], filter[1]);
-  sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[2], 5);
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
+  sum = ixheaac_mult32x32in64(in[1], filter[0]);
+  sum = ixheaac_mac32x32in64(sum, in[0], filter[1]);
+  sum = ixheaac_mac32x32in64_n(sum, &in[0], &filter[2], 5);
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
   out++;
 
-  sum = ixheaacd_mult32x32in64(in[0], filter[0]);
-  sum = ixheaacd_mac32x32in64_n(sum, &in[0], &filter[1], 6);
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
+  sum = ixheaac_mult32x32in64(in[0], filter[0]);
+  sum = ixheaac_mac32x32in64_n(sum, &in[0], &filter[1], 6);
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   for (i = 3; i < length - 4; i += 2) {
     sum = 0;
-    sum = ixheaacd_mac32x32in64_7(&in[i - 3], filter);
-    *out = ixheaacd_add32_sat(
-        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
+    sum = ixheaac_mac32x32in64_7(&in[i - 3], filter);
+    *out = ixheaac_add32_sat(
+        *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
     out++;
 
     sum = 0;
-    sum = ixheaacd_mac32x32in64_7(&in[i - 2], filter);
-    *out = ixheaacd_add32_sat(
-        *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
+    sum = ixheaac_mac32x32in64_7(&in[i - 2], filter);
+    *out = ixheaac_add32_sat(
+        *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
     out++;
   }
   i = length - 3;
   sum = 0;
-  sum = ixheaacd_mac32x32in64_n(sum, &in[i - 3], filter, 6);
-  sum = ixheaacd_mac32x32in64(sum, in[i + 2], filter[6]);
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
+  sum = ixheaac_mac32x32in64_n(sum, &in[i - 3], filter, 6);
+  sum = ixheaac_mac32x32in64(sum, in[i + 2], filter[6]);
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 
   out++;
   i = length - 2;
   sum = 0;
-  sum = ixheaacd_mac32x32in64_n(sum, &in[i - 3], filter, 5);
-  sum = ixheaacd_mac32x32in64(sum, in[i + 1], filter[5]);
-  sum = ixheaacd_mac32x32in64(sum, in[i], filter[6]);
+  sum = ixheaac_mac32x32in64_n(sum, &in[i - 3], filter, 5);
+  sum = ixheaac_mac32x32in64(sum, in[i + 1], filter[5]);
+  sum = ixheaac_mac32x32in64(sum, in[i], filter[6]);
 
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_even) >> 15)));
   out++;
 
   i = length - 1;
   sum = 0;
-  sum = ixheaacd_mac32x32in64_n(sum, &in[i - 3], filter, 4);
-  sum = ixheaacd_mac32x32in64(sum, in[i], filter[4]);
-  sum = ixheaacd_mac32x32in64(sum, in[i - 1], filter[5]);
-  sum = ixheaacd_mac32x32in64(sum, in[i - 2], filter[6]);
+  sum = ixheaac_mac32x32in64_n(sum, &in[i - 3], filter, 4);
+  sum = ixheaac_mac32x32in64(sum, in[i], filter[4]);
+  sum = ixheaac_mac32x32in64(sum, in[i - 1], filter[5]);
+  sum = ixheaac_mac32x32in64(sum, in[i - 2], filter[6]);
 
-  *out = ixheaacd_add32_sat(
-      *out, ixheaacd_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
+  *out = ixheaac_add32_sat(
+      *out, ixheaac_sat64_32((((WORD64)sum * (WORD64)factor_odd) >> 15)));
 }
 
 static VOID ixheaacd_estimate_dmx_im(const WORD32 *dmx_re,
@@ -528,21 +528,21 @@ static VOID ixheaacd_cplx_pred_upmixing(
     for (grp = 0, i = 0; grp < pstr_sfb_info->num_groups; grp++) {
       for (grp_len = 0; grp_len < pstr_sfb_info->group_len[grp]; grp_len++) {
         for (sfb = 0; sfb < pstr_sfb_info->sfb_per_sbk; sfb++) {
-          alpha_q_re_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
-          alpha_q_im_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_im[grp][sfb], 1677722));
+          alpha_q_re_temp = ixheaac_sat64_32(ixheaac_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
+          alpha_q_im_temp = ixheaac_sat64_32(ixheaac_mult32x32in64(alpha_q_im[grp][sfb], 1677722));
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
-              WORD32 mid_side = ixheaacd_sub32_sat(
-                  ixheaacd_sub32_sat(r_spec[i],
-                                     (WORD32)((WORD64)ixheaacd_mult32x32in64(
+              WORD32 mid_side = ixheaac_sub32_sat(
+                  ixheaac_sub32_sat(r_spec[i],
+                                     (WORD32)((WORD64)ixheaac_mult32x32in64(
                                                   alpha_q_re_temp, l_spec[i]) >>
                                               24)),
-                  (WORD32)((WORD64)ixheaacd_mult32x32in64(alpha_q_im_temp,
+                  (WORD32)((WORD64)ixheaac_mult32x32in64(alpha_q_im_temp,
                                                           dmx_im[i]) >>
                            24));
-              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
-                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
-              l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
+              r_spec[i] = ixheaac_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaac_sub32_sat(l_spec[i], mid_side));
+              l_spec[i] = ixheaac_add32_sat(l_spec[i], mid_side);
             }
           } else {
             i += pstr_sfb_info->sfb_width[sfb];
@@ -554,17 +554,17 @@ static VOID ixheaacd_cplx_pred_upmixing(
     for (grp = 0, i = 0; grp < pstr_sfb_info->num_groups; grp++) {
       for (grp_len = 0; grp_len < pstr_sfb_info->group_len[grp]; grp_len++) {
         for (sfb = 0; sfb < pstr_sfb_info->sfb_per_sbk; sfb++) {
-          alpha_q_re_temp = ixheaacd_sat64_32(ixheaacd_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
+          alpha_q_re_temp = ixheaac_sat64_32(ixheaac_mult32x32in64(alpha_q_re[grp][sfb], 1677722));
           if (cplx_pred_used[grp][sfb]) {
             for (k = 0; k < pstr_sfb_info->sfb_width[sfb]; k++, i++) {
-              WORD32 mid_side = ixheaacd_sub32_sat(
-                  r_spec[i], (WORD32)((WORD64)ixheaacd_mult32x32in64(
+              WORD32 mid_side = ixheaac_sub32_sat(
+                  r_spec[i], (WORD32)((WORD64)ixheaac_mult32x32in64(
                                           alpha_q_re_temp, l_spec[i]) >>
                                       24));
 
-              r_spec[i] = ixheaacd_sat64_32((WORD64)factor) *
-                          (WORD64)(ixheaacd_sub32_sat(l_spec[i], mid_side));
-              l_spec[i] = ixheaacd_add32_sat(l_spec[i], mid_side);
+              r_spec[i] = ixheaac_sat64_32((WORD64)factor) *
+                          (WORD64)(ixheaac_sub32_sat(l_spec[i], mid_side));
+              l_spec[i] = ixheaac_add32_sat(l_spec[i], mid_side);
             }
           } else {
             i += pstr_sfb_info->sfb_width[sfb];

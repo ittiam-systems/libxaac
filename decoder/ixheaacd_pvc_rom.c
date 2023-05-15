@@ -17,8 +17,8 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_pvc_dec.h"
 
 const FLOAT32 ixheaacd_pvc_smoothing_wind_tab_ns4[4] = {

@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "ixheaacd_constants.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_memory_standards.h"
 #include "ixheaacd_sbrdecsettings.h"
 #include "ixheaacd_env_extr_part.h"
@@ -75,7 +75,7 @@
 
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_main.h"
 #include "ixheaacd_ec.h"
 #include "ixheaacd_arith_dec.h"

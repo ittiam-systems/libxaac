@@ -19,15 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -59,38 +59,38 @@ static VOID ixheaacd_filt_2_ch(const WORD32 *ptr_qmf, WORD32 *ptr_hybrid,
   cum11 = 0L;
 
   {
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[1], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[1], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[17], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[17], *p2_6++));
 
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[3], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[3], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[19], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[19], *p2_6++));
 
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[5], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[5], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[21], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[21], *p2_6++));
 
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[7], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[7], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[23], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[23], *p2_6++));
 
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[9], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[9], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[25], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[25], *p2_6++));
 
-    cum1 = ixheaacd_add32_sat(cum1, ixheaacd_mult32x16in32(ptr_qmf[11], *p2_6));
+    cum1 = ixheaac_add32_sat(cum1, ixheaac_mult32x16in32(ptr_qmf[11], *p2_6));
     cum11 =
-        ixheaacd_add32_sat(cum11, ixheaacd_mult32x16in32(ptr_qmf[27], *p2_6++));
+        ixheaac_add32_sat(cum11, ixheaac_mult32x16in32(ptr_qmf[27], *p2_6++));
   }
-  cum1 = ixheaacd_shl32(cum1, 1);
-  cum11 = ixheaacd_shl32(cum11, 1);
+  cum1 = ixheaac_shl32(cum1, 1);
+  cum11 = ixheaac_shl32(cum11, 1);
 
-  ptr_hybrid[0] = ixheaacd_add32_sat(cum0, cum1);
-  ptr_hybrid[1] = ixheaacd_sub32_sat(cum0, cum1);
+  ptr_hybrid[0] = ixheaac_add32_sat(cum0, cum1);
+  ptr_hybrid[1] = ixheaac_sub32_sat(cum0, cum1);
 
-  ptr_hybrid[16] = ixheaacd_add32_sat(cum00, cum11);
-  ptr_hybrid[17] = ixheaacd_sub32_sat(cum00, cum11);
+  ptr_hybrid[16] = ixheaac_add32_sat(cum00, cum11);
+  ptr_hybrid[17] = ixheaac_sub32_sat(cum00, cum11);
 }
 
 static VOID ixheaacd_filt_8_ch(const WORD32 *ptr_qmf_real,
@@ -105,107 +105,107 @@ static VOID ixheaacd_filt_8_ch(const WORD32 *ptr_qmf_real,
   const WORD16 *p8_13 = ptr_sbr_tables->ps_tables_ptr->p8_13;
   const WORD16 *p8_13_8 = ptr_sbr_tables->ps_tables_ptr->p8_13 + 8;
 
-  real = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_real[0], *p8_13),
-                         ixheaacd_mult32x16in32(ptr_qmf_real[8], *p8_13_8)),
+  real = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_real[0], *p8_13),
+                         ixheaac_mult32x16in32(ptr_qmf_real[8], *p8_13_8)),
       1);
-  imag = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_imag[0], *p8_13++),
-                         ixheaacd_mult32x16in32(ptr_qmf_imag[8], *p8_13_8++)),
+  imag = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_imag[0], *p8_13++),
+                         ixheaac_mult32x16in32(ptr_qmf_imag[8], *p8_13_8++)),
       1);
 
-  cum[12] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(ixheaacd_add32_sat(imag, real), tcom), 1);
-  cum[13] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(ixheaacd_sub32_sat(imag, real), tcom), 1);
+  cum[12] = ixheaac_shl32(
+      ixheaac_mult32x16in32(ixheaac_add32_sat(imag, real), tcom), 1);
+  cum[13] = ixheaac_shl32(
+      ixheaac_mult32x16in32(ixheaac_sub32_sat(imag, real), tcom), 1);
 
-  real = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_real[1], *p8_13),
-                         ixheaacd_mult32x16in32(ptr_qmf_real[9], *p8_13_8)),
+  real = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_real[1], *p8_13),
+                         ixheaac_mult32x16in32(ptr_qmf_real[9], *p8_13_8)),
       1);
-  imag = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_imag[1], *p8_13++),
-                         ixheaacd_mult32x16in32(ptr_qmf_imag[9], *p8_13_8++)),
+  imag = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_imag[1], *p8_13++),
+                         ixheaac_mult32x16in32(ptr_qmf_imag[9], *p8_13_8++)),
       1);
 
   cum[10] =
-      ixheaacd_shl32(ixheaacd_add32_sat(ixheaacd_mult32x16in32(imag, tcos),
-                                        ixheaacd_mult32x16in32(real, tsin)),
+      ixheaac_shl32(ixheaac_add32_sat(ixheaac_mult32x16in32(imag, tcos),
+                                        ixheaac_mult32x16in32(real, tsin)),
                      1);
   cum[11] =
-      ixheaacd_shl32(ixheaacd_sub32_sat(ixheaacd_mult32x16in32(imag, tsin),
-                                        ixheaacd_mult32x16in32(real, tcos)),
+      ixheaac_shl32(ixheaac_sub32_sat(ixheaac_mult32x16in32(imag, tsin),
+                                        ixheaac_mult32x16in32(real, tcos)),
                      1);
-  cum[9] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(
-          ixheaacd_sub32_sat(ptr_qmf_real[2], ptr_qmf_real[10]), *p8_13_8++),
+  cum[9] = ixheaac_shl32(
+      ixheaac_mult32x16in32(
+          ixheaac_sub32_sat(ptr_qmf_real[2], ptr_qmf_real[10]), *p8_13_8++),
       1);
-  cum[8] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(
-          ixheaacd_sub32_sat(ptr_qmf_imag[2], ptr_qmf_imag[10]), *p8_13++),
+  cum[8] = ixheaac_shl32(
+      ixheaac_mult32x16in32(
+          ixheaac_sub32_sat(ptr_qmf_imag[2], ptr_qmf_imag[10]), *p8_13++),
       1);
 
-  real = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_real[3], *p8_13),
-                         ixheaacd_mult32x16in32(ptr_qmf_real[11], *p8_13_8)),
+  real = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_real[3], *p8_13),
+                         ixheaac_mult32x16in32(ptr_qmf_real[11], *p8_13_8)),
       1);
-  imag = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_imag[3], *p8_13++),
-                         ixheaacd_mult32x16in32(ptr_qmf_imag[11], *p8_13_8++)),
+  imag = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_imag[3], *p8_13++),
+                         ixheaac_mult32x16in32(ptr_qmf_imag[11], *p8_13_8++)),
       1);
 
   cum[6] =
-      ixheaacd_shl32(ixheaacd_sub32_sat(ixheaacd_mult32x16in32(imag, tcos),
-                                        ixheaacd_mult32x16in32(real, tsin)),
+      ixheaac_shl32(ixheaac_sub32_sat(ixheaac_mult32x16in32(imag, tcos),
+                                        ixheaac_mult32x16in32(real, tsin)),
                      1);
-  cum[7] = ixheaacd_shl32(ixheaacd_negate32_sat(ixheaacd_add32_sat(
-                              ixheaacd_mult32x16in32(imag, tsin),
-                              ixheaacd_mult32x16in32(real, tcos))),
+  cum[7] = ixheaac_shl32(ixheaac_negate32_sat(ixheaac_add32_sat(
+                              ixheaac_mult32x16in32(imag, tsin),
+                              ixheaac_mult32x16in32(real, tcos))),
                           1);
 
-  real = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_real[4], *p8_13),
-                         ixheaacd_mult32x16in32(ptr_qmf_real[12], *p8_13_8)),
+  real = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_real[4], *p8_13),
+                         ixheaac_mult32x16in32(ptr_qmf_real[12], *p8_13_8)),
       1);
-  imag = ixheaacd_shl32(
-      ixheaacd_add32_sat(ixheaacd_mult32x16in32(ptr_qmf_imag[4], *p8_13++),
-                         ixheaacd_mult32x16in32(ptr_qmf_imag[12], *p8_13_8++)),
-      1);
-
-  cum[4] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(ixheaacd_sub32_sat(imag, real), tcom), 1);
-  cum[5] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(
-          ixheaacd_negate32_sat(ixheaacd_add32_sat(imag, real)), tcom),
+  imag = ixheaac_shl32(
+      ixheaac_add32_sat(ixheaac_mult32x16in32(ptr_qmf_imag[4], *p8_13++),
+                         ixheaac_mult32x16in32(ptr_qmf_imag[12], *p8_13_8++)),
       1);
 
-  real = ixheaacd_shl32(ixheaacd_mult32x16in32(ptr_qmf_real[5], *p8_13), 1);
-  imag = ixheaacd_shl32(ixheaacd_mult32x16in32(ptr_qmf_imag[5], *p8_13++), 1);
+  cum[4] = ixheaac_shl32(
+      ixheaac_mult32x16in32(ixheaac_sub32_sat(imag, real), tcom), 1);
+  cum[5] = ixheaac_shl32(
+      ixheaac_mult32x16in32(
+          ixheaac_negate32_sat(ixheaac_add32_sat(imag, real)), tcom),
+      1);
+
+  real = ixheaac_shl32(ixheaac_mult32x16in32(ptr_qmf_real[5], *p8_13), 1);
+  imag = ixheaac_shl32(ixheaac_mult32x16in32(ptr_qmf_imag[5], *p8_13++), 1);
 
   cum[2] =
-      ixheaacd_shl32(ixheaacd_sub32_sat(ixheaacd_mult32x16in32(real, tcos),
-                                        ixheaacd_mult32x16in32(imag, tsin)),
+      ixheaac_shl32(ixheaac_sub32_sat(ixheaac_mult32x16in32(real, tcos),
+                                        ixheaac_mult32x16in32(imag, tsin)),
                      1);
   cum[3] =
-      ixheaacd_shl32(ixheaacd_add32_sat(ixheaacd_mult32x16in32(real, tsin),
-                                        ixheaacd_mult32x16in32(imag, tcos)),
+      ixheaac_shl32(ixheaac_add32_sat(ixheaac_mult32x16in32(real, tsin),
+                                        ixheaac_mult32x16in32(imag, tcos)),
                      1);
 
-  cum[0] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(ptr_qmf_real[HYBRID_FILTER_DELAY], *p8_13), 1);
-  cum[1] = ixheaacd_shl32(
-      ixheaacd_mult32x16in32(ptr_qmf_imag[HYBRID_FILTER_DELAY], *p8_13++), 1);
+  cum[0] = ixheaac_shl32(
+      ixheaac_mult32x16in32(ptr_qmf_real[HYBRID_FILTER_DELAY], *p8_13), 1);
+  cum[1] = ixheaac_shl32(
+      ixheaac_mult32x16in32(ptr_qmf_imag[HYBRID_FILTER_DELAY], *p8_13++), 1);
 
-  real = ixheaacd_shl32(ixheaacd_mult32x16in32(ptr_qmf_real[7], *p8_13), 1);
-  imag = ixheaacd_shl32(ixheaacd_mult32x16in32(ptr_qmf_imag[7], *p8_13++), 1);
+  real = ixheaac_shl32(ixheaac_mult32x16in32(ptr_qmf_real[7], *p8_13), 1);
+  imag = ixheaac_shl32(ixheaac_mult32x16in32(ptr_qmf_imag[7], *p8_13++), 1);
 
   cum[14] =
-      ixheaacd_shl32(ixheaacd_add32_sat(ixheaacd_mult32x16in32(imag, tsin),
-                                        ixheaacd_mult32x16in32(real, tcos)),
+      ixheaac_shl32(ixheaac_add32_sat(ixheaac_mult32x16in32(imag, tsin),
+                                        ixheaac_mult32x16in32(real, tcos)),
                      1);
   cum[15] =
-      ixheaacd_shl32(ixheaacd_sub32_sat(ixheaacd_mult32x16in32(imag, tcos),
-                                        ixheaacd_mult32x16in32(real, tsin)),
+      ixheaac_shl32(ixheaac_sub32_sat(ixheaac_mult32x16in32(imag, tcos),
+                                        ixheaac_mult32x16in32(real, tsin)),
                      1);
 
   (*ixheaacd_inv_dit_fft_8pt)(cum, ptr_hyb_real, ptr_hyb_imag);
@@ -251,11 +251,11 @@ VOID ixheaacd_hybrid_analysis(const WORD32 *ptr_qmf_real, WORD32 *ptr_hyb_real,
       WORD32 temp_im = ptr_qmf_real[band + 0x40];
 
       if (scale < 0) {
-        temp_re = ixheaacd_shl32(temp_re, -scale);
-        temp_im = ixheaacd_shl32(temp_im, -scale);
+        temp_re = ixheaac_shl32(temp_re, -scale);
+        temp_im = ixheaac_shl32(temp_im, -scale);
       } else {
-        temp_re = ixheaacd_shr32(temp_re, scale);
-        temp_im = ixheaacd_shr32(temp_im, scale);
+        temp_re = ixheaac_shr32(temp_re, scale);
+        temp_im = ixheaac_shr32(temp_im, scale);
       }
       *ptr_temp_real = temp_re;
       *--ptr_re = temp_re;

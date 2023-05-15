@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 
@@ -39,7 +39,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_env_extr_part.h"
 #include "ixheaacd_sbr_rom.h"
@@ -56,53 +56,53 @@
 #include "ixheaacd_pvc_dec.h"
 
 #include "ixheaacd_sbr_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_sbrqmftrans.h"
 #include "ixheaacd_qmf_poly.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_op.h"
 
-#include "ixheaacd_esbr_rom.h"
+#include "ixheaac_esbr_rom.h"
 
 static FLOAT32 *ixheaacd_map_prot_filter(WORD32 filt_length) {
   switch (filt_length) {
     case 4:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[0];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[0];
       break;
     case 8:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[40];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[40];
       break;
     case 12:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[120];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[120];
       break;
     case 16:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[240];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[240];
       break;
     case 20:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[400];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[400];
       break;
     case 24:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[600];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[600];
       break;
     case 28:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff_28_36[0];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff_28_36[0];
       break;
     case 32:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[840];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[840];
       break;
     case 36:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff_28_36[280];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff_28_36[280];
       break;
     case 40:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[1160];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[1160];
       break;
     case 44:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[1560];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[1560];
       break;
     default:
-      return (FLOAT32 *)&ixheaacd_sub_samp_qmf_window_coeff[0];
+      return (FLOAT32 *)&ixheaac_sub_samp_qmf_window_coeff[0];
   }
 }
 
@@ -112,9 +112,9 @@ static VOID ixheaacd_create_dft_hbe_window(FLOAT32 *win, WORD32 x_over_bin1,
   const FLOAT32 *ptr_freq_domain_win = NULL;
   WORD32 n;
   if (ts == 12) {
-    ptr_freq_domain_win = &ixheaacd_dft_hbe_window_ts_12[0];
+    ptr_freq_domain_win = &ixheaac_dft_hbe_window_ts_12[0];
   } else {
-    ptr_freq_domain_win = &ixheaacd_dft_hbe_window_ts_18[0];
+    ptr_freq_domain_win = &ixheaac_dft_hbe_window_ts_18[0];
   }
   for (n = 0; n < (x_over_bin1 - ts / 2); n++) {
     win[n] = 0;
@@ -147,114 +147,114 @@ static WORD32 ixheaacd_calc_anal_synth_window(WORD32 fft_size, FLOAT32 *ptr_wind
   switch (fft_size) {
     case 64:
       hop_stride = 16;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_1024[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_1024[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[hop_stride >> 1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[512 + (hop_stride >> 1)];
       l_fft_stride = 512;
       break;
     case 128:
       hop_stride = 8;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_1024[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_1024[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[hop_stride >> 1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[512 + (hop_stride >> 1)];
       l_fft_stride = 512;
       break;
     case 256:
       hop_stride = 4;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_1024[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_1024[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[hop_stride >> 1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[512 + (hop_stride >> 1)];
       l_fft_stride = 512;
       break;
     case 512:
       hop_stride = 2;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_1024[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_1024[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[512 + 1];
       l_fft_stride = 512;
       break;
     case 1024:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_1024[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[0];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[1];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_1024[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[0];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[1];
       l_fft_stride = 512;
       break;
     case 192:
       hop_stride = 4;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_768[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_768[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[hop_stride >> 1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[384 + (hop_stride >> 1)];
       l_fft_stride = 384;
       break;
     case 384:
       hop_stride = 2;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_768[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_768[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[384 + 1];
       l_fft_stride = 384;
       break;
     case 768:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_768[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[8];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[9];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_768[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[8];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[9];
       l_fft_stride = 384;
       break;
     case 320:
       hop_stride = 3;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_960[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[16];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[17];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_960[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[16];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[17];
       l_fft_stride = 480;
       break;
     case 960:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_960[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[2];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[3];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_960[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[2];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[3];
       l_fft_stride = 480;
       break;
     case 448:
       hop_stride = 2;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_896[0];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_896[0];
       sin_pi_2_N = ptr_sin_pi_n_by_N[1];
       cos_pi_2_N = ptr_sin_pi_n_by_N[448 + 1];
       l_fft_stride = 448;
       break;
     case 896:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_896[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[4];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[5];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_896[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[4];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[5];
       l_fft_stride = 448;
       break;
     case 576:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_576[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[14];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[15];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_576[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[14];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[15];
       l_fft_stride = 288;
       break;
     case 640:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_640[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[12];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[13];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_640[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[12];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[13];
       l_fft_stride = 320;
       break;
     case 704:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_704[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[10];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[11];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_704[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[10];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[11];
       l_fft_stride = 352;
       break;
     case 832:
       hop_stride = 1;
-      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaacd_sine_pi_n_by_832[0];
-      sin_pi_2_N = ixheaacd_sine_pi_by_2_N[6];
-      cos_pi_2_N = ixheaacd_sine_pi_by_2_N[7];
+      ptr_sin_pi_n_by_N = (FLOAT32 *)&ixheaac_sine_pi_n_by_832[0];
+      sin_pi_2_N = ixheaac_sine_pi_by_2_N[6];
+      cos_pi_2_N = ixheaac_sine_pi_by_2_N[7];
       l_fft_stride = 416;
       break;
     default:
@@ -292,7 +292,7 @@ WORD32 ixheaacd_dft_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
   ptr_hbe_txposer->esbr_hq = 1;
 
   ptr_hbe_txposer->synth_size = 4 * ((ptr_hbe_txposer->start_band + 4) / 8 + 1);
-  ptr_hbe_txposer->k_start = ixheaacd_start_subband2kL_tbl[ptr_hbe_txposer->start_band];
+  ptr_hbe_txposer->k_start = ixheaac_start_subband2kL_tbl[ptr_hbe_txposer->start_band];
 
   fb_ratio = ptr_hbe_txposer->synth_size / 32.0f;
 
@@ -345,30 +345,30 @@ WORD32 ixheaacd_dft_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
 
   switch (ptr_hbe_txposer->synth_size) {
     case 4:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
-      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_4;
+      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
       break;
     case 8:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_8;
-      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_8;
+      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
       break;
     case 12:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_12;
-      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p3;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_12;
+      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p3;
       break;
     case 16:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_16;
-      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_16;
+      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
       break;
     case 20:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_20;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_20;
       break;
     case 28:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_20;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_20;
       break;
     default:
-      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaacd_synth_cos_table_kl_4;
-      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaacd_real_synth_fft_p2;
+      ptr_hbe_txposer->synth_cos_tab = (FLOAT32 *)ixheaac_synth_cos_table_kl_4;
+      ptr_hbe_txposer->ixheaacd_real_synth_fft = &ixheaac_real_synth_fft_p2;
   }
 
   {
@@ -488,16 +488,16 @@ VOID ixheaacd_hbe_fft_table(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
 
   switch (ana_fft_size) {
     case 576:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_576;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_576;
       break;
     case 384:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_384;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_384;
       break;
     case 512:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_512;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_512;
       break;
     case 768:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_768;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_768;
       break;
     default:
       break;
@@ -505,16 +505,16 @@ VOID ixheaacd_hbe_fft_table(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
 
   switch (syn_fft_size) {
     case 448:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_448;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_448;
       break;
     case 512:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_512;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_512;
       break;
     case 768:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_768;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_768;
       break;
     case 672:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_672;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_672;
       break;
     default:
       break;
@@ -528,19 +528,19 @@ IA_ERRORCODE ixheaacd_hbe_fft_map(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
 
   switch (ana_fft_size) {
     case 576:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_576;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_576;
       ptr_hbe_txposer->ixheaacd_hbe_anal_fft = &ixheaacd_hbe_apply_fft_288;
       break;
     case 384:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_384;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_384;
       ptr_hbe_txposer->ixheaacd_hbe_anal_fft = &ixheaacd_hbe_apply_cfftn_gen;
       break;
     case 512:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_512;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_512;
       ptr_hbe_txposer->ixheaacd_hbe_anal_fft = &ixheaacd_hbe_apply_cfftn;
       break;
     case 768:
-      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_768;
+      ptr_hbe_txposer->ana_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_768;
       ptr_hbe_txposer->ixheaacd_hbe_anal_fft = &ixheaacd_hbe_apply_cfftn_gen;
       break;
     default:
@@ -550,19 +550,19 @@ IA_ERRORCODE ixheaacd_hbe_fft_map(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer) {
 
   switch (syn_fft_size) {
     case 448:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_448;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_448;
       ptr_hbe_txposer->ixheaacd_hbe_synth_ifft = &ixheaacd_hbe_apply_ifft_224;
       break;
     case 512:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_512;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_512;
       ptr_hbe_txposer->ixheaacd_hbe_synth_ifft = &ixheaacd_hbe_apply_cfftn;
       break;
     case 768:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_768;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_768;
       ptr_hbe_txposer->ixheaacd_hbe_synth_ifft = &ixheaacd_hbe_apply_cfftn_gen;
       break;
     case 672:
-      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaacd_sin_cos_672;
+      ptr_hbe_txposer->syn_cos_sin_tab = (FLOAT32 *)ixheaac_sin_cos_672;
       ptr_hbe_txposer->ixheaacd_hbe_synth_ifft = &ixheaacd_hbe_apply_ifft_336;
       break;
     default:

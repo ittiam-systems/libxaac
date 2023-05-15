@@ -20,18 +20,18 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_defines.h"
 
 #include "ixheaacd_intrinsics.h"
-#include "ixheaacd_sbr_const.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_sbr_const.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_defines.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_pns.h"
@@ -344,7 +344,7 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
   goal_sb = ixheaacd_find_closest_entry(goal_sb, f_master_tbl, num_mf_bands, 1);
   if (audio_object_type != AOT_ER_AAC_ELD &&
       audio_object_type != AOT_ER_AAC_LD) {
-    if (ixheaacd_abs16_sat((WORD16)(goal_sb - usb)) < 4) {
+    if (ixheaac_abs16_sat((WORD16)(goal_sb - usb)) < 4) {
       goal_sb = usb;
     }
   }
@@ -394,7 +394,7 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
     }
 
     src_start_band = SHIFT_START_SB;
-    abs_sb = ixheaacd_abs16_sat((WORD16)((sb - goal_sb))) - 3;
+    abs_sb = ixheaac_abs16_sat((WORD16)((sb - goal_sb))) - 3;
 
     if (num_bands_in_patch <= 0 && flag_break_1 == 1) {
       break;
@@ -430,8 +430,8 @@ WORD32 ixheaacd_reset_hf_generator(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
   temp = 0;
 
   for (patch = 0; patch < pstr_transposer_settings->num_patches; patch++) {
-    sb = ixheaacd_min32(sb, p_str_patch_param[patch].src_start_band);
-    temp = ixheaacd_max32(temp, p_str_patch_param[patch].src_end_band);
+    sb = ixheaac_min32(sb, p_str_patch_param[patch].src_start_band);
+    temp = ixheaac_max32(temp, p_str_patch_param[patch].src_end_band);
   }
 
   if (sb > temp) return IA_FATAL_ERROR;
@@ -470,8 +470,8 @@ VOID ixheaacd_rescale_x_overlap(
   ptr_sbr_dec->str_codec_qmf_bank.usb = new_lsb;
   ptr_sbr_dec->str_synthesis_qmf_bank.lsb = new_lsb;
 
-  start_band = ixheaacd_min32(old_lsb, new_lsb);
-  end_band = ixheaacd_max32(old_lsb, new_lsb);
+  start_band = ixheaac_min32(old_lsb, new_lsb);
+  end_band = ixheaac_max32(old_lsb, new_lsb);
 
   if (new_lsb != old_lsb && old_lsb > 0) {
     for (l = start_slot; l < 6; l++) {
@@ -751,9 +751,9 @@ VOID ixheaacd_invfilt_level_emphasis(ia_sbr_hf_generator_struct *ptr_hf_gen_str,
       w1 = 0x7400;
       w2 = 0x0c00;
     }
-    accu = ixheaacd_add32(
-        ixheaacd_mult32x16in32_shl(bw_array[i], w1),
-        ixheaacd_mult32x16in32_shl(ptr_hf_gen_str->bw_array_prev[i], w2));
+    accu = ixheaac_add32(
+        ixheaac_mult32x16in32_shl(bw_array[i], w1),
+        ixheaac_mult32x16in32_shl(ptr_hf_gen_str->bw_array_prev[i], w2));
 
     if (accu < 0x02000000) {
       accu = 0;

@@ -21,17 +21,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #include <ixheaacd_cnst.h>
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -52,7 +52,7 @@
 #include "ixheaacd_ec_rom.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_channelinfo.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #include "ixheaacd_aac_rom.h"
 
@@ -73,7 +73,7 @@ static VOID ixheaacd_aac_ec_flip_spec_sign(WORD32 *ptr_spec_coeff, WORD32 num_sa
   for (idx = 0; idx < num_samples; idx++) {
     random_value = ptr_spec_coeff[idx] ^ idx;
     if ((random_value & 1) == 0) {
-      ptr_spec_coeff[idx] = ixheaacd_negate32_sat(ptr_spec_coeff[idx]);
+      ptr_spec_coeff[idx] = ixheaac_negate32_sat(ptr_spec_coeff[idx]);
     }
   }
 }
@@ -126,18 +126,18 @@ static VOID ixheaacd_aac_ec_calc_sfb_nrg(WORD32 *ptr_spec_coeff,
           WORD32 accu = 1;
           WORD32 q_nrg;
           if (sfb == 0) {
-            q_nrg = (sizeof(accu) << 3) - ixheaacd_norm32(ptr_sfb_offset[sfb] - 0);
+            q_nrg = (sizeof(accu) << 3) - ixheaac_norm32(ptr_sfb_offset[sfb] - 0);
             for (; line < ptr_sfb_offset[sfb]; line++) {
-              accu += ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
+              accu += ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
             }
-            ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+            ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
           }
           q_nrg = (sizeof(accu) << 3) -
-                  ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                  ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; line < ptr_sfb_offset[sfb + 1]; line++) {
-            accu += ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
+            accu += ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
           }
-          ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+          ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
         }
       } else {
         total_scale_factor_bands = pstr_samp_rate_info->num_sfb_1024 - 1;
@@ -147,20 +147,20 @@ static VOID ixheaacd_aac_ec_calc_sfb_nrg(WORD32 *ptr_spec_coeff,
           WORD32 accu = 1;
           WORD32 q_nrg;
           if (sfb == 0) {
-            q_nrg = (sizeof(accu) << 3) - ixheaacd_norm32(ptr_sfb_offset[sfb] - 0);
+            q_nrg = (sizeof(accu) << 3) - ixheaac_norm32(ptr_sfb_offset[sfb] - 0);
             for (; line < ptr_sfb_offset[sfb]; line++) {
               accu +=
-                  ixheaacd_mult32(ptr_spec_coeff[line >> 3], ptr_spec_coeff[line >> 3]) >> q_nrg;
+                  ixheaac_mult32(ptr_spec_coeff[line >> 3], ptr_spec_coeff[line >> 3]) >> q_nrg;
             }
-            ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+            ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
           }
           q_nrg = (sizeof(accu) << 3) -
-                  ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                  ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; line < ptr_sfb_offset[sfb + 1]; line++) {
             accu +=
-                ixheaacd_mult32(ptr_spec_coeff[line >> 3], ptr_spec_coeff[line >> 3]) >> q_nrg;
+                ixheaac_mult32(ptr_spec_coeff[line >> 3], ptr_spec_coeff[line >> 3]) >> q_nrg;
           }
-          ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+          ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
         }
       }
       break;
@@ -177,18 +177,18 @@ static VOID ixheaacd_aac_ec_calc_sfb_nrg(WORD32 *ptr_spec_coeff,
           WORD32 accu = 1;
           WORD32 q_nrg;
           if (sfb == 0) {
-            q_nrg = (sizeof(accu) << 3) - ixheaacd_norm32(ptr_sfb_offset[sfb] - 0);
+            q_nrg = (sizeof(accu) << 3) - ixheaac_norm32(ptr_sfb_offset[sfb] - 0);
             for (; line < ptr_sfb_offset[sfb]; line++) {
-              accu += ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
+              accu += ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
             }
-            ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+            ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
           }
           q_nrg = (sizeof(accu) << 3) -
-                  ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                  ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; line < ptr_sfb_offset[sfb + 1]; line++) {
-            accu += ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
+            accu += ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg;
           }
-          ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+          ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
         }
       } else {
         total_scale_factor_bands = pstr_samp_rate_info->num_sfb_128 - 1;
@@ -198,22 +198,22 @@ static VOID ixheaacd_aac_ec_calc_sfb_nrg(WORD32 *ptr_spec_coeff,
           WORD32 accu = 1;
           WORD32 q_nrg;
           if (sfb == 0) {
-            q_nrg = (sizeof(accu) << 3) - ixheaacd_norm32(ptr_sfb_offset[sfb] - 0);
+            q_nrg = (sizeof(accu) << 3) - ixheaac_norm32(ptr_sfb_offset[sfb] - 0);
             for (; line < ptr_sfb_offset[sfb] << 3; line++) {
               accu += (accu +
-                       (ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg)) >>
+                       (ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg)) >>
                       3;
             }
-            ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+            ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
           }
           q_nrg = (sizeof(accu) << 3) -
-                  ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                  ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; line < ptr_sfb_offset[sfb + 1] << 3; line++) {
             accu +=
-                (accu + (ixheaacd_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg)) >>
+                (accu + (ixheaac_mult32(ptr_spec_coeff[line], ptr_spec_coeff[line]) >> q_nrg)) >>
                 3;
           }
-          ptr_sfb_energy[sfb] = ixheaacd_norm32(accu);
+          ptr_sfb_energy[sfb] = ixheaac_norm32(accu);
         }
       }
       break;
@@ -238,8 +238,8 @@ static VOID ixheaacd_aac_ec_interpolate(WORD32 *ptr_spec_coeff, WORD16 *ptr_spec
 
     for (; line < ptr_sfb_offset[sfb]; line++) {
       WORD32 accu =
-          ixheaacd_mult32x16in32_shl(ptr_spec_coeff[line], ia_ec_interpolation_fac[fac_mod]);
-      ptr_spec_coeff[line] = ixheaacd_shl32_dir_sat(accu, fac_shift);
+          ixheaac_mult32x16in32_shl(ptr_spec_coeff[line], ia_ec_interpolation_fac[fac_mod]);
+      ptr_spec_coeff[line] = ixheaac_shl32_dir_sat(accu, fac_shift);
     }
   }
   *ptr_spec_scale_out = max(*ptr_spec_scale_prev, *ptr_spec_scale_act);

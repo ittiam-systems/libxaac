@@ -18,14 +18,14 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include "ixheaacd_mps_struct_def.h"
 #include "ixheaacd_error_codes.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_channel.h"
-#include "ixheaacd_constants.h"
+#include "ixheaac_constants.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -35,7 +35,7 @@
 #include "ixheaacd_hybrid.h"
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_config.h"
 #include "ixheaacd_qmf_dec.h"
 #include "ixheaacd_mps_dec.h"
@@ -45,7 +45,7 @@
 #include "ixheaacd_mps_bitdec.h"
 #include "ixheaacd_mps_res_tns.h"
 #include "ixheaacd_mps_mdct_2_qmf.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 static IA_ERRORCODE ixheaacd_parse_extension_config(
     ia_mps_spatial_bs_config_struct *config, WORD32 num_ott_boxes, WORD32 num_ttt_boxes,

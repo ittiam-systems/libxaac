@@ -19,15 +19,15 @@
 */
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -84,7 +84,7 @@ WORD16 ixheaacd_divideby3(WORD op) {
 
   temp = (WORD16)(op << 2);
 
-  temp = ixheaacd_mult16_shl(temp, 0x2aab);
+  temp = ixheaac_mult16_shl(temp, 0x2aab);
 
   ret = (temp >> 2);
 
@@ -128,20 +128,20 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
       if (ptr_ps_dec->iid_dt[e]) {
         for (i = 0; i < ixheaacd_num_bands[ptr_ps_dec->iid_mode]; i++) {
           temp =
-              ixheaacd_add16(*p_iid_par_prev, ptr_ps_dec->iid_par_table[e][i]);
+              ixheaac_add16(*p_iid_par_prev, ptr_ps_dec->iid_par_table[e][i]);
           ptr_ps_dec->iid_par_table[e][i] = ixheaacd_clamp(
-              temp, ixheaacd_negate16(num_iid_levels), num_iid_levels);
+              temp, ixheaac_negate16(num_iid_levels), num_iid_levels);
           p_iid_par_prev += iid_mode;
         }
       } else {
         ptr_ps_dec->iid_par_table[e][0] =
             ixheaacd_clamp(ptr_ps_dec->iid_par_table[e][0],
-                           ixheaacd_negate16(num_iid_levels), num_iid_levels);
+                           ixheaac_negate16(num_iid_levels), num_iid_levels);
         for (i = 1; i < ixheaacd_num_bands[ptr_ps_dec->iid_mode]; i++) {
-          temp = ixheaacd_add16(ptr_ps_dec->iid_par_table[e][i - 1],
+          temp = ixheaac_add16(ptr_ps_dec->iid_par_table[e][i - 1],
                                 ptr_ps_dec->iid_par_table[e][i]);
           ptr_ps_dec->iid_par_table[e][i] = ixheaacd_clamp(
-              temp, ixheaacd_negate16(num_iid_levels), num_iid_levels);
+              temp, ixheaac_negate16(num_iid_levels), num_iid_levels);
         }
       }
     } else {
@@ -153,7 +153,7 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
       for (i = (ixheaacd_num_bands[ptr_ps_dec->iid_mode] * iid_mode - 1);
            i != 0; i--) {
         ptr_ps_dec->iid_par_table[e][i] =
-            ptr_ps_dec->iid_par_table[e][ixheaacd_shr32(i, 1)];
+            ptr_ps_dec->iid_par_table[e][ixheaac_shr32(i, 1)];
       }
     }
 
@@ -161,7 +161,7 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
       if (ptr_ps_dec->icc_dt[e]) {
         for (i = 0; i < ixheaacd_num_bands[ptr_ps_dec->icc_mode]; i++) {
           temp =
-              ixheaacd_add16(*p_icc_par_prev, ptr_ps_dec->icc_par_table[e][i]);
+              ixheaac_add16(*p_icc_par_prev, ptr_ps_dec->icc_par_table[e][i]);
           ptr_ps_dec->icc_par_table[e][i] =
               ixheaacd_clamp(temp, 0, (WORD16)(NUM_ICC_LEVELS - 1));
           p_icc_par_prev += icc_mode;
@@ -170,7 +170,7 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
         ptr_ps_dec->icc_par_table[e][0] = ixheaacd_clamp(
             ptr_ps_dec->icc_par_table[e][0], 0, (WORD16)(NUM_ICC_LEVELS - 1));
         for (i = 1; i < ixheaacd_num_bands[ptr_ps_dec->icc_mode]; i++) {
-          temp = ixheaacd_add16(ptr_ps_dec->icc_par_table[e][i - 1],
+          temp = ixheaac_add16(ptr_ps_dec->icc_par_table[e][i - 1],
                                 ptr_ps_dec->icc_par_table[e][i]);
           ptr_ps_dec->icc_par_table[e][i] =
               ixheaacd_clamp(temp, 0, (WORD16)(NUM_ICC_LEVELS - 1));
@@ -185,7 +185,7 @@ VOID ixheaacd_decode_ps_data(ia_ps_dec_struct *ptr_ps_dec, WORD32 frame_size) {
       for (i = (ixheaacd_num_bands[ptr_ps_dec->icc_mode] * icc_mode - 1);
            i != 0; i--) {
         ptr_ps_dec->icc_par_table[e][i] =
-            ptr_ps_dec->icc_par_table[e][ixheaacd_shr32(i, 1)];
+            ptr_ps_dec->icc_par_table[e][ixheaac_shr32(i, 1)];
       }
     }
   }

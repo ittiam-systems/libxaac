@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_interface.h"
@@ -39,7 +39,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
@@ -47,9 +47,9 @@
 #include "ixheaacd_arith_dec.h"
 
 #include "ixheaacd_func_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 
 extern const WORD32 ixheaacd_pre_post_twid_cos_sin_512[4][512];
 extern const WORD32 ixheaacd_pre_post_twid_cos_sin_384[4][384];

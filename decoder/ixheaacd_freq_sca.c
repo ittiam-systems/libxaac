@@ -22,15 +22,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
@@ -44,7 +44,7 @@
 #include "ixheaacd_ps_dec.h"
 #include "ixheaacd_env_extr.h"
 
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_freq_sca.h"
 #include "ixheaacd_intrinsics.h"
@@ -224,7 +224,7 @@ ixheaacd_calc_stop_band(WORD32 fs, const WORD32 stop_freq, FLOAT32 upsamp_fac) {
 
   result = k1_min;
   for (i = 0; i < stop_freq; i++) {
-    result = ixheaacd_add32_sat(result, arr_diff_stop_freq[i]);
+    result = ixheaac_add32_sat(result, arr_diff_stop_freq[i]);
   }
 
   return (result);
@@ -514,8 +514,8 @@ static WORD16 ixheaacd_calc_freq_ratio(WORD16 k_start, WORD16 k_stop,
   bandfactor = 0x3f000000L;
   step = 0x20000000L;
   direction = 1;
-  start = ixheaacd_shl32(ixheaacd_deposit16l_in32(k_start), INT_BITS - 8);
-  stop = ixheaacd_shl32(ixheaacd_deposit16l_in32(k_stop), INT_BITS - 8);
+  start = ixheaac_shl32(ixheaac_deposit16l_in32(k_start), INT_BITS - 8);
+  stop = ixheaac_shl32(ixheaac_deposit16l_in32(k_stop), INT_BITS - 8);
 
   i = 0;
 
@@ -524,17 +524,17 @@ static WORD16 ixheaacd_calc_freq_ratio(WORD16 k_start, WORD16 k_stop,
     temp = stop;
 
     for (j = 0; j < num_bands; j++)
-      temp = ixheaacd_mult16x16in32_shl(ixheaacd_extract16h(temp),
-                                        ixheaacd_extract16h(bandfactor));
+      temp = ixheaac_mult16x16in32_shl(ixheaac_extract16h(temp),
+                                        ixheaac_extract16h(bandfactor));
 
     if (temp < start) {
-      if (direction == 0) step = ixheaacd_shr32(step, 1);
+      if (direction == 0) step = ixheaac_shr32(step, 1);
       direction = 1;
-      bandfactor = ixheaacd_add32_sat(bandfactor, step);
+      bandfactor = ixheaac_add32_sat(bandfactor, step);
     } else {
-      if (direction == 1) step = ixheaacd_shr32(step, 1);
+      if (direction == 1) step = ixheaac_shr32(step, 1);
       direction = 0;
-      bandfactor = ixheaacd_sub32_sat(bandfactor, step);
+      bandfactor = ixheaac_sub32_sat(bandfactor, step);
     }
 
     if (i > 100) {
@@ -542,7 +542,7 @@ static WORD16 ixheaacd_calc_freq_ratio(WORD16 k_start, WORD16 k_stop,
     }
   } while (step > 0);
 
-  return ixheaacd_extract16h(bandfactor);
+  return ixheaac_extract16h(bandfactor);
 }
 
 VOID ixheaacd_calc_bands(WORD16 *diff, WORD16 start, WORD16 stop,
@@ -554,15 +554,15 @@ VOID ixheaacd_calc_bands(WORD16 *diff, WORD16 start, WORD16 stop,
   WORD16 bandfactor = ixheaacd_calc_freq_ratio(start, stop, num_bands);
 
   previous = stop;
-  exact = ixheaacd_shl32_sat(ixheaacd_deposit16l_in32(stop), INT_BITS - 8);
+  exact = ixheaac_shl32_sat(ixheaac_deposit16l_in32(stop), INT_BITS - 8);
 
   for (i = num_bands - 1; i >= 0; i--) {
-    exact = ixheaacd_mult16x16in32(ixheaacd_extract16h(exact), bandfactor);
+    exact = ixheaac_mult16x16in32(ixheaac_extract16h(exact), bandfactor);
 
-    temp = ixheaacd_add32_sat(exact, 0x00400000);
+    temp = ixheaac_add32_sat(exact, 0x00400000);
     exact = exact << 1;
 
-    current = ixheaacd_extract16l(ixheaacd_shr32(temp, (INT_BITS - 9)));
+    current = ixheaac_extract16l(ixheaac_shr32(temp, (INT_BITS - 9)));
 
     diff[i] = sub_d(previous, current);
     previous = current;
@@ -685,7 +685,7 @@ WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
   num_lf_bands = pstr_freq_band_data->num_sf_bands[LOW];
 
   if ((num_lf_bands <= 0) ||
-      (num_lf_bands > ixheaacd_shr16(MAX_FREQ_COEFFS, 1))) {
+      (num_lf_bands > ixheaac_shr16(MAX_FREQ_COEFFS, 1))) {
     return -1;
   }
 

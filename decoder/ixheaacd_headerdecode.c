@@ -18,12 +18,12 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <stdlib.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_error_standards.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_sbr_common.h"
 
 #include "ixheaacd_bitbuffer.h"
@@ -90,7 +90,7 @@
 #include "ixheaacd_function_selector.h"
 #include "ixheaacd_ld_mps_dec.h"
 
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 
 #define ELDEXT_SAOC 1
 #define ELDEXT_TERM 0
@@ -832,11 +832,11 @@ WORD32 ixheaacd_check_if_adts(ia_adts_header_struct *adts,
 
   result = ixheaacd_adtsframe(adts, it_bit_buff);
 
-  max_frm_len_per_ch = ixheaacd_mult32(768, (adts->no_raw_data_blocks + 1));
+  max_frm_len_per_ch = ixheaac_mult32(768, (adts->no_raw_data_blocks + 1));
 
   if (adts->channel_configuration != 0)
     max_frm_len_per_ch =
-        ixheaacd_mult32(max_frm_len_per_ch, adts->channel_configuration);
+        ixheaac_mult32(max_frm_len_per_ch, adts->channel_configuration);
   else
     max_frm_len_per_ch = max_frm_len_per_ch * usr_max_ch;
 

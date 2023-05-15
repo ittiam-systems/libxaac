@@ -18,11 +18,11 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_basic_funcs.h"
 #include "ixheaacd_bitbuffer.h"
@@ -52,7 +52,7 @@
 #include "ixheaacd_env_extr.h"
 #include "ixheaacd_env_calc.h"
 #include "ixheaacd_qmf_dec.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 #include "ixheaacd_pvc_dec.h"
 #include "ixheaacd_sbr_dec.h"

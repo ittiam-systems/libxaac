@@ -1,6 +1,6 @@
 /******************************************************************************
  *                                                                            *
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,15 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#ifndef IXHEAACD_BASIC_OP_H
-#define IXHEAACD_BASIC_OP_H
+#ifndef IXHEAAC_FFT_IFFT_ROM_H
+#define IXHEAAC_FFT_IFFT_ROM_H
 
-#define add_d(a, b) ((a) + (b))
-#define sub_d(a, b) ((a) - (b))
-#define ixheaacd_cbrt_calc(a) cbrt(1.0f / a)
+extern const FLOAT64 ixheaac_twid_tbl_fft_double[514];
+extern const FLOAT64 ixheaac_twid_tbl_fft_ntwt3r[1155];
+extern const FLOAT64 ixheaac_twid_tbl_fft_ntwt3i[1155];
+extern const FLOAT32 ixheaac_twid_tbl_fft_224[372];
+extern const FLOAT32 ixheaac_twid_tbl_fft_288[380];
+extern const FLOAT32 ixheaac_twid_tbl_fft_336[564];
+extern const FLOAT32 ixheaac_twid_tbl_fft_168[276];
 
-#endif
+#endif /* IXHEAAC_FFT_IFFT_ROM_H */

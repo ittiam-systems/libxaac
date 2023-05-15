@@ -17,11 +17,11 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
 #include "ixheaacd_bitbuffer.h"
 #include "ixheaacd_sbr_crc.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 
 static VOID ixheaacd_calc_chk_sum(WORD16* crc_state, WORD32 stream_data,
                                   WORD32 num_bits) {

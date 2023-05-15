@@ -20,9 +20,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
 
 #define PLATFORM_INLINE __inline
 
@@ -35,11 +35,11 @@
     (j) = _ >> (m);                                         \
   } while (0)
 
-extern const FLOAT32 ixheaacd_twiddle_table_fft_float[514];
-extern const FLOAT32 ixheaacd_twidle_tbl_48[64];
-extern const FLOAT32 ixheaacd_twidle_tbl_24[32];
+extern const FLOAT32 ixheaac_twiddle_table_fft_float[514];
+extern const FLOAT32 ixheaac_twidle_tbl_48[64];
+extern const FLOAT32 ixheaac_twidle_tbl_24[32];
 
-void ixheaacd_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
+void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
                                 WORD32 npoints) {
   WORD32 i, j, k, n_stages, h2;
   FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -48,13 +48,13 @@ void ixheaacd_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   WORD32 dig_rev_shift;
   const FLOAT32 *ptr_w;
 
-  dig_rev_shift = ixheaacd_norm32(npoints) + 1 - 16;
-  n_stages = 30 - ixheaacd_norm32(npoints);
+  dig_rev_shift = ixheaac_norm32(npoints) + 1 - 16;
+  n_stages = 30 - ixheaac_norm32(npoints);
   not_power_4 = n_stages & 1;
 
   n_stages = n_stages >> 1;
 
-  ptr_w = ixheaacd_twiddle_table_fft_float;
+  ptr_w = ixheaac_twiddle_table_fft_float;
 
   for (i = 0; i < npoints; i += 4) {
     FLOAT32 *inp = ptr_x;
@@ -537,7 +537,7 @@ void ixheaacd_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   }
 }
 
-void ixheaacd_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
+void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
                                 WORD32 npoints) {
   WORD32 i, j, k, n_stages, h2;
   FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
@@ -546,13 +546,13 @@ void ixheaacd_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   WORD32 dig_rev_shift;
   const FLOAT32 *ptr_w;
 
-  dig_rev_shift = ixheaacd_norm32(npoints) + 1 - 16;
-  n_stages = 30 - ixheaacd_norm32(npoints);
+  dig_rev_shift = ixheaac_norm32(npoints) + 1 - 16;
+  n_stages = 30 - ixheaac_norm32(npoints);
   not_power_4 = n_stages & 1;
 
   n_stages = n_stages >> 1;
 
-  ptr_w = ixheaacd_twiddle_table_fft_float;
+  ptr_w = ixheaac_twiddle_table_fft_float;
 
   for (i = 0; i < npoints; i += 4) {
     FLOAT32 *inp = ptr_x;
@@ -1051,7 +1051,7 @@ void ixheaacd_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   }
 }
 
-static PLATFORM_INLINE void ixheaacd_aac_ld_dec_fft_3_float(FLOAT32 *inp,
+static PLATFORM_INLINE void ixheaac_aac_ld_dec_fft_3_float(FLOAT32 *inp,
                                                             FLOAT32 *op) {
   FLOAT32 add_r, sub_r;
   FLOAT32 add_i, sub_i;
@@ -1088,7 +1088,7 @@ static PLATFORM_INLINE void ixheaacd_aac_ld_dec_fft_3_float(FLOAT32 *inp,
   return;
 }
 
-void ixheaacd_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
+void ixheaac_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   WORD32 i, j;
   FLOAT32 x_3[8];
   FLOAT32 y_3[16];
@@ -1103,7 +1103,7 @@ void ixheaacd_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
       x_3[j] = x_in[3 * j + i];
     }
 
-    ixheaacd_real_synth_fft_p2(x_3, y_3, 8);
+    ixheaac_real_synth_fft_p2(x_3, y_3, 8);
 
     for (j = 0; j < 16; j += 2) {
       x[3 * j + 2 * i] = y_3[j];
@@ -1115,7 +1115,7 @@ void ixheaacd_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
     FLOAT32 *wr;
     FLOAT32 tmp;
     FLOAT32 *x_tw = x;
-    wr = (FLOAT32 *)ixheaacd_twidle_tbl_24;
+    wr = (FLOAT32 *)ixheaac_twidle_tbl_24;
     x_tw += 2;
 
     for (i = 0; i < (npoints / 3); i++) {
@@ -1136,7 +1136,7 @@ void ixheaacd_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   }
 
   for (i = 0; i < (npoints / 3); i++) {
-    ixheaacd_aac_ld_dec_fft_3_float(x_p3, y_p3);
+    ixheaac_aac_ld_dec_fft_3_float(x_p3, y_p3);
 
     x_p3 = x_p3 + 6;
     y_p3 = y_p3 + 6;
@@ -1152,7 +1152,7 @@ void ixheaacd_real_synth_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   }
 }
 
-void ixheaacd_cmplx_anal_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
+void ixheaac_cmplx_anal_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   WORD32 i, j;
   FLOAT32 x_3[32];
   FLOAT32 y_3[32];
@@ -1167,7 +1167,7 @@ void ixheaacd_cmplx_anal_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
       x_3[j + 1] = x_in[3 * j + i + 1];
     }
 
-    ixheaacd_cmplx_anal_fft_p2(x_3, y_3, 16);
+    ixheaac_cmplx_anal_fft_p2(x_3, y_3, 16);
 
     for (j = 0; j < 32; j += 2) {
       x_in[3 * j + i] = y_3[j];
@@ -1178,7 +1178,7 @@ void ixheaacd_cmplx_anal_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   {
     FLOAT32 *wr;
     FLOAT32 tmp;
-    wr = (FLOAT32 *)ixheaacd_twidle_tbl_48;
+    wr = (FLOAT32 *)ixheaac_twidle_tbl_48;
     x_in += 2;
 
     for (i = 0; i < (npoints / 3); i++) {
@@ -1199,7 +1199,7 @@ void ixheaacd_cmplx_anal_fft_p3(FLOAT32 *x_in, FLOAT32 *x_out, WORD32 npoints) {
   }
 
   for (i = 0; i < (npoints / 3); i++) {
-    ixheaacd_aac_ld_dec_fft_3_float(ptr_x, ptr_y);
+    ixheaac_aac_ld_dec_fft_3_float(ptr_x, ptr_y);
 
     ptr_x = ptr_x + 6;
     ptr_y = ptr_y + 6;

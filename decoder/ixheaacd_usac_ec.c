@@ -18,11 +18,11 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
 #include <string.h>
-#include <ixheaacd_type_def.h>
-#include <ixheaacd_constants.h>
-#include <ixheaacd_basic_ops32.h>
-#include <ixheaacd_basic_ops16.h>
-#include <ixheaacd_basic_ops40.h>
+#include <ixheaac_type_def.h>
+#include <ixheaac_constants.h>
+#include <ixheaac_basic_ops32.h>
+#include <ixheaac_basic_ops16.h>
+#include <ixheaac_basic_ops40.h>
 #include "ixheaacd_sbr_common.h"
 #include "ixheaacd_intrinsics.h"
 #include "ixheaacd_common_rom.h"
@@ -46,7 +46,7 @@
 #include "ixheaacd_drc_dec.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_mps_polyphase.h"
-#include "ixheaacd_sbr_const.h"
+#include "ixheaac_sbr_const.h"
 #include "ixheaacd_ec_defines.h"
 #include "ixheaacd_ec_struct_def.h"
 #include "ixheaacd_main.h"
@@ -64,7 +64,7 @@ static VOID ixheaacd_usac_flip_spec_sign(WORD32 *ptr_spec_coeff, WORD32 samples_
                                          UWORD32 *seed_value) {
   WORD32 i;
   for (i = 0; i < samples_per_frame; i++) {
-    ptr_spec_coeff[i] = ixheaacd_mult32x16in32_sat(ptr_spec_coeff[i],
+    ptr_spec_coeff[i] = ixheaac_mult32x16in32_sat(ptr_spec_coeff[i],
                             (WORD16)ixheaacd_randomsign(seed_value));
   }
 }
@@ -81,11 +81,11 @@ static VOID iexheaace_ec_sfb_nrg_q(WORD32 *ptr_spectrum, ia_ec_sfb_str *pstr_ec_
         for (sfb = 0; sfb < num_sfb; sfb++) {
           WORD64 accu = (WORD64)1;
           WORD32 q_nrg = (sizeof(accu) << 3) -
-                         ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                         ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; l < ptr_sfb_offset[sfb + 1]; l++) {
-            accu += ixheaacd_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg);
+            accu += ixheaac_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg);
           }
-          ptr_sfb_enrg[sfb] = ixheaacd_norm32((WORD32)accu);
+          ptr_sfb_enrg[sfb] = ixheaac_norm32((WORD32)accu);
         }
       } else {
         num_sfb = pstr_ec_sfb->num_sfb_long;
@@ -94,11 +94,11 @@ static VOID iexheaace_ec_sfb_nrg_q(WORD32 *ptr_spectrum, ia_ec_sfb_str *pstr_ec_
         for (sfb = 0; sfb < num_sfb; sfb++) {
           WORD64 accu = (WORD64)1;
           WORD32 q_nrg = (sizeof(accu) << 3) -
-                         ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                         ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; l < ptr_sfb_offset[sfb + 1]; l++) {
-            accu += ixheaacd_mul32_sh(ptr_spectrum[(l >> 3)], ptr_spectrum[(l >> 3)], q_nrg);
+            accu += ixheaac_mul32_sh(ptr_spectrum[(l >> 3)], ptr_spectrum[(l >> 3)], q_nrg);
           }
-          ptr_sfb_enrg[sfb] = ixheaacd_norm32((WORD32)accu);
+          ptr_sfb_enrg[sfb] = ixheaac_norm32((WORD32)accu);
         }
       }
       break;
@@ -112,11 +112,11 @@ static VOID iexheaace_ec_sfb_nrg_q(WORD32 *ptr_spectrum, ia_ec_sfb_str *pstr_ec_
         for (sfb = 0; sfb < num_sfb; sfb++) {
           WORD64 accu = (WORD64)1;
           WORD32 q_nrg = (sizeof(accu) << 3) -
-                         ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                         ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; l < ptr_sfb_offset[sfb + 1]; l++) {
-            accu += ixheaacd_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg);
+            accu += ixheaac_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg);
           }
-          ptr_sfb_enrg[sfb] = ixheaacd_norm32((WORD32)accu);
+          ptr_sfb_enrg[sfb] = ixheaac_norm32((WORD32)accu);
         }
       } else {
         num_sfb = pstr_ec_sfb->num_sfb_short;
@@ -125,11 +125,11 @@ static VOID iexheaace_ec_sfb_nrg_q(WORD32 *ptr_spectrum, ia_ec_sfb_str *pstr_ec_
         for (sfb = 0; sfb < num_sfb; sfb++) {
           WORD64 accu = (WORD64)1;
           WORD32 q_nrg = (sizeof(accu) << 3) -
-                         ixheaacd_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
+                         ixheaac_norm32(ptr_sfb_offset[sfb + 1] - ptr_sfb_offset[sfb]);
           for (; l < ptr_sfb_offset[sfb + 1] << 3; l++) {
-            accu += (accu + (ixheaacd_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg))) >> 3;
+            accu += (accu + (ixheaac_mul32_sh(ptr_spectrum[l], ptr_spectrum[l], q_nrg))) >> 3;
           }
-          ptr_sfb_enrg[sfb] = ixheaacd_norm32((WORD32)accu);
+          ptr_sfb_enrg[sfb] = ixheaac_norm32((WORD32)accu);
         }
       }
       break;
@@ -149,16 +149,16 @@ static VOID ixheaacd_usac_ec_interpolate(WORD32 *ptr_spectrum, WORD16 *pq_spec_c
         ptr_nrg_prev[sfb] - ptr_nrg_act[sfb] + ((*pq_spec_coeff_act - *pq_spec_coeff_prev) << 1);
     fac_mod = fac_shift & 3;
     fac_shift = (fac_shift >> 2) + 1;
-    fac_shift += *pq_spec_coeff_prev - ixheaacd_max16(*pq_spec_coeff_prev, *pq_spec_coeff_act);
-    fac_shift = ixheaacd_max32(ixheaacd_min32(fac_shift, INT_BITS - 1), -(INT_BITS - 1));
+    fac_shift += *pq_spec_coeff_prev - ixheaac_max16(*pq_spec_coeff_prev, *pq_spec_coeff_act);
+    fac_shift = ixheaac_max32(ixheaac_min32(fac_shift, INT_BITS - 1), -(INT_BITS - 1));
 
     for (; l < ptr_sfb_offset[sfb + 1]; l++) {
-      WORD32 accu = ixheaacd_shl32_sat(
-          ixheaacd_mult32x32in32(ptr_spectrum[l], (WORD32)(ia_ec_interpolation_fac[fac_mod])), 1);
-      ptr_spectrum[l] = ixheaacd_shl32_dir_sat((WORD32)accu, fac_shift);
+      WORD32 accu = ixheaac_shl32_sat(
+          ixheaac_mult32x32in32(ptr_spectrum[l], (WORD32)(ia_ec_interpolation_fac[fac_mod])), 1);
+      ptr_spectrum[l] = ixheaac_shl32_dir_sat((WORD32)accu, fac_shift);
     }
   }
-  *pq_spec_coeff_out = ixheaacd_max16(*pq_spec_coeff_prev, *pq_spec_coeff_act);
+  *pq_spec_coeff_out = ixheaac_max16(*pq_spec_coeff_prev, *pq_spec_coeff_act);
 }
 
 static VOID ixheaacd_usac_ec_interpolate_frame(ia_usac_data_struct *pstr_usac_data,

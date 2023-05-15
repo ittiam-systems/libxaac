@@ -17,13 +17,13 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_bitbuffer.h"
-#include "ixheaacd_basic_op.h"
+#include "ixheaac_basic_op.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_res_block.h"
@@ -50,7 +50,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_res_extract_signed_symbol(WORD32 value, W
                                                                  WORD32 *temp_word,
                                                                  WORD32 *pr_bit_pos) {
   WORD32 out;
-  out = ixheaacd_extu(value, l_shift, r_shift);
+  out = ixheaac_extu(value, l_shift, r_shift);
   if (out) {
     WORD32 bit_pos = *pr_bit_pos;
     out = pow_table_q17[out];
@@ -152,9 +152,9 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1(
                                     it_bit_buf->ptr_bit_buf_end);
         if (sp1 == 16) {
           i = 4;
-          value = ixheaacd_extu(read_word, bit_pos, 23);
+          value = ixheaac_extu(read_word, bit_pos, 23);
           value = value | 0xfffffe00;
-          norm_val = ixheaacd_norm32(value);
+          norm_val = ixheaac_norm32(value);
 
           i += (norm_val - 22);
           bit_pos += (norm_val - 21);
@@ -162,7 +162,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1(
           ixheaacd_aac_read_byte_corr(&ptr_read_next, &bit_pos, &read_word,
                                       it_bit_buf->ptr_bit_buf_end);
 
-          off = ixheaacd_extu(read_word, bit_pos, 32 - i);
+          off = ixheaac_extu(read_word, bit_pos, 32 - i);
 
           bit_pos += i;
 
@@ -198,9 +198,9 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1(
         }
         if (sp2 == 16) {
           i = 4;
-          value = ixheaacd_extu(read_word, bit_pos, 23);
+          value = ixheaac_extu(read_word, bit_pos, 23);
           value = value | 0xfffffe00;
-          norm_val = ixheaacd_norm32(value);
+          norm_val = ixheaac_norm32(value);
 
           i += (norm_val - 22);
 
@@ -209,7 +209,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1(
           ixheaacd_aac_read_byte_corr(&ptr_read_next, &bit_pos, &read_word,
                                       it_bit_buf->ptr_bit_buf_end);
 
-          off = ixheaacd_extu(read_word, bit_pos, 32 - i);
+          off = ixheaac_extu(read_word, bit_pos, 32 - i);
 
           bit_pos += i;
 
@@ -335,16 +335,16 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1_lb(
 
     if (sp1 == 16) {
       i = 4;
-      value = ixheaacd_extu(read_word, bit_pos, 23);
+      value = ixheaac_extu(read_word, bit_pos, 23);
       value = value | 0xfffffe00;
-      norm_val = ixheaacd_norm32(value);
+      norm_val = ixheaac_norm32(value);
       i += (norm_val - 22);
       bit_pos += (norm_val - 21);
 
       ixheaacd_aac_read_byte_corr(&ptr_read_next, &bit_pos, &read_word,
                                   it_bif_buf->ptr_bit_buf_end);
 
-      off = ixheaacd_extu(read_word, bit_pos, 32 - i);
+      off = ixheaac_extu(read_word, bit_pos, 32 - i);
 
       bit_pos += i;
 
@@ -380,9 +380,9 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1_lb(
 
     if (sp2 == 16) {
       i = 4;
-      value = ixheaacd_extu(read_word, bit_pos, 23);
+      value = ixheaac_extu(read_word, bit_pos, 23);
       value = value | 0xfffffe00;
-      norm_val = ixheaacd_norm32(value);
+      norm_val = ixheaac_norm32(value);
 
       i += (norm_val - 22);
 
@@ -391,7 +391,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1_lb(
       ixheaacd_aac_read_byte_corr(&ptr_read_next, &bit_pos, &read_word,
                                   it_bif_buf->ptr_bit_buf_end);
 
-      off = ixheaacd_extu(read_word, bit_pos, 32 - i);
+      off = ixheaac_extu(read_word, bit_pos, 32 - i);
 
       bit_pos += i;
 
@@ -568,7 +568,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4_lb(
       WORD32 temp_word;
       temp_word = read_word << bit_pos;
 
-      out0 = (ixheaacd_extu(value, 24, 30));
+      out0 = (ixheaac_extu(value, 24, 30));
       ampout0 = add_d(out0, *p_pul_arr++);
       ampout0 = pow_table_q17[ampout0];
 
@@ -582,7 +582,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4_lb(
         ampout0 = -ampout0;
       }
 
-      out1 = (ixheaacd_extu(value, 26, 30));
+      out1 = (ixheaac_extu(value, 26, 30));
       ampout1 = add_d(out1, *p_pul_arr++);
       ampout1 = pow_table_q17[ampout1];
       if (out1) {
@@ -594,7 +594,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4_lb(
       } else {
         ampout1 = -ampout1;
       }
-      out2 = (ixheaacd_extu(value, 28, 30));
+      out2 = (ixheaac_extu(value, 28, 30));
       ampout2 = add_d(out2, *p_pul_arr++);
       ampout2 = pow_table_q17[ampout2];
       if (out2) {
@@ -611,7 +611,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4_lb(
       *x_invquant++ = ampout1;
       *x_invquant++ = ampout2;
 
-      out3 = (ixheaacd_extu(value, 30, 30));
+      out3 = (ixheaac_extu(value, 30, 30));
       ampout3 = add_d(out3, *p_pul_arr++);
       ampout3 = pow_table_q17[ampout3];
       if (out3) {
@@ -989,17 +989,17 @@ static VOID ixheaacd_res_apply_one_scf(WORD32 scale_factor, WORD32 *x_invquant, 
         for (j = end; j > 0; j--) {
           temp_1 = *x_invquant;
 
-          buffer1 = ixheaacd_mult32x16in32_shl_sat(temp_1, scale_short);
-          buffer1 = ixheaacd_shr32(buffer1, shift);
+          buffer1 = ixheaac_mult32x16in32_shl_sat(temp_1, scale_short);
+          buffer1 = ixheaac_shr32(buffer1, shift);
           *x_invquant++ = buffer1;
         }
       } else {
         for (j = end; j > 0; j--) {
           temp_1 = *x_invquant;
 
-          buffer1 = ixheaacd_mult32x16in32_shl(temp_1, scale_short);
+          buffer1 = ixheaac_mult32x16in32_shl(temp_1, scale_short);
 
-          buffer1 = ixheaacd_shr32(buffer1, shift);
+          buffer1 = ixheaac_shr32(buffer1, shift);
           *x_invquant++ = buffer1;
         }
       }
@@ -1009,21 +1009,21 @@ static VOID ixheaacd_res_apply_one_scf(WORD32 scale_factor, WORD32 *x_invquant, 
         if (scale_short == (WORD16)0x8000) {
           for (j = end; j > 0; j--) {
             temp_1 = *x_invquant;
-            temp_1 = ixheaacd_shl32(temp_1, shift - 1);
+            temp_1 = ixheaac_shl32(temp_1, shift - 1);
 
-            buffer1 = ixheaacd_mult32x16in32_shl_sat(temp_1, scale_short);
+            buffer1 = ixheaac_mult32x16in32_shl_sat(temp_1, scale_short);
 
-            buffer1 = ixheaacd_shl32(buffer1, 1);
+            buffer1 = ixheaac_shl32(buffer1, 1);
             *x_invquant++ = buffer1;
           }
         } else {
           for (j = end; j > 0; j--) {
             temp_1 = *x_invquant;
-            temp_1 = ixheaacd_shl32(temp_1, shift - 1);
+            temp_1 = ixheaac_shl32(temp_1, shift - 1);
 
-            buffer1 = ixheaacd_mult32x16in32_shl(temp_1, scale_short);
+            buffer1 = ixheaac_mult32x16in32_shl(temp_1, scale_short);
 
-            buffer1 = ixheaacd_shl32(buffer1, 1);
+            buffer1 = ixheaac_shl32(buffer1, 1);
             *x_invquant++ = buffer1;
           }
         }
@@ -1032,7 +1032,7 @@ static VOID ixheaacd_res_apply_one_scf(WORD32 scale_factor, WORD32 *x_invquant, 
           for (j = end; j > 0; j--) {
             temp_1 = *x_invquant;
 
-            buffer1 = ixheaacd_mult32x16in32_shl_sat(temp_1, scale_short);
+            buffer1 = ixheaac_mult32x16in32_shl_sat(temp_1, scale_short);
 
             *x_invquant++ = buffer1;
           }
@@ -1040,7 +1040,7 @@ static VOID ixheaacd_res_apply_one_scf(WORD32 scale_factor, WORD32 *x_invquant, 
           for (j = end; j > 0; j--) {
             temp_1 = *x_invquant;
 
-            buffer1 = ixheaacd_mult32x16in32_shl(temp_1, scale_short);
+            buffer1 = ixheaac_mult32x16in32_shl(temp_1, scale_short);
 
             *x_invquant++ = buffer1;
           }

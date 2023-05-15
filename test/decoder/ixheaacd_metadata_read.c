@@ -17,7 +17,7 @@
  *****************************************************************************
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
 */
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

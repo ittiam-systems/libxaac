@@ -20,13 +20,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "ixheaacd_sbr_common.h"
-#include "ixheaacd_type_def.h"
+#include "ixheaac_type_def.h"
 
-#include "ixheaacd_constants.h"
-#include "ixheaacd_basic_ops32.h"
-#include "ixheaacd_basic_ops16.h"
-#include "ixheaacd_basic_ops40.h"
-#include "ixheaacd_basic_ops.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaacd_bitbuffer.h"
 
 #include "ixheaacd_defines.h"
@@ -57,7 +57,7 @@
 #include "ixheaacd_mps_res_rom.h"
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_dec.h"
-#include "ixheaacd_error_standards.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaacd_sbrdecoder.h"
 #include "ixheaacd_acelp_info.h"
 #include "ixheaacd_tns_usac.h"
@@ -1026,7 +1026,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
             if (pstr_ec_state->fade_idx < MAX_FADE_FRAMES) {
               WORD32 fade_fac = ia_ec_fade_factors_fix[pstr_ec_state->fade_idx];
               for (k = 0; k < str_ics_info[ch].frame_length; k++) {
-                time_data[k] = ixheaacd_mul32_sh(time_data[k], fade_fac, 30);
+                time_data[k] = ixheaac_mul32_sh(time_data[k], fade_fac, 30);
               }
             } else {
               memset(time_data, 0, str_ics_info[ch].frame_length * sizeof(time_data[0]));
@@ -1057,7 +1057,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
   *type = ele_type;
 
   aac_dec_handle->block_number =
-      ixheaacd_add32(aac_dec_handle->block_number, 1);
+      ixheaac_add32(aac_dec_handle->block_number, 1);
   if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal && !is_init) {
     p_obj_exhaacplus_dec->aac_config.frame_status = aac_dec_handle->frame_status;
     return IA_NO_ERROR;
