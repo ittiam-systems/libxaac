@@ -269,13 +269,13 @@ VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state, VOI
   WORD32 scratch_used;
   ia_mps_dec_reuse_array_struct *p_array_struct = pstr_mps_state->array_struct;
 
-  p_array_struct->qmf_residual_real = scratch_mem;
-  scratch_used = QMF_RES_BUF_SIZE;
+  p_array_struct->res_mdct = scratch_mem;
+  scratch_used = MDCT_RES_BUF_SIZE;
+
+  p_array_struct->qmf_residual_real = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
+  scratch_used += QMF_RES_BUF_SIZE;
   p_array_struct->qmf_residual_imag = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
   scratch_used += QMF_RES_BUF_SIZE;
-
-  p_array_struct->res_mdct = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += MDCT_RES_BUF_SIZE;
 
   p_array_struct->m_qmf_real = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
   scratch_used += QMF_BUF_SIZE;

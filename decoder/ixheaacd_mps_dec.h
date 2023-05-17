@@ -93,6 +93,8 @@
 
 #define BP_SIZE 25
 
+#define MPS_SCRATCH_MEM_SIZE (235168)
+
 typedef struct {
   FLOAT32 re;
   FLOAT32 im;

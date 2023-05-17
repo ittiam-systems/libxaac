@@ -40,5 +40,5 @@ WORD32 ixheaacd_drc_map_channels(ia_drc_dec_struct *drc_dec, WORD32 num_ch,
 VOID ixheaacd_drc_apply(ia_drc_dec_struct *pstr_drc_dec,
                         WORD32 *ptr_spectral_coef, WORD32 win_seq,
                         WORD32 channel, WORD32 frame_size,
-                        WORD32 audio_object_type);
+                        WORD32 esbr_flag, WORD32 audio_object_type);
 #endif

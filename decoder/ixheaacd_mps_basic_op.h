@@ -223,7 +223,7 @@ static PLATFORM_INLINE WORD32 ixheaacd_mps_mult32_shr_15(WORD32 a, WORD32 b) {
   WORD32 result;
   WORD64 temp_result;
   temp_result = (WORD64)a * (WORD64)b;
-  result = (WORD32)(temp_result >> 15);
+  result = (WORD32)ixheaac_sat64_32(temp_result >> 15);
 
   return (result);
 }

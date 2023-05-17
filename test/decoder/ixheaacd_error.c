@@ -74,7 +74,8 @@ pWORD8 ixheaacd_ppb_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid effect type",
     (pWORD8) "Invalid target loudness value",
     (pWORD8) "Invalid HQ eSBR flag option. Setting to default 0",
-    (pWORD8) "Invalid frame length flag option. Setting to default 0"};
+    (pWORD8) "Invalid frame length flag option. Setting to default 0",
+    (pWORD8) "Invalid eSBR flag option. Setting to default 1"};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Sample rate specified for RAW decoding"};

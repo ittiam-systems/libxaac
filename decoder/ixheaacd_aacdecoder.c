@@ -228,6 +228,11 @@ WORD32 ixheaacd_aacdec_decodeframe(
           pstr_imdct_tables->only_short_window_kbd_120;
     }
 
+    if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal && frame_status == 0)
+    {
+      memset(&aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info, 0,
+             sizeof(ia_ics_info_struct));
+    }
     aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info.frame_length = frame_length;
     if (object_type == AOT_ER_AAC_ELD || object_type == AOT_ER_AAC_LD ||
         object_type == AOT_AAC_LTP) {
@@ -868,6 +873,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
       ele_type = ID_END;
       p_obj_exhaacplus_dec->aac_config.frame_status = 0;
       it_bit_buff->cnt_bits = 0;
+      aac_dec_handle->byte_align_bits = 0;
     } else {
       return err;
     }
@@ -973,7 +979,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
           ixheaacd_drc_apply(pstr_drc_dec, spec_coef[ch],
                              str_ics_info[ch].window_sequence, ch,
                              str_ics_info[ch].frame_length,
-                             object_type);
+                             p_obj_exhaacplus_dec->aac_config.ui_enh_sbr, object_type);
         }
         if (skip_full_decode == 0) {
           ixheaacd_imdct_process(aac_dec_handle->pstr_aac_dec_overlap_info[ch],

@@ -2041,20 +2041,36 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
     if (pstr_mps_state->mps_with_sbr) {
       for (channel = 0; channel < n_channels; channel++) {
         WORD32 kk = 0;
+        if (self->aac_config.ui_enh_sbr)
+        {
+          for (WORD32 ii = 0; ii < n_time_slots; ii++) {
+            FLOAT32 *qmf_re = self->p_state_aac->str_sbr_dec_info[0]
+                ->pstr_sbr_channel[channel]->str_sbr_dec.pp_qmf_buf_real[ii];
+            FLOAT32 *qmf_im = self->p_state_aac->str_sbr_dec_info[0]
+                ->pstr_sbr_channel[channel]->str_sbr_dec.pp_qmf_buf_imag[ii];
 
-        for (WORD32 ii = 0; ii < n_time_slots; ii++) {
-          FLOAT32 *qmf_re = self->p_state_aac->str_sbr_dec_info[0]
-                              ->pstr_sbr_channel[channel]
-                              ->str_sbr_dec.pp_qmf_buf_real[ii];
-          FLOAT32 *qmf_im = self->p_state_aac->str_sbr_dec_info[0]
-                              ->pstr_sbr_channel[channel]
-                              ->str_sbr_dec.pp_qmf_buf_imag[ii];
+            for (WORD32 jj = 0; jj < qmf_bands; jj++) {
+              p_qmf_real[kk] = ixheaacd_mps_mult32_shr_15(
+                  curr_state->clip_protect_gain, (WORD32)(qmf_re[jj] * 1024));
+              p_qmf_imag[kk++] = ixheaacd_mps_mult32_shr_15(
+                  curr_state->clip_protect_gain, (WORD32)(qmf_im[jj] * 1024));
+            }
+          }
+        }
+        else
+        {
+          for (WORD32 ii = 0; ii < n_time_slots; ii++) {
+            WORD32 *qmf_re = self->p_state_aac->str_sbr_dec_info[0]
+                ->pstr_sbr_channel[channel]->str_sbr_dec.p_arr_qmf_buf_real[ii];
+            WORD32 *qmf_im = self->p_state_aac->str_sbr_dec_info[0]
+                ->pstr_sbr_channel[channel]->str_sbr_dec.p_arr_qmf_buf_imag[ii];
 
-          for (WORD32 jj = 0; jj < qmf_bands; jj++) {
-            p_qmf_real[kk] = ixheaacd_mps_mult32_shr_15(
-                curr_state->clip_protect_gain, (WORD32)(qmf_re[jj] * 1024));
-            p_qmf_imag[kk++] = ixheaacd_mps_mult32_shr_15(
-                curr_state->clip_protect_gain, (WORD32)(qmf_im[jj] * 1024));
+            for (WORD32 jj = 0; jj < qmf_bands; jj++) {
+              p_qmf_real[kk] = ixheaacd_mps_mult32_shr_15(
+                  curr_state->clip_protect_gain, qmf_re[jj] * 256);
+              p_qmf_imag[kk++] = ixheaacd_mps_mult32_shr_15(
+                  curr_state->clip_protect_gain, qmf_im[jj] * 256);
+            }
           }
         }
         p_qmf_real += QBXTS;
@@ -2093,6 +2109,18 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
 
     pstr_mps_state->bytes_remaining =
         buffer_size - pstr_mps_state->i_bytes_consumed_mps;
+    if (pstr_mps_state->bytes_remaining < 0)
+    {
+      if (pstr_mps_state->ec_flag)
+      {
+        pstr_mps_state->bytes_remaining = 0;
+        pstr_mps_state->frame_ok = 0;
+      }
+      else
+      {
+        return IA_FATAL_ERROR;
+      }
+    }
 
     if (pstr_mps_state->bytes_remaining != 0) {
       for (WORD32 ii = 0; ii < pstr_mps_state->bytes_remaining; ii++) {

@@ -86,6 +86,7 @@ VOID ixheaacd_cplx_anal_qmffilt_32(const WORD32 *time_inp,
 
 VOID ixheaacd_cplx_synt_qmffilt(
     WORD32 **qmf_real, WORD32 **qmf_im, WORD32 split_slot,
+    WORD32 *qmf_real_out[MAX_ENV_COLS], WORD32 *qmf_imag_out[MAX_ENV_COLS],
     ia_sbr_scale_fact_struct *sbr_scale_factor, WORD16 *time_out,
     ia_sbr_qmf_filter_bank_struct *qmf_bank, ia_ps_dec_struct *ptr_ps_dec,
     FLAG active, FLAG low_pow_flag, ia_sbr_tables_struct *sbr_tables_ptr,

@@ -392,7 +392,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
     }
     pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
     pstr_dec_data->str_usac_data.esbr_hq = handle->aac_config.ui_hq_esbr;
-    pstr_dec_data->str_usac_data.enh_sbr = handle->aac_config.ui_enh_sbr;
+    pstr_dec_data->str_usac_data.enh_sbr = 1;
     pstr_dec_data->str_usac_data.enh_sbr_ps = handle->aac_config.ui_enh_sbr_ps;
     if (pstr_dec_data->dec_bit_buf.size > pstr_dec_data->dec_bit_buf.max_size)
       pstr_dec_data->dec_bit_buf.max_size = pstr_dec_data->dec_bit_buf.size;
@@ -496,7 +496,7 @@ WORD32 ixheaacd_dec_main(VOID *temp_handle, WORD8 *inbuffer, WORD8 *outbuffer,
 
       pstr_dec_data->str_usac_data.usac_flag = aac_dec_handle->usac_flag;
       pstr_dec_data->str_usac_data.esbr_hq = handle->aac_config.ui_hq_esbr;
-      pstr_dec_data->str_usac_data.enh_sbr = handle->aac_config.ui_enh_sbr;
+      pstr_dec_data->str_usac_data.enh_sbr = 1;
       pstr_dec_data->str_usac_data.enh_sbr_ps = handle->aac_config.ui_enh_sbr_ps;
 
       if (preroll_frame_offset[access_units] &&

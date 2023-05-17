@@ -711,7 +711,8 @@ WORD32 ixheaacd_sbr_dec(
 
   if (ldmps_present == 1) add_slot = SBR_HF_ADJ_OFFSET;
 
-  if (!((audio_object_type == AOT_ER_AAC_ELD) || (audio_object_type == AOT_ER_AAC_LD))) {
+  if (!((audio_object_type == AOT_ER_AAC_ELD) || (audio_object_type == AOT_ER_AAC_LD))
+      && ptr_header_data->enh_sbr) {
     ch_fac = 1;
     pp_qmf_buf_real = ptr_sbr_dec->pp_qmf_buf_real;
     pp_qmf_buf_imag = ptr_sbr_dec->pp_qmf_buf_imag;
@@ -723,7 +724,8 @@ WORD32 ixheaacd_sbr_dec(
   no_bins = (ptr_header_data->num_time_slots * ptr_header_data->time_step);
 
   if ((audio_object_type == AOT_ER_AAC_ELD) ||
-      (audio_object_type == AOT_ER_AAC_LD)) {
+      (audio_object_type == AOT_ER_AAC_LD)  ||
+      !ptr_header_data->enh_sbr) {
     WORD32 num = op_delay;
     WORD32 *ptr_pers_qmf_real = ptr_sbr_dec->ptr_sbr_overlap_buf;
     WORD32 *p_scr_qmf_real = ptr_work_buf_core + (2 << (6 + !low_pow_flag));
@@ -772,7 +774,7 @@ WORD32 ixheaacd_sbr_dec(
     }
   }
 
-  if ((audio_object_type == AOT_AAC_LC) && (heaac_mps_present == 1)) {
+  if ((audio_object_type == AOT_AAC_LC) && (heaac_mps_present == 1) && ptr_header_data->enh_sbr) {
     WORD32 num_anal_bands = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
     WORD32 frame_move = 9 * num_anal_bands;
     WORD32 core_frame_size = ptr_header_data->core_frame_size;
@@ -790,10 +792,30 @@ WORD32 ixheaacd_sbr_dec(
     memcpy(&ptr_sbr_dec->core_sample_buf[0], &ptr_sbr_dec->core_sample_buf[core_frame_size],
            frame_move * sizeof(FLOAT32));
   }
+  if ((audio_object_type == AOT_AAC_LC) && (heaac_mps_present == 1) &&
+    !ptr_header_data->enh_sbr) {
+    WORD32 num_anal_bands = ptr_sbr_dec->str_codec_qmf_bank.no_channels;
+    WORD32 frame_move = 9 * num_anal_bands;
+    WORD32 core_frame_size = ptr_header_data->core_frame_size;
 
+    memcpy(&ptr_sbr_dec->core_sample_buf_sbr[core_frame_size],
+           &ptr_time_data[core_frame_size - frame_move],
+           frame_move * sizeof(WORD16));
+
+    memmove(&ptr_time_data[frame_move], &ptr_time_data[0],
+            (core_frame_size - frame_move));
+
+    memcpy(&ptr_time_data[0], &ptr_sbr_dec->core_sample_buf_sbr[0],
+           frame_move * sizeof(WORD16));
+
+    memcpy(&ptr_sbr_dec->core_sample_buf_sbr[0],
+           &ptr_sbr_dec->core_sample_buf_sbr[core_frame_size],
+           frame_move * sizeof(WORD16));
+  }
 
   if ((audio_object_type != AOT_ER_AAC_ELD) &&
-      (audio_object_type != AOT_ER_AAC_LD)) {
+      (audio_object_type != AOT_ER_AAC_LD) &&
+      ptr_header_data->enh_sbr) {
     WORD32 codec_x_delay = 0;
 
     if (hbe_flag || !usac_flag) {
@@ -1230,6 +1252,7 @@ WORD32 ixheaacd_sbr_dec(
     ixheaacd_init_ps_scale(ptr_ps_dec, &ptr_sbr_dec->str_sbr_scale_fact);
 
     ixheaacd_cplx_synt_qmffilt(p_arr_qmf_buf_real, p_arr_qmf_buf_imag, op_delay,
+                               ptr_sbr_dec->p_arr_qmf_buf_real, ptr_sbr_dec->p_arr_qmf_buf_imag,
                                &ptr_sbr_dec->str_sbr_scale_fact, ptr_time_data,
                                &ptr_sbr_dec->str_synthesis_qmf_bank, ptr_ps_dec,
                                1, 0, sbr_tables_ptr, pstr_common_tables, ch_fac,
@@ -1241,12 +1264,14 @@ WORD32 ixheaacd_sbr_dec(
     ptr_sbr_sf_r->hb_scale = ps_scale;
 
     ixheaacd_cplx_synt_qmffilt(p_arr_qmf_buf_real, p_arr_qmf_buf_imag, op_delay,
+                               ptr_sbr_dec->p_arr_qmf_buf_real, ptr_sbr_dec->p_arr_qmf_buf_imag,
                                ptr_sbr_sf_r, ptr_time_data + 1,
                                ptr_qmf_synth_bank_r, ptr_ps_dec, 0, 0,
                                sbr_tables_ptr, pstr_common_tables, ch_fac,
                                drc_on, drc_sbr_factors, audio_object_type);
   } else {
     ixheaacd_cplx_synt_qmffilt(p_arr_qmf_buf_real, p_arr_qmf_buf_imag, op_delay,
+                               ptr_sbr_dec->p_arr_qmf_buf_real, ptr_sbr_dec->p_arr_qmf_buf_imag,
                                &ptr_sbr_dec->str_sbr_scale_fact, ptr_time_data,
                                &ptr_sbr_dec->str_synthesis_qmf_bank, ptr_ps_dec,
                                0, low_pow_flag, sbr_tables_ptr,
