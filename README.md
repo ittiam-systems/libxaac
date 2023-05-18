@@ -204,6 +204,7 @@ Command line usage :
 [-ld_testing:<ld_testing_flag>]
 [-peak_limiter_off:<peak_limiter_off_flag>]
 [-err_conceal:<error_concealment_flag>]
+[-esbr:<esbr_flag>]
 
 where,
   <input_file>             is the input AAC/HEAACv1/HEAACv2/USAC file name.
@@ -234,6 +235,7 @@ where,
   <ld_testing_flag>        is to enable/disable ld decoder testing. Default value is 0.
   <peak_limiter_off_flag>  is to enable/disable peak limiter. Default value is 0.
   <error_concealment_flag> is to enable/disable error concealment. Default value is 0.
+  <esbr_flag>              is to enable/disable eSBR. Default value is 1.
 
 ```
 Sample CLI:

@@ -43,7 +43,6 @@
 
 #include "ixheaac_basic_op.h"
 #include "ixheaacd_env_calc.h"
-
 #include "ixheaacd_interface.h"
 
 #include "ixheaacd_function_selector.h"
@@ -811,12 +810,13 @@ void ixheaacd_sbr_pre_twiddle(WORD32 *p_xre, WORD32 *p_xim,
 
 VOID ixheaacd_cplx_synt_qmffilt(
     WORD32 **qmf_real, WORD32 **qmf_imag, WORD32 split,
+    WORD32 *qmf_real_out[MAX_ENV_COLS], WORD32 *qmf_imag_out[MAX_ENV_COLS],
     ia_sbr_scale_fact_struct *sbr_scale_factor, WORD16 *time_out,
     ia_sbr_qmf_filter_bank_struct *qmf_bank, ia_ps_dec_struct *ptr_ps_dec,
     FLAG active, FLAG low_pow_flag, ia_sbr_tables_struct *sbr_tables_ptr,
     ixheaacd_misc_tables *pstr_common_tables, WORD32 ch_fac, FLAG drc_on,
     WORD32 drc_sbr_factors[][64], WORD32 audio_object_type) {
-  WORD32 i;
+  WORD32 i, j;
 
   WORD32 code_scale_factor;
   WORD32 scale_factor;
@@ -963,9 +963,18 @@ VOID ixheaacd_cplx_synt_qmffilt(
       }
     }
   }
-
+  for (i = 0; i < num_time_slots; i++)
+  {
+    for (j = 0; j < no_synthesis_channels; j++)
+    {
+      qmf_real_out[i][j] = qmf_real[i][j];
+      if (!low_pow_flag)
+      {
+        qmf_imag_out[i][j] = qmf_imag[i][j];
+      }
+    }
+  }
   if (low_pow_flag)
-
   {
     WORD16 *fptemp;
 

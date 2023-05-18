@@ -112,6 +112,7 @@ typedef struct {
   ia_esbr_hbe_txposer_struct *p_hbe_txposer;
 
   FLOAT32 core_sample_buf[2624];
+  WORD16 core_sample_buf_sbr[2624];
   FLOAT32 ph_vocod_qmf_real[TIMESLOT_BUFFER_SIZE][NO_QMF_SYNTH_CHANNELS];
   FLOAT32 ph_vocod_qmf_imag[TIMESLOT_BUFFER_SIZE][NO_QMF_SYNTH_CHANNELS];
   FLOAT32 sbr_qmf_out_real[TIMESLOT_BUFFER_SIZE][NO_QMF_SYNTH_CHANNELS];
@@ -132,6 +133,9 @@ typedef struct {
 
   FLOAT32 **pp_qmf_buf_real;
   FLOAT32 **pp_qmf_buf_imag;
+
+  WORD32 *p_arr_qmf_buf_real[MAX_ENV_COLS];
+  WORD32 *p_arr_qmf_buf_imag[MAX_ENV_COLS];
 
   FLOAT32 *time_sample_buf;
 } ia_sbr_dec_struct;

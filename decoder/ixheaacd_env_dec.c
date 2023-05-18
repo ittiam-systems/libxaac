@@ -462,7 +462,7 @@ IA_ERRORCODE ixheaacd_calc_noise_floor(
       ptr_sbr_data->prev_noise_level[i] = ptr_prev_noise_floor[i];
     }
   }
-  if (audio_object_type != AOT_ER_AAC_ELD) {
+  if (audio_object_type != AOT_ER_AAC_ELD && ptr_header_data->enh_sbr) {
     WORD32 noise_floor_exp, tot_nf_bands;
 
     tot_nf_bands = (num_nf_bands * num_noise_env);

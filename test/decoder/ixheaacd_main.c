@@ -109,6 +109,7 @@ FILE *g_pf_meta;
 WORD32 raw_testing = 0;
 WORD32 eld_testing = 0;
 WORD32 ec_enable = 0;
+WORD32 esbr_testing = 1;
 
 #define _IA_PRINT_ERROR(p_mod_err_info, context, e)           \
   if ((e) != IA_NO_ERROR) {                                   \
@@ -428,6 +429,15 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
           p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
           IA_XHEAAC_DEC_CONFIG_PARAM_PS_ENABLE, &ui_esbr_ps);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+    if (!strncmp((pCHAR8)argv[i], "-esbr:", 6)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 6);
+      UWORD32 ui_esbr = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(
+          p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+          IA_XHEAAC_DEC_CONFIG_PARAM_ESBR, &ui_esbr);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      esbr_testing = ui_esbr;
     }
 #ifdef RESAMPLE_SUPPORT
     /* Resample the output to 8 kHz. */
@@ -1633,9 +1643,12 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                                    &i_sbr_mode, &ui_aot);
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
+  if (ui_aot == 42)
+    esbr_testing = 1;
+
   if (raw_testing) {
     skip_samples = get_start_offset_in_samples(meta_info);
-    if (ui_aot >= 23) {
+    if (ui_aot >= 23 && esbr_testing) {
       skip_samples = skip_samples - 2048;
       if (skip_samples < 0) {
         skip_samples = 0;
@@ -1661,7 +1674,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
   do {
     if (((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)) > 0) {
-      if (i_sbr_mode && (ui_aot < 23)) {
+      if (i_sbr_mode && (ui_aot < 23) && esbr_testing) {
         if (meta_info.ia_mp4_stsz_entries != frame_counter) {
           for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
             pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
@@ -1710,7 +1723,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         }
       }
     }
-    if (i_sbr_mode && (ui_aot < 23)) {
+    if (i_sbr_mode && (ui_aot < 23) && esbr_testing) {
       if (meta_info.ia_mp4_stsz_entries != frame_counter) {
         if (raw_testing) {
           ixheaacd_i_bytes_to_read =
@@ -1879,7 +1892,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
         if (err_code_reinit != 0) memset(pb_out_buf, 0, i_out_bytes);
 
-        if (i_sbr_mode && (ui_aot < 23)) {
+        if (i_sbr_mode && (ui_aot < 23) && esbr_testing) {
            if (frame_counter > 0)
              i_total_bytes += i_out_bytes;
         } else {
@@ -2094,7 +2107,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
 #else
 #ifndef ARM_PROFILE_BOARD
-      if (i_sbr_mode && (ui_aot < 23)) {
+      if (i_sbr_mode && (ui_aot < 23) && esbr_testing) {
         if (frame_counter != 0) {
       fwrite(pb_out_buf + ixheaacd_drc_offset, sizeof(WORD8), i_out_bytes,
              g_pf_out);
@@ -2224,6 +2237,7 @@ void print_usage() {
   printf("\n[-ld_testing:<ld_testing_flag>]");
   printf("\n[-peak_limiter_off:<peak_limiter_off_flag>]");
   printf("\n[-err_conceal:<error_concealment_flag>]");
+  printf("\n[-esbr:<esbr_flag>]");
   printf("\n\nwhere, \n  <input_file> is the input AAC/HEAACv1/HEAACv2/USAC file name");
   printf("\n  <meta_data_file> is a text file which contains metadata.");
   printf("\n   To be given when -mp4:1 is enabled");
@@ -2278,7 +2292,8 @@ void print_usage() {
   printf("\n  <peak_limiter_off_flag> is to enable / disable peak limiter.");
   printf("\n    Default value is 0");
   printf("\n  <error_concealment_flag> is to enable / disable error concealment.");
-  printf("\n    Default value is 0\n\n");
+  printf("\n    Default value is 0");
+  printf("\n  <esbr_flag> is to enable / disable eSBR. Default value is 1\n\n");
 }
 
 /*******************************************************************************/

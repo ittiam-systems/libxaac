@@ -744,6 +744,10 @@ static IA_ERRORCODE ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_heade
     while (no_bits_left > 7) {
       WORD extension_id = ixheaacd_read_bits_buf(it_bit_buff, SBR_CONT_ID_BITS);
 
+      if (extension_id == EXTENSION_ID_ENHSBR_CODING && !ptr_header_data->enh_sbr)
+      {
+        extension_id = -1;
+      }
       no_bits_left = (no_bits_left - SBR_CONT_ID_BITS);
 
       switch (extension_id) {
@@ -768,7 +772,6 @@ static IA_ERRORCODE ixheaacd_read_extn_data(ia_sbr_header_data_struct *ptr_heade
             break;
           }
         case EXTENSION_ID_ENHSBR_CODING: {
-          ptr_header_data->enh_sbr = 1;
           no_bits_left =
               (no_bits_left - ixheaacd_read_enh_sbr_data(ptr_header_data, it_bit_buff,
                   p_frame_data, ele_id));

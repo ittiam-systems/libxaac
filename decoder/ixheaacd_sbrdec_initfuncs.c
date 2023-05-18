@@ -403,6 +403,38 @@ VOID ixheaacd_set_sbr_persistent_buffers(VOID *sbr_persistent_mem_v,
         used_persistent += MAX_QMF_BUF_LEN * sizeof(FLOAT32);
       }
     }
+
+    for (i = 0; i < MAX_ENV_COLS; i++)
+    {
+      p_str_sbr_dec_inst->pstr_sbr_channel[0]->str_sbr_dec.p_arr_qmf_buf_real[i] =
+          (WORD32 *)((WORD8 *)sbr_persistent_mem_v + used_persistent);
+      memset(p_str_sbr_dec_inst->pstr_sbr_channel[0]->str_sbr_dec.p_arr_qmf_buf_real[i],
+          0, MAX_QMF_BUF_LEN * sizeof(WORD32));
+      used_persistent += MAX_QMF_BUF_LEN * sizeof(WORD32);
+
+      p_str_sbr_dec_inst->pstr_sbr_channel[0]->str_sbr_dec.p_arr_qmf_buf_imag[i] =
+          (WORD32 *)((WORD8 *)sbr_persistent_mem_v + used_persistent);
+      memset(p_str_sbr_dec_inst->pstr_sbr_channel[0]->str_sbr_dec.p_arr_qmf_buf_imag[i],
+          0, MAX_QMF_BUF_LEN * sizeof(WORD32));
+      used_persistent += MAX_QMF_BUF_LEN * sizeof(WORD32);
+    }
+
+    if (num_channel == 2) {
+      for (i = 0; i < MAX_ENV_COLS; i++)
+      {
+        p_str_sbr_dec_inst->pstr_sbr_channel[1]->str_sbr_dec.p_arr_qmf_buf_real[i] =
+            (WORD32 *)((WORD8 *)sbr_persistent_mem_v + used_persistent);
+        memset(p_str_sbr_dec_inst->pstr_sbr_channel[1]->str_sbr_dec.p_arr_qmf_buf_real[i],
+            0, MAX_QMF_BUF_LEN * sizeof(WORD32));
+        used_persistent += MAX_QMF_BUF_LEN * sizeof(WORD32);
+
+        p_str_sbr_dec_inst->pstr_sbr_channel[1]->str_sbr_dec.p_arr_qmf_buf_imag[i] =
+            (WORD32 *)((WORD8 *)sbr_persistent_mem_v + used_persistent);
+        memset(p_str_sbr_dec_inst->pstr_sbr_channel[1]->str_sbr_dec.p_arr_qmf_buf_imag[i],
+            0, MAX_QMF_BUF_LEN * sizeof(WORD32));
+        used_persistent += MAX_QMF_BUF_LEN * sizeof(WORD32);
+      }
+    }
   }
 
   *persistent_used = used_persistent;

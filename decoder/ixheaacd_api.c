@@ -784,6 +784,14 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_err_conceal = *pui_value_signed;
           break;
         }
+        case IA_XHEAAC_DEC_CONFIG_PARAM_ESBR: {
+          if (((*pui_value_signed) != 0) && ((*pui_value_signed) != 1)) {
+            p_obj_exhaacplus_dec->aac_config.ui_enh_sbr = 1;
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_ESBR_FLAG);
+          }
+          p_obj_exhaacplus_dec->aac_config.ui_enh_sbr = *pui_value_signed;
+          break;
+        }
         default: { return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
       }
       break;
@@ -1267,6 +1275,7 @@ ixheaacd_persistent_buffer_sizes(WORD32 num_channel) {
     temp_size += (MAX_HBE_PERSISTENT_SIZE * 2);
     temp_size += (MAX_QMF_BUF_LEN * 2 * 2 * sizeof(FLOAT32 *));
     temp_size += (MAX_QMF_BUF_LEN * MAX_QMF_BUF_LEN * 2 * 2 * sizeof(FLOAT32));
+    temp_size += (MAX_ENV_COLS * MAX_QMF_BUF_LEN * 2 * 2 * sizeof(WORD32));
     size_buffers += temp_size * num_channel;
   }
 
@@ -1303,7 +1312,6 @@ VOID ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac->ui_size += sizeof(ia_dec_data_struct);
     p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
     p_mem_info_aac->ui_size += 8300;
-
     p_mem_info_aac->ui_alignment = 16;
     p_mem_info_aac->ui_type = IA_MEMTYPE_PERSIST;
   }
@@ -1354,7 +1362,7 @@ VOID ixheaacd_fill_aac_mem_tables(
       }
     }
 
-    p_mem_info_aac->ui_size += 2200000 + 2048;
+    p_mem_info_aac->ui_size += 2200000 + 2048 + MPS_SCRATCH_MEM_SIZE;
     p_mem_info_aac->ui_alignment = 8;
     p_mem_info_aac->ui_type = IA_MEMTYPE_SCRATCH;
   }
@@ -1912,6 +1920,9 @@ IA_ERRORCODE ixheaacd_dec_init(
     WORD32 sample_rate = 0;
     WORD type, i;
     WORD elements_number;
+
+    if (p_state_enhaacplus_dec->audio_object_type == AOT_USAC)
+      return IA_FATAL_ERROR;
 
     memset(&adts, 0, sizeof(ia_adts_header_struct));
 
@@ -3055,36 +3066,62 @@ IA_ERRORCODE ixheaacd_dec_execute(
         p_state_enhaacplus_dec->b_n_raw_data_blk = 0;
         if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal) {
           p_obj_exhaacplus_dec->aac_config.frame_status = 0;
-          if (p_obj_exhaacplus_dec->aac_config.element_type[0] == ID_SCE)
-            channel = 1;
-          else
-            channel = 2;
         } else {
           return error_code;
         }
       }
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == ID_CPE)
+      {
+        if (channel != 2)
+        {
+          if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal)
+          {
+            p_obj_exhaacplus_dec->aac_config.frame_status = 0;
+            channel = 2;
+          }
+          else
+          {
+            return IA_FATAL_ERROR;
+          }
+        }
+      }
+      else
+      {
+        if (channel != 1)
+        {
+          if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal)
+          {
+            p_obj_exhaacplus_dec->aac_config.frame_status = 0;
+            channel = 1;
+          }
+          else
+          {
+            return IA_FATAL_ERROR;
+          }
+        }
+      }
     } else {
-      if (p_obj_exhaacplus_dec->aac_config.element_type[0] == ID_SCE)
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == ID_SCE)
         channel = 1;
       else
         channel = 2;
     }
 
     if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal && (error_code || ret_val)) {
-      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx1] == 0 ||
-          p_obj_exhaacplus_dec->aac_config.element_type[ch_idx1] == 3) {
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == 0 ||
+          p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == 3) {
         if (channel > 1) {
           channel = 1;
         }
       }
-      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx1] == 1) {
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == 1) {
         if (channel > 2) {
           channel = 2;
         }
       }
-      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx1] == 2) {
+      if (p_obj_exhaacplus_dec->aac_config.element_type[ch_idx] == 2) {
         if (p_obj_exhaacplus_dec->aac_config.ui_max_channels > 2) {
-          if (!(p_obj_exhaacplus_dec->aac_config.element_instance_order[ch_idx1] !=
+          if (!(p_obj_exhaacplus_dec->aac_config.element_instance_order[ch_idx] !=
                 p_obj_exhaacplus_dec->aac_config.ui_coupling_channel)) {
             if (channel > 1) {
               channel = 1;
@@ -3308,6 +3345,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
 
         p_state_enhaacplus_dec->sbr_present = 1;
         p_state_enhaacplus_dec->peak_lim_init = 0;
+
+        if (p_obj_exhaacplus_dec->aac_config.ui_enh_sbr)
         {
           WORD32 audio_object_type = p_state_enhaacplus_dec->audio_object_type;
 
@@ -3404,6 +3443,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
                 p_obj_exhaacplus_dec);
           }
         }
+
+        if (p_obj_exhaacplus_dec->aac_config.ui_enh_sbr)
         {
           WORD32 audio_object_type = p_state_enhaacplus_dec->audio_object_type;
 
@@ -3621,6 +3662,10 @@ IA_ERRORCODE ixheaacd_dec_execute(
       p_state_enhaacplus_dec->heaac_mps_handle.mps_decode = 1;
     } else {
       p_state_enhaacplus_dec->heaac_mps_handle.mps_with_sbr = 1;
+    }
+    if (!p_obj_exhaacplus_dec->aac_config.ui_enh_sbr)
+    {
+      p_state_enhaacplus_dec->heaac_mps_handle.mps_decode = 1;
     }
     if (p_state_enhaacplus_dec->heaac_mps_handle.mps_init_done == 1) {
       p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle.frame_ok =
