@@ -39,8 +39,7 @@ extern const FLOAT32 ixheaac_twiddle_table_fft_float[514];
 extern const FLOAT32 ixheaac_twidle_tbl_48[64];
 extern const FLOAT32 ixheaac_twidle_tbl_24[32];
 
-void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
-                                WORD32 npoints) {
+void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y, WORD32 npoints) {
   WORD32 i, j, k, n_stages, h2;
   FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
   WORD32 del, nodespacing, in_loop_cnt;
@@ -106,19 +105,19 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (k = in_loop_cnt; k != 0; k--) {
       x0r = (*data);
       x0i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x1r = (*data);
       x1i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x2r = (*data);
       x2i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x3r = (*data);
       x3i = (*(data + 1));
-      data -= 3 * (del << 1);
+      data -= 3 * ((SIZE_T)del << 1);
 
       x0r = x0r + x2r;
       x0i = x0i + x2i;
@@ -140,54 +139,52 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *data = x0r;
       *(data + 1) = x0i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x2r;
       *(data + 1) = x2i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x1r;
       *(data + 1) = x1i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x3i;
       *(data + 1) = x3r;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
     }
     data = ptr_y + 2;
 
     sec_loop_cnt = (nodespacing * del);
-    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) -
-                   (sec_loop_cnt / 16) + (sec_loop_cnt / 32) -
-                   (sec_loop_cnt / 64) + (sec_loop_cnt / 128) -
+    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) - (sec_loop_cnt / 16) +
+                   (sec_loop_cnt / 32) - (sec_loop_cnt / 64) + (sec_loop_cnt / 128) -
                    (sec_loop_cnt / 256);
-    j = nodespacing;
 
     for (j = nodespacing; j <= sec_loop_cnt; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1));
-      W5 = *(twiddles + (j << 1) + 257);
-      W3 = *(twiddles + j + (j << 1));
-      W6 = *(twiddles + j + (j << 1) + 257);
+      W2 = *(twiddles + ((SIZE_T)j << 1));
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 257);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1));
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 257);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -224,19 +221,19 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -244,28 +241,28 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j <= (nodespacing * del) >> 1; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1));
-      W5 = *(twiddles + (j << 1) + 257);
-      W3 = *(twiddles + j + (j << 1) - 256);
-      W6 = *(twiddles + j + (j << 1) + 1);
+      W2 = *(twiddles + ((SIZE_T)j << 1));
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 257);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 256);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 1);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -302,19 +299,19 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -322,28 +319,28 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j <= sec_loop_cnt * 2; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1) - 256);
-      W5 = *(twiddles + (j << 1) + 1);
-      W3 = *(twiddles + j + (j << 1) - 256);
-      W6 = *(twiddles + j + (j << 1) + 1);
+      W2 = *(twiddles + ((SIZE_T)j << 1) - 256);
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 1);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 256);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 1);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -380,19 +377,19 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -400,28 +397,28 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j < nodespacing * del; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1) - 256);
-      W5 = *(twiddles + (j << 1) + 1);
-      W3 = *(twiddles + j + (j << 1) - 512);
-      W6 = *(twiddles + j + (j << 1) - 512 + 257);
+      W2 = *(twiddles + ((SIZE_T)j << 1) - 256);
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 1);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 512);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) - 512 + 257);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -458,19 +455,19 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -492,7 +489,7 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       x0r = *ptr_y;
       x0i = *(ptr_y + 1);
-      ptr_y += (del << 1);
+      ptr_y += ((SIZE_T)del << 1);
 
       x1r = *ptr_y;
       x1i = *(ptr_y + 1);
@@ -503,7 +500,7 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *ptr_y = (x0r) - (x1r);
       *(ptr_y + 1) = (x0i) - (x1i);
-      ptr_y -= (del << 1);
+      ptr_y -= ((SIZE_T)del << 1);
 
       *ptr_y = (x0r) + (x1r);
       *(ptr_y + 1) = (x0i) + (x1i);
@@ -518,7 +515,7 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       x0r = *ptr_y;
       x0i = *(ptr_y + 1);
-      ptr_y += (del << 1);
+      ptr_y += ((SIZE_T)del << 1);
 
       x1r = *ptr_y;
       x1i = *(ptr_y + 1);
@@ -528,7 +525,7 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *ptr_y = (x0r) - (x1r);
       *(ptr_y + 1) = (x0i) - (x1i);
-      ptr_y -= (del << 1);
+      ptr_y -= ((SIZE_T)del << 1);
 
       *ptr_y = (x0r) + (x1r);
       *(ptr_y + 1) = (x0i) + (x1i);
@@ -537,8 +534,7 @@ void ixheaac_real_synth_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   }
 }
 
-void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
-                                WORD32 npoints) {
+void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y, WORD32 npoints) {
   WORD32 i, j, k, n_stages, h2;
   FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
   WORD32 del, nodespacing, in_loop_cnt;
@@ -619,19 +615,19 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (k = in_loop_cnt; k != 0; k--) {
       x0r = (*data);
       x0i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x1r = (*data);
       x1i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x2r = (*data);
       x2i = (*(data + 1));
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       x3r = (*data);
       x3i = (*(data + 1));
-      data -= 3 * (del << 1);
+      data -= 3 * ((SIZE_T)del << 1);
 
       x0r = x0r + x2r;
       x0i = x0i + x2i;
@@ -653,54 +649,52 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *data = x0r;
       *(data + 1) = x0i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x2r;
       *(data + 1) = x2i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x1r;
       *(data + 1) = x1i;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
 
       *data = x3i;
       *(data + 1) = x3r;
-      data += (del << 1);
+      data += ((SIZE_T)del << 1);
     }
     data = ptr_y + 2;
 
     sec_loop_cnt = (nodespacing * del);
-    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) -
-                   (sec_loop_cnt / 16) + (sec_loop_cnt / 32) -
-                   (sec_loop_cnt / 64) + (sec_loop_cnt / 128) -
+    sec_loop_cnt = (sec_loop_cnt / 4) + (sec_loop_cnt / 8) - (sec_loop_cnt / 16) +
+                   (sec_loop_cnt / 32) - (sec_loop_cnt / 64) + (sec_loop_cnt / 128) -
                    (sec_loop_cnt / 256);
-    j = nodespacing;
 
     for (j = nodespacing; j <= sec_loop_cnt; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1));
-      W5 = *(twiddles + (j << 1) + 257);
-      W3 = *(twiddles + j + (j << 1));
-      W6 = *(twiddles + j + (j << 1) + 257);
+      W2 = *(twiddles + ((SIZE_T)j << 1));
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 257);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1));
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 257);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -737,19 +731,19 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -757,28 +751,28 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j <= (nodespacing * del) >> 1; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1));
-      W5 = *(twiddles + (j << 1) + 257);
-      W3 = *(twiddles + j + (j << 1) - 256);
-      W6 = *(twiddles + j + (j << 1) + 1);
+      W2 = *(twiddles + ((SIZE_T)j << 1));
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 257);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 256);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 1);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -815,19 +809,19 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -835,28 +829,28 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j <= sec_loop_cnt * 2; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1) - 256);
-      W5 = *(twiddles + (j << 1) + 1);
-      W3 = *(twiddles + j + (j << 1) - 256);
-      W6 = *(twiddles + j + (j << 1) + 1);
+      W2 = *(twiddles + ((SIZE_T)j << 1) - 256);
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 1);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 256);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) + 1);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -893,19 +887,19 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -913,28 +907,28 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
     for (; j < nodespacing * del; j += nodespacing) {
       W1 = *(twiddles + j);
       W4 = *(twiddles + j + 257);
-      W2 = *(twiddles + (j << 1) - 256);
-      W5 = *(twiddles + (j << 1) + 1);
-      W3 = *(twiddles + j + (j << 1) - 512);
-      W6 = *(twiddles + j + (j << 1) - 512 + 257);
+      W2 = *(twiddles + ((SIZE_T)j << 1) - 256);
+      W5 = *(twiddles + ((SIZE_T)j << 1) + 1);
+      W3 = *(twiddles + j + ((SIZE_T)j << 1) - 512);
+      W6 = *(twiddles + j + ((SIZE_T)j << 1) - 512 + 257);
 
       for (k = in_loop_cnt; k != 0; k--) {
         FLOAT32 tmp;
         FLOAT32 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x1r = *data;
         x1i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x2r = *data;
         x2i = *(data + 1);
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         x3r = *data;
         x3i = *(data + 1);
-        data -= 3 * (del << 1);
+        data -= 3 * ((SIZE_T)del << 1);
 
         tmp = (FLOAT32)(((FLOAT32)x1r * W1) + ((FLOAT32)x1i * W4));
         x1i = (FLOAT32)(-((FLOAT32)x1r * W4) + (FLOAT32)x1i * W1);
@@ -971,19 +965,19 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
         *data = x0r;
         *(data + 1) = x0i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x2r;
         *(data + 1) = x2i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x1r;
         *(data + 1) = x1i;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
 
         *data = x3i;
         *(data + 1) = x3r;
-        data += (del << 1);
+        data += ((SIZE_T)del << 1);
       }
       data -= 2 * npoints;
       data += 2;
@@ -1005,7 +999,7 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       x0r = *ptr_y;
       x0i = *(ptr_y + 1);
-      ptr_y += (del << 1);
+      ptr_y += ((SIZE_T)del << 1);
 
       x1r = *ptr_y;
       x1i = *(ptr_y + 1);
@@ -1016,7 +1010,7 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *ptr_y = (x0r) - (x1r);
       *(ptr_y + 1) = (x0i) - (x1i);
-      ptr_y -= (del << 1);
+      ptr_y -= ((SIZE_T)del << 1);
 
       *ptr_y = (x0r) + (x1r);
       *(ptr_y + 1) = (x0i) + (x1i);
@@ -1031,7 +1025,7 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       x0r = *ptr_y;
       x0i = *(ptr_y + 1);
-      ptr_y += (del << 1);
+      ptr_y += ((SIZE_T)del << 1);
 
       x1r = *ptr_y;
       x1i = *(ptr_y + 1);
@@ -1042,7 +1036,7 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
 
       *ptr_y = (x0r) - (x1r);
       *(ptr_y + 1) = (x0i) - (x1i);
-      ptr_y -= (del << 1);
+      ptr_y -= ((SIZE_T)del << 1);
 
       *ptr_y = (x0r) + (x1r);
       *(ptr_y + 1) = (x0i) + (x1i);
@@ -1051,8 +1045,7 @@ void ixheaac_cmplx_anal_fft_p2(FLOAT32 *ptr_x, FLOAT32 *ptr_y,
   }
 }
 
-static PLATFORM_INLINE void ixheaac_aac_ld_dec_fft_3_float(FLOAT32 *inp,
-                                                            FLOAT32 *op) {
+static PLATFORM_INLINE void ixheaac_aac_ld_dec_fft_3_float(FLOAT32 *inp, FLOAT32 *op) {
   FLOAT32 add_r, sub_r;
   FLOAT32 add_i, sub_i;
   FLOAT32 temp_real, temp_imag, temp;

@@ -20,8 +20,7 @@
 #ifndef IXHEAAC_BASIC_OPS_ARR_H
 #define IXHEAAC_BASIC_OPS_ARR_H
 
-static PLATFORM_INLINE VOID ixheaac_shr32_arr(WORD32 *word32_arr, WORD16 shift,
-                                              WORD32 n) {
+static PLATFORM_INLINE VOID ixheaac_shr32_arr(WORD32 *word32_arr, WORD16 shift, WORD32 n) {
   WORD32 i;
 
   for (i = 0; i < n; i++) {
@@ -32,8 +31,7 @@ static PLATFORM_INLINE VOID ixheaac_shr32_arr(WORD32 *word32_arr, WORD16 shift,
   return;
 }
 
-static PLATFORM_INLINE VOID ixheaac_shl32_arr_sat(WORD32 *word32_arr,
-                                                  WORD16 shift, WORD32 n) {
+static PLATFORM_INLINE VOID ixheaac_shl32_arr_sat(WORD32 *word32_arr, WORD16 shift, WORD32 n) {
   WORD32 i;
 
   for (i = 0; i < n; i++) {
@@ -44,8 +42,7 @@ static PLATFORM_INLINE VOID ixheaac_shl32_arr_sat(WORD32 *word32_arr,
   return;
 }
 
-static PLATFORM_INLINE VOID ixheaac_shr16_arr(WORD16 *word16_arr, WORD16 shift,
-                                              WORD32 n) {
+static PLATFORM_INLINE VOID ixheaac_shr16_arr(WORD16 *word16_arr, WORD16 shift, WORD32 n) {
   WORD32 i;
 
   for (i = 0; i < n; i++) {

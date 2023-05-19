@@ -53,8 +53,7 @@ static PLATFORM_INLINE WORD32 ixheaac_mult32x32in32(WORD32 a, WORD32 b) {
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaac_mult32x16in32_shl_sat(WORD32 a,
-                                                             WORD16 b) {
+static PLATFORM_INLINE WORD32 ixheaac_mult32x16in32_shl_sat(WORD32 a, WORD16 b) {
   WORD32 result;
 
   if (a == (WORD32)0x80000000 && b == (WORD16)0x8000) {
@@ -98,8 +97,7 @@ static PLATFORM_INLINE WORD32 ixheaac_mult32_shl_sat(WORD32 a, WORD32 b) {
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaac_mac32x16in32(WORD32 a, WORD32 b,
-                                                    WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaac_mac32x16in32(WORD32 a, WORD32 b, WORD16 c) {
   WORD32 result;
 
   result = a + ixheaac_mult32x16in32(b, c);
@@ -107,8 +105,7 @@ static PLATFORM_INLINE WORD32 ixheaac_mac32x16in32(WORD32 a, WORD32 b,
   return (result);
 }
 
-static PLATFORM_INLINE WORD32 ixheaac_mac32x16in32_shl(WORD32 a, WORD32 b,
-                                                        WORD16 c) {
+static PLATFORM_INLINE WORD32 ixheaac_mac32x16in32_shl(WORD32 a, WORD32 b, WORD16 c) {
   WORD32 result;
 
   result = a + ixheaac_mult32x16in32_shl(b, c);
@@ -140,15 +137,13 @@ static PLATFORM_INLINE WORD64 ixheaac_mult32x32in64(WORD32 a, WORD32 b) {
   return (result);
 }
 
-static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64(WORD64 sum, WORD32 a,
-                                                    WORD32 b) {
+static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64(WORD64 sum, WORD32 a, WORD32 b) {
   sum += (WORD64)a * (WORD64)b;
 
   return (sum);
 }
 
-static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_7(const WORD32 *a,
-                                                      const WORD16 *b) {
+static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_7(const WORD32 *a, const WORD16 *b) {
   WORD64 sum;
   sum = (WORD64)a[0] * (WORD64)b[0];
   sum += (WORD64)a[1] * (WORD64)b[1];
@@ -161,10 +156,8 @@ static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_7(const WORD32 *a,
   return (sum);
 }
 
-static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_n(WORD64 sum,
-                                                      const WORD32 *a,
-                                                      const WORD16 *b,
-                                                      WORD32 n) {
+static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_n(WORD64 sum, const WORD32 *a, const WORD16 *b,
+                                                     WORD32 n) {
   WORD32 k;
 
   sum += (WORD64)a[0] * (WORD64)b[0];
@@ -239,8 +232,7 @@ static PLATFORM_INLINE WORD64 ixheaac_sub64_sat(WORD64 a, WORD64 b) {
   return (diff);
 }
 
-static PLATFORM_INLINE WORD32 ixheaac_mul32_sh(WORD32 a, WORD32 b,
-                                                WORD8 shift) {
+static PLATFORM_INLINE WORD32 ixheaac_mul32_sh(WORD32 a, WORD32 b, WORD8 shift) {
   WORD32 result;
   WORD64 temp_result;
 

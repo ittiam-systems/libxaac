@@ -3,7 +3,7 @@ set(CMAKE_C_STANDARD 99)
 # Adds compiler options for all targets
 function(libxaac_add_compile_options)
   if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-    add_compile_options(-std=gnu99 -march=armv8-a)
+    add_compile_options(-std=gnu99 -march=armv8-a -DBUILD_ARM64)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
     add_compile_options(
       -O3
@@ -13,9 +13,18 @@ function(libxaac_add_compile_options)
       -march=armv7-a
       -mfloat-abi=softfp
       -mfpu=neon)
-  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686" OR ${CMAKE_SYSTEM_PROCESSOR}
-                                                      STREQUAL "x86_64")
-    add_compile_options(-O3 -Wall -Wsequence-point -fwrapv)
+  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    add_compile_options(-D_X86_ -O3 -Wall -Wsequence-point -Wunused-function -fwrapv -DBUILD_ARM64)
+  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
+    add_compile_options(-D_X86_ -O3 -Wall -Wsequence-point -Wunused-function -fwrapv -m32)
+  endif()
+ 
+  if(MSVC)
+    if(BUILD64)
+      add_definitions(-DBUILD_ARM64)
+    else()
+      add_definitions(-D_WIN32)
+    endif()
   endif()
 
   set(CMAKE_REQUIRED_FLAGS -fsanitize=fuzzer-no-link)
@@ -45,7 +54,7 @@ function(libxaac_add_definitions)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
     add_definitions(-DARMV7)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
-    add_definitions(-DX86)
+    add_definitions(-DX86 -D_X86_)
   endif()
 endfunction()
 
@@ -94,7 +103,11 @@ function(libxaac_add_executable NAME LIB)
   else()
     target_link_libraries(${NAME} ${LIB} ${ARG_LIBS})
   endif()
-
+  
+  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
+	set_target_properties(${NAME}  PROPERTIES LINK_FLAGS "-m32")
+  endif()
+  
   if(ARG_FUZZER)
     target_compile_options(${NAME}
                            PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)

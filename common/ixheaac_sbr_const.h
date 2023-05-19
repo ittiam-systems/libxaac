@@ -113,8 +113,7 @@
 #define MAX_NO_COLS_VALUE_BY_2 (MAX_NO_COLS_VALUE >> 1)
 
 #define MAX_QMF_X_INBUF_SIZE MAX_NO_COLS_VALUE
-#define MAX_QMF_X_OUTBUF_SIZE \
-  2 * MAX_QMF_X_INBUF_SIZE
+#define MAX_QMF_X_OUTBUF_SIZE 2 * MAX_QMF_X_INBUF_SIZE
 
 #define MAX_QMF_X_IN_REAL_BUF (NO_QMF_SYNTH_CHANNELS * MAX_QMF_X_INBUF_SIZE)
 #define MAX_QMF_X_IN_IMAG_BUF (NO_QMF_SYNTH_CHANNELS * MAX_QMF_X_INBUF_SIZE)
@@ -129,14 +128,11 @@
 #define HBE_OPER_BLK_LEN_3 8
 #define HBE_OPER_BLK_LEN_4 6
 
-#define MAX_HBE_PERSISTENT_SIZE                                                \
-  (MAX_QMF_X_INBUF_SIZE * sizeof(FLOAT32*) +                                   \
-   MAX_QMF_X_OUTBUF_SIZE * sizeof(FLOAT32*) +                                  \
-   MAX_QMF_X_IN_REAL_BUF * sizeof(FLOAT32) +                                   \
-   MAX_QMF_X_IN_IMAG_BUF * sizeof(FLOAT32) +                                   \
-   MAX_QMF_X_OUT_REAL_BUF * sizeof(FLOAT32) +                                  \
-   MAX_QMF_X_OUT_IMAG_BUF * sizeof(FLOAT32) + X_INBUF_SIZE * sizeof(FLOAT32) + \
-   X_OUTBUF_SIZE * sizeof(FLOAT32))
+#define MAX_HBE_PERSISTENT_SIZE                                                          \
+  (MAX_QMF_X_INBUF_SIZE * sizeof(FLOAT32*) + MAX_QMF_X_OUTBUF_SIZE * sizeof(FLOAT32*) +  \
+   MAX_QMF_X_IN_REAL_BUF * sizeof(FLOAT32) + MAX_QMF_X_IN_IMAG_BUF * sizeof(FLOAT32) +   \
+   MAX_QMF_X_OUT_REAL_BUF * sizeof(FLOAT32) + MAX_QMF_X_OUT_IMAG_BUF * sizeof(FLOAT32) + \
+   X_INBUF_SIZE * sizeof(FLOAT32) + X_OUTBUF_SIZE * sizeof(FLOAT32))
 
 #define MAX_QMF_BUF_LEN 78
 

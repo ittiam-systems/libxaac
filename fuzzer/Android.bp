@@ -24,3 +24,21 @@ cc_fuzz {
         componentid: 155276,
     },
 }
+
+cc_fuzz {
+    name: "xaac_enc_fuzzer",
+    host_supported: true,
+    srcs: [
+        "xaac_enc_fuzzer.c",
+    ],
+    static_libs: [
+        "libxaacenc",
+        "liblog",
+    ],
+    fuzz_config: {
+        cc: [
+            "android-media-fuzzing-reports@google.com",
+        ],
+        componentid: 155276,
+    },
+}
