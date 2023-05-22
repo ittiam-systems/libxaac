@@ -1,0 +1,28 @@
+list(APPEND XAACENC_SRCS
+     "${XAAC_ROOT}/test/encoder/ixheaace_error.c"
+     "${XAAC_ROOT}/test/encoder/ixheaace_testbench.c"
+     "${XAAC_ROOT}/test/encoder/ixheaace_wav_reader.c")
+
+set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder
+                        ${XAAC_ROOT}/test/encoder
+                        ${XAAC_ROOT}/common)
+
+include_directories(${LIBXAACENC_INCLUDES})
+
+libxaac_add_executable(xaacenc libxaacenc SOURCES ${XAACENC_SRCS} INCLUDES 
+                       ${LIBXAACENC_INCLUDES})
+
+if (MSVC) 
+    set_target_properties(
+        xaacenc 
+        PROPERTIES 
+        COMPILE_FLAGS
+        "-D_CRT_SECURE_NO_WARNINGS -D_X86_") 
+else()
+    set_target_properties(
+        xaacenc 
+        PROPERTIES 
+        COMPILE_FLAGS
+        "-D_X86_ -DBUILD_ARM64 -c -O3 -Wall -Wsequence-point -Wunused-function"
+        ) 
+endif()

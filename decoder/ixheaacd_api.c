@@ -127,8 +127,6 @@
 
 #define LD_OBJ -2
 
-#define MIN(x, y) ((x) > (y) ? (y) : (x))
-
 IA_ERRORCODE ixheaacd_dec_mem_api(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus_dec,
                                   WORD32 i_cmd, WORD32 i_idx, VOID *pv_value) {
   pUWORD32 pui_value = pv_value;

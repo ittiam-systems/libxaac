@@ -1,6 +1,6 @@
-# Fuzzer for libxaac decoder
+# Fuzzer for libxaac decoder and encoder
 
-This describes steps to build xaac_dec_fuzzer binary.
+This describes steps to build xaac_dec_fuzzer and xaac_enc_fuzzer binary.
 
 ## Linux x86/x64
 
@@ -35,6 +35,7 @@ Create a directory CORPUS_DIR and copy some elementary aac files to that folder
 To run the fuzzer
 ```
 $ ./xaac_dec_fuzzer CORPUS_DIR
+$ ./xaac_enc_fuzzer CORPUS_DIR
 ```
 
 ## Android

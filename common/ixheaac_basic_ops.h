@@ -20,6 +20,9 @@
 #ifndef IXHEAAC_BASIC_OPS_H
 #define IXHEAAC_BASIC_OPS_H
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 static PLATFORM_INLINE WORD16 ixheaac_extract16h(WORD32 var) {
   WORD16 var_out;
 
@@ -48,8 +51,7 @@ static PLATFORM_INLINE WORD32 ixheaac_deposit16l_in32(WORD16 var) {
   return (var_out);
 }
 
-static PLATFORM_INLINE UWORD32 ixheaac_extu(UWORD32 a, WORD32 shift_left,
-                                             WORD32 shift_right) {
+static PLATFORM_INLINE UWORD32 ixheaac_extu(UWORD32 a, WORD32 shift_left, WORD32 shift_right) {
   UWORD32 x;
   x = (UWORD32)a << shift_left;
   x = (UWORD32)x >> shift_right;
@@ -57,8 +59,7 @@ static PLATFORM_INLINE UWORD32 ixheaac_extu(UWORD32 a, WORD32 shift_left,
   return x;
 }
 
-static PLATFORM_INLINE WORD32 ixheaac_mult32x16h_in32_shl_sat(WORD32 a,
-                                                               WORD32 b) {
+static PLATFORM_INLINE WORD32 ixheaac_mult32x16h_in32_shl_sat(WORD32 a, WORD32 b) {
   WORD32 result;
 
   if (a == (WORD32)0x80000000 && b == (WORD16)0x8000) {
@@ -124,8 +125,7 @@ static PLATFORM_INLINE WORD32 ixheaac_shl32_dir_sat_limit(WORD32 a, WORD b) {
   return out_val;
 }
 
-static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_dual(WORD32 a, WORD32 b,
-                                                         WORD64 c) {
+static PLATFORM_INLINE WORD64 ixheaac_mac32x32in64_dual(WORD32 a, WORD32 b, WORD64 c) {
   WORD64 result;
   WORD64 temp_result;
 

@@ -95,8 +95,6 @@
 #define EXT_DATA_LENGTH 3
 #define EXT_LDSAC_DATA 9
 
-#define MIN(x, y) ((x) > (y) ? (y) : (x))
-
 extern const ia_usac_samp_rate_info ixheaacd_samp_rate_info[];
 
 WORD32 ixheaacd_aacdec_decodeframe(

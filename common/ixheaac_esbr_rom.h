@@ -20,8 +20,8 @@
 #ifndef IXHEAAC_ESBR_ROM_H
 #define IXHEAAC_ESBR_ROM_H
 
-extern const FLOAT32 ixheaac_sub_samp_qmf_window_coeff[40 + 80 + 120 + 160 +
-                                                       200 + 240 + 320 + 400 + 440];
+extern const FLOAT32
+    ixheaac_sub_samp_qmf_window_coeff[40 + 80 + 120 + 160 + 200 + 240 + 320 + 400 + 440];
 extern const FLOAT32 ixheaac_random_phase[512][2];
 extern const FLOAT32 ixheaac_hphase_tbl[2][8];
 
