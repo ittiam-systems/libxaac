@@ -20,7 +20,6 @@
 #include "ixheaac_type_def.h"
 #include "ixheaace_common_rom.h"
 
-//__align(4)
 const ixheaace_common_tables ia_enhaacplus_enc_common_tab = {
     /*sqrt_tab */
     {1073741824, 1074789888, 1075836928, 1076882944, 1077927936, 1078971904, 1080014976,

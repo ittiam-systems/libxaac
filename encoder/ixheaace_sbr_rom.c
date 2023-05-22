@@ -49,7 +49,6 @@ const WORD32 vector_stop_freq_32[14] = {32, 34, 36, 38, 40, 42, 44, 46, 49, 52, 
 const WORD32 vector_stop_freq_44[14] = {23, 25, 27, 29, 32, 34, 37, 40, 43, 47, 51, 55, 59, 64};
 const WORD32 vector_stop_freq_48[14] = {21, 23, 25, 27, 30, 32, 35, 38, 42, 45, 49, 54, 59, 64};
 
-//__align(4)
 const ixheaace_str_ps_tab ia_enhaacplus_enc_ps_tab = {
     /*a_hyb_res[3]*/
     {8, 4, 4},
@@ -162,8 +161,6 @@ const ixheaace_str_ps_tab ia_enhaacplus_enc_ps_tab = {
     /*a_book_ps_icc_freq_length[15]*/
     {0x0E, 0x0E, 0x0C, 0x0A, 0x07, 0x05, 0x03, 0x01, 0x02, 0x04, 0x06, 0x08, 0x09, 0x0B, 0x0D}};
 /*End of PS Tables*/
-
-//__align(4)
 
 const ixheaace_str_qmf_tabs ixheaace_qmf_tab = {
     /* sbr_qmf_64_640 */
@@ -832,7 +829,6 @@ const ixheaace_str_qmf_tabs ixheaace_qmf_tab = {
 /*End of QMF Tables*/
 
 /*Resampler Tables*/
-//__align(4)
 
 const ixheaace_resampler_table ixheaace_resamp_2_to_1_iir_filt_params = {
     /*This is an Elliptic Low pass filter of order 10.
@@ -901,7 +897,6 @@ const ixheaace_resampler_sos_table iixheaace_resamp_8_to_1_filt_params = {
      31}};
 
 /*End of Resampler Tables*/
-//__align(4)
 const ixheaace_str_sbr_huff_tabs ixheaace_sbr_huff_tab = {
     /*v_huff_env_lvl_c10t[121]*/
     {0x0003FFD6, 0x0003FFD7, 0x0003FFD8, 0x0003FFD9, 0x0003FFDA, 0x0003FFDB, 0x0007FFB8,

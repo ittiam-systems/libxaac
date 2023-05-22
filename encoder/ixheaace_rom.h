@@ -40,7 +40,6 @@ typedef struct {
   const FLOAT32 win_480_ld[1800];
 } ixheaace_mdct_tables;
 extern
-    //__align(4)
     const ixheaace_mdct_tables ixheaace_enc_mdct_tab;
 
 /*Huffman Tables*/
@@ -67,7 +66,6 @@ typedef struct {
 } ixheaace_huffman_tables;
 
 extern
-    //__align(4)
     const ixheaace_huffman_tables ixheaace_enc_huff_tab;
 
 typedef struct {
@@ -89,7 +87,6 @@ typedef struct {
 } ixheaace_psycho_tables;
 
 extern
-    //__align(4)
     const ixheaace_psycho_tables ixheaace_enc_psycho_tab;
 
 /*Quantizer tables*/
@@ -104,7 +101,6 @@ typedef struct {
 } ixheaace_quant_tables;
 
 extern
-    //__align(4)
     const ixheaace_quant_tables ixheaace_enc_quant_tab;
 typedef struct {
   const ixheaace_temporal_noise_shaping_max_table tns_max_bands_table[12];
@@ -116,7 +112,6 @@ typedef struct {
 } ixheaace_temporal_noise_shaping_tables;
 
 extern
-    //__align(4)
     const ixheaace_temporal_noise_shaping_tables ixheaace_enhaacplus_enc_tns_tab;
 
 typedef struct {

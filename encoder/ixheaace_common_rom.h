@@ -34,7 +34,6 @@ typedef struct {
 } ixheaace_common_tables;
 
 extern
-    //__align(4)
     const ixheaace_common_tables ia_enhaacplus_enc_common_tab;
 
 typedef struct {

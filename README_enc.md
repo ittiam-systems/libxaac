@@ -5,7 +5,7 @@
 | **API Call** | **Description** |
 |------|------|
 |ixheaace_get_lib_id_strings| Gets the encoder library name and version number details |
-|ixheaace_create| Sets the encoder configuration parameters, gets the memory requirements and allocate required memory |
+|ixheaace_create| Sets the encoder configuration parameters, gets the memory requirements and allocates required memory |
 |ixheaace_process| Encodes the input frame data |
 |ixheaace_delete| Frees the allocated memories for the encoder |
 
@@ -28,7 +28,7 @@ The reference paramfile is placed in smoke_test_suite(paramfilesimple.txt)
 
 # Command line usage :
 ```
-<exceutable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<out_file> [options]
+<exceutable> -ifile:<input_file> -ofile:<out_file> [options]
 
 <executable> -paramfile:<paramfile>
 [options] can be,

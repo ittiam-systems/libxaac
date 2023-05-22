@@ -29,7 +29,6 @@
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
 
-//__align(4)
 
 const ixheaace_mdct_tables ixheaace_enc_mdct_tab = {
     // UWORD8 re_arr_tab_16[MDCT_LEN >> 1] =
@@ -807,7 +806,6 @@ const ixheaace_mdct_tables ixheaace_enc_mdct_tab = {
 
 }; /*End of MDCT Tables*/
 
-//__align(4)
 const ixheaace_huffman_tables ixheaace_enc_huff_tab = {
 
     /*huff_ltab1_2*/
@@ -1129,7 +1127,6 @@ const ixheaace_huffman_tables ixheaace_enc_huff_tab = {
      0x0007ffe1, 0x0007ffe2, 0x0007ffe3, 0x0007ffe4, 0x0007ffe5, 0x0007ffd7, 0x0007ffec,
      0x0007fff4, 0x0007fff3}};
 /*End of Huffman tables*/
-//__align(4)
 const ixheaace_psycho_tables ixheaace_enc_psycho_tab = {
     /*ixheaace_bark_quiet_thr_val*/
     {15.0f, 10.0f, 7.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,  0.0f,  0.0f, 0.0f,
@@ -1484,7 +1481,6 @@ const ixheaace_psycho_tables ixheaace_enc_psycho_tab = {
 };
 /*Psycho tables end here*/
 
-//__align(4)
 const ixheaace_quant_tables ixheaace_enc_quant_tab = {
     /*q_quant_table_E_fix*/
     {6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54},
@@ -1610,7 +1606,6 @@ const ixheaace_quant_tables ixheaace_enc_quant_tab = {
 
     {16, 40, 102, 256, 645, 1625, 4096, 10321, 26008}};
 /*End of quantization tables*/
-//__align(4)
 const ixheaace_temporal_noise_shaping_tables ixheaace_enhaacplus_enc_tns_tab = {
 
     {{96000, 31, 9, 31, 9, 31, 31},
