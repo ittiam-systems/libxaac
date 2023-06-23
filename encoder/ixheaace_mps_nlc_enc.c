@@ -41,6 +41,10 @@
 #include "ixheaace_mps_tree.h"
 #include "ixheaace_mps_rom.h"
 #include "ixheaace_common_utils.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 static UWORD8 ixheaace_mps_212_sym_check(WORD16 data[2], const WORD16 lav,
                                          WORD16 *const p_sym_bits) {
@@ -162,13 +166,15 @@ static VOID ixheaace_mps_212_apply_pcm_coding(ixheaace_bit_buf_handle pstr_bit_b
   }
 
   for (val = 0; val < num_val; val += max_grp_len) {
-    grp_len = min(max_grp_len, num_val - val);
+    grp_len = MIN(max_grp_len, num_val - val);
     grp_val = 0;
     for (lvl = 0; lvl < grp_len; lvl++) {
       idx = val + lvl;
-      next_val = (in_data_2 == NULL)   ? in_data_1[idx]
-                 : (in_data_1 == NULL) ? in_data_2[idx]
-                                       : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
+      next_val = (in_data_2 == NULL)
+                     ? in_data_1[idx]
+                     : (in_data_1 == NULL)
+                           ? in_data_2[idx]
+                           : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
       grp_val = grp_val * n_levels + next_val + offset;
     }
     ixheaace_write_bits(pstr_bit_buf, grp_val, pcm_block_size[grp_len]);
@@ -434,8 +440,8 @@ static IA_ERRORCODE ixheaace_mps_212_calc_huff_bits(
       pair_vec[band][0] = in_short_data_1[band];
       pair_vec[band][1] = in_short_data_1[band + 1];
 
-      lav_fp[0] = (WORD16)max(lav_fp[0], abs(pair_vec[band][0]));
-      lav_fp[0] = (WORD16)max(lav_fp[0], abs(pair_vec[band][1]));
+      lav_fp[0] = (WORD16)MAX(lav_fp[0], abs(pair_vec[band][0]));
+      lav_fp[0] = (WORD16)MAX(lav_fp[0], abs(pair_vec[band][1]));
     }
 
     tab_idx_2_d[0][0] = (diff_type_1 == IXHEAACE_MPS_SAC_DIFF_TIME) ? 1 : 0;
@@ -469,8 +475,8 @@ static IA_ERRORCODE ixheaace_mps_212_calc_huff_bits(
       pair_vec[band + 1][0] = in_short_data_2[band];
       pair_vec[band + 1][1] = in_short_data_2[band + 1];
 
-      lav_fp[1] = (WORD16)max(lav_fp[1], abs(pair_vec[band + 1][0]));
-      lav_fp[1] = (WORD16)max(lav_fp[1], abs(pair_vec[band + 1][1]));
+      lav_fp[1] = (WORD16)MAX(lav_fp[1], abs(pair_vec[band + 1][0]));
+      lav_fp[1] = (WORD16)MAX(lav_fp[1], abs(pair_vec[band + 1][1]));
     }
 
     tab_idx_2_d[1][0] = (diff_type_2 == IXHEAACE_MPS_SAC_DIFF_TIME) ? 1 : 0;
@@ -848,13 +854,15 @@ static VOID ixheaace_mps_515_apply_pcm_coding(ixheaace_bit_buf_handle pstr_bit_b
   }
 
   for (i = 0; i < num_val; i += max_grp_len) {
-    grp_len = min(max_grp_len, num_val - i);
+    grp_len = MIN(max_grp_len, num_val - i);
     grp_val = 0;
     for (j = 0; j < grp_len; j++) {
       idx = i + j;
-      next_val = (in_data_2 == NULL)   ? in_data_1[idx]
-                 : (in_data_1 == NULL) ? in_data_2[idx]
-                                       : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
+      next_val = (in_data_2 == NULL)
+                     ? in_data_1[idx]
+                     : (in_data_1 == NULL)
+                           ? in_data_2[idx]
+                           : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
       grp_val = grp_val * n_levels + next_val + offset;
     }
 

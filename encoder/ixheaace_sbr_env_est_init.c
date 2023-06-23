@@ -60,8 +60,7 @@ ixheaace_create_extract_sbr_envelope(WORD32 ch,
                                      ixheaace_pstr_sbr_extract_envelope pstr_sbr_ext_env,
                                      WORD32 start_index, WORD32 *ptr_common_buffer2,
                                      FLOAT32 *ptr_sbr_env_r_buf, FLOAT32 *ptr_sbr_env_i_buf,
-                                     WORD32 is_ld_sbr, WORD32 frame_flag_480,
-                                     ixheaace_sbr_codec_type sbr_codec) {
+                                     WORD32 frame_flag_480, ixheaace_sbr_codec_type sbr_codec) {
   WORD32 i;
   WORD32 y_buffer_length, r_buffer_length;
   WORD32 offset = 0;
@@ -93,12 +92,6 @@ ixheaace_create_extract_sbr_envelope(WORD32 ch,
     y_buffer_length = y_buffer_write_offset + time_slots;
     r_buffer_length = time_slots;
   } else {
-    if (is_ld_sbr && frame_flag_480) {
-      y_buffer_write_offset = 30;
-      no_cols = 30;
-      time_slots = 15;
-    }
-
     pstr_sbr_ext_env->y_buffer_write_offset = y_buffer_write_offset;
 
     y_buffer_length = pstr_sbr_ext_env->y_buffer_write_offset + y_buffer_write_offset;

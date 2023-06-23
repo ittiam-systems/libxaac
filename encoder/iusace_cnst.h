@@ -186,8 +186,6 @@
 #define LAG_MIN (64)   // if 48k is max sr-- corresponding pitch_min/2
 #define LAG_MAX (408)  // if 48k is max sr-- corresponding pitch_max/2
 #define LEN_CORR_R (LAG_MAX - LAG_MIN + 1)
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 #define CODE_BOOK_ALPHA_LAV 121
 

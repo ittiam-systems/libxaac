@@ -137,7 +137,9 @@ VOID ixheaace_get_input_scratch_buf(VOID *ptr_scr, FLOAT32 **ptr_scratch_buf_inp
   *ptr_scratch_buf_inp = pstr_resampler_scr->downsampler_in_buffer;
 }
 
-WORD32 ixheaace_resampler_scr_size(VOID) { return sizeof(ixheaace_resampler_scratch); }
+WORD32 ixheaace_resampler_scr_size(VOID) {
+  return IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_resampler_scratch), BYTE_ALIGN_8);
+}
 
 static VOID ia_enhaacplus_enc_iir_sos_filter(ixheaace_iir_sos_resampler *pstr_down_sampler,
                                              FLOAT32 *ptr_in_samples, WORD32 in_stride,

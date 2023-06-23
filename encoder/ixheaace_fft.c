@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaace_psy_const.h"
 #include "ixheaace_tns.h"
 #include "ixheaace_tns_params.h"
@@ -30,6 +31,9 @@
 #include "ixheaace_enc_main.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_fft.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "iusace_basic_ops_flt.h"
 
 static VOID ia_enhaacplus_enc_shift_mdct_delay_buffer(FLOAT32 *ptr_mdct_delay_buffer,
@@ -440,7 +444,7 @@ VOID ia_enhaacplus_enc_complex_fft_p2(FLOAT32 *ptr_x, WORD32 nlength,
 
   ptr_w = ia_enhaacplus_enc_twiddle_table_fft_32x32;
 
-  dig_rev_shift = max(dig_rev_shift, 0);
+  dig_rev_shift = MAX(dig_rev_shift, 0);
 
   for (i = 0; i < npoints; i += 4) {
     ptr_inp = ptr_x;
@@ -2430,8 +2434,8 @@ VOID ia_enhaacplus_enc_transform_real_eld(FLOAT32 *ptr_mdct_delay_buffer,
   ptr_win2 = &low_delay_window_eld[2 * frame_len];
   ptr_win3 = &low_delay_window_eld[3 * frame_len];
 
-  memcpy(&ptr_mdct_delay_buffer[0], &ptr_mdct_delay_buffer[frame_len],
-         (3 * frame_len) * sizeof(ptr_mdct_delay_buffer[0]));
+  memmove(&ptr_mdct_delay_buffer[0], &ptr_mdct_delay_buffer[frame_len],
+          (3 * frame_len) * sizeof(ptr_mdct_delay_buffer[0]));
 
   for (i = 0; i < frame_len; i++) {
     ptr_curr_data[i] = ptr_time_signal[i * ch_increment];

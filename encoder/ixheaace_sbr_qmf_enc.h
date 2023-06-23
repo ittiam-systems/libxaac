@@ -35,13 +35,8 @@ typedef struct {
   FLOAT32 *ptr_flt_time_buf;
   FLOAT32 *ptr_flt_work_buf;
   WORD16 flag;
-#ifdef BUILD_ARM64
-  WORD64 offset_l;
-  WORD64 offset_r;
-#else
-  WORD32 offset_l;
-  WORD32 offset_r;
-#endif
+  SIZE_T offset_l;
+  SIZE_T offset_r;
   WORD16 offset;
   const FLOAT32 *ptr_filter;
   const FLOAT32 *ptr_cos_twiddle;

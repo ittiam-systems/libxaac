@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 #include <math.h>
 
 #include "ixheaac_type_def.h"

@@ -28,6 +28,12 @@ IA_ERRORCODE ixheaace_delete(pVOID pv_output);
 #define IUSACE_FLOAT64_SCRATCH_SIZE (47704)
 #define IUSACE_FLOAT32_SCRATCH_SIZE (2048 + 1024)
 
+#define CH_MASK_CENTER_FRONT (0x4)
+#define CH_MASK_LEFT_RIGHT_FRONT (0x3)
+#define CH_MASK_REAR_CENTER (0x100)
+#define CH_MASK_LEFT_RIGHT_BACK (0X30)
+#define CH_MASK_LFE (0x08)
+
 VOID ia_enhaacplus_enc_get_shared_bufs(VOID *scr, WORD32 **shared_buf1, WORD32 **shared_buf2,
                                        WORD32 **shared_buf3, WORD8 **shared_buf4,
                                        WORD32 aacenc_blocksize);

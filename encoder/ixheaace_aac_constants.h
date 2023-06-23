@@ -88,3 +88,6 @@ typedef struct {
 
 /* bits in byte (char) */
 #define BYTE_NUMBIT 8
+#define BYTE_ALIGN_8 (8)
+#define EIGHT_BYTE_SIZE (8)
+#define IXHEAACE_GET_SIZE_ALIGNED(size, alignment) ((size + (alignment - 1)) & ~(alignment - 1))

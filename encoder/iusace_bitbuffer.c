@@ -19,8 +19,12 @@
  */
 
 #include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "iusace_cnst.h"
 #include "iusace_bitbuffer.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 ia_bit_buf_struct *iusace_create_bit_buffer(ia_bit_buf_struct *it_bit_buf,
                                             UWORD8 *ptr_bit_buf_base, UWORD32 bit_buffer_size,
@@ -68,7 +72,7 @@ UWORD8 iusace_write_bits_buf(ia_bit_buf_struct *it_bit_buf, UWORD32 write_val, U
     while (num_bits) {
       UWORD8 tmp, msk;
 
-      bits_to_write = (WORD8)min(write_position + 1, num_bits);
+      bits_to_write = (WORD8)MIN(write_position + 1, num_bits);
 
       tmp = (UWORD8)(write_val << (32 - num_bits) >> (32 - bits_to_write)
                                                          << (write_position + 1 - bits_to_write));
@@ -107,19 +111,19 @@ WORD32 iusace_write_escape_value(ia_bit_buf_struct *pstr_it_bit_buff, UWORD32 va
   UWORD32 max_val2 = (1 << no_bits2) - 1;
   UWORD32 max_val3 = (1 << no_bits3) - 1;
 
-  esc_val = min(value, max_val1);
+  esc_val = MIN(value, max_val1);
   bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, esc_val, no_bits1);
 
   if (esc_val == max_val1) {
     value = value - esc_val;
 
-    esc_val = min(value, max_val2);
+    esc_val = MIN(value, max_val2);
     bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, esc_val, no_bits2);
 
     if (esc_val == max_val2) {
       value = value - esc_val;
 
-      esc_val = min(value, max_val3);
+      esc_val = MIN(value, max_val3);
       bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, esc_val, no_bits3);
     }
   }

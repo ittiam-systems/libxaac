@@ -1,5 +1,5 @@
-@Input_path ../smoke_test_suite/inp/
-@Output_path ../smoke_test_suite/out/
+@Input_path ./
+@Output_path ./
 @Start
 
 //LC

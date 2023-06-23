@@ -280,7 +280,7 @@ ixheaace_create_ton_corr_param_extr(WORD32 ch, ixheaace_pstr_sbr_ton_corr_est ps
     pstr_ton_corr->move = 2;
     pstr_ton_corr->start_index_matrix = 2;
   } else {
-    pstr_ton_corr->est_cnt = NO_OF_ESTIMATES_ELD_3;
+    pstr_ton_corr->est_cnt = NO_OF_ESTIMATES_ELD;
     pstr_ton_corr->move = 1;
     pstr_ton_corr->start_index_matrix = 1;
   }

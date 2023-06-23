@@ -94,7 +94,7 @@ typedef struct {
   UWORD32 ui_inp_buf_size;
 
   UWORD32 malloc_count;
-  UWORD32 ui_rem;
+  SIZE_T ui_rem;
   UWORD32 ui_proc_mem_tabs_size;
 
   pVOID pv_ia_process_api_obj;

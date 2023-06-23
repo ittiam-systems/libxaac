@@ -20,14 +20,6 @@
 
 #pragma once
 
-#ifndef min
-#define min(a, b) (a < b ? a : b)
-#endif
-
-#ifndef max
-#define max(a, b) (a > b ? a : b)
-#endif
-
 #define GLOBAL_GAIN_OFFSET 100
 #define ICS_RESERVED_BIT 0
 #define EXT_FIL 0

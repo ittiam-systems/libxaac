@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_error_standards.h"
@@ -33,6 +32,10 @@
 #include "ixheaace_mps_tools_rom.h"
 #include "ixheaace_mps_dct.h"
 #include "ixheaace_mps_qmf.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 static IA_ERRORCODE ixheaace_mps_212_qmf_forward_modulation_hq(
     ixheaace_mps_pstr_qmf_filter_bank pstr_qmf_filter_bank, const FLOAT32 *time_in,
@@ -76,7 +79,7 @@ static IA_ERRORCODE ixheaace_mps_212_qmf_forward_modulation_hq(
     return error;
   }
 
-  for (idx = 0; idx < min(pstr_qmf_filter_bank->lsb, qmf_bands); idx += 2) {
+  for (idx = 0; idx < MIN(pstr_qmf_filter_bank->lsb, qmf_bands); idx += 2) {
     intermediate_band = real_subband[idx];
     real_subband[idx] = -imag_subband[idx];
     imag_subband[idx] = intermediate_band;
@@ -143,8 +146,8 @@ ixheaace_mps_212_qmf_init_filter_bank(ixheaace_mps_pstr_qmf_filter_bank pstr_qmf
   memset(pstr_qmf_filter_bank, 0, sizeof(ixheaace_mps_qmf_filter_bank));
   pstr_qmf_filter_bank->no_channels = no_channels;
   pstr_qmf_filter_bank->no_col = num_cols;
-  pstr_qmf_filter_bank->lsb = min(lsb, pstr_qmf_filter_bank->no_channels);
-  pstr_qmf_filter_bank->usb = min(usb, pstr_qmf_filter_bank->no_channels);
+  pstr_qmf_filter_bank->lsb = MIN(lsb, pstr_qmf_filter_bank->no_channels);
+  pstr_qmf_filter_bank->usb = MIN(usb, pstr_qmf_filter_bank->no_channels);
   pstr_qmf_filter_bank->ptr_filter_states = (VOID *)ptr_filter_states;
   memset(pstr_qmf_filter_bank->ptr_filter_states, 0,
          (2 * QMF_NO_POLY - 1) * pstr_qmf_filter_bank->no_channels * sizeof(FLOAT32));

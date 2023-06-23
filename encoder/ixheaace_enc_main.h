@@ -42,7 +42,8 @@
 
 #define NUM_CHANS_MONO (1)
 #define NUM_CHANS_STEREO (2)
-
+#define MAX_NUM_CHANNELS (6)
+#define MIN_NUM_CHANNELS (1)
 /*-------------------------- defines --------------------------------------*/
 
 #define BUFFERSIZE 1024 /* anc data */

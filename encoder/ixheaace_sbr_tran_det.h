@@ -40,13 +40,11 @@ typedef struct {
   WORD32 no_rows;
   WORD32 mode;
   FLOAT32 prev_low_band_energy;
-  FLOAT32 tot_high_band_energy;
   FLOAT32 delta_energy[34];
   FLOAT32 energy[34];
   FLOAT32 coeff[64];
   WORD32 energy_slots[34];
   WORD32 delta_slots[34];
-  FLOAT32 prev_high_band_energy;
   WORD32 buffer_size;
   WORD32 look_ahead;
   WORD32 time_slots;

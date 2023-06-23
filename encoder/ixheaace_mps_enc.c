@@ -54,6 +54,9 @@
 #include "ixheaace_mps_structure.h"
 #include "ixheaace_mps_memory.h"
 #include "ixheaace_mps_enc.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 static UWORD8 ixheaace_mps_212_space_get_num_qmf_bands(const UWORD32 num_sample_rate) {
   UWORD8 num_qmf_bands = 0;
@@ -169,7 +172,7 @@ static IA_ERRORCODE ixheaace_mps_212_feed_de_inter_pre_scale(
   const WORD32 num_ch_in = pstr_space_enc->n_input_channels;
   const WORD32 num_ch_in_with_dmx = num_ch_in;
   const WORD32 samples_to_feed =
-      min(num_samples, pstr_space_enc->n_samples_next - pstr_space_enc->n_samples_valid);
+      MIN(num_samples, pstr_space_enc->n_samples_next - pstr_space_enc->n_samples_valid);
   const WORD32 num_samples_per_channel = samples_to_feed / num_ch_in_with_dmx;
 
   if ((samples_to_feed < 0) || (samples_to_feed % num_ch_in_with_dmx != 0) ||
@@ -534,7 +537,7 @@ static IA_ERRORCODE ixheaace_mps_212_encode(
     }
   }
 
-  pstr_space_enc->tr_prev_pos[0] = max(-1, pstr_space_enc->tr_prev_pos[1] - num_frame_time_slots);
+  pstr_space_enc->tr_prev_pos[0] = MAX(-1, pstr_space_enc->tr_prev_pos[1] - num_frame_time_slots);
   pstr_space_enc->tr_prev_pos[1] = curr_trans_pos;
 
   for (ch = 0; ch < num_ch_in; ch++) {
@@ -842,7 +845,7 @@ static WORD32 ixheaace_mps_212_get_closest_bit_rate(const WORD32 audio_object_ty
         (mps_config_tab[idx].audio_object_type == audio_object_type) &&
         (mps_config_tab[idx].sbr_ratio == sbr_ratio)) {
       target_bitrate =
-          min(max(bitrate, mps_config_tab[idx].bitrate_min), mps_config_tab[idx].bitrate_max);
+          MIN(MAX(bitrate, mps_config_tab[idx].bitrate_min), mps_config_tab[idx].bitrate_max);
     }
   }
 
@@ -857,7 +860,7 @@ static WORD32 ixheaace_mps_212_write_spatial_specific_config_data(
   ixheaace_mps_space_info pstr_space_encoder_info;
   ixheaace_mps_212_get_info(pstr_mps_enc->ptr_sac_encoder, &pstr_space_encoder_info);
 
-  for (idx = 0; idx < pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits >> 3; idx++) {
+  for (idx = 0; idx<pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits>> 3; idx++) {
     ixheaace_write_bits(pstr_bit_buf, pstr_space_encoder_info.p_ssc_buf->ptr_ssc[idx], 8);
     written_bits += 8;
   }
@@ -1039,6 +1042,7 @@ WORD32 ixheaace_mps_515_scratch_size(VOID) {
            sizeof(FLOAT32));
   size += (INPUT_LEN_DOWNSAMPLE * IXHEAACE_MAX_CH_IN_BS_ELE * UPSAMPLE_FAC * sizeof(FLOAT32));
   size += (INPUT_LEN_DOWNSAMPLE * IXHEAACE_MAX_CH_IN_BS_ELE * UPSAMPLE_FAC * sizeof(FLOAT32));
+  size = IXHEAACE_GET_SIZE_ALIGNED(size, BYTE_ALIGN_8);
   return size;
 }
 

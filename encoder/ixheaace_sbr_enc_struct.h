@@ -27,15 +27,11 @@
 
 #define ALIGNMENT_DEFINE __attribute__((aligned(8)))
 
-#ifndef max
-#define max(a, b) (a > b ? a : b)
-#endif
-
 #define IXHEAACE_SBR_SCR_SIZE_PVC (0)
 #define IXHEAACE_SBR_SCR_SIZE_TES (0)
 
 #define IXHEAACE_SBR_SCR_SIZE \
-  max(IXHEAACE_SBR_SCR_SIZE_PVC, max(IXHEAACE_SBR_SCR_SIZE_TES, (2 * 1024)))
+  MAX(IXHEAACE_SBR_SCR_SIZE_PVC, MAX(IXHEAACE_SBR_SCR_SIZE_TES, (2 * 1024)))
 
 typedef struct {
   WORD32 ps_buf3[IXHEAACE_HYBRID_BANDS * IXHEAACE_SUBSAMPLES * 2];

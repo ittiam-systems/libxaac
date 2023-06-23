@@ -123,9 +123,8 @@ VOID ia_enhaacplus_enc_calc_weighted_spectrum(FLOAT32 *ptr_spectrum, FLOAT32 *pt
       }
     }
 
-    ptr_weighted_spec[lpc_start_line + 1] = (FLOAT32)(((ptr_weighted_spec[lpc_start_line + 1]) +
-                                                       (ptr_weighted_spec[lpc_start_line])) *
-                                                      0.5f);
+    ptr_weighted_spec[lpc_start_line + 1] = (FLOAT32)(
+        ((ptr_weighted_spec[lpc_start_line + 1]) + (ptr_weighted_spec[lpc_start_line])) * 0.5f);
     multout_temp = (ptr_weighted_spec[lpc_start_line] * ptr_spectrum[lpc_start_line]);
     ptr_weighted_spec[lpc_start_line] = multout_temp;
 

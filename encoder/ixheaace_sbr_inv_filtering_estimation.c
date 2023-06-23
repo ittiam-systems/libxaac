@@ -132,15 +132,12 @@ static ixheaace_invf_mode ixheaace_decision_algorithm(
   FLOAT32 org_quota_mean_filt, sbr_quota_mean_filt, energy;
   if (is_ld_sbr) {
     org_quota_mean_filt =
-        (FLOAT32)(0.75f * (SBR_INV_LOG_2 * log(ptr_detector_values.org_quota_mean_filt + EPS) +
-                           0.31143075889f));
+        (FLOAT32)(SBR_INV_LOG_2 * 3.0f * log(ptr_detector_values.org_quota_mean_filt + EPS));
 
     sbr_quota_mean_filt =
-        (FLOAT32)(0.75f * (SBR_INV_LOG_2 * log(ptr_detector_values.sbr_quota_mean_filt + EPS) +
-                           0.31143075889f));
+        (FLOAT32)(SBR_INV_LOG_2 * 3.0f * log(ptr_detector_values.sbr_quota_mean_filt + EPS));
 
-    energy =
-        (FLOAT32)(1.5f * (SBR_INV_LOG_2 * log(ptr_detector_values.avg_energy + EPS) + 0.75f));
+    energy = (FLOAT32)(SBR_INV_LOG_2 * 1.5f * log(ptr_detector_values.avg_energy + EPS));
   } else {
     org_quota_mean_filt =
         (FLOAT32)(SBR_INV_LOG_2 * 3.0f * log(ptr_detector_values.org_quota_mean_filt * EPS));

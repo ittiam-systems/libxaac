@@ -47,13 +47,13 @@ IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_co
       IA_ERRORCODE err = IA_NO_ERROR;                           \
       err = ixheaace_delete((pVOID)pv_output);                  \
       if (pstr_in_cfg_user) {                                   \
-        free(pstr_in_cfg_user);                                 \
+        pv_output->free_xheaace(pstr_in_cfg_user);              \
       }                                                         \
       if (pstr_enc_api) {                                       \
-        free(pstr_enc_api);                                     \
+        pv_output->free_xheaace(pstr_enc_api);                  \
       }                                                         \
       if (ia_stsz_size != NULL) {                               \
-        free(ia_stsz_size);                                     \
+        pv_output->free_xheaace(ia_stsz_size);                  \
         ia_stsz_size = NULL;                                    \
       }                                                         \
       if ((err)&IA_FATAL_ERROR) {                               \

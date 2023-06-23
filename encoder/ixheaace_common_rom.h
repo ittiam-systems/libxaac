@@ -33,8 +33,7 @@ typedef struct {
   const short ia_enhaacplus_enc_w1024[768];
 } ixheaace_common_tables;
 
-extern
-    const ixheaace_common_tables ia_enhaacplus_enc_common_tab;
+extern const ixheaace_common_tables ia_enhaacplus_enc_common_tab;
 
 typedef struct {
   ixheaace_common_tables *pstr_common_tab;

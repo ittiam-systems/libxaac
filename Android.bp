@@ -461,20 +461,6 @@ cc_library_static {
             cfi_assembly_support: true,
         },
     },
-
-    arch: {
-        arm64: {
-            cflags: [
-            "-DBUILD_ARM64",
-            ],
-        },
-
-        x86_64: {
-            cflags: [
-            "-DBUILD_ARM64",
-            ],
-        },
-    },
 }
 
 subdirs = ["test"]

@@ -41,6 +41,9 @@
 #include "ixheaace_mps_vector_functions.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 static UWORD8 ixheaace_mps_212_get_icc_correlation_coherence_border(
     const WORD32 aot, const WORD32 use_coherence_only) {
@@ -298,8 +301,8 @@ IA_ERRORCODE ixheaace_mps_212_apply_tto_box(
     for (band = 0; band < num_param_bands; band++) {
       power_1 = (FLOAT32)log(power_hybrid_data_1[band] / 2.0f);
       power_2 = (FLOAT32)log(power_hybrid_data_2[band] / 2.0f);
-      power_1 = max(min(power_1, max_pow), -max_pow);
-      power_2 = max(min(power_2, max_pow), -max_pow);
+      power_1 = MAX(MIN(power_1, max_pow), -max_pow);
+      power_2 = MAX(MIN(power_2, max_pow), -max_pow);
       cld = (INV_LN_10_10 * (power_1 - power_2));
       pstr_tto_box->cld[band] = cld;
     }

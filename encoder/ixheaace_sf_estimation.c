@@ -689,12 +689,10 @@ VOID iaace_estimate_scfs_chan(
 
         for (j = 0; j < pstr_psy_out_chan->sfb_offsets[i + 1] - pstr_psy_out_chan->sfb_offsets[i];
              j++) {
-          ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] =
-              (FLOAT32)(pstr_psy_out_chan
-                            ->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
-          ptr_mdct_spec[pstr_psy_out_chan->sfb_offsets[i] + j] =
-              (FLOAT32)(pstr_psy_out_chan
-                            ->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
+          ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(
+              pstr_psy_out_chan->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
+          ptr_mdct_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(
+              pstr_psy_out_chan->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
         }
 
         iaace_calculate_exp_spec(

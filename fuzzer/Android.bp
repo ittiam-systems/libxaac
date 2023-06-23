@@ -29,7 +29,7 @@ cc_fuzz {
     name: "xaac_enc_fuzzer",
     host_supported: true,
     srcs: [
-        "xaac_enc_fuzzer.c",
+        "xaac_enc_fuzzer.cpp",
     ],
     static_libs: [
         "libxaacenc",
