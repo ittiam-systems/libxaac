@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <limits.h>
@@ -137,24 +136,15 @@ static WORD32 ixheaace_map_panorama(WORD32 nrg_val, WORD32 amp_res, WORD32 *ptr_
 
 static VOID ixheaace_sbr_noise_floor_levels_quantisation(WORD32 *ptr_noise_levels,
                                                          FLOAT32 *ptr_flt_noise_levels,
-                                                         WORD32 coupling, WORD32 is_ld_sbr) {
+                                                         WORD32 coupling) {
   WORD32 i = 0;
   WORD32 dummy;
 
   while (i < MAXIMUM_NUM_NOISE_VALUES) {
     WORD32 tmp;
-    if (is_ld_sbr) {
-      if (ptr_flt_noise_levels[i] > 0.46875f) {
-        tmp = 30;
-      } else {
-        tmp = (WORD32)(ptr_flt_noise_levels[i] * 64.0f);
-        if (tmp != 0) {
-          tmp += 1;
-        }
-      }
-    } else {
-      tmp = ptr_flt_noise_levels[i] > 30.0f ? 30 : (WORD32)(ptr_flt_noise_levels[i] + 0.5f);
-    }
+
+    tmp = ptr_flt_noise_levels[i] > 30.0f ? 30 : (WORD32)(ptr_flt_noise_levels[i] + 0.5f);
+
     if (coupling) {
       tmp = tmp < -30 ? -30 : tmp;
       tmp = ixheaace_map_panorama(tmp, 1, &dummy);
@@ -357,21 +347,11 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
       }
 
       energy_left = (FLOAT32)(log(energy_left / (count * 64) + EPS) * SBR_INV_LOG_2);
-      if (pstr_sbr_cfg->is_ld_sbr) {
-        energy_left += 2;
-      }
+
       if (energy_left < 0.0f) {
         energy_left = 0.0f;
       }
 
-      if (pstr_sbr_cfg->is_ld_sbr) {
-        if (energy_left >= 64.0f) {
-          energy_left = 64.0f;
-        }
-        if (ca == 2) {
-          energy_left /= 2.0f;
-        }
-      }
       ptr_sfb_ene_l[m] = (WORD32)(ca * energy_left + 0.5);
 
       if (stereo_mode == SBR_COUPLING) {
@@ -392,9 +372,8 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
 
       for (j = 0; j < num_bands; j++) {
         if (freq_res == FREQ_RES_HIGH && pstr_sbr->str_sbr_extract_env.envelope_compensation[j]) {
-          ptr_sfb_ene_l[m] -=
-              (WORD32)(ca *
-                       ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
+          ptr_sfb_ene_l[m] -= (WORD32)(
+              ca * ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
         }
 
         if (ptr_sfb_ene_l[m] < 0) {
@@ -425,7 +404,7 @@ static WORD32 ixheaace_get_pitch_bin(FLOAT32 *fft_data, const WORD32 *ptr_sfb_ta
       k += 2;
     }
 
-    tmp = (FLOAT32)log(max(MIN_FLT_VAL, (tmp / (FLOAT32)size)));
+    tmp = (FLOAT32)log(MAX(MIN_FLT_VAL, (tmp / (FLOAT32)size)));
     if (j != 0) {
       if (fabs(tmp - prev_val) >= 3.0f) {
         if (1 == is_4_1) {
@@ -499,12 +478,12 @@ static IA_ERRORCODE ixheaace_update_esbr_ext_data(
       pstr_esbr->sbr_oversampling_flag[0] = 1;
       pstr_esbr->sbr_patching_mode[0] = 0;
       pstr_esbr->sbr_pitchin_flags[0] = 1;
-      pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+      pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
     } else if (bin != -1) {
       pstr_esbr->sbr_oversampling_flag[0] = 0;
       pstr_esbr->sbr_patching_mode[0] = 0;
       pstr_esbr->sbr_pitchin_flags[0] = 1;
-      pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+      pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
     } else if (transient_info[0][1] != 0) {
       pstr_esbr->sbr_oversampling_flag[0] = 1;
       pstr_esbr->sbr_patching_mode[0] = 0;
@@ -542,14 +521,14 @@ static IA_ERRORCODE ixheaace_update_esbr_ext_data(
         pstr_esbr->sbr_oversampling_flag[0] = 1;
         pstr_esbr->sbr_patching_mode[0] = 0;
         pstr_esbr->sbr_pitchin_flags[0] = 1;
-        bin = min(bin, bin1);
-        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+        bin = MIN(bin, bin1);
+        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
       } else if (bin != -1) {
         pstr_esbr->sbr_oversampling_flag[0] = 0;
         pstr_esbr->sbr_patching_mode[0] = 0;
         pstr_esbr->sbr_pitchin_flags[0] = 1;
-        bin = min(bin, bin1);
-        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+        bin = MIN(bin, bin1);
+        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
       } else if ((transient_info[0][1] != 0 || transient_info[1][1] != 0)) {
         pstr_esbr->sbr_oversampling_flag[0] = 1;
         pstr_esbr->sbr_patching_mode[0] = 0;
@@ -567,13 +546,13 @@ static IA_ERRORCODE ixheaace_update_esbr_ext_data(
         pstr_esbr->sbr_oversampling_flag[0] = 1;
         pstr_esbr->sbr_patching_mode[0] = 0;
         pstr_esbr->sbr_pitchin_flags[0] = 1;
-        bin = min(bin, bin1);
-        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+        bin = MIN(bin, bin1);
+        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
       } else if (bin != -1) {
         pstr_esbr->sbr_oversampling_flag[0] = 0;
         pstr_esbr->sbr_patching_mode[0] = 0;
         pstr_esbr->sbr_pitchin_flags[0] = 1;
-        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)min(bin, 127);
+        pstr_esbr->sbr_pitchin_bins[0] = (UWORD8)MIN(bin, 127);
       } else if (transient_info[0][1] != 0) {
         pstr_esbr->sbr_oversampling_flag[0] = 1;
         pstr_esbr->sbr_patching_mode[0] = 0;
@@ -586,12 +565,12 @@ static IA_ERRORCODE ixheaace_update_esbr_ext_data(
         pstr_esbr->sbr_oversampling_flag[1] = 1;
         pstr_esbr->sbr_patching_mode[1] = 0;
         pstr_esbr->sbr_pitchin_flags[1] = 1;
-        pstr_esbr->sbr_pitchin_bins[1] = (UWORD8)min(bin1, 127);
+        pstr_esbr->sbr_pitchin_bins[1] = (UWORD8)MIN(bin1, 127);
       } else if (bin1 != -1) {
         pstr_esbr->sbr_oversampling_flag[1] = 0;
         pstr_esbr->sbr_patching_mode[1] = 0;
         pstr_esbr->sbr_pitchin_flags[1] = 1;
-        pstr_esbr->sbr_pitchin_bins[1] = (UWORD8)min(bin1, 127);
+        pstr_esbr->sbr_pitchin_bins[1] = (UWORD8)MIN(bin1, 127);
       } else if (transient_info[1][1] != 0) {
         pstr_esbr->sbr_oversampling_flag[1] = 1;
         pstr_esbr->sbr_patching_mode[1] = 0;
@@ -861,7 +840,7 @@ VOID ixheaace_esbr_postradixcompute2(FLOAT32 *ptr_y, FLOAT32 *ptr_x,
   ptr_y3 = ptr_y2 + (WORD32)(npoints >> 2);
 
   for (k = 0; k < 2; k++) {
-    for (i = 0; i < npoints >> 1; i += 8) {
+    for (i = 0; i<npoints>> 1; i += 8) {
       h2 = (WORD32)*ptr_dig_rev_tbl++ / 4;
 
       x_0 = *ptr_x0++;
@@ -954,7 +933,7 @@ VOID ixheaace_esbr_postradixcompute4(FLOAT32 *ptr_y, FLOAT32 *ptr_x,
   ptr_y3 = ptr_y2 + (WORD32)(npoints >> 1);
 
   for (k = 0; k < 2; k++) {
-    for (i = 0; i < npoints >> 1; i += 8) {
+    for (i = 0; i<npoints>> 1; i += 8) {
       h2 = (WORD32)*ptr_dig_rev_tbl++ / 4;
       x_0 = *ptr_x0++;
       x_1 = *ptr_x0++;
@@ -1127,21 +1106,12 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
   while (ch < n_in_channels) {
     ixheaace_str_sbr_extr_env *pstr_sbr_extract_env = &(pstr_env_ch[ch]->str_sbr_extract_env);
 
-    if (pstr_ps_enc) {
-      ixheaace_sbr_analysis_filtering(
-          ptr_in_time ? ptr_in_time + ch : NULL, IXHEAACE_MAX_CH_IN_BS_ELE,
-          pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
-          &pstr_env_ch[ch]->str_sbr_qmf, ptr_sbr_tab->ptr_qmf_tab,
-          pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
-          pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch);
-    } else {
-      ixheaace_sbr_analysis_filtering(
-          ptr_in_time ? ptr_in_time + ch : NULL, time_sn_stride,
-          pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
-          &pstr_env_ch[ch]->str_sbr_qmf, ptr_sbr_tab->ptr_qmf_tab,
-          pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
-          pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch);
-    }
+    ixheaace_sbr_analysis_filtering(
+        ptr_in_time ? ptr_in_time + ch : NULL, time_sn_stride, pstr_sbr_extract_env->ptr_r_buffer,
+        pstr_sbr_extract_env->ptr_i_buffer, &pstr_env_ch[ch]->str_sbr_qmf,
+        ptr_sbr_tab->ptr_qmf_tab,
+        pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
+        pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch);
 
     ch++;
   } /*end ch */
@@ -1429,8 +1399,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
   switch (stereo_mode) {
     case IXHEAACE_SBR_MODE_MONO:
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0);
 
       err_code = ixheaace_code_envelope(
           ptr_noise_level[0], res, &pstr_env_ch[0]->str_sbr_code_noise_floor,
@@ -1446,8 +1415,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
       // We have a error checks for Number of channels to ensure memory is assigned to
       // ptr_noise_floor[]. However, MSVS static analysis is marking this as a potential error.
       // So, suppressed this in source
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0);
 
       err_code = ixheaace_code_envelope(
           ptr_noise_level[0], res, &pstr_env_ch[0]->str_sbr_code_noise_floor,
@@ -1457,8 +1425,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
         return err_code;
       }
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 0);
 
       err_code = ixheaace_code_envelope(
           ptr_noise_level[1], res, &pstr_env_ch[1]->str_sbr_code_noise_floor,
@@ -1473,8 +1440,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
     case SBR_COUPLING:
       ixheaace_couple_noise_floor(ptr_noise_floor[0], ptr_noise_floor[1]);
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0);
 
       err_code = ixheaace_code_envelope(
           ptr_noise_level[0], res, &pstr_env_ch[0]->str_sbr_code_noise_floor,
@@ -1484,8 +1450,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
         return err_code;
       }
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 1,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 1);
 
       err_code = ixheaace_code_envelope(
           ptr_noise_level[1], res, &pstr_env_ch[1]->str_sbr_code_noise_floor,
@@ -1499,19 +1464,17 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
 
     case IXHEAACE_SBR_MODE_SWITCH_LRC:
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[0], ptr_noise_floor[0], 0);
 
-      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 0,
-                                                   pstr_sbr_cfg->is_ld_sbr);
+      ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_level[1], ptr_noise_floor[1], 0);
 
       ixheaace_couple_noise_floor(ptr_noise_floor[0], ptr_noise_floor[1]);
 
       ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_lvl_coupling[0], ptr_noise_floor[0],
-                                                   0, pstr_sbr_cfg->is_ld_sbr);
+                                                   0);
 
       ixheaace_sbr_noise_floor_levels_quantisation(ptr_noise_lvl_coupling[1], ptr_noise_floor[1],
-                                                   1, pstr_sbr_cfg->is_ld_sbr);
+                                                   1);
       break;
   }
 

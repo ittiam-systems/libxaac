@@ -19,13 +19,6 @@
  */
 
 #pragma once
-#ifndef min
-#define min(a, b) ((a) > (b) ? (b) : (a))
-#endif
-
-#ifndef max
-#define max(a, b) ((a) < (b) ? (b) : (a))
-#endif
 
 static FLOAT64 ixheaace_dmult(FLOAT64 a, FLOAT64 b) { return (a * b); }
 

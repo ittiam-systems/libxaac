@@ -45,7 +45,7 @@ To create MSVS project files for Win64 version from cmake, run the following com
 ```
 $ mkdir cmake_build
 $ cd cmake_build
-$ cmake -G "Visual Studio 15 2017 Win64" .. -DBUILD64=ON
+$ cmake -G "Visual Studio 15 2017 Win64" ..
 ```
 The above command creates MSVS 2017 project files. If the version is different, modify the generator name accordingly.
 

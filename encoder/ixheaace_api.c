@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "ixheaac_type_def.h"
@@ -28,10 +27,9 @@
 #include "ixheaac_basic_ops32.h"
 #include "ixheaac_basic_ops16.h"
 #include "ixheaac_basic_ops40.h"
-
+#include "ixheaac_basic_ops.h"
 /* standard */
 #include "ixheaac_error_standards.h"
-#include "ixheaace_apicmd_standards.h"
 
 #include "ixheaace_config_params.h"
 
@@ -116,10 +114,6 @@
 #include "ixheaace_api_defs.h"
 #include "ixheaace_api.h"
 #include "ixheaace_write_adts_adif.h"
-
-/* Ensure all memory are aligned */
-#define IXHEAACE_ALIGN_MEMORY(address, alignment) \
-  ((WORD8 *)((address + (alignment - 1)) & ~(alignment - 1)))
 
 static WORD32 ia_enhaacplus_enc_sizeof_delay_buffer(FLAG flag_framelength_small, WORD32 aot,
                                                     WORD32 resamp_idx, WORD32 delay_buf_size,
@@ -363,6 +357,41 @@ static VOID ia_enhaacplus_enc_allocate_bitrate_between_channels(
   }
 }
 
+static WORD32 ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
+  if (0 == ch_mask) return 0;
+  // If ch_mask not supported, return error
+  WORD32 temp_mask;
+  switch (num_ch) {
+    case 1:
+      temp_mask = CH_MASK_CENTER_FRONT;
+      break;
+    case 2:
+      temp_mask = CH_MASK_LEFT_RIGHT_FRONT;
+      break;
+    case 3:
+      temp_mask = CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT;
+      break;
+    case 4:
+      temp_mask = CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_REAR_CENTER;
+      break;
+    case 5:
+      temp_mask = CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_LEFT_RIGHT_BACK;
+      break;
+    case 6:
+      temp_mask =
+          CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_LEFT_RIGHT_BACK | CH_MASK_LFE;
+      break;
+    default:
+      temp_mask = 0;
+      break;
+  }
+  if (ch_mask == temp_mask) {
+    return 0;
+  } else {
+    return -1;
+  }
+}
+
 static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
                                         ixheaace_input_config *pstr_input_config) {
   WORD32 i;
@@ -449,6 +478,10 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     }
   }
 
+  if ((pstr_input_config->i_channels < MIN_NUM_CHANNELS) ||
+      (pstr_input_config->i_channels > MAX_NUM_CHANNELS)) {
+    pstr_input_config->i_channels = 1;
+  }
   if (pstr_input_config->esbr_flag != 1 && pstr_input_config->esbr_flag != 0) {
     pstr_input_config->esbr_flag = 0;
   }
@@ -460,7 +493,8 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
   if (pstr_input_config->i_use_mps != 1 && pstr_input_config->i_use_mps != 0) {
     pstr_input_config->i_use_mps = 0;
   }
-  if (pstr_input_config->i_channels == 1) {
+
+  if ((pstr_input_config->i_channels != 2) && (pstr_input_config->i_channels != 6)) {
     pstr_input_config->i_use_mps = 0;
   }
   if (pstr_input_config->aot != AOT_AAC_ELD && pstr_input_config->aot != AOT_USAC) {
@@ -637,7 +671,7 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
 
     pstr_api_struct->config[0].chmode_nchannels = pstr_api_struct->config[0].i_channels;
   } else {
-    if ((pstr_input_config->i_channels > 10)) {
+    if ((pstr_input_config->i_channels > MAX_NUM_CHANNELS)) {
       return (IA_EXHEAACE_CONFIG_FATAL_NUM_CHANNELS);
     }
     if (!((pstr_input_config->i_native_samp_freq == 7350) ||
@@ -677,6 +711,10 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
             bitrate[MAXIMUM_BS_ELE];
         if ((pstr_input_config->i_channels_mask > 0x3FFFF)) {
           return (IA_EXHEAACE_CONFIG_FATAL_CHANNELS_MASK);
+        }
+        if (ixheaace_validate_channel_mask(pstr_input_config->i_channels_mask,
+                                           pstr_input_config->i_channels)) {
+          return IA_EXHEAACE_CONFIG_FATAL_CHANNELS_MASK;
         }
         for (ele_idx = 0; ele_idx < MAXIMUM_BS_ELE; ele_idx++) {
           pstr_api_struct->config[ele_idx].i_channels_mask = pstr_input_config->i_channels_mask;
@@ -790,7 +828,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
   WORD32 frame_length = LEN_SUPERFRAME;
   ixheaace_mem_info_struct *pstr_mem_info;
   frame_length = pstr_api_struct->config[0].frame_length;
-
+  WORD32 offset_size = 0;
   {
     /* persistant */
     {
@@ -802,62 +840,68 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
                             : (pstr_api_struct->config[0].use_parametric_stereo
                                    ? 1
                                    : pstr_api_struct->config[0].chmode_nchannels);
-          pstr_mem_info->ui_size = sizeof(ixheaace_state_struct) +
-                                   ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot) + 32;
+          pstr_mem_info->ui_size =
+              IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_state_struct), BYTE_ALIGN_8) +
+              ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot);
           if (pstr_api_struct->config[0].aot != AOT_AAC_LC &&
               pstr_api_struct->config[0].aot != AOT_AAC_LD) {
             pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(
                 num_channel, pstr_api_struct->config[0].use_parametric_stereo);
           }
-          pstr_mem_info->ui_size +=
-              ia_enhaacplus_enc_sizeof_delay_buffer(
-                  pstr_api_struct->config[0].aac_config.flag_framelength_small, aot, 3,
-                  sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
-                  pstr_api_struct->config[0].use_mps) *
-              pstr_api_struct->config[0].num_bs_elements;
+          offset_size = ia_enhaacplus_enc_sizeof_delay_buffer(
+                            pstr_api_struct->config[0].aac_config.flag_framelength_small, aot, 3,
+                            sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
+                            pstr_api_struct->config[0].use_mps) *
+                        pstr_api_struct->config[0].num_bs_elements;
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
         }
         if (pstr_api_struct->config[0].num_bs_elements > 1) {
-          pstr_mem_info->ui_size =
-              sizeof(ixheaace_state_struct) +
-              ia_enhaacplus_enc_sizeof_delay_buffer(
-                  pstr_api_struct->config[0].aac_config.flag_framelength_small, aot, 3,
-                  sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
-                  pstr_api_struct->config[0].use_mps) *
-                  pstr_api_struct->config[0].num_bs_elements;
+          offset_size = IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_state_struct), BYTE_ALIGN_8) +
+                        ia_enhaacplus_enc_sizeof_delay_buffer(
+                            pstr_api_struct->config[0].aac_config.flag_framelength_small, aot, 3,
+                            sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
+                            pstr_api_struct->config[0].use_mps) *
+                            pstr_api_struct->config[0].num_bs_elements;
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
           for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
             num_channel = pstr_api_struct->config[ele_idx].i_channels;
             if (pstr_api_struct->config[ele_idx].element_type != ID_LFE)
               pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(num_channel, 0);
-            pstr_mem_info->ui_size += ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot) + 32;
+            pstr_mem_info->ui_size += ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot);
           }
         }
 
         if (pstr_api_struct->config[0].use_mps) {
           if (pstr_api_struct->config[0].aac_config.flag_framelength_small) {
-            pstr_mem_info->ui_size +=
+            offset_size =
                 (MAX_INPUT_SAMPLES + (INPUT_DELAY_ELDV2_480 * IXHEAACE_MAX_CH_IN_BS_ELE)) *
                 sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
           } else {
-            pstr_mem_info->ui_size +=
+            offset_size =
                 (MAX_INPUT_SAMPLES + (INPUT_DELAY_ELDV2_512 * IXHEAACE_MAX_CH_IN_BS_ELE)) *
                 sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
           }
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
           if (pstr_api_struct->config[0].mps_tree_config == TREE_212) {
-            pstr_mem_info->ui_size += sizeof(ixheaace_mps_212_memory_struct) + 7;
+            pstr_mem_info->ui_size +=
+                IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_212_memory_struct), BYTE_ALIGN_8);
           } else {
-            pstr_mem_info->ui_size += sizeof(ixheaace_mps_515_memory_struct) + 7;
+            pstr_mem_info->ui_size +=
+                IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_515_memory_struct), BYTE_ALIGN_8);
           }
-          pstr_mem_info->ui_size +=
-              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(
+              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]),
+              BYTE_ALIGN_8);
         }
 
-        pstr_mem_info->ui_size +=
-            IXHEAACE_MAX_PAYLOAD_SIZE * pstr_api_struct->config[0].num_bs_elements;
-        pstr_mem_info->ui_size += (MAX_FRAME_LEN * 2 + MAX_DS_2_1_FILTER_DELAY + INPUT_DELAY) *
-                                  MAX_INPUT_CHAN * sizeof(pstr_mem_info->ui_size);
+        offset_size = IXHEAACE_MAX_PAYLOAD_SIZE * pstr_api_struct->config[0].num_bs_elements;
+        pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
+        offset_size = (MAX_FRAME_LEN * 2 + MAX_DS_2_1_FILTER_DELAY + INPUT_DELAY) *
+                      MAX_INPUT_CHAN * sizeof(pstr_mem_info->ui_size);
+        pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
       }
 
-      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_PERSIST;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -871,16 +915,16 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
       pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_SCRATCH_IDX];
       {
         pstr_mem_info->ui_size = ia_enhaacplus_enc_aac_enc_scr_size();
-        UWORD32 sbr_scr_size = ixheaace_sbr_enc_scr_size() + ixheaace_resampler_scr_size() + 32;
+        UWORD32 sbr_scr_size = ixheaace_sbr_enc_scr_size() + ixheaace_resampler_scr_size();
         UWORD32 mps_scr_size = 0;
         if (pstr_api_struct->config[0].use_mps) {
           if (pstr_api_struct->config[0].mps_tree_config != TREE_212) {
             mps_scr_size = ixheaace_mps_515_scratch_size();
           }
         }
-        pstr_mem_info->ui_size += max(sbr_scr_size, mps_scr_size);
+        pstr_mem_info->ui_size += MAX(sbr_scr_size, mps_scr_size);
       }
-      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -906,7 +950,8 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
           pstr_mem_info->ui_size = (frame_length * (pcm_wd_sz >> 3)) * 2 * num_channel;
         }
       }
-      pstr_mem_info->ui_alignment = 4; /* As input is used as scratch memory internally */
+      pstr_mem_info->ui_alignment =
+          BYTE_ALIGN_8; /* As input is used as scratch memory internally */
       pstr_mem_info->ui_type = IA_MEMTYPE_INPUT;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -924,7 +969,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
       } else if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
         pstr_mem_info->ui_size = (6 * frame_length / 8) * num_channel;
       }
-      pstr_mem_info->ui_alignment = 1;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_OUTPUT;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -943,17 +988,14 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
   UWORD32 i_idx;
   pVOID pv_value;
   for (i_idx = 0; i_idx < 4; i_idx++) {
-    UWORD32 *meminfo = (UWORD32 *)(pstr_api_struct->pstr_mem_info + i_idx);
-
-    ptr_out_cfg->mem_info_table[i_idx].ui_size =
-        *(meminfo + (IA_API_CMD_GET_MEM_INFO_SIZE - IA_API_CMD_GET_MEM_INFO_SIZE));
+    ptr_out_cfg->mem_info_table[i_idx].ui_size = pstr_api_struct->pstr_mem_info[i_idx].ui_size;
     ptr_out_cfg->mem_info_table[i_idx].ui_alignment =
-        *(meminfo + (IA_API_CMD_GET_MEM_INFO_ALIGNMENT - IA_API_CMD_GET_MEM_INFO_SIZE));
-    ptr_out_cfg->mem_info_table[i_idx].ui_type =
-        *(meminfo + (IA_API_CMD_GET_MEM_INFO_TYPE - IA_API_CMD_GET_MEM_INFO_SIZE));
+        pstr_api_struct->pstr_mem_info[i_idx].ui_alignment;
+    ptr_out_cfg->mem_info_table[i_idx].ui_type = pstr_api_struct->pstr_mem_info[i_idx].ui_type;
 
     ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] =
-        ptr_out_cfg->malloc_xheaace(ptr_out_cfg->mem_info_table[i_idx].ui_size,
+        ptr_out_cfg->malloc_xheaace(ptr_out_cfg->mem_info_table[i_idx].ui_size +
+                                        ptr_out_cfg->mem_info_table[i_idx].ui_alignment,
                                     ptr_out_cfg->mem_info_table[i_idx].ui_alignment);
 
     if (NULL == ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count]) {
@@ -961,20 +1003,18 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
     }
     memset(ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count], 0,
            ptr_out_cfg->mem_info_table[i_idx].ui_size);
+    if ((i_idx == IA_ENHAACPLUSENC_PERSIST_IDX) || (i_idx == IA_ENHAACPLUSENC_SCRATCH_IDX)) {
+      ptr_out_cfg->ui_rem =
+          (SIZE_T)((SIZE_T)ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] %
+                   ptr_out_cfg->mem_info_table[i_idx].ui_alignment);
 
-#ifndef BUILD_ARM64
-    ptr_out_cfg->ui_rem =
-        (UWORD32)((SIZE_T)ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] %
-                  ptr_out_cfg->mem_info_table[i_idx].ui_alignment);
-#else
-    ptr_out_cfg->ui_rem =
-        (UWORD64)((SIZE_T)ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] %
-                  ptr_out_cfg->mem_info_table[i_idx].ui_alignment);
-#endif
-
-    pv_value = ptr_out_cfg->mem_info_table[i_idx].mem_ptr =
-        (pVOID)((WORD8 *)ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] +
-                ptr_out_cfg->mem_info_table[i_idx].ui_alignment - ptr_out_cfg->ui_rem);
+      pv_value = ptr_out_cfg->mem_info_table[i_idx].mem_ptr =
+          (pVOID)((WORD8 *)ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count] +
+                  ptr_out_cfg->mem_info_table[i_idx].ui_alignment - ptr_out_cfg->ui_rem);
+    } else {
+      pv_value = ptr_out_cfg->mem_info_table[i_idx].mem_ptr =
+          ptr_out_cfg->arr_alloc_memory[ptr_out_cfg->malloc_count];
+    }
 
     pstr_api_struct->pp_mem[i_idx] = ptr_out_cfg->mem_info_table[i_idx].mem_ptr;
     memset(pstr_api_struct->pp_mem[i_idx], 0, pstr_api_struct->pstr_mem_info[i_idx].ui_size);
@@ -982,7 +1022,7 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
     pstr_api_struct->pp_mem[i_idx] = pv_value;
 
     if (i_idx == IA_ENHAACPLUSENC_PERSIST_IDX) {
-      WORD32 offset_size = sizeof(ixheaace_state_struct);
+      WORD32 offset_size = IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_state_struct), BYTE_ALIGN_8);
       WORD8 *p_offset = NULL;
 
       /* Set persistent memory pointer in api obj */
@@ -994,18 +1034,14 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
         memset(pstr_api_struct->pstr_state, 0, sizeof(*(pstr_api_struct->pstr_state)));
 
         pstr_api_struct->pstr_state->inp_delay = (FLOAT32 *)((WORD8 *)pstr_state + offset_size);
+        offset_size = ia_enhaacplus_enc_sizeof_delay_buffer(
+                          pstr_api_struct->config[0].aac_config.flag_framelength_small,
+                          pstr_api_struct->config[0].aot, 3,
+                          sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
+                          pstr_api_struct->config[0].use_mps) *
+                      pstr_api_struct->config[0].num_bs_elements;
         p_offset = (WORD8 *)pstr_api_struct->pstr_state->inp_delay +
-                   ia_enhaacplus_enc_sizeof_delay_buffer(
-                       pstr_api_struct->config[0].aac_config.flag_framelength_small,
-                       pstr_api_struct->config[0].aot, 3,
-                       sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
-                       pstr_api_struct->config[0].use_mps) *
-                       pstr_api_struct->config[0].num_bs_elements;
-#ifdef BUILD_ARM64
-        p_offset = (WORD8 *)(((UWORD64)p_offset + 7) & 0xFFFFFFFFFFFFFFF8);
-#else
-        p_offset = (WORD8 *)(((SIZE_T)p_offset + 7) & 0xFFFFFFF8);
-#endif
+                   IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
         if (pstr_api_struct->config[0].use_mps) {
           pstr_api_struct->pstr_state->time_signal_mps = (FLOAT32 *)(p_offset);
@@ -1013,28 +1049,28 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
           memset(pstr_api_struct->pstr_state->time_signal_mps, 0,
                  (MAX_INPUT_SAMPLES + (INPUT_DELAY_ELDV2_512 * IXHEAACE_MAX_CH_IN_BS_ELE)) *
                      sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]));
-          p_offset += (MAX_INPUT_SAMPLES + (INPUT_DELAY_ELDV2_512 * IXHEAACE_MAX_CH_IN_BS_ELE)) *
-                      sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          offset_size =
+              (MAX_INPUT_SAMPLES + (INPUT_DELAY_ELDV2_512 * IXHEAACE_MAX_CH_IN_BS_ELE)) *
+              sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
           pstr_api_struct->pstr_state->mps_bs = (UWORD8 *)(p_offset);
           memset(pstr_api_struct->pstr_state->mps_bs, 0,
                  (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]));
-          p_offset += (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          offset_size =
+              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
           if (pstr_api_struct->config[0].mps_tree_config == TREE_212) {
             pstr_api_struct->pstr_state->mps_pers_mem =
                 (ixheaace_mps_212_memory_struct *)p_offset;
-            p_offset += sizeof(ixheaace_mps_212_memory_struct);
-
-            p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+            p_offset +=
+                IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_212_memory_struct), BYTE_ALIGN_8);
           } else {
             pstr_api_struct->pstr_state->mps_515_pers_mem =
                 (ixheaace_mps_515_memory_struct *)p_offset;
-            p_offset += sizeof(ixheaace_mps_515_memory_struct);
-
-            p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+            p_offset +=
+                IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_515_memory_struct), BYTE_ALIGN_8);
           }
         } else {
           pstr_api_struct->pstr_state->mps_bs = NULL;
@@ -1054,7 +1090,6 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
           p_offset = p_offset + ia_enhaacplus_enc_aac_enc_pers_size(
                                     num_aac_chan, pstr_api_struct->config[ele_idx].aot);
 
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
           if (pstr_api_struct->config[ele_idx].aot != AOT_AAC_LC &&
               pstr_api_struct->config[ele_idx].aot != AOT_AAC_LD) {
             if (pstr_api_struct->config[ele_idx].element_type != ID_LFE) {
@@ -1064,7 +1099,6 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
               p_offset = p_offset + ixheaace_sbr_enc_pers_size(
                                         num_aac_chan,
                                         pstr_api_struct->config[ele_idx].use_parametric_stereo);
-              p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
             }
           }
         }
@@ -1115,8 +1149,8 @@ static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct,
   if (pstr_api_struct->config[ele_idx].use_mps &&
       pstr_api_struct->config[ele_idx].mps_tree_config != TREE_212) {
     pstr_api_struct->pstr_state->mps_scratch =
-        (void *)((WORD8 *)pstr_api_struct->pp_mem[IA_ENHAACPLUSENC_SCRATCH_IDX] +
-                 ia_enhaacplus_enc_aac_enc_scr_size());
+        (FLOAT32 *)((WORD8 *)pstr_api_struct->pp_mem[IA_ENHAACPLUSENC_SCRATCH_IDX] +
+                    ia_enhaacplus_enc_aac_enc_scr_size());
 
     pstr_api_struct->pstr_state->ptr_temp_buff_resamp =
         (void *)((WORD8 *)pstr_api_struct->pp_mem[IA_ENHAACPLUSENC_SCRATCH_IDX] +
@@ -1565,15 +1599,11 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
     pub_out_buf = ((pUWORD8)pstr_api_struct->pp_mem[IA_ENHAACPLUSENC_OUTPUT_IDX]);
     *total_fill_bits = 0;
   }
-#ifndef BUILD_ARM64
+
   if (pstr_api_struct->config->adts_flag) {
-    pub_out_buf = (pUWORD8)((SIZE_T)pub_out_buf + 7);
+    pub_out_buf = (pUWORD8)(pub_out_buf + 7);
   }
-#else
-  if (pstr_api_struct->config->adts_flag) {
-    pub_out_buf = (pUWORD8)((UWORD64)pub_out_buf + 7);
-  }
-#endif
+
   for (ch = 0; ch < IXHEAACE_MAX_CH_IN_BS_ELE; ch++)
     pstr_api_struct->pstr_state->num_anc_data_bytes[ele_idx][ch] = 0;
 
@@ -1889,24 +1919,19 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
   }
   ui_api_size = sizeof(ixheaace_api_struct);
   pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] =
-      pstr_output_config->malloc_xheaace(ui_api_size, 4);
+      pstr_output_config->malloc_xheaace(ui_api_size + EIGHT_BYTE_SIZE, BYTE_ALIGN_8);
   if (NULL == pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count]) {
     return IA_EXHEAACE_API_FATAL_MEM_ALLOC;
   }
   memset(pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count], 0, ui_api_size);
 
-#ifndef BUILD_ARM64
   pstr_output_config->ui_rem =
-      (SIZE_T)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] &
-               3);
-#else
-  pstr_output_config->ui_rem =
-      (UWORD64)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] &
-                3);
-#endif
+      (SIZE_T)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] %
+               BYTE_ALIGN_8);
+
   pstr_output_config->pv_ia_process_api_obj =
       (pVOID)((WORD8 *)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] +
-              4 - pstr_output_config->ui_rem);
+              BYTE_ALIGN_8 - pstr_output_config->ui_rem);
   pstr_output_config->malloc_count++;
 
   pstr_api_struct = (ixheaace_api_struct *)pstr_output_config->pv_ia_process_api_obj;
@@ -1921,32 +1946,27 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
   pstr_output_config->ui_proc_mem_tabs_size =
       (sizeof(ixheaace_mem_info_struct) + sizeof(pVOID *)) * 4;
   pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] =
-      pstr_output_config->malloc_xheaace(pstr_output_config->ui_proc_mem_tabs_size, 4);
+      pstr_output_config->malloc_xheaace(
+          pstr_output_config->ui_proc_mem_tabs_size + EIGHT_BYTE_SIZE, BYTE_ALIGN_8);
   if (NULL == pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count]) {
     return IA_EXHEAACE_API_FATAL_MEM_ALLOC;
   }
   memset(pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count], 0,
          pstr_output_config->ui_proc_mem_tabs_size);
 
-#ifndef BUILD_ARM64
   pstr_output_config->ui_rem =
-      (UWORD32)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] &
-                3);
-#else
-  pstr_output_config->ui_rem =
-      (UWORD32)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] &
-                3);
-#endif
+      (SIZE_T)((SIZE_T)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] %
+               BYTE_ALIGN_8);
 
   pv_value =
       (pVOID)((WORD8 *)pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] +
-              4 - pstr_output_config->ui_rem);
+              BYTE_ALIGN_8 - pstr_output_config->ui_rem);
   if (pv_value == NULL) {
     return IA_EXHEAACE_API_FATAL_MEM_ALLOC;
   }
   memset(pv_value, 0, (sizeof(ixheaace_mem_info_struct) + sizeof(pVOID *)) * 4);
 
-  pstr_api_struct->pstr_mem_info = pv_value;
+  pstr_api_struct->pstr_mem_info = (ixheaace_mem_info_struct *)pv_value;
   pstr_api_struct->pp_mem = (pVOID *)((WORD8 *)pv_value + sizeof(ixheaace_mem_info_struct) * 4);
 
   pstr_output_config->malloc_count++;
@@ -2133,9 +2153,11 @@ IA_ERRORCODE ixheaace_delete(pVOID pv_output) {
   WORD32 idx;
   ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;
 
-  for (idx = pstr_output_config->malloc_count - 1; idx >= 0; idx--) {
-    if (pstr_output_config->arr_alloc_memory[idx]) {
-      pstr_output_config->free_xheaace(pstr_output_config->arr_alloc_memory[idx]);
+  if (pstr_output_config->malloc_count > 0) {
+    for (idx = pstr_output_config->malloc_count - 1; idx >= 0; idx--) {
+      if (pstr_output_config->arr_alloc_memory[idx]) {
+        pstr_output_config->free_xheaace(pstr_output_config->arr_alloc_memory[idx]);
+      }
     }
   }
   return IA_NO_ERROR;

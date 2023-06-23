@@ -21,9 +21,6 @@
 #pragma once
 
 #define IXHEAACE_MAXIMUM_NUM_PATCHES (6)
-#define IXHEAACE_2_POWER_10 (1024.0f)
-#define IXHEAACE_2_POWER_9 (512.0f)
-#define IXHEAACE_2_POWER_14 (16384.0f)
 
 typedef struct {
   FLOAT32 r00r;
@@ -76,7 +73,6 @@ typedef struct {
   ixheaace_str_sbr_missing_har_detector sbr_missing_har_detector;
   ixheaace_str_noise_flr_est_sbr sbr_noise_floor_est;
   ixheaace_str_sbr_inv_filt_est sbr_noise_inv_filt;
-  WORD32 buffer_offset;
 } ixheaace_str_sbr_ton_corr_est;
 
 typedef ixheaace_str_sbr_ton_corr_est *ixheaace_pstr_sbr_ton_corr_est;

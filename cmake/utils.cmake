@@ -3,7 +3,7 @@ set(CMAKE_C_STANDARD 99)
 # Adds compiler options for all targets
 function(libxaac_add_compile_options)
   if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-    add_compile_options(-std=gnu99 -march=armv8-a -DBUILD_ARM64)
+    add_compile_options(-std=gnu99 -march=armv8-a)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch32")
     add_compile_options(
       -O3
@@ -14,17 +14,9 @@ function(libxaac_add_compile_options)
       -mfloat-abi=softfp
       -mfpu=neon)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-    add_compile_options(-D_X86_ -O3 -Wall -Wsequence-point -Wunused-function -fwrapv -DBUILD_ARM64)
+    add_compile_options(-D_X86_ -O3 -Wall -Wsequence-point -Wunused-function -fwrapv)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
     add_compile_options(-D_X86_ -O3 -Wall -Wsequence-point -Wunused-function -fwrapv -m32)
-  endif()
- 
-  if(MSVC)
-    if(BUILD64)
-      add_definitions(-DBUILD_ARM64)
-    else()
-      add_definitions(-D_WIN32)
-    endif()
   endif()
 
   set(CMAKE_REQUIRED_FLAGS -fsanitize=fuzzer-no-link)

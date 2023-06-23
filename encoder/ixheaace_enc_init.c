@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -29,6 +30,9 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaace_enc_main.h"
 #include "ixheaace_adjust_threshold_data.h"
 
@@ -158,11 +162,13 @@ WORD32 ia_enhaacplus_enc_aac_enc_pers_size(WORD32 num_aac_chan, WORD32 aot) {
   }
 
   num_bytes += num_aac_chan * sizeof(ixheaace_qc_out_channel);
-
+  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(num_bytes, BYTE_ALIGN_8);
   return num_bytes;
 }
 
-WORD32 ia_enhaacplus_enc_aac_enc_scr_size(VOID) { return sizeof(iaace_scratch); }
+WORD32 ia_enhaacplus_enc_aac_enc_scr_size(VOID) {
+  return IXHEAACE_GET_SIZE_ALIGNED(sizeof(iaace_scratch), BYTE_ALIGN_8);
+}
 
 VOID ia_enhaacplus_enc_set_shared_bufs(iaace_scratch *scr, WORD32 **shared_buf1,
                                        WORD32 **shared_buf2, WORD32 **shared_buf3,

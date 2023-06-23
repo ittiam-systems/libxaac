@@ -23,6 +23,6 @@ else()
         xaacenc 
         PROPERTIES 
         COMPILE_FLAGS
-        "-D_X86_ -DBUILD_ARM64 -c -O3 -Wall -Wsequence-point -Wunused-function"
+        "-D_X86_ -c -O3 -Wall -Wsequence-point -Wunused-function"
         ) 
 endif()

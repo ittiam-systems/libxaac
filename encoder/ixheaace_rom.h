@@ -39,8 +39,7 @@ typedef struct {
   const FLOAT32 win_512_ld[1920];
   const FLOAT32 win_480_ld[1800];
 } ixheaace_mdct_tables;
-extern
-    const ixheaace_mdct_tables ixheaace_enc_mdct_tab;
+extern const ixheaace_mdct_tables ixheaace_enc_mdct_tab;
 
 /*Huffman Tables*/
 typedef struct {
@@ -65,8 +64,7 @@ typedef struct {
   const UWORD32 huff_ctabscf[121];
 } ixheaace_huffman_tables;
 
-extern
-    const ixheaace_huffman_tables ixheaace_enc_huff_tab;
+extern const ixheaace_huffman_tables ixheaace_enc_huff_tab;
 
 typedef struct {
   WORD32 sample_rate;
@@ -86,8 +84,7 @@ typedef struct {
   const ixheaace_sfb_info_tab sfb_info_tab[12];
 } ixheaace_psycho_tables;
 
-extern
-    const ixheaace_psycho_tables ixheaace_enc_psycho_tab;
+extern const ixheaace_psycho_tables ixheaace_enc_psycho_tab;
 
 /*Quantizer tables*/
 typedef struct {
@@ -100,8 +97,7 @@ typedef struct {
   const WORD16 power_2_n_4_by_3_tab[10];
 } ixheaace_quant_tables;
 
-extern
-    const ixheaace_quant_tables ixheaace_enc_quant_tab;
+extern const ixheaace_quant_tables ixheaace_enc_quant_tab;
 typedef struct {
   const ixheaace_temporal_noise_shaping_max_table tns_max_bands_table[12];
   const ixheaace_temporal_noise_shaping_info_tab tns_info_tab[5];
@@ -111,8 +107,7 @@ typedef struct {
   const FLOAT32 tns_coeff_4_borders[16];
 } ixheaace_temporal_noise_shaping_tables;
 
-extern
-    const ixheaace_temporal_noise_shaping_tables ixheaace_enhaacplus_enc_tns_tab;
+extern const ixheaace_temporal_noise_shaping_tables ixheaace_enhaacplus_enc_tns_tab;
 
 typedef struct {
   ixheaace_mdct_tables *pstr_mdct_tab;
@@ -137,9 +132,8 @@ input buffer (1ch)
 #define INPUT_DELAY_LC ((CORE_DELAY_LC)*2 + 6 * 64 - 2048 + 1)
 #define CORE_DELAY_LD_512 (512)
 #define INPUT_DELAY_LD_512 ((CORE_DELAY_LD_512)*2 - 1024 + 1)
-// ELD Delay = (Core-delay LD / 2) * 2 + SBR Decoder Delay - SBR Encoder Delay + Additional
-// compensation (SBR analysis filtering)
-#define INPUT_DELAY_ELD_512 ((CORE_DELAY_LD_512 / 2) * 2 + 0 - (16 * 64) + 576)
+// ELD Delay = (Core-delay LD) * 2 + SBR Decoder Delay - SBR Encoder Delay
+#define INPUT_DELAY_ELD_512 ((CORE_DELAY_LD_512)*2 + 0 - (16 * 64))
 // Original ELD delay value retained for multichannel files with MPS
 #define INPUT_DELAY_ELD_512_MPS ((CORE_DELAY_LD_512)*2 + 1)
 #define INPUT_DELAY_ELDV2_512 ((CORE_DELAY_LD_512 * 2) + 128 + 1)

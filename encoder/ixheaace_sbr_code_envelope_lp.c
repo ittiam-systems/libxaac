@@ -48,7 +48,6 @@
 
 #include "ixheaace_sbr_ton_corr.h"
 #include "ixheaace_sbr.h"
-#include <math.h>
 #include "ixheaace_common_utils.h"
 
 static WORD32 ixheaace_index_low2_high(WORD32 offset, WORD32 index, ixheaace_freq_res res) {
@@ -215,14 +214,11 @@ IA_ERRORCODE ixheaace_code_envelope(WORD32 *ptr_sfb_energy, const ixheaace_freq_
       band++;
     }
 
-    if ((is_ld_sbr) && (i == 0)) {
-      WORD32 t_bits = (WORD32)round(delta_t_bits * (1 + df_edge_first_ennv));
-      use_dt = (pstr_code_env->update != 0 && (delta_f_bits > t_bits));
-    } else if ((is_ld_sbr) && (i != 0)) {
-      use_dt = ((pstr_code_env->update != 0) && (delta_f_bits > delta_t_bits));
-    } else if ((!is_ld_sbr) && (i == 0)) {
+    if (i == 0) {
       use_dt = (pstr_code_env->update != 0 &&
                 (delta_f_bits > delta_t_bits * (1 + df_edge_first_ennv)));
+    } else if (is_ld_sbr) {
+      use_dt = ((pstr_code_env->update != 0) && (delta_f_bits > delta_t_bits));
     } else {
       use_dt = (delta_f_bits > delta_t_bits);
     }

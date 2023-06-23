@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "ixheaac_type_def.h"
@@ -87,7 +86,7 @@ ixheaace_mps_212_frame_window_init(
   pstr_frame_win->start_rect = time_slots >> 1;
   pstr_frame_win->stop_slope = ((3 * time_slots) >> 1) - 1;
   pstr_frame_win->stop_rect = time_slots;
-  for (slot = 0; slot < time_slots >> 1; slot++) {
+  for (slot = 0; slot<time_slots>> 1; slot++) {
     pstr_frame_win->p_tapper_sync_flt[slot] = (FLOAT32)slot / time_slots;
   }
   pstr_frame_win->p_tapper_sync_flt[time_slots >> 1] = 1.0f;

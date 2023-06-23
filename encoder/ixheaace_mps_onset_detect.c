@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -30,6 +29,10 @@
 #include "ixheaace_mps_common_define.h"
 #include "ixheaace_mps_onset_detect.h"
 #include "ixheaace_mps_vector_functions.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 IA_ERRORCODE ixheaace_mps_212_onset_detect_init(
     ixheaace_mps_pstr_onset_detect pstr_onset_detect,
@@ -104,7 +107,7 @@ IA_ERRORCODE ixheaace_mps_212_onset_detect_apply(
   if (prev_pos <= 0) {
     curr_pos = num_time_slots;
   } else {
-    curr_pos = max(num_time_slots, prev_pos - num_time_slots + pstr_onset_detect->min_trans_dist);
+    curr_pos = MAX(num_time_slots, prev_pos - num_time_slots + pstr_onset_detect->min_trans_dist);
   }
 
   for (slot = 0; slot < num_time_slots; slot++) {

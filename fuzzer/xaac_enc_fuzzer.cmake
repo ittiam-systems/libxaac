@@ -1,4 +1,4 @@
-list(APPEND XAAC_ENC_FUZZER_SRCS "${XAAC_ROOT}/fuzzer/xaac_enc_fuzzer.c" )
+list(APPEND XAAC_ENC_FUZZER_SRCS "${XAAC_ROOT}/fuzzer/xaac_enc_fuzzer.cpp" )
 
 set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder ${XAAC_ROOT}/test/encoder ${XAAC_ROOT}/common)
 

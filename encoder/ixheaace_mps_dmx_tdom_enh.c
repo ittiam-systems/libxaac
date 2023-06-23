@@ -20,6 +20,7 @@
 
 #include <math.h>
 #include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
 #include "ixheaace_mps_common_fix.h"
@@ -28,6 +29,9 @@
 #include "ixheaace_mps_defines.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_mps_dmx_tdom_enh.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 static VOID ixheaace_mps_212_calculate_ratio(const FLOAT32 sqrt_lin_cld_m,
                                              const FLOAT32 lin_cld_m, const FLOAT32 icc_m,
@@ -131,7 +135,7 @@ IA_ERRORCODE ixheaace_mps_212_apply_enhanced_time_domain_dmx(
   WORD32 sample_idx;
   FLOAT32 lin_bb_cld, lin_cld, corr, sqrt_lin_cld, g[2], h1[2], gain_left, gain_right;
   FLOAT32 prev_energy_left, prev_energy_right, prev_energy, energy_left, energy_right, energy_out;
-  WORD32 granule_length = min(128, pstr_enhanced_time_domain_dmx->frame_length);
+  WORD32 granule_length = MIN(128, pstr_enhanced_time_domain_dmx->frame_length);
 
   sample_idx = 0;
   prev_energy_left = prev_energy_right = prev_energy = .5f;
@@ -141,7 +145,7 @@ IA_ERRORCODE ixheaace_mps_212_apply_enhanced_time_domain_dmx(
     FLOAT32 partial_left, partial_right, partial_out;
     partial_left = partial_right = partial_out = 0.0;
 
-    WORD32 value = min(offset + granule_length, pstr_enhanced_time_domain_dmx->frame_length);
+    WORD32 value = MIN(offset + granule_length, pstr_enhanced_time_domain_dmx->frame_length);
     for (sample_idx = offset; sample_idx < value; sample_idx++) {
       FLOAT32 input_left = input_time[LEFT_CH][sample_idx];
       FLOAT32 input_right = input_time[RIGHT_CH][sample_idx];

@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
@@ -96,7 +95,7 @@ static VOID ia_enhaacplus_enc_qmf_based_noise_floor_detection(
     FLOAT32 *ptr_noise_lvl, FLOAT32 **ptr_quota_orig, FLOAT32 weight_fac, FLOAT32 max_lvl,
     FLOAT32 noise_floor_offset, WORD8 *ptr_idx_vx, WORD32 start_index, WORD32 stop_index,
     WORD32 start_channel, WORD32 stop_channel, WORD32 missing_harmonic_flag,
-    ixheaace_invf_mode thr_offset, ixheaace_invf_mode inv_filtering_lvl, WORD32 is_ld_sbr) {
+    ixheaace_invf_mode thr_offset, ixheaace_invf_mode inv_filtering_lvl) {
   WORD32 ch, idx;
   FLOAT32 ton_org, ton_sbr, mean_org = 0, mean_sbr = 0, diff;
 
@@ -138,78 +137,43 @@ static VOID ia_enhaacplus_enc_qmf_based_noise_floor_detection(
     mean_org /= (stop_channel - start_channel);
     mean_sbr /= (stop_channel - start_channel);
   }
-  if (is_ld_sbr) {
-    if (mean_org < SBR_TON_MEAN_P0009_ELD && mean_sbr < SBR_TON_MEAN_P0009_ELD) {
-      mean_org = mean_sbr = SBR_TON_MEAN_101P59_ELD;
-    }
 
-    if (mean_org < RELAXATION) {
-      mean_org = RELAXATION;
-    }
+  if (mean_org < SBR_TON_MEAN_P0009 && mean_sbr < SBR_TON_MEAN_P0009) {
+    mean_org = mean_sbr = SBR_TON_MEAN_101P59;
+  }
 
-    if (mean_sbr < RELAXATION) {
-      mean_sbr = RELAXATION;
-    }
+  if (mean_org < 1.0f) {
+    mean_org = 1.0f;
+  }
 
-    if ((missing_harmonic_flag == 1) || (inv_filtering_lvl == IXHEAACE_INVF_MID_LEVEL) ||
-        (inv_filtering_lvl == IXHEAACE_INVF_LOW_LEVEL) ||
-        (inv_filtering_lvl == IXHEAACE_INVF_OFF) || (inv_filtering_lvl <= thr_offset)) {
-      diff = RELAXATION;
+  if (mean_sbr < 1.0f) {
+    mean_sbr = 1.0f;
+  }
+
+  if (1 == missing_harmonic_flag) {
+    diff = 1.0f;
+  } else {
+    if (1.0f > (weight_fac * mean_sbr / mean_org)) {
+      diff = 1.0f;
     } else {
       diff = weight_fac * mean_sbr / mean_org;
-
-      if (diff > RELAXATION) {
-        diff = RELAXATION;
-      }
     }
+  }
 
-    *ptr_noise_lvl = diff / mean_org;
-    *ptr_noise_lvl /= 4.0f;
+  if (inv_filtering_lvl == IXHEAACE_INVF_MID_LEVEL ||
+      inv_filtering_lvl == IXHEAACE_INVF_LOW_LEVEL || inv_filtering_lvl == IXHEAACE_INVF_OFF) {
+    diff = 1.0f;
+  }
 
-    if (missing_harmonic_flag == 0) {
-      *ptr_noise_lvl *= noise_floor_offset;
-      *ptr_noise_lvl = (FLOAT32)fmin(*ptr_noise_lvl, 1.0f);
-    }
+  if (inv_filtering_lvl <= thr_offset) {
+    diff = 1.0f;
+  }
 
-    *ptr_noise_lvl = (FLOAT32)fmin(*ptr_noise_lvl, (max_lvl / 4.0f));
-  } else {
-    if (mean_org < SBR_TON_MEAN_P0009 && mean_sbr < SBR_TON_MEAN_P0009) {
-      mean_org = mean_sbr = SBR_TON_MEAN_101P59;
-    }
+  *ptr_noise_lvl = diff / mean_org;
+  *ptr_noise_lvl *= noise_floor_offset;
 
-    if (mean_org < 1.0f) {
-      mean_org = 1.0f;
-    }
-
-    if (mean_sbr < 1.0f) {
-      mean_sbr = 1.0f;
-    }
-
-    if (1 == missing_harmonic_flag) {
-      diff = 1.0f;
-    } else {
-      if (1.0f > (weight_fac * mean_sbr / mean_org)) {
-        diff = 1.0f;
-      } else {
-        diff = weight_fac * mean_sbr / mean_org;
-      }
-    }
-
-    if (inv_filtering_lvl == IXHEAACE_INVF_MID_LEVEL ||
-        inv_filtering_lvl == IXHEAACE_INVF_LOW_LEVEL || inv_filtering_lvl == IXHEAACE_INVF_OFF) {
-      diff = 1.0f;
-    }
-
-    if (inv_filtering_lvl <= thr_offset) {
-      diff = 1.0f;
-    }
-
-    *ptr_noise_lvl = diff / mean_org;
-    *ptr_noise_lvl *= noise_floor_offset;
-
-    if (*ptr_noise_lvl > max_lvl) {
-      *ptr_noise_lvl = max_lvl;
-    }
+  if (*ptr_noise_lvl > max_lvl) {
+    *ptr_noise_lvl = max_lvl;
   }
 }
 
@@ -242,7 +206,7 @@ VOID ixheaace_sbr_noise_floor_estimate_qmf(
           pstr_noise_floor_est_sbr->weight_fac, pstr_noise_floor_est_sbr->max_level, 1.0f,
           ptr_idx_vx, start_pos[env], stop_pos[env], ptr_freq_band_tab[band],
           ptr_freq_band_tab[band + 1], missing_harmonics_flag,
-          pstr_noise_floor_est_sbr->thr_offset, ptr_inv_filt_levels[band], is_ld_sbr);
+          pstr_noise_floor_est_sbr->thr_offset, ptr_inv_filt_levels[band]);
     }
   }
 
@@ -253,17 +217,9 @@ VOID ixheaace_sbr_noise_floor_estimate_qmf(
 
   for (env = 0; env < n_noise_envelopes; env++) {
     for (band = 0; band < num_of_noise_bands; band++) {
-      if (is_ld_sbr) {
-        FLOAT32 val =
-            (FLOAT32)(log(ptr_noise_lvls[band + env * num_of_noise_bands]) * SBR_INV_LOG_2);
-
-        ptr_noise_lvls[band + env * num_of_noise_bands] =
-            SBR_NOISE_FLOOR_OFFSET_VALUE - (val / 64.0f) + QUANT_VALUE;
-      } else {
-        ptr_noise_lvls[band + env * num_of_noise_bands] =
-            (FLOAT32)SBR_NOISE_FLOOR_OFFSET -
-            (FLOAT32)(SBR_INV_LOG_2 * log(ptr_noise_lvls[band + env * num_of_noise_bands]));
-      }
+      ptr_noise_lvls[band + env * num_of_noise_bands] =
+          (FLOAT32)SBR_NOISE_FLOOR_OFFSET -
+          (FLOAT32)(SBR_INV_LOG_2 * log(ptr_noise_lvls[band + env * num_of_noise_bands]));
     }
   }
 }
@@ -350,10 +306,8 @@ ixheaace_reset_sbr_noise_floor_estimate(ixheaace_pstr_noise_flr_est_sbr pstr_noi
   if (pstr_noise_floor_est_sbr->noise_groups == 0) {
     pstr_noise_floor_est_sbr->num_of_noise_bands = 1;
   } else {
-    pstr_noise_floor_est_sbr->num_of_noise_bands =
-        (WORD32)((pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) *
-                  SBR_INV_LOG_2) +
-                 0.5f);
+    pstr_noise_floor_est_sbr->num_of_noise_bands = (WORD32)(
+        (pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) * SBR_INV_LOG_2) + 0.5f);
 
     if (pstr_noise_floor_est_sbr->num_of_noise_bands == 0) {
       pstr_noise_floor_est_sbr->num_of_noise_bands = 1;

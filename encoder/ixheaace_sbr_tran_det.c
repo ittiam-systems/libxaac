@@ -201,11 +201,6 @@ ixheaace_frame_splitter(FLOAT32 **ptr_energies,
     ptr_tran_vector[0] = 0;
   }
   pstr_sbr_trans_detector->prev_low_band_energy = low_band_energy;
-  if (is_ld_sbr) {
-    pstr_sbr_trans_detector->prev_high_band_energy = high_band_energy;
-  } else {
-    pstr_sbr_trans_detector->tot_high_band_energy = high_band_energy / (num_sbr_slots * num_scf);
-  }
   return err_code;
 }
 
@@ -217,11 +212,6 @@ VOID ixheaace_create_sbr_transient_detector(
   FLOAT32 br_fac;
   FLOAT32 frm_dur = 2048.0f / (FLOAT32)sample_freq;
   FLOAT32 split_thr_fac = frm_dur - 0.01f;
-
-  if ((1 == is_ld_sbr) && (1 == frame_flag_480)) {
-    no_cols = 30;
-    buffer_length = 90;
-  }
 
   memset(pstr_sbr_trans_detector, 0, sizeof(ixheaace_str_sbr_trans_detector));
 
@@ -240,7 +230,11 @@ VOID ixheaace_create_sbr_transient_detector(
     tmp -= 0.01f;
     tmp = MAX(tmp, 0.001f);
 
-    pstr_sbr_trans_detector->split_thr = (br_fac * 0.000075f) / (tmp * tmp);
+    if (1 == frame_flag_480) {
+      no_cols = 30;
+      buffer_length = 90;
+    }
+    pstr_sbr_trans_detector->split_thr = (br_fac * 0.000075f) / (tmp * tmp) / 2.0f;
     pstr_sbr_trans_detector->look_ahead = 2;
     pstr_sbr_trans_detector->time_slots = no_cols / 2;
     pstr_sbr_trans_detector->buffer_size =

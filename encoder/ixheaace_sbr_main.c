@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
@@ -221,13 +220,9 @@ static IA_ERRORCODE ixheaace_create_env_channel(
 
   err_code = ixheaace_create_extract_sbr_envelope(
       ch, &pstr_env->str_sbr_extract_env, start_index, ptr_common_buffer2, ptr_sbr_env_r_buf,
-      ptr_sbr_env_i_buf, params->is_ld_sbr, params->frame_flag_480, params->sbr_codec);
+      ptr_sbr_env_i_buf, params->frame_flag_480, params->sbr_codec);
   if (err_code) {
     return err_code;
-  }
-
-  if (params->is_ld_sbr) {
-    pstr_env->str_ton_corr.buffer_offset = pstr_env->str_sbr_extract_env.y_buffer_write_offset;
   }
 
   ixheaace_create_sbr_code_envelope(&pstr_env->str_sbr_code_env, pstr_sbr_cfg->num_scf,
@@ -595,7 +590,9 @@ ixheaace_env_encode_frame(ixheaace_pstr_sbr_enc pstr_env_encoder, FLOAT32 *ptr_s
   return err_code;
 }
 
-WORD32 ixheaace_sbr_enc_scr_size(VOID) { return sizeof(ixheaace_str_sbr_enc_scratch); }
+WORD32 ixheaace_sbr_enc_scr_size(VOID) {
+  return IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_sbr_enc_scratch), BYTE_ALIGN_8);
+}
 
 VOID ia_enhaacplus_enc_get_scratch_bufs(VOID *ptr_scr, FLOAT32 **ptr_shared_buf1,
                                         FLOAT32 **ptr_shared_buf2) {
@@ -642,6 +639,7 @@ WORD32 ixheaace_sbr_enc_pers_size(WORD32 num_ch, WORD32 use_ps) {
     num_bytes += sizeof(WORD32) * IXHEAACE_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS;
   }
   num_bytes += sizeof(ixheaace_str_sbr_qmf_filter_bank);
+  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(num_bytes, BYTE_ALIGN_8);
   return num_bytes;
 }
 
@@ -788,9 +786,8 @@ ixheaace_env_open(ixheaace_pstr_sbr_enc *pstr_env_encoder, ixheaace_pstr_sbr_cfg
     pstr_env_enc->str_sbr_bs.count_send_header_data = 0;
   }
   if (params->send_header_data_time > 0) {
-    pstr_env_enc->str_sbr_bs.nr_send_header_data =
-        (WORD32)(params->send_header_data_time * 0.001 * pstr_env_enc->str_sbr_cfg.sample_freq /
-                 2048);
+    pstr_env_enc->str_sbr_bs.nr_send_header_data = (WORD32)(
+        params->send_header_data_time * 0.001 * pstr_env_enc->str_sbr_cfg.sample_freq / 2048);
 
     pstr_env_enc->str_sbr_bs.nr_send_header_data =
         ixheaac_max32(pstr_env_enc->str_sbr_bs.nr_send_header_data, 1);

@@ -18,7 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
+#include <stdlib.h>
 
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"

@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "ixheaac_type_def.h"
@@ -551,7 +550,7 @@ static VOID ia_enhaacplus_enc_fst3_64(FLOAT32 *ptr_a, ixheaace_str_qmf_tabs *pst
   }
 }
 
-static VOID ixheaace_pre_mdct_real(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_sine_window) {
+static VOID ixheaace_sbr_pre_mdct(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_sine_window) {
   WORD32 i;
   FLOAT32 wre, wim, re1, re2, im1, im2;
 
@@ -576,7 +575,7 @@ static VOID ixheaace_pre_mdct_real(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *pt
     ptr_x[len - 1 - 2 * i] = -(im2 * wre - re2 * wim);
   }
 }
-static VOID ixheaace_pre_mdct_imag(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_sine_window) {
+static VOID ixheaace_sbr_pre_mdst(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_sine_window) {
   WORD32 i;
   FLOAT32 wre, wim, re1, re2, im1, im2;
 
@@ -601,7 +600,7 @@ static VOID ixheaace_pre_mdct_imag(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *pt
     ptr_x[len - 1 - 2 * i] = -(im2 * wre - re2 * wim);
   }
 }
-static VOID ixheaace_post_mdct_real(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_trig_data) {
+static VOID ixheaace_sbr_post_mdct(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_trig_data) {
   WORD32 i;
   FLOAT32 wre, wim, re1, re2, im1, im2;
 
@@ -632,7 +631,7 @@ static VOID ixheaace_post_mdct_real(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *p
   ptr_x[len / 2] = (temp2 + temp3) * val;
   ptr_x[len - 1] = temp1;
 }
-static VOID ixheaace_post_mdct_imag(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_trig_data) {
+static VOID ixheaace_sbr_post_mdst(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *ptr_trig_data) {
   WORD32 i;
   FLOAT32 wre, wim, re1, re2, im1, im2;
   FLOAT32 temp0 = -ptr_x[0];
@@ -666,20 +665,20 @@ static VOID ixheaace_post_mdct_imag(FLOAT32 *ptr_x, WORD32 len, const FLOAT32 *p
   ptr_x[0] = temp1;
   ptr_x[len - 1] = temp0;
 }
-static VOID ixheaace_real_mdct(FLOAT32 *ptr_dct_data, WORD32 n, FLOAT32 *ptr_sbr_scratch) {
-  ixheaace_pre_mdct_real(ptr_dct_data, n, &long_window_sine_ld_64[0]);
+static VOID ixheaace_sbr_mdct(FLOAT32 *ptr_dct_data, WORD32 n, FLOAT32 *ptr_sbr_scratch) {
+  ixheaace_sbr_pre_mdct(ptr_dct_data, n, &long_window_sine_ld_64[0]);
 
   ia_enhaacplus_enc_complex_fft_p2(ptr_dct_data, n / 2, ptr_sbr_scratch);
 
-  ixheaace_post_mdct_real(ptr_dct_data, n, &fft_twiddle_tab_32[0]);
+  ixheaace_sbr_post_mdct(ptr_dct_data, n, &fft_twiddle_tab_32[0]);
 }
 
-static VOID ixheaace_imag_mdct(FLOAT32 *ptr_dct_data, WORD32 n, FLOAT32 *ptr_sbr_scratch) {
-  ixheaace_pre_mdct_imag(ptr_dct_data, n, &long_window_sine_ld_64[0]);
+static VOID ixheaace_sbr_mdst(FLOAT32 *ptr_dct_data, WORD32 n, FLOAT32 *ptr_sbr_scratch) {
+  ixheaace_sbr_pre_mdst(ptr_dct_data, n, &long_window_sine_ld_64[0]);
 
   ia_enhaacplus_enc_complex_fft_p2(ptr_dct_data, n / 2, ptr_sbr_scratch);
 
-  ixheaace_post_mdct_imag(ptr_dct_data, n, &fft_twiddle_tab_32[0]);
+  ixheaace_sbr_post_mdst(ptr_dct_data, n, &fft_twiddle_tab_32[0]);
 }
 static VOID ia_enhaacplus_enc_forward_modulation(const FLOAT32 *ptr_time_in,
                                                  FLOAT32 *ptr_r_subband, FLOAT32 *ptr_i_subband,
@@ -709,15 +708,15 @@ static VOID ia_enhaacplus_enc_forward_modulation(const FLOAT32 *ptr_time_in,
       tmp2 = *ptr_inp2--;
       tmp3 = *ptr_inp1++;
       tmp4 = *ptr_inp2--;
-      *ptr_re++ = (tmp1 - tmp2) / 2.0f;
-      *ptr_im++ = (tmp1 + tmp2) / 2.0f;
-      *ptr_re++ = (tmp3 - tmp4) / 2.0f;
-      *ptr_im++ = (tmp3 + tmp4) / 2.0f;
+      *ptr_re++ = (tmp1 - tmp2);
+      *ptr_im++ = (tmp1 + tmp2);
+      *ptr_re++ = (tmp3 - tmp4);
+      *ptr_im++ = (tmp3 + tmp4);
       i--;
     }
 
-    ixheaace_real_mdct(ptr_r_subband, 64, ptr_sbr_scratch);
-    ixheaace_imag_mdct(ptr_i_subband, 64, ptr_sbr_scratch);
+    ixheaace_sbr_mdct(ptr_r_subband, 64, ptr_sbr_scratch);
+    ixheaace_sbr_mdst(ptr_i_subband, 64, ptr_sbr_scratch);
 
     i = 0;
     while (i < IXHEAACE_QMF_CHANNELS) {
@@ -812,9 +811,9 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
   FLOAT32 *ptr_qmf_states_curr_pos;
   WORD32 start_coeff_cnt = 0;
   WORD16 flag = 0;
+  WORD32 offset;
   if (is_ld_sbr) {
-    WORD32 offset = 576;
-
+    offset = 576;
     i = 0;
     while (i < num_qmf_subsamp) {
       ptr_qmf_states_curr_pos = pstr_qmf_bank->ptr_qmf_states_curr_pos;
@@ -862,17 +861,11 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
       i++;
     }
   } else {
-    if (0 == is_ld_sbr) {
-      flag = pstr_qmf_bank->flag;
-      ptr_fp1 = pstr_qmf_bank->ptr_qmf_states_buf;
-      ptr_fp2 = pstr_qmf_bank->ptr_qmf_states_buf + 64;
-      pstr_qmf_bank->ptr_qmf_states_curr_pos =
-          ((FLOAT32 *)(pstr_qmf_bank->ptr_qmf_states_buf) + (pstr_qmf_bank->offset * 64));
-    } else {
-      start_coeff_cnt = pstr_qmf_bank->start_coeff_cnt;
-      ptr_fp1 = pstr_qmf_bank->ptr_fp1;
-      ptr_fp2 = pstr_qmf_bank->ptr_fp2;
-    }
+    flag = pstr_qmf_bank->flag;
+    ptr_fp1 = pstr_qmf_bank->ptr_qmf_states_buf;
+    ptr_fp2 = pstr_qmf_bank->ptr_qmf_states_buf + 64;
+    pstr_qmf_bank->ptr_qmf_states_curr_pos =
+        ((FLOAT32 *)(pstr_qmf_bank->ptr_qmf_states_buf) + (pstr_qmf_bank->offset * 64));
 
     if (pstr_qmf_bank->offset == 8) {
       pstr_qmf_bank->offset = 0;
@@ -940,21 +933,11 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
       if (pstr_qmf_bank->ptr_qmf_states_curr_pos == pstr_qmf_bank->ptr_qmf_states_buf + 640) {
         pstr_qmf_bank->ptr_qmf_states_curr_pos = pstr_qmf_bank->ptr_qmf_states_buf;
       }
-      if (1 == is_ld_sbr) {
-        start_coeff_cnt++;
-        start_coeff_cnt &= 1;
-      }
     }
 
     pstr_qmf_bank->offset_l = ptr_start_coeff_l - pstr_qmf_bank->ptr_ref_coeff_l;
     pstr_qmf_bank->offset_r = pstr_qmf_bank->ptr_ref_coeff_r - ptr_start_coeff_r;
-    if (1 == is_ld_sbr) {
-      pstr_qmf_bank->start_coeff_cnt = start_coeff_cnt;
-      pstr_qmf_bank->ptr_fp1 = ptr_fp1;
-      pstr_qmf_bank->ptr_fp2 = ptr_fp2;
-    } else {
-      pstr_qmf_bank->flag = flag;
-    }
+    pstr_qmf_bank->flag = flag;
   }
 }
 

@@ -19,9 +19,13 @@
  */
 
 #include "ixheaac_type_def.h"
+#include "ixheaac_constants.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
 
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 #include "ixheaace_mps_common_define.h"
 #include "ixheaace_mps_defines.h"
 #include "ixheaace_mps_delay.h"
@@ -65,7 +69,7 @@ VOID ixheaace_mps_212_delay_sub_calculate_buffer_delays(ixheaace_mps_pstr_delay 
                  pstr_delay->delay_config.num_core_coder_delay +
                  pstr_delay->delay_config.n_sac_time_alignment + num_decoder_an_delay;
 
-  temp_delay_12 = max(num_residual_coder_frame_delay, num_arb_dmx_residual_coder_frame_delay) *
+  temp_delay_12 = MAX(num_residual_coder_frame_delay, num_arb_dmx_residual_coder_frame_delay) *
                   pstr_delay->delay_config.num_frame_len;
   temp_delay_12 += pstr_delay->delay_config.num_sac_stream_mux_delay;
 

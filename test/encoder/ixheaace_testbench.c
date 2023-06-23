@@ -27,12 +27,15 @@
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_handler.h"
-#include "ixheaace_apicmd_standards.h"
 
 #include "ixheaace_api.h"
 #include "ixheaace_memory_standards.h"
 #include "ixheaace_config_params.h"
 #include "iusace_cnst.h"
+#include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
+#include "ixheaac_basic_ops.h"
 
 VOID ia_enhaacplus_enc_error_handler_init();
 VOID ia_testbench_error_handler_init();
@@ -164,7 +167,7 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
       if (*length > size) {
         printf("\n Inconsitent file size \n");
       }
-      *length = min(*length, size);
+      *length = MIN(*length, size);
       fseek(in_file, curr_pos, SEEK_SET);
     } else {
       data_start[0] = data_start[1];
@@ -322,10 +325,24 @@ VOID ia_enhaacplus_enc_display_id_message(WORD8 lib_name[], WORD8 lib_version[])
   }
 }
 
-pVOID malloc_global(UWORD32 size, UWORD32 alignment) { return malloc(size + alignment); }
+pVOID malloc_global(UWORD32 size, UWORD32 alignment) {
+#ifdef WIN32
+  return _aligned_malloc(size, alignment);
+#else
+  pVOID ptr = NULL;
+  if (posix_memalign((VOID **)&ptr, alignment, size)) {
+    ptr = NULL;
+  }
+  return ptr;
+#endif
+}
 
 VOID free_global(pVOID ptr) {
+#ifdef WIN32
+  _aligned_free(ptr);
+#else
   free(ptr);
+#endif
   ptr = NULL;
 }
 
@@ -463,7 +480,6 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
       "\n*************************************************************************************"
       "***********\n\n");
 }
-
 IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   LOOPIDX frame_count = 0;
 
@@ -503,12 +519,13 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   /* ******************************************************************/
   /* The API config structure                                         */
   /* ******************************************************************/
-  ixheaace_user_config_struct *pstr_enc_api =
-      (ixheaace_user_config_struct *)malloc_global(sizeof(ixheaace_user_config_struct), 0);
+  ixheaace_user_config_struct *pstr_enc_api = (ixheaace_user_config_struct *)malloc_global(
+      sizeof(ixheaace_user_config_struct), BYTE_ALIGN_8);
   memset(pstr_enc_api, 0, sizeof(ixheaace_user_config_struct));
   ixheaace_input_config *pstr_in_cfg = &pstr_enc_api->input_config;
   ixheaace_output_config *pstr_out_cfg = &pstr_enc_api->output_config;
-  ixheaace_input_config *pstr_in_cfg_user = malloc_global(sizeof(ixheaace_input_config), 0);
+  ixheaace_input_config *pstr_in_cfg_user =
+      (ixheaace_input_config *)malloc_global(sizeof(ixheaace_input_config), BYTE_ALIGN_8);
 
   /* Stack process struct initing */
   p_error_init = ia_enhaacplus_enc_error_handler_init;
@@ -639,7 +656,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   }
 
   if (NULL == ia_stsz_size) {
-    ia_stsz_size = malloc_global((expected_frame_count + 2) * sizeof(*ia_stsz_size), 0);
+    ia_stsz_size = (UWORD32 *)malloc_global((expected_frame_count + 2) * sizeof(*ia_stsz_size),
+                                            BYTE_ALIGN_8);
     memset(ia_stsz_size, 0, (expected_frame_count + 2) * sizeof(*ia_stsz_size));
   }
   down_sampling_ratio = pstr_out_cfg->down_sampling_ratio;
@@ -703,14 +721,13 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   err_code = ixheaace_delete((pVOID)pstr_out_cfg);
   if ((err_code)&IA_FATAL_ERROR) {
     if (pstr_in_cfg_user) {
-      free(pstr_in_cfg_user);
+      free_global(pstr_in_cfg_user);
     }
     if (pstr_enc_api) {
-      free(pstr_enc_api);
+      free_global(pstr_enc_api);
     }
     if (ia_stsz_size != NULL) {
-      free(ia_stsz_size);
-      ia_stsz_size = NULL;
+      free_global(ia_stsz_size);
     }
     return (err_code);
   }
@@ -728,14 +745,13 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
       fprintf(g_pf_meta, "-ia_mp4_stsz_size:%d\n", ia_stsz_size[i]);
   }
   if (pstr_in_cfg_user) {
-    free(pstr_in_cfg_user);
+    free_global(pstr_in_cfg_user);
   }
   if (pstr_enc_api) {
-    free(pstr_enc_api);
+    free_global(pstr_enc_api);
   }
   if (ia_stsz_size != NULL) {
-    free(ia_stsz_size);
-    ia_stsz_size = NULL;
+    free_global(ia_stsz_size);
   }
   return IA_NO_ERROR;
 }

@@ -20,13 +20,6 @@
 
 #pragma once
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 #define BLOCK_SWITCH_WINDOWS TRANS_FAC /* number of windows for energy calculation */
 #define BLOCK_SWITCH_WINDOW_LEN \
   FRAME_LEN_SHORT_128 /* minimal granularity of energy calculation */

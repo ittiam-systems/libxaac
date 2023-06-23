@@ -18,7 +18,6 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -75,11 +74,7 @@ WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_cha
   WORD32 i;
   for (i = 0; i < num_chan; i++) {
     pstr_h_psy->psy_data[i]->ptr_spec_coeffs =
-        (FLOAT32 *)(&ptr_shared_buffer_2[i * long_frame_len + 8 * i /*alignment*/]);
-
-    pstr_h_psy->psy_data[i]->ptr_spec_coeffs =
-        (FLOAT32 *)(((WORD8 *)pstr_h_psy->psy_data[i]->ptr_spec_coeffs) +
-                    (8 - ((SIZE_T)(pstr_h_psy->psy_data[i]->ptr_spec_coeffs) % 8)));
+        (FLOAT32 *)(&ptr_shared_buffer_2[i * long_frame_len]);
 
     if (init) {
       memset(pstr_h_psy->psy_data[i]->ptr_spec_coeffs, 0,
@@ -87,11 +82,11 @@ WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_cha
     }
   }
 
-  pstr_h_psy->p_scratch_tns_float =
-      (FLOAT32 *)(&ptr_shared_buffer_2[2 * long_frame_len + 8 * 2 /*alignment*/]);
-  pstr_h_psy->p_scratch_tns_float =
-      (FLOAT32 *)((WORD8 *)pstr_h_psy->p_scratch_tns_float +
-                  (32 - ((SIZE_T)pstr_h_psy->p_scratch_tns_float % 32)));
+  pstr_h_psy->p_scratch_tns_float = (FLOAT32 *)(&ptr_shared_buffer_2[2 * long_frame_len]);
+  if (long_frame_len == FRAME_LEN_960) {
+    pstr_h_psy->p_scratch_tns_float = pstr_h_psy->p_scratch_tns_float + 128;
+  }
+
   if (init) {
     memset(pstr_h_psy->p_scratch_tns_float, 0,
            long_frame_len * sizeof(*pstr_h_psy->p_scratch_tns_float));

@@ -20,14 +20,6 @@
 
 #pragma once
 
-#ifndef min
-#define min(a, b) (a < b ? a : b)
-#endif
-
-#ifndef max
-#define max(a, b) (a > b ? a : b)
-#endif
-
 #define ia_add_flt(a, b) ((a) + (b))
 #define ia_sub_flt(a, b) ((a) - (b))
 #define ia_mac_flt(x, a, b) ((x) + (a) * (b))
