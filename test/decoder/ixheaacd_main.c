@@ -2238,7 +2238,7 @@ void print_usage() {
   printf("\n[-peak_limiter_off:<peak_limiter_off_flag>]");
   printf("\n[-err_conceal:<error_concealment_flag>]");
   printf("\n[-esbr:<esbr_flag>]");
-  printf("\n\nwhere, \n  <input_file> is the input AAC/HEAACv1/HEAACv2/USAC file name");
+  printf("\n\nwhere, \n  <input_file> is the input AAC-LC/HE-AACv1/HE-AACv2//AAC-LD/AAC-ELD/AAC-ELDv2/USAC file name");
   printf("\n  <meta_data_file> is a text file which contains metadata.");
   printf("\n   To be given when -mp4:1 is enabled");
   printf("\n  <output_file> is the output file name");

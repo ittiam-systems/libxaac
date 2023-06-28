@@ -192,52 +192,56 @@ void ia_enhaacplus_enc_print_usage() {
   printf("\n[options] can be,");
   printf("\n[-br:<bitrate>]");
   printf("\n[-mps:<use_mps>]");
-  printf("\n[-adts:<use_adts_flag (0/1)>]");
+  printf("\n[-adts:<use_adts_flag>]");
   printf("\n[-tns:<use_tns_flag>]");
   printf("\n[-framesize:<framesize_to_be_used>]");
   printf("\n[-aot:<audio_object_type>]");
-  printf("\n[-esbr:<esbr_flag (0/1)>]");
+  printf("\n[-esbr:<esbr_flag>]");
   printf("\n[-full_bandwidth:<Enable use of full bandwidth of input>]");
   printf("\n[-max_out_buffer_per_ch:<bitreservoir_size>]");
   printf("\n[-tree_cfg:<tree_config>]");
   printf("\n\nwhere, \n  <paramfile> is the parameter file with multiple commands");
   printf("\n  <inputfile> is the input 16-bit WAV or PCM file name");
   printf("\n  <outputfile> is the output ADTS/ES file name");
-  printf("\n  <bitrate> is the bit-rate in bits per second. Valid values are ");
-  printf("\n    Plain AAC: 8000-576000 bps per channel");
-  printf("\n  <use_mps> When set to 1 MPS is enable. Default 0.");
-  printf("\n  <use_adts_flag> when set to 1 ADTS header generated.");
-  printf("\n                  Default is 0");
-  printf("\n  <use_tns_flag> controls usage of TNS in encoding. Default is 1");
+  printf("\n  <bitrate> is the bit-rate in bits per second. Default value is 48000. ");
+  printf("\n  <use_mps> Valid values are 0 (disable MPS) and 1 (enable MPS). Default is 0.");
+  printf(
+      "\n  <use_adts_flag> Valid values are 0 ( No ADTS header) and 1 ( generate ADTS header). "
+      "Default is 0.");
+  printf("\n  <use_tns_flag> Valid values are 0 (disable TNS) and 1 (enable TNS). Default is 1.");
   printf("\n  <framesize_to_be_used> is the framesize to be used.");
   printf(
-      "\n    For AOT 23, 39 (LD core coder profiles) valid values are 480 and 512 .Default is "
-      "512");
+      "\n        For AOT 23, 39 (LD core coder profiles) valid values are 480 and 512. Default "
+      "is "
+      "512.");
   printf(
-      "\n    For AOT 2, 5, 29 (LC core coder profiles) valid values are 960 and 1024 .Default "
-      "is 1024");
+      "\n        For AOT 2, 5, 29 (LC core coder profiles) valid values are 960 and 1024. "
+      "Default "
+      "is 1024.");
   printf("\n  <audio_object_type> is the Audio object type");
-  printf("\n    2 for AAC LC");
-  printf("\n    5 for HEAACv1(Legacy SBR)");
-  printf("\n    23 for AAC LD");
-  printf("\n    29 for HEAACv2");
-  printf("\n    39 for AAC ELD");
-  printf("\n    Default is 2 for AAC LC");
-  printf("\n  <esbr_flag> when set to 1 enables eSBR in HEAACv1 encoding");
-  printf("\n                  Default is 0");
+  printf("\n        2 for AAC-LC");
+  printf("\n        5 for HE-AACv1(Legacy SBR)");
+  printf("\n        23 for AAC-LD");
+  printf("\n        29 for HE-AACv2");
+  printf("\n        39 for AAC-ELD");
+  printf("\n        Default is 2 for AAC-LC.");
   printf(
-      "\n  <full_bandwidth> Enable use of full bandwidth of input. Valid values are 0(disable) "
-      "and 1(enable). Default is 0.");
+      "\n  <esbr_flag> Valid values are 0 (disable eSBR) and 1 (enable eSBR in HE-AACv1 "
+      "encoding). Default is 0.");
+  printf(
+      "\n  <full_bandwidth> Enable use of full bandwidth of input. Valid values are 0(disable "
+      "full bandwidth) and 1(enable full bandwidth). Default is 0.");
   printf("\n  <bitreservoir_size> is the maximum size of bit reservoir to be used.");
-  printf("\n    Valid values are from -1 to 6144. -1 to omit use of bit reservoir.");
-  printf("\n    Default is 384.");
+  printf(
+      "\n        Valid values are from -1 to 6144. -1 will omit use of bit reservoir. Default is "
+      "384.");
   printf(
       "\n  <tree_config> MPS tree config"
-      "0 for '212'"
-      "1 for '5151'"
-      "2 for '5152'"
-      "3 for '525'"
-      "Default '212' for stereo input '515' for 6ch input");
+      "\n        0 for '212'"
+      "\n        1 for '5151'"
+      "\n        2 for '5152'"
+      "\n        3 for '525'"
+      "\n        Default '212' for stereo input and '5151' for 6ch input.");
   exit(1);
 }
 
