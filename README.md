@@ -10,8 +10,11 @@ One of the key features of libxaac (refer to above image) is that it has support
 
 Overall, libxaac, with support for AAC-LD, AAC-ELD, and AAC-ELDv2 modes, is a versatile audio coding technology that can be used for a wide range of applications, such as broadcasting, streaming, and teleconferencing which requires high-quality audio compression with minimal delay. 
 
+Also, libxaac decoder supports MPEG-D DRC(Dynamic Range Control) for USAC profile. DRC offers a bitrate efficient representation of dynamically compressed versions of an audio signal. This is achieved by adding a low-bitrate DRC metadata stream to the audio signal. DRC includes dedicated sections for clipping prevention, ducking, and for generating a fade-in and fade-out to supplement the main dynamic range compression functionality. The DRC effects available at the DRC decoder are generated at the DRC encoder side. At the DRC decoder side, the audio signal may be played back without applying DRC, or an appropriate DRC effect is selected and applied based on the given playback scenario. It offers flexible solutions to efficiently support the widespread demand for technologies such as loudness normalization and dynamic range compression for various playback scenarios.
+
+
 #### Note
-* MPEG-D USAC (Unified Speech and Audio Coding) support for libxaac encoder will be coming soon, which will help in improved audio quality at reduced bitrates. USAC technology will provide efficient and high quality compression of speech and audio signals, making it a valuable addition to our libxaac capabilities and features.
+* MPEG-D USAC (along with MPEG-D DRC) support for libxaac encoder will be coming soon, which will help in improved audio quality at reduced bitrates. USAC technology will provide efficient and high quality compression of speech and audio signals, making it a valuable addition to our libxaac capabilities and features.
 * Further Quality enhancements for AAC-ELD and AAC-ELDv2 modes may be pushed as quality assessment is in progress.
 
 #  Building the libxaac decoder and encoder
