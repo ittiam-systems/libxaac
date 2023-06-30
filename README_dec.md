@@ -1,6 +1,6 @@
 
 
-# Introduction to Ex-HEAAC Decoder APIs
+# Introduction to libxaac decoder APIs
 
 ## Decoder APIs
 
@@ -12,7 +12,7 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_GET_LIB_ID_STRINGS | IA_CMD_TYPE_LIB_NAME | Gets the decoder library name |
 |IA_API_CMD_GET_LIB_ID_STRINGS | IA_CMD_TYPE_LIB_VERSION | Gets the decoder version |
 |IA_API_CMD_GET_API_SIZE | 0 | Gets the memory requirements size of the API |
-|IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS | Sets the configuration parameters of the Ex-HEAAC v2 Decoder to default values |
+|IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS | Sets the configuration parameters of the libxaac decoder to default values |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS | Sets the attributes(size, priority, alignment) of all memory types required by the application onto the memory structure |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_PROCESS | Search for the valid header, does header decode to get the parameters and initializes state and configuration structure |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_DONE_QUERY | Checks if the initialization process has completed |
@@ -22,13 +22,13 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS | Sets the value of DRC target loudness |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DOWNMIX | Sets the parameter whether the output needs to be down-mix to mono(1) or not(0) |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_TOSTEREO | Sets the flag to disable interleave mono to stereo |
-|IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DSAMPLE | Sets the parameter whether the output needs to be downsampled(1) or not(0. This is valid only for Ex-HEAAC v2 build |
+|IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DSAMPLE | Sets the parameter whether the output needs to be downsampled(1) or not(0) |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_ISMP4 | Sets the flag to 0 or 1 to indicate whether given test vector is an mp4 file or not |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_MAX_CHANNEL | Sets the maximum number of channels present. Its maximum value is 2 for stereo library and 8 for multichannel library |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_COUP_CHANNEL | Sets the number of coupling channels to be used for coupling. It can take values from 0 to 16. This command is supported only if the library has multichannel support |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DOWNMIX_STEREO | Sets the flag of downmixing n number of channels to stereo. Can be 0 or 1. This command is supported only if the library has multichannel support |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_DISABLE_SYNC | Sets the flag of ADTS syncing or not ADTS syncing as 0 or 1 |
-|IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_AUTO_SBR_UPSAMPLE | Sets the parameter auto SBR upsample to 0 or 1. Used in case of stream changing from SBR present to SBR not present. This is valid only for Ex-HEAAC v2 build |
+|IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_AUTO_SBR_UPSAMPLE | Sets the parameter auto SBR upsample to 0 or 1. Used in case of stream changing from SBR present to SBR not present |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_CUT | Sets the value of DRC cut factor |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_BOOST | Sets the value of DRC boost factor |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_HEAVY_COMP | Sets the parameter to either enable/disable DRC heavy compression |
@@ -61,7 +61,7 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_NUM_CHANNELS | Gets the output number of channels |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_CHANNEL_MASK | Gets the channel mask |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_CHANNEL_MODE | Gets the channel mode. (Mono or PS/Stereo/Dual-mono) |
-|IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE | Gets the SBR mode (Present/ Not Present). This is valid only for Ex-HEAAC v2 build |
+|IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_SBR_MODE | Gets the SBR mode (Present/ Not Present) |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_EFFECT_TYPE | Gets the value of DRC effect type |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS | Gets the value of DRC target loudness |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_LOUD_NORM | Gets the value of DRC loudness normalization level |
@@ -120,7 +120,7 @@ A single API is used to get and set configurations and execute the decode thread
 | **API Command** | **API Sub Command** | **Description** |
 |------|------|------|
 |IA_API_CMD_GET_API_SIZE | 0 | Gets the memory requirements size of the API |
-|IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS | Sets the configuration parameters of the Ex-HEAAC v2 Decoder to default values |
+|IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_PRE_CONFIG_PARAMS | Sets the configuration parameters of the libxaac decoder to default values |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_API_POST_CONFIG_PARAMS | Sets the attributes(size, priority, alignment) of all memory types required by the application onto the memory structure |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_PROCESS | Search for the valid header, does header decode to get the parameters and initializes state and configuration structure |
 |IA_API_CMD_INIT | IA_CMD_TYPE_INIT_CPY_BSF_BUFF | Sets the bitstream split format buffer |
@@ -157,9 +157,9 @@ A single API is used to get and set configurations and execute the decode thread
 
 ![API Flowchart](docs/Api_flowchart_dec.png)
 
-# Running the Ex-HEAAC Decoder
+# Running the libxaac decoder
 
-The Ex-HEAAC Decoder can be run by providing command-line parameters(CLI options) directly or by providing a parameter file as a command line argument.
+The libxaac decoder can be run by providing command-line parameters(CLI options) directly or by providing a parameter file as a command line argument.
 
 Command line usage : 
 ```
@@ -193,7 +193,7 @@ Command line usage :
 [-esbr:<esbr_flag>]
 
 where,
-  <input_file>             is the input AAC/HEAACv1/HEAACv2/USAC file name.
+  <input_file>             is the input AAC-LC/HE-AACv1/HE-AACv2/AAC-LD/AAC-ELD/AAC-ELDv2/USAC file name.
   <meta_data_file>         is a text file which contains metadata. To be given when -mp4:1 is enabled.
   <output_file>            is the output file name.
   <mp4_flag>               is a flag that should be set to 1 when passing raw stream along with meta data text file.
@@ -229,13 +229,13 @@ Sample CLI:
 <xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16
 ```
 
-# Validating the Ex-HEAAC Decoder
+# Validating the libxaac decoder
 
-Conformance testing for AAC/HEAAC v1/HEAAC v2 mainly involves comparing 
+Conformance testing for AAC/HE-AACv1/HE-AACv2 mainly involves comparing 
 decoder under test output with the ISO and 3GPP reference decoded output.
 
 Testing for USAC is done using encoded streams generated using ISO USAC 
-reference encoder. The output generated by ITTIAM USAC decoder is 
+reference encoder. The output generated by libxaac USAC decoder is 
 compared against the output generated by ISO USAC decoder for 16-bit 
 conformance on the respective(ARMv7, ARMv8, X86_32, X86_64) platforms.
 
