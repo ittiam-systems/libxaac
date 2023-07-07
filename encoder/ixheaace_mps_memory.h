@@ -42,7 +42,7 @@ typedef struct {
   ixheaace_mps_enhanced_time_domain_dmx enhanced_time_dmx;
   FLOAT32 sinus_window_flt[4 * (MPS_MAX_FRAME_LENGTH + 1)];
   ixheaace_mps_bsf_instance bitstream;
-  ixheaace_mps_dc_filter dc_filter[2];
+  ixheaace_mps_dc_filter dc_filter[IXHEAACE_MPS_MAX_INPUT_CHANNELS];
   ixheaace_mps_enc_config_setup setup;
 } ixheaace_mps_212_memory_struct;
 

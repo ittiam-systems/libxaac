@@ -22,6 +22,7 @@
 
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include <stdlib.h>
 #include "ixheaac_basic_ops32.h"
@@ -38,7 +39,6 @@
 
 #include "ixheaace_adjust_threshold_data.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_dynamic_bits.h"
 #include "ixheaace_qc_data.h"
 #include "ixheaace_channel_map.h"
@@ -48,10 +48,9 @@
 #include "ixheaace_write_bitstream.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_psy_mod.h"
-#include "ixheaace_qc_util.h"
 #include "ixheaace_stereo_preproc.h"
-#include "ixheaace_api_struct_define.h"
-#include "ixheaace_aac_api.h"
+#include "ixheaace_enc_main.h"
+#include "ixheaace_qc_util.h"
 #include "ixheaace_error_codes.h"
 #include "ixheaace_common_utils.h"
 

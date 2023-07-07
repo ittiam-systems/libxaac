@@ -24,18 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ixheaac_type_def.h"
-#include "ixheaace_aac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_handler.h"
-
-#include "ixheaace_api.h"
-#include "ixheaace_memory_standards.h"
-#include "ixheaace_config_params.h"
-#include "iusace_cnst.h"
-#include "ixheaac_constants.h"
-#include "ixheaac_basic_ops32.h"
-#include "ixheaac_basic_ops40.h"
-#include "ixheaac_basic_ops.h"
 
 VOID ia_enhaacplus_enc_error_handler_init();
 VOID ia_testbench_error_handler_init();
@@ -56,6 +47,8 @@ extern ia_error_info_struct ia_enhaacplus_enc_error_info;
 #define IA_MAX_CMD_LINE_LENGTH 300
 #define IA_MAX_ARGS 20
 #define IA_SCREEN_WIDTH 80
+#define APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LC (768)
+#define APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LD (384)
 
 #define PARAMFILE "paramfilesimple.txt"
 
@@ -166,8 +159,8 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
       size = ftell(in_file) - curr_pos;
       if (*length > size) {
         printf("\n Inconsitent file size \n");
+        *length = size;
       }
-      *length = MIN(*length, size);
       fseek(in_file, curr_pos, SEEK_SET);
     } else {
       data_start[0] = data_start[1];
@@ -360,7 +353,7 @@ static VOID iaace_aac_set_default_config(ixheaace_aac_enc_config *config) {
   config->inv_quant = 2;
   config->use_tns = 0;
   config->noise_filling = 0;
-  config->bitreservoir_size = BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LC;
+  config->bitreservoir_size = APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LC;
 }
 
 static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_config,
@@ -524,13 +517,23 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   /* The API config structure                                         */
   /* ******************************************************************/
   ixheaace_user_config_struct *pstr_enc_api = (ixheaace_user_config_struct *)malloc_global(
-      sizeof(ixheaace_user_config_struct), BYTE_ALIGN_8);
+      sizeof(ixheaace_user_config_struct), DEFAULT_MEM_ALIGN_8);
+  if (pstr_enc_api == NULL) {
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    return -1;
+  }
   memset(pstr_enc_api, 0, sizeof(ixheaace_user_config_struct));
   ixheaace_input_config *pstr_in_cfg = &pstr_enc_api->input_config;
   ixheaace_output_config *pstr_out_cfg = &pstr_enc_api->output_config;
   ixheaace_input_config *pstr_in_cfg_user =
-      (ixheaace_input_config *)malloc_global(sizeof(ixheaace_input_config), BYTE_ALIGN_8);
-
+      (ixheaace_input_config *)malloc_global(sizeof(ixheaace_input_config), DEFAULT_MEM_ALIGN_8);
+  if (pstr_in_cfg_user == NULL) {
+    if (pstr_enc_api) {
+      free_global(pstr_enc_api);
+    }
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    return -1;
+  }
   /* Stack process struct initing */
   p_error_init = ia_enhaacplus_enc_error_handler_init;
   p_proc_err_info = &ia_enhaacplus_enc_error_info;
@@ -578,8 +581,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
         pstr_in_cfg->frame_length = 1024;
       }
       if (pstr_in_cfg->out_bytes_flag == 0) {
-        pstr_in_cfg->aac_config.bitreservoir_size =
-            BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LC;
+        pstr_in_cfg->aac_config.bitreservoir_size = APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LC;
       }
       if (pstr_in_cfg->user_tns_flag == 0) {
         pstr_in_cfg->aac_config.use_tns = 1;
@@ -589,8 +591,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
         pstr_in_cfg->frame_length = 512;
       }
       if (pstr_in_cfg->out_bytes_flag == 0) {
-        pstr_in_cfg->aac_config.bitreservoir_size =
-            BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LD;
+        pstr_in_cfg->aac_config.bitreservoir_size = APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LD;
       }
 
       if (pstr_in_cfg->user_tns_flag == 0) {
@@ -661,7 +662,17 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
   if (NULL == ia_stsz_size) {
     ia_stsz_size = (UWORD32 *)malloc_global((expected_frame_count + 2) * sizeof(*ia_stsz_size),
-                                            BYTE_ALIGN_8);
+                                            DEFAULT_MEM_ALIGN_8);
+    if (ia_stsz_size == NULL) {
+      if (pstr_enc_api) {
+        free_global(pstr_enc_api);
+      }
+      if (pstr_in_cfg_user) {
+        free_global(pstr_in_cfg_user);
+      }
+      printf("fatal error: libxaac encoder: Memory allocation failed");
+      return -1;
+    }
     memset(ia_stsz_size, 0, (expected_frame_count + 2) * sizeof(*ia_stsz_size));
   }
   down_sampling_ratio = pstr_out_cfg->down_sampling_ratio;

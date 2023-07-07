@@ -35,7 +35,6 @@
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
 
-#include "ixheaace_enc_main.h"
 #include <math.h>
 #include "ixheaace_block_switch.h"
 #include "ixheaace_psy_utils_spreading.h"

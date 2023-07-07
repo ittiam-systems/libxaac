@@ -155,7 +155,7 @@ pWORD8 ppb_ia_enhaacplus_enc_mps_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
 /* The Module's Error Info Structure */
 ia_error_info_struct ia_enhaacplus_enc_error_info = {
     /* The Module Name	*/
-    (pWORD8) "Ittiam Ex-HEAAC Encoder",
+    (pWORD8) "libxaac encoder",
     {/* The Class Names	*/
      (pWORD8) "API", (pWORD8) "Configuration", (pWORD8) "Initialization", (pWORD8) "Execution",
      (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "", (pWORD8) "",

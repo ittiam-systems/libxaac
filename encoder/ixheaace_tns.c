@@ -37,7 +37,6 @@
 #include "ixheaace_tns_params.h"
 #include "ixheaace_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_tns_func.h"
 #include "ixheaace_error_codes.h"

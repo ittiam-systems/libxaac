@@ -19,34 +19,6 @@
  */
 
 #pragma once
-/* here we distinguish between stereo and the mono only encoder */
-#define IXHEAACE_MAX_CH_IN_BS_ELE (2)
-
-#define MAXIMUM_BS_ELE \
-  8 /* 1 <SCE> 2 <CPE> 3<CPE> 4<CPE> 5<LFE> 6<SCE> - 8.1 channel + 2 cc channels*/
-
-#define FRAME_LEN_1024 1024
-#define FRAME_LEN_512 512
-#define FRAME_LEN_480 480
-#define FRAME_LEN_960 960
-
-#define AACENC_TRANS_FAC 8   /* encoder WORD16 long ratio */
-#define AACENC_PCM_LEVEL 1.0 /* encoder pcm 0db refernence */
-
-#define MAX_INPUT_CHAN (IXHEAACE_MAX_CH_IN_BS_ELE)
-
-#define MAX_FRAME_LEN (1024)
-
-// Change to accommodate 4:1 resampler - input = 4096 samples per channel
-#define MAX_INPUT_SAMPLES (MAX_FRAME_LEN * MAX_INPUT_CHAN * 4)
-
-#define NUM_CHANS_MONO (1)
-#define NUM_CHANS_STEREO (2)
-#define MAX_NUM_CHANNELS (6)
-#define MIN_NUM_CHANNELS (1)
-/*-------------------------- defines --------------------------------------*/
-
-#define BUFFERSIZE 1024 /* anc data */
 
 /*-------------------- structure definitions ------------------------------*/
 
@@ -87,9 +59,43 @@ typedef struct {
   WORD32 anc_rate;
 } ixheaace_config_ancillary;
 
+typedef struct {
+  iaace_config config;
+  ixheaace_element_info element_info;
+  ixheaace_psy_out psy_out;
+  ixheaace_psy_kernel psy_kernel;
+  ixheaace_qc_state qc_kernel;
+  ixheaace_qc_out qc_out;
+  ixheaace_bitstream_enc_init bse_init;
+  ixheaace_stereo_pre_pro_struct str_stereo_pre_pro;
+  WORD32 downmix;
+  WORD32 downmix_fac;
+  WORD32 dual_mono;
+  WORD32 bandwidth_90_dB;
+  iaace_scratch *pstr_aac_scratch;
+} iexheaac_encoder_str;
+
 VOID ia_enhaacplus_enc_aac_init_default_config(iaace_config *config, WORD32 aot);
 
 WORD32 ia_enhaacplus_enc_aac_enc_pers_size(WORD32 num_aac_chan, WORD32 aot);
 WORD32 ia_enhaacplus_enc_aac_enc_scr_size(VOID);
 
 VOID ia_enhaacplus_enc_init_aac_tabs(ixheaace_aac_tables *pstr_aac_tabs);
+
+IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac_encoder,
+                                            const iaace_config config,
+                                            iaace_scratch *pstr_aac_scratch,
+                                            ixheaace_aac_tables *pstr_aac_tabs, WORD32 ele_type,
+                                            WORD32 element_instance_tag, WORD32 aot);
+
+IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
+    iexheaac_encoder_str **pstr_aac_enc, FLOAT32 *ptr_time_signal, UWORD32 time_sn_stride,
+    const UWORD8 *ptr_anc_bytes, UWORD8 *num_anc_bytes, UWORD8 *ptr_out_bytes,
+    WORD32 *num_out_bytes, ixheaace_aac_tables *pstr_aac_tables, VOID *ptr_bit_stream_handle,
+    VOID *ptr_bit_stream, FLAG flag_last_element, WORD32 *write_program_config_element,
+    WORD32 i_num_coup_channels, WORD32 i_channels_mask, WORD32 ele_idx, WORD32 *total_fill_bits,
+    WORD32 total_channels, WORD32 aot, WORD32 adts_flag, WORD32 num_bs_elements);
+
+VOID ia_enhaacplus_enc_set_shared_bufs(iaace_scratch *scr, WORD32 **shared_buf1,
+                                       WORD32 **shared_buf2, WORD32 **shared_buf3,
+                                       WORD8 **shared_buf5);

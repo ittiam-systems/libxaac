@@ -30,7 +30,6 @@
 #include "ixheaac_basic_ops32.h"
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_block_switch.h"
 #include <string.h>
 

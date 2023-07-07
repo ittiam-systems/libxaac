@@ -18,8 +18,10 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <stddef.h>
 #include "ixheaac_type_def.h"
 #include "ixheaace_error_codes.h"
+#include "ixheaace_api.h"
 #include "ixheaace_mps_common_fix.h"
 #include "ixheaace_mps_defines.h"
 #include "ixheaace_mps_common_define.h"

@@ -60,7 +60,7 @@ VOID ixheaace_create_qmf_bank(ixheaace_pstr_sbr_qmf_filter_bank pstr_sbr_qmf_fil
   pstr_sbr_qmf_filter_bank->flag = 0;
 
   pstr_sbr_qmf_filter_bank->ptr_filter =
-      (is_ld_sbr) ? &cld_qmf_64_640[0] : pstr_sbr_tab->ptr_qmf_tab->sbr_qmf_64_640;
+      (is_ld_sbr) ? &cld_fb_64_640[0] : pstr_sbr_tab->ptr_qmf_tab->sbr_qmf_64_640;
 
   pstr_sbr_qmf_filter_bank->ptr_qmf_states_buf =
       (FLOAT32 *)pstr_sbr_qmf_filter_bank->ptr_sbr_qmf_states_ana;

@@ -29,7 +29,6 @@
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_write_adts_adif.h"
 
-#include "ixheaace_enc_main.h"
 #include "ixheaac_basic_ops32.h"
 #include "ixheaac_basic_ops16.h"
 #include "ixheaac_basic_ops40.h"

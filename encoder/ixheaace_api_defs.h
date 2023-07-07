@@ -37,7 +37,3 @@
 
 #define IA_LAST_COMP_APIVERSION \
   IA_MAKE_VERSION_STR(IA_LASTCOMP_APIVERSION_MAJOR, IA_LASTCOMP_APIVERSION_MINOR)
-
-VOID ia_enhaacplus_enc_set_shared_bufs(iaace_scratch *scr, WORD32 **shared_buf1,
-                                       WORD32 **shared_buf2, WORD32 **shared_buf3,
-                                       WORD8 **shared_buf5);

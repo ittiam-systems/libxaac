@@ -19,9 +19,10 @@
  */
 
 #include <math.h>
-
+#include <stddef.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_psy_const.h"
@@ -29,7 +30,6 @@
 #include "ixheaace_tns_params.h"
 #include "ixheaace_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_tns_func.h"
 #include "ixheaac_basic_ops32.h"
@@ -211,6 +211,10 @@ VOID ia_enhaacplus_enc_analysis_filter_lattice(const FLOAT32 *ptr_signal, WORD32
                                                FLOAT32 *ptr_output) {
   FLOAT32 state_par[TEMPORAL_NOISE_SHAPING_MAX_ORDER] = {0};
   WORD32 j;
+
+  if (order <= 0) {
+    return;
+  }
 
   for (j = 0; j < num_lines; j++) {
     WORD32 i;

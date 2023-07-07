@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaac_type_def.h"
+#include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
 #include "ixheaace_mps_common_fix.h"
