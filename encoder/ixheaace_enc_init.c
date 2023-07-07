@@ -22,6 +22,7 @@
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
 #include "ixheaace_psy_const.h"
@@ -33,7 +34,6 @@
 #include "ixheaac_basic_ops32.h"
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_adjust_threshold_data.h"
 
 #include "ixheaace_dynamic_bits.h"
@@ -45,10 +45,9 @@
 #include "ixheaace_write_bitstream.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_psy_mod.h"
-#include "ixheaace_qc_util.h"
 #include "ixheaace_stereo_preproc.h"
-#include "ixheaace_api_struct_define.h"
-#include "ixheaace_aac_api.h"
+#include "ixheaace_enc_main.h"
+#include "ixheaace_qc_util.h"
 #include "ixheaace_config_params.h"
 #include "ixheaace_common_utils.h"
 #define ALIGNMENT_DEFINE __attribute__((aligned(8)))
@@ -128,7 +127,8 @@ static WORD32 ixheaace_calculate_bandwidth(const WORD32 sample_rate,
         end_bandwidth = end_bandwidth - (pstr_bandwidth_table[i + 1].channel_bit_rate / 32);
         start_bitrate = pstr_bandwidth_table[i].channel_bit_rate;
         end_bitrate = pstr_bandwidth_table[i + 1].channel_bit_rate;
-        bandwidth_fac = (FLOAT32)(channel_bit_rate - start_bitrate / end_bitrate - start_bitrate);
+        bandwidth_fac =
+            (FLOAT32)((channel_bit_rate - start_bitrate) / (end_bitrate - start_bitrate));
         bandwidth = (WORD32)(bandwidth_fac * (end_bandwidth - start_bandwidth) + start_bandwidth);
         break;
       }
@@ -265,8 +265,7 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac
                                             const iaace_config config,
                                             iaace_scratch *pstr_aac_scratch,
                                             ixheaace_aac_tables *pstr_aac_tabs, WORD32 ele_type,
-                                            WORD32 element_instance_tag, WORD32 init,
-                                            WORD32 aot) {
+                                            WORD32 element_instance_tag, WORD32 aot) {
   IA_ERRORCODE error = IA_NO_ERROR;
   WORD32 profile = 1;
   ixheaace_element_info *pstr_element_info = NULL;
@@ -293,282 +292,245 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac
       break;
   }
 
+  error = (config.num_in_channels < 1 || config.num_out_channels > IXHEAACE_MAX_CH_IN_BS_ELE ||
+           config.num_out_channels < 1 || config.num_in_channels < config.num_out_channels ||
+           (config.bit_rate != 0 && (config.bit_rate / config.num_out_channels < 8000 ||
+                                     config.bit_rate / config.num_out_channels > 576000)));
+
+  if (error != IA_NO_ERROR) {
+    return error;
+  }
+
   pstr_exheaac_encoder = *ppstr_exheaac_encoder;
 
-  if (init) {
-    memset(pstr_exheaac_encoder, 0, sizeof(iexheaac_encoder_str));
-  }
+  memset(pstr_exheaac_encoder, 0, sizeof(iexheaac_encoder_str));
 
   ia_enhaacplus_enc_aac_set_scratch_ptr(pstr_exheaac_encoder, pstr_aac_scratch);
 
   ia_enhaacplus_enc_aac_set_persist_buf((WORD8 *)pstr_exheaac_encoder, config.num_out_channels,
                                         aot);
 
-  if (init) {
-    if (!error) {
-      error =
-          (config.num_in_channels < 1 || config.num_out_channels > IXHEAACE_MAX_CH_IN_BS_ELE ||
-           config.num_out_channels < 1 || config.num_in_channels < config.num_out_channels ||
-           (config.bit_rate != 0 && (config.bit_rate / config.num_out_channels < 8000 ||
-                                     config.bit_rate / config.num_out_channels > 576000)));
-    }
+  /* check sample rate */
 
-    /* check sample rate */
-    if (!error) {
-      switch (config.core_sample_rate) {
-        case 8000:
-        case 11025:
-        case 12000:
-        case 16000:
-        case 22050:
-        case 24000:
-        case 32000:
-        case 44100:
-        case 48000:
-        case 64000:
-        case 88200:
-        case 96000:
-          break;
+  switch (config.core_sample_rate) {
+    case 8000:
+    case 11025:
+    case 12000:
+    case 16000:
+    case 22050:
+    case 24000:
+    case 32000:
+    case 44100:
+    case 48000:
+    case 64000:
+    case 88200:
+    case 96000:
+      break;
 
-        default:
-          return IA_EXHEAACE_INIT_FATAL_INVALID_CORE_SAMPLE_RATE;
-          break;
-      }
-    }
-
-    /* check if bit rate is not too high for sample rate */
-    if (!error) {
-      switch (aot) {
-        case AOT_AAC_LC:
-        case AOT_SBR:
-        case AOT_PS:
-          if (config.flag_framelength_small) {
-            if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_960 - 744) / frame_len_long *
-                                   config.core_sample_rate * config.num_out_channels)) {
-              return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-            }
-          } else {
-            if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_1024 - 744) / frame_len_long *
-                                   config.core_sample_rate * config.num_out_channels)) {
-              return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-            }
-          }
-          break;
-
-        case AOT_AAC_LD:
-        case AOT_AAC_ELD:
-
-          if (config.flag_framelength_small) {
-            if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_480) / frame_len_long *
-                                   config.core_sample_rate * config.num_out_channels)) {
-              return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-            }
-          } else {
-            if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_512) / frame_len_long *
-                                   config.core_sample_rate * config.num_out_channels)) {
-              return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-            }
-          }
-          break;
-      }
-    }
-
-    if (!error) {
-      pstr_exheaac_encoder->config = config;
-    }
-
-    if (!error) {
-      error = ia_enhaacplus_enc_init_element_info(config.num_out_channels,
-                                                  &pstr_exheaac_encoder->element_info, ele_type,
-                                                  element_instance_tag);
-      if (error != IA_NO_ERROR) {
-        return error;
-      }
-    }
+    default:
+      return IA_EXHEAACE_INIT_FATAL_INVALID_CORE_SAMPLE_RATE;
+      break;
   }
-  if (!error) {
-    pstr_element_info = &pstr_exheaac_encoder->element_info;
+
+  /* check if bit rate is not too high for sample rate */
+
+  switch (aot) {
+    case AOT_AAC_LC:
+    case AOT_SBR:
+    case AOT_PS:
+      if (config.flag_framelength_small) {
+        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_960 - 744) / frame_len_long *
+                               config.core_sample_rate * config.num_out_channels)) {
+          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
+        }
+      } else {
+        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_1024 - 744) / frame_len_long *
+                               config.core_sample_rate * config.num_out_channels)) {
+          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
+        }
+      }
+      break;
+
+    case AOT_AAC_LD:
+    case AOT_AAC_ELD:
+
+      if (config.flag_framelength_small) {
+        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_480) / frame_len_long *
+                               config.core_sample_rate * config.num_out_channels)) {
+          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
+        }
+      } else {
+        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_512) / frame_len_long *
+                               config.core_sample_rate * config.num_out_channels)) {
+          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
+        }
+      }
+      break;
   }
+
+  pstr_exheaac_encoder->config = config;
+
+  error = ia_enhaacplus_enc_init_element_info(config.num_out_channels,
+                                              &pstr_exheaac_encoder->element_info, ele_type,
+                                              element_instance_tag);
+  if (error != IA_NO_ERROR) {
+    return error;
+  }
+
+  pstr_element_info = &pstr_exheaac_encoder->element_info;
 
   /* allocate the Psy aud Psy Out structure */
-  if (!error) {
-    error = (ia_enhaacplus_enc_psy_new(
-        &pstr_exheaac_encoder->psy_kernel, pstr_element_info->n_channels_in_el,
-        pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer_2, init, frame_len_long));
+
+  error = (ia_enhaacplus_enc_psy_new(
+      &pstr_exheaac_encoder->psy_kernel, pstr_element_info->n_channels_in_el,
+      pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer_2, frame_len_long));
+
+  if (error != IA_NO_ERROR) {
+    return error;
   }
 
-  if (init) {
-    if (!error) {
-      WORD32 tns_mask = config.use_tns;
-      if (config.full_bandwidth) {
-        pstr_exheaac_encoder->config.band_width = config.core_sample_rate >> 2;
-      } else {
-        ixheaace_determine_bandwidth(pstr_exheaac_encoder->config.band_width, config.bit_rate,
-                                     config.core_sample_rate, pstr_element_info->n_channels_in_el,
-                                     &pstr_exheaac_encoder->config.band_width, aot);
-      }
-      pstr_exheaac_encoder->bandwidth_90_dB = (WORD32)pstr_exheaac_encoder->config.band_width;
-      if (ele_type == ID_LFE) {
-        tns_mask = 0;
-      }
+  WORD32 tns_mask = config.use_tns;
+  if (config.full_bandwidth) {
+    pstr_exheaac_encoder->config.band_width = config.core_sample_rate >> 2;
+  } else {
+    ixheaace_determine_bandwidth(pstr_exheaac_encoder->config.band_width, config.bit_rate,
+                                 config.core_sample_rate, pstr_element_info->n_channels_in_el,
+                                 &pstr_exheaac_encoder->config.band_width, aot);
+  }
+  pstr_exheaac_encoder->bandwidth_90_dB = (WORD32)pstr_exheaac_encoder->config.band_width;
+  if (ele_type == ID_LFE) {
+    tns_mask = 0;
+  }
 
-      error = ia_enhaacplus_enc_psy_main_init(
-          &pstr_exheaac_encoder->psy_kernel, config.core_sample_rate, config.bit_rate,
-          pstr_element_info->n_channels_in_el, tns_mask, pstr_exheaac_encoder->bandwidth_90_dB,
-          aot, pstr_aac_tabs, frame_len_long);
-      if (error != IA_NO_ERROR) {
-        return error;
-      }
-    }
+  error = ia_enhaacplus_enc_psy_main_init(
+      &pstr_exheaac_encoder->psy_kernel, config.core_sample_rate, config.bit_rate,
+      pstr_element_info->n_channels_in_el, tns_mask, pstr_exheaac_encoder->bandwidth_90_dB, aot,
+      pstr_aac_tabs, frame_len_long);
+  if (error != IA_NO_ERROR) {
+    return error;
   }
 
   /* allocate the Q&C Out structure */
-  if (!error) {
-    error = ia_enhaacplus_enc_qc_out_new(
-        &pstr_exheaac_encoder->qc_out, pstr_element_info->n_channels_in_el,
-        pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer1,
-        pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer3, init, frame_len_long);
+  error = ia_enhaacplus_enc_qc_out_new(
+      &pstr_exheaac_encoder->qc_out, pstr_element_info->n_channels_in_el,
+      pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer1,
+      pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer3, frame_len_long);
+
+  if (error != IA_NO_ERROR) {
+    return error;
   }
+
   /* allocate the Q&C kernel */
-  if (!error) {
-    error = ia_enhaacplus_enc_qc_new(&pstr_exheaac_encoder->qc_kernel,
-                                     pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer_2,
-                                     init, frame_len_long);
+  error = ia_enhaacplus_enc_qc_new(&pstr_exheaac_encoder->qc_kernel,
+                                   pstr_exheaac_encoder->pstr_aac_scratch->shared_buffer_2,
+                                   frame_len_long);
+  if (error != IA_NO_ERROR) {
+    return error;
   }
 
-  if (init) {
-    if (!error) {
-      ixheaace_qc_init qc_init;
+  ixheaace_qc_init qc_init;
 
-      qc_init.pstr_element_info = &pstr_exheaac_encoder->element_info;
+  qc_init.pstr_element_info = &pstr_exheaac_encoder->element_info;
 
-      if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
-        if (config.flag_framelength_small) {
-          qc_init.max_bits = MAXIMUM_CHANNEL_BITS_960 * pstr_element_info->n_channels_in_el;
-        } else {
-          qc_init.max_bits = MAXIMUM_CHANNEL_BITS_1024 * pstr_element_info->n_channels_in_el;
-        }
-
-        qc_init.bit_res = qc_init.max_bits;
-      }
-
-      qc_init.average_bits = (config.bit_rate * frame_len_long) / config.core_sample_rate;
-
-      if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
-        if (pstr_exheaac_encoder->config.bitreservoir_size != -1) {
-          qc_init.max_bits = (pstr_exheaac_encoder->config.bitreservoir_size * 8) *
-                             pstr_element_info->n_channels_in_el;
-          if (qc_init.max_bits > qc_init.average_bits) {
-            qc_init.bit_res = (pstr_exheaac_encoder->config.bitreservoir_size * 8) *
-                              pstr_element_info->n_channels_in_el;
-          } else {
-            qc_init.max_bits = qc_init.average_bits;
-            qc_init.bit_res = 0;
-          }
-        } else {
-          qc_init.max_bits = qc_init.average_bits;
-          qc_init.bit_res = 0;
-        }
-      }
-
-      qc_init.padding.padding_rest = config.core_sample_rate;
-
-      qc_init.mean_pe =
-          ((FLOAT32)10 * frame_len_long * pstr_exheaac_encoder->bandwidth_90_dB * 2) /
-          config.core_sample_rate;
-
-      switch (aot) {
-        case AOT_AAC_LC:
-        case AOT_SBR:
-        case AOT_PS:
-          if (config.flag_framelength_small) {
-            qc_init.max_bit_fac =
-                (float)((MAXIMUM_CHANNEL_BITS_960 - 744) * pstr_element_info->n_channels_in_el) /
-                (float)(qc_init.average_bits ? qc_init.average_bits : 1);
-          } else {
-            qc_init.max_bit_fac =
-                (float)((MAXIMUM_CHANNEL_BITS_1024 - 744) * pstr_element_info->n_channels_in_el) /
-                (float)(qc_init.average_bits ? qc_init.average_bits : 1);
-          }
-          break;
-
-        case AOT_AAC_LD:
-        case AOT_AAC_ELD:
-          if (config.flag_framelength_small) {
-            qc_init.max_bit_fac = (FLOAT32)((MAXIMUM_CHANNEL_BITS_480)*pstr_element_info
-                                                ->n_channels_in_el);  // no anc data in aacld
-          } else {
-            qc_init.max_bit_fac = (FLOAT32)((MAXIMUM_CHANNEL_BITS_512)*pstr_element_info
-                                                ->n_channels_in_el);  // no anc data in aacld
-          }
-          qc_init.max_bit_fac =
-              qc_init.max_bit_fac / (qc_init.average_bits ? qc_init.average_bits : 1);
-          break;
-      }
-
-      qc_init.bitrate = config.bit_rate;
-      qc_init.inv_quant = config.inv_quant;
-
-      error = ia_enhaacplus_enc_qc_init(&pstr_exheaac_encoder->qc_kernel, aot, &qc_init,
-                                        config.flag_framelength_small);
-      if (error != IA_NO_ERROR) {
-        return error;
-      }
+  if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
+    if (config.flag_framelength_small) {
+      qc_init.max_bits = MAXIMUM_CHANNEL_BITS_960 * pstr_element_info->n_channels_in_el;
+    } else {
+      qc_init.max_bits = MAXIMUM_CHANNEL_BITS_1024 * pstr_element_info->n_channels_in_el;
     }
 
-    /* init bitstream encoder */
-    if (!error) {
-      pstr_exheaac_encoder->bse_init.num_channels = pstr_element_info->n_channels_in_el;
-      pstr_exheaac_encoder->bse_init.bitrate = config.bit_rate;
-      pstr_exheaac_encoder->bse_init.sample_rate = config.core_sample_rate;
-      pstr_exheaac_encoder->bse_init.profile = profile;
-    }
-
-    if (!error) {
-      if (config.num_in_channels > config.num_out_channels) {
-        pstr_exheaac_encoder->downmix = 1;
-        pstr_exheaac_encoder->downmix_fac = config.num_in_channels / config.num_out_channels;
-      }
-    }
-
-    if (!error) {
-      if (pstr_element_info->el_type == ID_CPE &&
-          (config.core_sample_rate <= 24000 &&
-           (config.bit_rate / pstr_element_info->n_channels_in_el * 2) < 60000)) {
-        FLOAT32 scf_used_ratio =
-            (FLOAT32)pstr_exheaac_encoder->psy_kernel.psy_conf_long.sfb_active /
-            pstr_exheaac_encoder->psy_kernel.psy_conf_long.sfb_cnt;
-
-        error = iaace_init_stereo_pre_processing(
-            &(pstr_exheaac_encoder->str_stereo_pre_pro), pstr_element_info->n_channels_in_el,
-            config.bit_rate, config.core_sample_rate, scf_used_ratio);
-      }
-    }
-
-    if (error) {
-      ia_enhaacplus_enc_aac_enc_close(pstr_exheaac_encoder);
-
-      pstr_exheaac_encoder = NULL;
-
-      return IA_EXHEAACE_INIT_FATAL_AAC_INIT_FAILED;
-    }
-
-    *ppstr_exheaac_encoder = pstr_exheaac_encoder;
+    qc_init.bit_res = qc_init.max_bits;
   }
+
+  qc_init.average_bits = (config.bit_rate * frame_len_long) / config.core_sample_rate;
+
+  if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
+    if (pstr_exheaac_encoder->config.bitreservoir_size != -1) {
+      qc_init.max_bits = (pstr_exheaac_encoder->config.bitreservoir_size * 8) *
+                         pstr_element_info->n_channels_in_el;
+      if (qc_init.max_bits > qc_init.average_bits) {
+        qc_init.bit_res = (pstr_exheaac_encoder->config.bitreservoir_size * 8) *
+                          pstr_element_info->n_channels_in_el;
+      } else {
+        qc_init.max_bits = qc_init.average_bits;
+        qc_init.bit_res = 0;
+      }
+    } else {
+      qc_init.max_bits = qc_init.average_bits;
+      qc_init.bit_res = 0;
+    }
+  }
+
+  qc_init.padding.padding_rest = config.core_sample_rate;
+
+  qc_init.mean_pe = ((FLOAT32)10 * frame_len_long * pstr_exheaac_encoder->bandwidth_90_dB * 2) /
+                    config.core_sample_rate;
+
+  switch (aot) {
+    case AOT_AAC_LC:
+    case AOT_SBR:
+    case AOT_PS:
+      if (config.flag_framelength_small) {
+        qc_init.max_bit_fac =
+            (float)((MAXIMUM_CHANNEL_BITS_960 - 744) * pstr_element_info->n_channels_in_el) /
+            (float)(qc_init.average_bits ? qc_init.average_bits : 1);
+      } else {
+        qc_init.max_bit_fac =
+            (float)((MAXIMUM_CHANNEL_BITS_1024 - 744) * pstr_element_info->n_channels_in_el) /
+            (float)(qc_init.average_bits ? qc_init.average_bits : 1);
+      }
+      break;
+
+    case AOT_AAC_LD:
+    case AOT_AAC_ELD:
+      if (config.flag_framelength_small) {
+        qc_init.max_bit_fac = (FLOAT32)((MAXIMUM_CHANNEL_BITS_480)*pstr_element_info
+                                            ->n_channels_in_el);  // no anc data in aacld
+      } else {
+        qc_init.max_bit_fac = (FLOAT32)((MAXIMUM_CHANNEL_BITS_512)*pstr_element_info
+                                            ->n_channels_in_el);  // no anc data in aacld
+      }
+      qc_init.max_bit_fac =
+          qc_init.max_bit_fac / (qc_init.average_bits ? qc_init.average_bits : 1);
+      break;
+  }
+
+  qc_init.bitrate = config.bit_rate;
+  qc_init.inv_quant = config.inv_quant;
+
+  error = ia_enhaacplus_enc_qc_init(&pstr_exheaac_encoder->qc_kernel, aot, &qc_init,
+                                    config.flag_framelength_small);
+  if (error != IA_NO_ERROR) {
+    return error;
+  }
+
+  /* init bitstream encoder */
+  pstr_exheaac_encoder->bse_init.num_channels = pstr_element_info->n_channels_in_el;
+  pstr_exheaac_encoder->bse_init.bitrate = config.bit_rate;
+  pstr_exheaac_encoder->bse_init.sample_rate = config.core_sample_rate;
+  pstr_exheaac_encoder->bse_init.profile = profile;
+
+  if (config.num_in_channels > config.num_out_channels) {
+    pstr_exheaac_encoder->downmix = 1;
+    pstr_exheaac_encoder->downmix_fac = config.num_in_channels / config.num_out_channels;
+  }
+
+  if (pstr_element_info->el_type == ID_CPE &&
+      (config.core_sample_rate <= 24000 &&
+       (config.bit_rate / pstr_element_info->n_channels_in_el * 2) < 60000)) {
+    FLOAT32 scf_used_ratio = (FLOAT32)pstr_exheaac_encoder->psy_kernel.psy_conf_long.sfb_active /
+                             pstr_exheaac_encoder->psy_kernel.psy_conf_long.sfb_cnt;
+
+    error = iaace_init_stereo_pre_processing(&(pstr_exheaac_encoder->str_stereo_pre_pro),
+                                             pstr_element_info->n_channels_in_el, config.bit_rate,
+                                             config.core_sample_rate, scf_used_ratio);
+  }
+
+  if (error != IA_NO_ERROR) {
+    return error;
+  }
+
+  *ppstr_exheaac_encoder = pstr_exheaac_encoder;
 
   return IA_NO_ERROR;
-}
-
-VOID ia_enhaacplus_enc_aac_enc_close(iexheaac_encoder_str *pstr_exheaac_encoder) {
-  if (pstr_exheaac_encoder) {
-    ia_enhaacplus_enc_qc_delete(&pstr_exheaac_encoder->qc_kernel);
-
-    ia_enhaacplus_enc_qc_out_delete(&pstr_exheaac_encoder->qc_out);
-
-    ia_enhaacplus_enc_psy_delete(&pstr_exheaac_encoder->psy_kernel);
-
-    ia_enhaacplus_enc_psy_out_delete(&pstr_exheaac_encoder->psy_out);
-
-    pstr_exheaac_encoder = NULL;
-  }
 }

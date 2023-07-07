@@ -22,6 +22,7 @@
 
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_error_codes.h"
 #include "ixheaac_error_standards.h"
@@ -40,7 +41,6 @@
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
 #include "ixheaace_psy_const.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_tns.h"
 #include "ixheaace_psy_data.h"
 #include "ixheaace_interface.h"
@@ -55,17 +55,14 @@
 #include "ixheaace_static_bits.h"
 
 #include "ixheaace_bits_count.h"
-
 #include "ixheaace_channel_map.h"
 #include "ixheaace_write_bitstream.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_psy_mod.h"
 #include "ixheaace_tns_params.h"
-#include "ixheaace_qc_util.h"
 #include "ixheaace_stereo_preproc.h"
-#include "ixheaace_api_struct_define.h"
-#include "ixheaace_aac_api.h"
 #include "ixheaace_enc_main.h"
+#include "ixheaace_qc_util.h"
 #include "ixheaace_common_utils.h"
 
 static WORD32 ia_enhaacplus_enc_calc_frame_len(WORD32 bit_rate, WORD32 sample_rate,
@@ -112,56 +109,46 @@ static WORD32 ia_enhaacplus_enc_frame_padding(WORD32 bit_rate, WORD32 sample_rat
 
 WORD32 ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
                                     WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
-                                    WORD32 init, WORD32 long_frame_len)
+                                    WORD32 long_frame_len)
 
 {
   WORD32 i;
 
   for (i = 0; i < num_channels; i++) {
     pstr_qc_out->qc_channel[i]->quant_spec = &((WORD16 *)ptr_shared_buffer1)[i * long_frame_len];
-    if (init) {
-      memset(pstr_qc_out->qc_channel[i]->quant_spec, 0,
-             sizeof(*pstr_qc_out->qc_channel[i]->quant_spec) * long_frame_len);
-    }
+
+    memset(pstr_qc_out->qc_channel[i]->quant_spec, 0,
+           sizeof(*pstr_qc_out->qc_channel[i]->quant_spec) * long_frame_len);
 
     pstr_qc_out->qc_channel[i]->max_val_in_sfb =
         &((UWORD16 *)&ptr_shared_buffer3[(long_frame_len + long_frame_len / 2) +
                                          IXHEAACE_MAX_CH_IN_BS_ELE *
                                              MAXIMUM_GROUPED_SCALE_FACTOR_BAND /
                                              2])[i * MAXIMUM_GROUPED_SCALE_FACTOR_BAND];
-    if (init) {
-      memset(pstr_qc_out->qc_channel[i]->max_val_in_sfb, 0,
-             sizeof(*pstr_qc_out->qc_channel[i]->max_val_in_sfb) *
-                 MAXIMUM_GROUPED_SCALE_FACTOR_BAND);
-    }
+    memset(
+        pstr_qc_out->qc_channel[i]->max_val_in_sfb, 0,
+        sizeof(*pstr_qc_out->qc_channel[i]->max_val_in_sfb) * MAXIMUM_GROUPED_SCALE_FACTOR_BAND);
+
     pstr_qc_out->qc_channel[i]->scalefactor = &((WORD16 *)&ptr_shared_buffer3[(
         long_frame_len + long_frame_len / 2)])[i * MAXIMUM_GROUPED_SCALE_FACTOR_BAND];
-    if (init) {
-      memset(
-          pstr_qc_out->qc_channel[i]->scalefactor, 0,
-          sizeof(*pstr_qc_out->qc_channel[i]->scalefactor) * MAXIMUM_GROUPED_SCALE_FACTOR_BAND);
-    }
+
+    memset(pstr_qc_out->qc_channel[i]->scalefactor, 0,
+           sizeof(*pstr_qc_out->qc_channel[i]->scalefactor) * MAXIMUM_GROUPED_SCALE_FACTOR_BAND);
   }
 
   return (pstr_qc_out == NULL);
 }
 
-VOID ia_enhaacplus_enc_qc_out_delete(ixheaace_qc_out *pstr_qc_out) { pstr_qc_out = NULL; }
-
 WORD32 ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state, WORD32 *ptr_shared_buffer_2,
-                                WORD32 init, WORD32 long_frame_len
+                                WORD32 long_frame_len
 
 ) {
-  if (init) {
-    memset(pstr_qc_state, 0, sizeof(ixheaace_qc_state));
-  }
+  memset(pstr_qc_state, 0, sizeof(ixheaace_qc_state));
   pstr_qc_state->qc_scr.shared_buffer_2 =
       (ptr_shared_buffer_2 + long_frame_len * IXHEAACE_MAX_CH_IN_BS_ELE + 16);
 
   return (0);
 }
-
-VOID ia_enhaacplus_enc_qc_delete(ixheaace_qc_state *pstr_qc_state) { pstr_qc_state = NULL; }
 
 IA_ERRORCODE ia_enhaacplus_enc_qc_init(ixheaace_qc_state *pstr_qc_state, WORD32 aot,
                                        ixheaace_qc_init *pstr_init, FLAG flag_framelength_small) {

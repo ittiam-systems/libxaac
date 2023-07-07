@@ -102,9 +102,9 @@ typedef struct {
 } ixheaace_sbr_tuning_tables;
 
 typedef struct {
-  const FLOAT32 sbr_qmf_64_640[650];
-  const FLOAT32 sbr_cld_fb[640];
-  const FLOAT32 sbr_p_64_640_qmf[640];
+  const FLOAT32 sbr_qmf_64_640[QMF_FILTER_LENGTH + 10];
+  const FLOAT32 sbr_cld_fb[CLD_FILTER_LENGTH];
+  const FLOAT32 sbr_p_64_640_qmf[QMF_FILTER_LENGTH];
   const FLOAT32 sbr_alt_sin_twiddle[19];
   const FLOAT32 sbr_cos_sin_twiddle[32];
   const FLOAT32 cos_sin_fct4_32[32];
@@ -217,4 +217,4 @@ extern const FLOAT32 filter[IXHEAACE_INVF_SMOOTHING_LENGTH + 1];
 extern const FLOAT32 long_window_sine_ld_64[IXHEAACE_QMF_CHANNELS];
 extern const FLOAT32 fft_twiddle_tab_32[IXHEAACE_QMF_TIME_SLOTS];
 extern const FLOAT32 sbr_sin_cos_window[IXHEAACE_QMF_CHANNELS * 2];
-extern const FLOAT32 cld_qmf_64_640[640];
+extern const FLOAT32 cld_fb_64_640[CLD_FILTER_LENGTH];

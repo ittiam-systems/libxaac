@@ -80,7 +80,6 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_sbr_main.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_sbr_missing_harmonics_det.h"

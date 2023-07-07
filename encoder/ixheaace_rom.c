@@ -25,10 +25,8 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
-
 
 const ixheaace_mdct_tables ixheaace_enc_mdct_tab = {
     // UWORD8 re_arr_tab_16[MDCT_LEN >> 1] =

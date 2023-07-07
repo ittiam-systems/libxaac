@@ -22,16 +22,13 @@
 
 WORD32 ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
                                     WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
-                                    WORD32 init, WORD32 frame_len_long);
-
-VOID ia_enhaacplus_enc_qc_out_delete(ixheaace_qc_out *pstr_qc_out);
+                                    WORD32 frame_len_long);
 
 WORD32 ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state, WORD32 *ptr_shared_buffer_2,
-                                WORD32 init, WORD32 frame_len_long);
+                                WORD32 frame_len_long);
 
 IA_ERRORCODE ia_enhaacplus_enc_qc_init(ixheaace_qc_state *pstr_qc_state, WORD32 aot,
                                        ixheaace_qc_init *pstr_init, FLAG flag_framelength_small);
-VOID ia_enhaacplus_enc_qc_delete(ixheaace_qc_state *pstr_qc_state);
 
 IA_ERRORCODE ia_enhaacplus_enc_qc_main(
     ixheaace_qc_state *pstr_qc_state, WORD32 num_channels, ixheaace_element_bits *pstr_el_bits,
@@ -55,3 +52,10 @@ WORD32 ia_enhaacplus_aac_limitbitrate(WORD32 core_sampling_rate, WORD32 frame_le
 WORD32 iaace_calc_max_val_in_sfb(WORD32 sfb_count, WORD32 max_sfb_per_grp, WORD32 ptr_sfb_per_grp,
                                  WORD32 *ptr_sfb_offset, WORD16 *ptr_quant_spec,
                                  UWORD16 *ptr_max_value);
+
+IA_ERRORCODE ia_enhaacplus_enc_finalize_bit_consumption(ixheaace_qc_state *pstr_qc_kernel,
+                                                        ixheaace_qc_out *pstr_qc_out,
+                                                        WORD32 flag_last_element, WORD32 cnt_bits,
+                                                        WORD32 *tot_fill_bits,
+                                                        iexheaac_encoder_str **pstr_aac_enc,
+                                                        WORD32 num_bs_elements, WORD32 aot);

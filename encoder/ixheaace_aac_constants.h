@@ -40,13 +40,6 @@
 #define DIV_FAC_24_BIT_PCM (256.0f)
 #define DIV_FAC_32_BIT_PCM (65536.0f)
 
-#define AOT_AAC_LC (2)
-#define AOT_SBR (5)
-#define AOT_AAC_LD (23)
-#define AOT_AAC_ELD (39)
-#define AOT_USAC (42)
-#define AOT_PS (29)
-
 #define AUDIO_PROFILE_AAC_LC_L5 (0x2B)
 #define AUDIO_PROFILE_HEAAC_L5 (0x2F)
 #define AUDIO_PROFILE_HEAAC_V2_L5 (0x33)
@@ -91,3 +84,39 @@ typedef struct {
 #define BYTE_ALIGN_8 (8)
 #define EIGHT_BYTE_SIZE (8)
 #define IXHEAACE_GET_SIZE_ALIGNED(size, alignment) ((size + (alignment - 1)) & ~(alignment - 1))
+
+/* here we distinguish between stereo and the mono only encoder */
+#define IXHEAACE_MAX_CH_IN_BS_ELE (2)
+
+#define MAXIMUM_BS_ELE \
+  8 /* 1 <SCE> 2 <CPE> 3<CPE> 4<CPE> 5<LFE> 6<SCE> - 8.1 channel + 2 cc channels*/
+
+#define FRAME_LEN_1024 1024
+#define FRAME_LEN_512 512
+#define FRAME_LEN_480 480
+#define FRAME_LEN_960 960
+
+#define AACENC_TRANS_FAC 8   /* encoder WORD16 long ratio */
+#define AACENC_PCM_LEVEL 1.0 /* encoder pcm 0db refernence */
+
+#define MAX_INPUT_CHAN (IXHEAACE_MAX_CH_IN_BS_ELE)
+
+#define MAX_FRAME_LEN (1024)
+
+/* channel masking*/
+#define CH_MASK_CENTER_FRONT (0x4)
+#define CH_MASK_LEFT_RIGHT_FRONT (0x3)
+#define CH_MASK_REAR_CENTER (0x100)
+#define CH_MASK_LEFT_RIGHT_BACK (0X30)
+#define CH_MASK_LFE (0x08)
+
+// Change to accommodate 4:1 resampler - input = 4096 samples per channel
+#define MAX_INPUT_SAMPLES (MAX_FRAME_LEN * MAX_INPUT_CHAN * 4)
+
+#define NUM_CHANS_MONO (1)
+#define NUM_CHANS_STEREO (2)
+#define MAX_NUM_CHANNELS (6)
+#define MIN_NUM_CHANNELS (1)
+/*-------------------------- defines --------------------------------------*/
+
+#define BUFFERSIZE 1024 /* anc data */

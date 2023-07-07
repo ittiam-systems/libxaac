@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 
 #include "ixheaac_basic_ops32.h"
@@ -36,7 +37,6 @@
 #include "ixheaace_bits_count.h"
 
 #include "ixheaace_common_rom.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_common_utils.h"
 
 VOID ia_enhaacplus_enc_count1_2_3_4_5_6_7_8_9_10_11(const WORD16 *values, const WORD32 width,

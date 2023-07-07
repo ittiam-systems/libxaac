@@ -31,7 +31,6 @@
 #include "ixheaace_tns_params.h"
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_fft.h"
 
 #include "ixheaace_mps_dct.h"

@@ -25,6 +25,7 @@
 
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_psy_const.h"
@@ -39,20 +40,23 @@
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
 
-#include "ixheaace_enc_main.h"
 #include "ixheaace_block_switch.h"
 #include "ixheaace_psy_utils_spreading.h"
 #include "ixheaace_psy_utils.h"
 #include "ixheaace_calc_ms_band_energy.h"
 #include "ixheaace_tns.h"
-#include "ixheaace_psy_configuration.h"
-#include "ixheaace_psy_data.h"
-#include "ixheaace_ms_stereo.h"
-#include "ixheaace_interface.h"
 #include "ixheaace_adjust_threshold_data.h"
 #include "ixheaace_dynamic_bits.h"
 #include "ixheaace_qc_data.h"
+#include "ixheaace_psy_data.h"
+#include "ixheaace_ms_stereo.h"
+#include "ixheaace_interface.h"
+
+#include "ixheaace_write_bitstream.h"
+#include "ixheaace_psy_configuration.h"
 #include "ixheaace_psy_mod.h"
+#include "ixheaace_stereo_preproc.h"
+#include "ixheaace_enc_main.h"
 #include "ixheaace_group_data.h"
 
 #include "ixheaace_tns_func.h"
@@ -68,7 +72,7 @@ static WORD32 ia_enhaacplus_enc_block_type_to_window_shape_ld[] = {SINE_WINDOW, 
                                                                    LD_WINDOW, SINE_WINDOW};
 
 WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_chan,
-                                 WORD32 *ptr_shared_buffer_2, WORD32 init, WORD32 long_frame_len)
+                                 WORD32 *ptr_shared_buffer_2, WORD32 long_frame_len)
 
 {
   WORD32 i;
@@ -76,10 +80,8 @@ WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_cha
     pstr_h_psy->psy_data[i]->ptr_spec_coeffs =
         (FLOAT32 *)(&ptr_shared_buffer_2[i * long_frame_len]);
 
-    if (init) {
-      memset(pstr_h_psy->psy_data[i]->ptr_spec_coeffs, 0,
-             long_frame_len * sizeof(*pstr_h_psy->psy_data[i]->ptr_spec_coeffs));
-    }
+    memset(pstr_h_psy->psy_data[i]->ptr_spec_coeffs, 0,
+           long_frame_len * sizeof(*pstr_h_psy->psy_data[i]->ptr_spec_coeffs));
   }
 
   pstr_h_psy->p_scratch_tns_float = (FLOAT32 *)(&ptr_shared_buffer_2[2 * long_frame_len]);
@@ -87,24 +89,12 @@ WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_cha
     pstr_h_psy->p_scratch_tns_float = pstr_h_psy->p_scratch_tns_float + 128;
   }
 
-  if (init) {
-    memset(pstr_h_psy->p_scratch_tns_float, 0,
-           long_frame_len * sizeof(*pstr_h_psy->p_scratch_tns_float));
-  }
+  memset(pstr_h_psy->p_scratch_tns_float, 0,
+         long_frame_len * sizeof(*pstr_h_psy->p_scratch_tns_float));
+
   return IA_NO_ERROR;
 }
 
-WORD32 ia_enhaacplus_enc_psy_delete(ixheaace_psy_kernel *pstr_h_psy) {
-  pstr_h_psy = NULL;
-
-  return 0;
-}
-
-WORD32 ia_enhaacplus_enc_psy_out_delete(ixheaace_psy_out *pstr_h_psy_out) {
-  pstr_h_psy_out = NULL;
-
-  return 0;
-}
 IA_ERRORCODE ia_enhaacplus_enc_psy_main_init(ixheaace_psy_kernel *pstr_h_psy, WORD32 sample_rate,
                                              WORD32 bit_rate, WORD32 channels, WORD32 tns_mask,
                                              WORD32 bandwidth, WORD32 aot,

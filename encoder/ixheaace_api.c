@@ -49,12 +49,12 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 
 #include "ixheaace_sbr_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_sbr_main.h"
 #include "ixheaace_definitions.h"
+#include "ixheaace_api.h"
 #include "ixheaace_memory_standards.h"
 #include "iusace_cnst.h"
 #include "iusace_config.h"
@@ -70,14 +70,15 @@
 #include "ixheaace_write_bitstream.h"
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_common_rom.h"
+
 #include "ixheaace_psy_mod.h"
-#include "ixheaace_qc_util.h"
 #include "ixheaace_sbr_header.h"
+
 #include "ixheaace_config.h"
 #include "ixheaace_asc_write.h"
 #include "ixheaace_stereo_preproc.h"
-#include "ixheaace_api_struct_define.h"
-#include "ixheaace_aac_api.h"
+#include "ixheaace_enc_main.h"
+#include "ixheaace_qc_util.h"
 
 // MPS header
 #include "ixheaace_mps_common_fix.h"
@@ -112,7 +113,7 @@
 #include "ixheaace_mps_enc.h"
 #include "ixheaace_struct_def.h"
 #include "ixheaace_api_defs.h"
-#include "ixheaace_api.h"
+
 #include "ixheaace_write_adts_adif.h"
 
 static WORD32 ia_enhaacplus_enc_sizeof_delay_buffer(FLAG flag_framelength_small, WORD32 aot,
@@ -1221,6 +1222,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct,
   if (pstr_api_struct->config[ele_idx].use_parametric_stereo) {
     pstr_api_struct->config[ele_idx].chmode_nchannels = 2;
     pstr_aac_config->num_out_channels = 1;
+    pstr_api_struct->config[ele_idx].element_type = ID_SCE;
   }
   if ((pstr_api_struct->config[ele_idx].i_channels == 2) &&
       (pstr_api_struct->config[ele_idx].chmode == 0)) {
@@ -1515,8 +1517,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct,
         &(pstr_api_struct->pstr_state->aac_enc_pers_mem[ele_idx]),
         *pstr_aac_config /*, *pstr_ancillary*/, pstr_aac_scratch,
         &(pstr_api_struct->pstr_aac_tabs), pstr_api_struct->config[ele_idx].element_type,
-        pstr_api_struct->config[ele_idx].element_instance_tag, 1,
-        pstr_api_struct->pstr_state->aot);
+        pstr_api_struct->config[ele_idx].element_instance_tag, pstr_api_struct->pstr_state->aot);
     if (error != IA_NO_ERROR) {
       return error;
     }
@@ -1919,7 +1920,7 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
   }
   ui_api_size = sizeof(ixheaace_api_struct);
   pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] =
-      pstr_output_config->malloc_xheaace(ui_api_size + EIGHT_BYTE_SIZE, BYTE_ALIGN_8);
+      pstr_output_config->malloc_xheaace(ui_api_size + EIGHT_BYTE_SIZE, DEFAULT_MEM_ALIGN_8);
   if (NULL == pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count]) {
     return IA_EXHEAACE_API_FATAL_MEM_ALLOC;
   }
@@ -1947,7 +1948,7 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
       (sizeof(ixheaace_mem_info_struct) + sizeof(pVOID *)) * 4;
   pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count] =
       pstr_output_config->malloc_xheaace(
-          pstr_output_config->ui_proc_mem_tabs_size + EIGHT_BYTE_SIZE, BYTE_ALIGN_8);
+          pstr_output_config->ui_proc_mem_tabs_size + EIGHT_BYTE_SIZE, DEFAULT_MEM_ALIGN_8);
   if (NULL == pstr_output_config->arr_alloc_memory[pstr_output_config->malloc_count]) {
     return IA_EXHEAACE_API_FATAL_MEM_ALLOC;
   }

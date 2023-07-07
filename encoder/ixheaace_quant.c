@@ -30,7 +30,6 @@
 #include "ixheaace_quant.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 
 VOID iaace_quantize_lines(const WORD32 gain, const WORD32 num_lines, FLOAT32 *ptr_exp_spec,
                           WORD16 *ptr_quant_spec, FLOAT32 *ptr_mdct_spec) {

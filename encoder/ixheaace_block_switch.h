@@ -57,8 +57,8 @@ typedef struct {
   WORD32 last_attack_idx;
   WORD32 total_groups_cnt;
   WORD32 group_len[TRANS_FAC];
-  FLOAT32 win_energy[2][BLK_SWITCH_WIN];
-  FLOAT32 win_energy_filt[2][BLK_SWITCH_WIN];
+  FLOAT32 win_energy[BLK_SWITCH_FILT_LEN][BLK_SWITCH_WIN];
+  FLOAT32 win_energy_filt[BLK_SWITCH_FILT_LEN][BLK_SWITCH_WIN];
   FLOAT32 iir_states[BLK_SWITCH_FILT_LEN];
   FLOAT32 max_win_energy;
   FLOAT32 acc_win_energy;

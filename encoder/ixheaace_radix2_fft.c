@@ -28,7 +28,6 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 
 static VOID ia_enhaacplus_enc_ps_fft(complex *out, LOOPINDEX N, WORD32 nob,
                                      ixheaace_common_tables *comm_tab_ptr) {

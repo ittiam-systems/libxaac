@@ -68,12 +68,12 @@ extern const ixheaace_huffman_tables ixheaace_enc_huff_tab;
 
 typedef struct {
   WORD32 sample_rate;
-  const UWORD8 param_long[51];
-  const UWORD8 param_short[15];
-  const UWORD8 param_long_960[51];
-  const UWORD8 param_short_120[16];
-  const UWORD8 param_long_512_ld[51];
-  const UWORD8 param_long_480_ld[51];
+  const UWORD8 param_long[MAXIMUM_SCALE_FACTOR_BAND_LONG];
+  const UWORD8 param_short[MAXIMUM_SCALE_FACTOR_BAND_SHORT];
+  const UWORD8 param_long_960[MAXIMUM_SCALE_FACTOR_BAND_LONG];
+  const UWORD8 param_short_120[1 + MAXIMUM_SCALE_FACTOR_BAND_SHORT];
+  const UWORD8 param_long_512_ld[MAXIMUM_SCALE_FACTOR_BAND_LONG];
+  const UWORD8 param_long_480_ld[MAXIMUM_SCALE_FACTOR_BAND_LONG];
 } ixheaace_sfb_info_tab;
 
 /*Psychoacostics Tables*/

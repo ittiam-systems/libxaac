@@ -28,11 +28,7 @@ typedef struct {
 } ixheaace_psy_kernel;
 
 WORD32 ia_enhaacplus_enc_psy_new(ixheaace_psy_kernel *pstr_h_psy, WORD32 num_chan,
-                                 WORD32 *ptr_shared_buffer_2, WORD32 init, WORD32 frame_len_long);
-
-WORD32 ia_enhaacplus_enc_psy_delete(ixheaace_psy_kernel *pstr_h_psy);
-
-WORD32 ia_enhaacplus_enc_psy_out_delete(ixheaace_psy_out *pstr_h_psy_out);
+                                 WORD32 *ptr_shared_buffer_2, WORD32 frame_len_long);
 
 IA_ERRORCODE ia_enhaacplus_enc_psy_main_init(ixheaace_psy_kernel *pstr_h_psy, WORD32 sample_rate,
                                              WORD32 bit_rate, WORD32 channels, WORD32 tns_mask,

@@ -41,7 +41,6 @@
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
 
-#include "ixheaace_enc_main.h"
 #include "ixheaace_tns.h"
 #include "ixheaace_psy_data.h"
 #include "ixheaace_interface.h"
@@ -62,8 +61,9 @@
 #include "ixheaace_psy_configuration.h"
 #include "ixheaace_psy_mod.h"
 #include "ixheaace_tns_params.h"
-#include "ixheaace_qc_util.h"
 #include "ixheaace_stereo_preproc.h"
+#include "ixheaace_enc_main.h"
+#include "ixheaace_qc_util.h"
 #include "ixheaace_common_utils.h"
 
 #define OPT_QC_STACK

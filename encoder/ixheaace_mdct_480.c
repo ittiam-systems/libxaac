@@ -25,7 +25,6 @@
 #include "ixheaace_tns_params.h"
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
 

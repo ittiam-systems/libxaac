@@ -131,3 +131,8 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
                                            ixheaace_comm_tables *pstr_com_tab,
                                            WORD32 flag_framelength_small);
 VOID ia_enhaacplus_enc_init_sbr_tabs(ixheaace_str_sbr_tabs *pstr_sbr_tabs);
+VOID ia_enhaacplus_enc_get_shared_bufs(VOID *scr, WORD32 **shared_buf1, WORD32 **shared_buf2,
+                                       WORD32 **shared_buf3, WORD8 **shared_buf4,
+                                       WORD32 aacenc_blocksize);
+VOID ia_enhaacplus_enc_get_scratch_bufs(VOID *scr, FLOAT32 **shared_buf1_ring,
+                                        FLOAT32 **shared_buf2_ring);

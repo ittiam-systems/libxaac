@@ -38,7 +38,6 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 #include "ixheaace_psy_data.h"
 #include "ixheaace_interface.h"
 #include "ixheaace_adjust_threshold_data.h"

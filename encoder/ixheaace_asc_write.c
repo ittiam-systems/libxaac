@@ -18,7 +18,9 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <stddef.h>
 #include "iusace_type_def.h"
+#include "ixheaace_api.h"
 #include "iusace_bitbuffer.h"
 
 #include "iusace_cnst.h"

@@ -18,10 +18,10 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <stddef.h>
 #include "ixheaac_type_def.h"
-
 #include "ixheaace_aac_constants.h"
-
+#include "ixheaace_api.h"
 #include "ixheaace_adjust_threshold_data.h"
 #include "ixheaace_psy_const.h"
 #include "ixheaace_tns.h"
@@ -29,7 +29,6 @@
 #include "ixheaace_rom.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_bitbuffer.h"
-#include "ixheaace_enc_main.h"
 
 #include "ixheaace_dynamic_bits.h"
 #include "ixheaace_qc_data.h"
