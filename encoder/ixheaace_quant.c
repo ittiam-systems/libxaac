@@ -38,7 +38,7 @@ VOID iaace_quantize_lines(const WORD32 gain, const WORD32 num_lines, FLOAT32 *pt
   WORD32 line;
 
   quantizer = ixheaace_fd_quant_table[gain + 128];
-  ;
+
   for (line = 0; line < num_lines; line++) {
     FLOAT32 tmp = ptr_mdct_spec[line];
     if (tmp < 0.0f) {

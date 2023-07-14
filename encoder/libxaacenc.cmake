@@ -2,9 +2,37 @@
 list(
      APPEND 
      LIBXAACENC_SRCS
+     "${XAAC_ROOT}/encoder/iusace_acelp_enc.c"
+     "${XAAC_ROOT}/encoder/iusace_acelp_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_acelp_tools.c"
+     "${XAAC_ROOT}/encoder/iusace_arith_enc.c"
+     "${XAAC_ROOT}/encoder/iusace_avq_enc.c"
+     "${XAAC_ROOT}/encoder/iusace_avq_rom.c"
      "${XAAC_ROOT}/encoder/iusace_bitbuffer.c"
+     "${XAAC_ROOT}/encoder/iusace_block_switch.c"
+     "${XAAC_ROOT}/encoder/iusace_enc_fac.c"
+     "${XAAC_ROOT}/encoder/iusace_enc_main.c"
+     "${XAAC_ROOT}/encoder/iusace_esbr_inter_tes.c"
+     "${XAAC_ROOT}/encoder/iusace_esbr_pvc.c"
+     "${XAAC_ROOT}/encoder/iusace_esbr_pvc_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_esbr_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_fd_fac.c"
      "${XAAC_ROOT}/encoder/iusace_fft.c"
+     "${XAAC_ROOT}/encoder/iusace_lpc.c"
+     "${XAAC_ROOT}/encoder/iusace_lpc_avq.c"
+     "${XAAC_ROOT}/encoder/iusace_lpd_enc.c"
+     "${XAAC_ROOT}/encoder/iusace_lpd_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_lpd_utils.c"
+     "${XAAC_ROOT}/encoder/iusace_ms.c"
+     "${XAAC_ROOT}/encoder/iusace_psy_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_psy_mod.c"
+     "${XAAC_ROOT}/encoder/iusace_psy_utils.c"
      "${XAAC_ROOT}/encoder/iusace_rom.c"
+     "${XAAC_ROOT}/encoder/iusace_tcx_enc.c"
+     "${XAAC_ROOT}/encoder/iusace_tcx_mdct.c"
+     "${XAAC_ROOT}/encoder/iusace_tns_usac.c"
+     "${XAAC_ROOT}/encoder/iusace_windowing.c"
+     "${XAAC_ROOT}/encoder/iusace_write_bitstream.c"
      "${XAAC_ROOT}/encoder/ixheaace_adjust_threshold.c"
      "${XAAC_ROOT}/encoder/ixheaace_api.c"
      "${XAAC_ROOT}/encoder/ixheaace_asc_write.c"
@@ -16,9 +44,15 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_calc_ms_band_energy.c"
      "${XAAC_ROOT}/encoder/ixheaace_channel_map.c"
      "${XAAC_ROOT}/encoder/ixheaace_common_rom.c"
+     "${XAAC_ROOT}/encoder/ixheaace_cplx_pred.c"
      "${XAAC_ROOT}/encoder/ixheaace_dynamic_bits.c"
      "${XAAC_ROOT}/encoder/ixheaace_enc_init.c"
      "${XAAC_ROOT}/encoder/ixheaace_enc_main.c"
+     "${XAAC_ROOT}/encoder/ixheaace_fd_enc.c"
+     "${XAAC_ROOT}/encoder/ixheaace_fd_mdct.c"
+     "${XAAC_ROOT}/encoder/ixheaace_fd_qc_adjthr.c"
+     "${XAAC_ROOT}/encoder/ixheaace_fd_qc_util.c"
+     "${XAAC_ROOT}/encoder/ixheaace_fd_quant.c"
      "${XAAC_ROOT}/encoder/ixheaace_fft.c"
      "${XAAC_ROOT}/encoder/ixheaace_group_data.c"
      "${XAAC_ROOT}/encoder/ixheaace_huffman_rom.c"
@@ -46,6 +80,7 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_mps_tree.c"
      "${XAAC_ROOT}/encoder/ixheaace_mps_vector_functions.c"
      "${XAAC_ROOT}/encoder/ixheaace_ms_stereo.c"
+     "${XAAC_ROOT}/encoder/ixheaace_nf.c"
      "${XAAC_ROOT}/encoder/ixheaace_ps_bitenc.c"
      "${XAAC_ROOT}/encoder/ixheaace_ps_enc.c"
      "${XAAC_ROOT}/encoder/ixheaace_ps_enc_init.c"
@@ -68,6 +103,8 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_sbr_frame_info_gen.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_freq_scaling.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_hbe_dft_trans.c"
+     "${XAAC_ROOT}/encoder/ixheaace_sbr_hbe_fft_ifft_32x32.c"
+     "${XAAC_ROOT}/encoder/ixheaace_sbr_hbe_polyphase.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_hbe_trans.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_inv_filtering_estimation.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_main.c"
@@ -83,6 +120,8 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_sbr_tran_det_hp.c"
      "${XAAC_ROOT}/encoder/ixheaace_sbr_write_bitstream.c"
      "${XAAC_ROOT}/encoder/ixheaace_sf_estimation.c"
+     "${XAAC_ROOT}/encoder/ixheaace_signal_classifier.c"
+     "${XAAC_ROOT}/encoder/ixheaace_signal_classifier_rom.c"
      "${XAAC_ROOT}/encoder/ixheaace_static_bits.c"
      "${XAAC_ROOT}/encoder/ixheaace_stereo_preproc.c"
      "${XAAC_ROOT}/encoder/ixheaace_tns.c"
@@ -91,8 +130,10 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_tns_params.c"
      "${XAAC_ROOT}/encoder/ixheaace_write_adts_adif.c"
      "${XAAC_ROOT}/encoder/ixheaace_write_bitstream.c")
-	 
-set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/encoder) 
+
+set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder ${XAAC_ROOT}/encoder/drc_src) 
 include_directories(${LIBXAACENC_INCLUDES})
+
+include("${XAAC_ROOT}/encoder/drc_src/libxaacenc_drc.cmake")
 
 add_library(libxaacenc STATIC ${LIBXAACENC_SRCS} ${LIBXAAC_COMMON_SRCS})

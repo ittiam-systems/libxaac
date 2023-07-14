@@ -1,10 +1,12 @@
 list(APPEND XAACENC_SRCS
+     "${XAAC_ROOT}/test/encoder/impd_drc_user_config.c"
      "${XAAC_ROOT}/test/encoder/ixheaace_error.c"
      "${XAAC_ROOT}/test/encoder/ixheaace_testbench.c"
      "${XAAC_ROOT}/test/encoder/ixheaace_wav_reader.c")
 
 set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder
                         ${XAAC_ROOT}/test/encoder
+                        ${XAAC_ROOT}/encoder/drc_src
                         ${XAAC_ROOT}/common)
 
 include_directories(${LIBXAACENC_INCLUDES})

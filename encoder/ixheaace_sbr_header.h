@@ -42,6 +42,10 @@ typedef struct ixheaace_str_sbr_hdr_data {
   WORD32 freq_scale;
 
   WORD32 sbr_pre_proc;
+  WORD32 sbr_pvc_active;
+  WORD32 sbr_pvc_mode;
+  WORD32 sbr_harmonic;
+  WORD32 sbr_inter_tes_active;
   WORD32 hq_esbr;
 
   ixheaace_sr_mode sample_rate_mode;

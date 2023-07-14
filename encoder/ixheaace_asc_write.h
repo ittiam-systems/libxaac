@@ -34,9 +34,11 @@ typedef struct {
   WORD32 sbr_present_flag;
   WORD32 cfg_ext_present;
   WORD32 ext_sync_word;
+  ia_usac_config_struct str_usac_config;
   ia_aace_config_struct str_aac_config;
 } ixheaace_audio_specific_config_struct;
 
 WORD32 ixheaace_get_audiospecific_config_bytes(
     ia_bit_buf_struct *pstr_it_bit_buff,
-    ixheaace_audio_specific_config_struct *pstr_audio_specific_config, WORD32 aot);
+    ixheaace_audio_specific_config_struct *pstr_audio_specific_config, WORD32 aot,
+    WORD32 ccfl_idx);

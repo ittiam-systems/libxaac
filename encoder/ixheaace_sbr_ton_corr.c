@@ -45,6 +45,8 @@
 #include "ixheaace_sbr_inv_filtering_estimation.h"
 #include "ixheaace_sbr_noise_floor_est.h"
 #include "ixheaace_sbr_ton_corr.h"
+#include "iusace_esbr_pvc.h"
+#include "iusace_esbr_inter_tes.h"
 #include "ixheaace_sbr.h"
 
 #include "ixheaace_sbr_misc.h"
@@ -225,7 +227,6 @@ static IA_ERRORCODE ia_enhaacplus_enc_reset_patch(ixheaace_pstr_sbr_ton_corr_est
     if (ixheaac_abs32(target_stop_band - goal_sb) < 3) {
       goal_sb = usb;
     }
-
     patch++;
   }
 

@@ -238,8 +238,6 @@ static WORD32 ia_enhaacplus_enc_index_search3(
   WORD32 index = 0;
   WORD32 i;
 
-  /* tns_coeff_3_borders[] */
-
   for (i = 0; i < 8; i++) {
     if (parcor > pstr_tns_tab->tns_coeff_3_borders[i]) {
       index = i;
@@ -252,8 +250,6 @@ static WORD32 ia_enhaacplus_enc_index_search4(
     FLOAT32 parcor, ixheaace_temporal_noise_shaping_tables *pstr_tns_tab) {
   WORD32 index = 0;
   WORD32 i;
-
-  /* tns_coeff_4_borders[] */
   for (i = 0; i < 16; i++) {
     if (parcor > pstr_tns_tab->tns_coeff_4_borders[i]) {
       index = i;

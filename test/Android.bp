@@ -49,15 +49,16 @@ cc_test {
 
     cflags: [
         "-O3",
-        "-D_CRT_SECURE_NO_WARNINGS",
         "-D_X86_",
     ],
 
     include_dirs: [
         "external/libxaac/encoder/",
+        "external/libxaac/encoder/drc_src/",
     ],
 
     srcs: [
+        "encoder/impd_drc_user_config.c",
         "encoder/ixheaace_error.c",
         "encoder/ixheaace_testbench.c",
         "encoder/ixheaace_wav_reader.c",

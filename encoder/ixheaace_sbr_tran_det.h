@@ -66,7 +66,8 @@ VOID ixheaace_detect_transient_eld(FLOAT32 **ptr_energies,
 VOID ixheaace_create_sbr_transient_detector(
     ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_detector, WORD32 sample_freq,
     WORD32 total_bitrate, WORD32 codec_bitrate, WORD32 tran_thr, WORD32 mode, WORD32 tran_fc,
-    WORD32 frame_flag_480, WORD32 is_ld_sbr, WORD32 start_band);
+    WORD32 frame_flag_480, WORD32 is_ld_sbr, WORD32 sbr_ratio_idx,
+    ixheaace_sbr_codec_type sbr_codec, WORD32 start_band);
 
 IA_ERRORCODE
 ixheaace_frame_splitter(FLOAT32 **ptr_energies,

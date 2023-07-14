@@ -27,8 +27,20 @@
 
 #define ALIGNMENT_DEFINE __attribute__((aligned(8)))
 
-#define IXHEAACE_SBR_SCR_SIZE_PVC (0)
-#define IXHEAACE_SBR_SCR_SIZE_TES (0)
+#ifndef max
+#define max(a, b) (a > b ? a : b)
+#endif
+
+// 4 is for sizeof FLOAT32 data type
+#define IXHEAACE_SBR_SCR_SIZE_PVC                                      \
+  (((IXHEAACE_ESBR_PVC_NUM_TS * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS_CORE + \
+     IXHEAACE_ESBR_PVC_NUM_TS * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS) *     \
+    4) +                                                               \
+   128)
+
+// 4 is for sizeof FLOAT32 data type and 2 is for two-channels
+#define IXHEAACE_SBR_SCR_SIZE_TES \
+  ((IXHEAACE_TIMESLOT_BUFFER_SIZE * IXHEAACE_QMF_CHANNELS * 2 * 4) + 128)
 
 #define IXHEAACE_SBR_SCR_SIZE \
   MAX(IXHEAACE_SBR_SCR_SIZE_PVC, MAX(IXHEAACE_SBR_SCR_SIZE_TES, (2 * 1024)))
@@ -60,4 +72,6 @@ struct ixheaace_str_sbr_enc {
   WORD32 *ptr_common_buffer1;
   WORD32 *ptr_common_buffer2;
   ixheaace_str_sbr_enc_scratch *ptr_sbr_enc_scr;
+  ixheaace_pvc_enc *pstr_pvc_enc;
+  FLOAT32 *ptr_hbe_resample_buf;
 };

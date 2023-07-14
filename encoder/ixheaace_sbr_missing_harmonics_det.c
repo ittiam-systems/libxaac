@@ -47,6 +47,8 @@
 #include "ixheaace_sbr_noise_floor_est.h"
 
 #include "ixheaace_sbr_ton_corr.h"
+#include "iusace_esbr_pvc.h"
+#include "iusace_esbr_inter_tes.h"
 #include "ixheaace_sbr.h"
 
 static VOID ia_enhaacplus_enc_diff(FLOAT32 *ptr_tonal_orig, FLOAT32 *ptr_diff_map_2_scfb,

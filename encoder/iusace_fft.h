@@ -34,3 +34,8 @@
     re = ((a * c) - (b * d));            \
     im = ((a * d) + (b * c));            \
   }
+
+IA_ERRORCODE iusace_fft_based_mdct(FLOAT64 *ptr_in, FLOAT64 *ptr_out, WORD32 npoints,
+                                   const WORD32 tx_flag, iusace_scratch_mem *pstr_scratch);
+
+VOID iusace_complex_fft(FLOAT32 *data, WORD32 nlength, iusace_scratch_mem *pstr_scratch);

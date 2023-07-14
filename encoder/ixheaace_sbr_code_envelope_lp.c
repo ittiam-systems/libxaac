@@ -47,6 +47,8 @@
 #include "ixheaace_sbr_noise_floor_est.h"
 
 #include "ixheaace_sbr_ton_corr.h"
+#include "iusace_esbr_pvc.h"
+#include "iusace_esbr_inter_tes.h"
 #include "ixheaace_sbr.h"
 #include "ixheaace_common_utils.h"
 
@@ -171,7 +173,8 @@ IA_ERRORCODE ixheaace_code_envelope(WORD32 *ptr_sfb_energy, const ixheaace_freq_
       WORD32 index;
       WORD32 delta_lcl_bits = 0;
 
-      if (ptr_energy[band - 1] - ptr_energy[band] > code_book_scf_lav_lvl_freq) {
+      if (ixheaac_sub32_sat(ptr_energy[band - 1], ptr_energy[band]) >
+          code_book_scf_lav_lvl_freq) {
         ptr_energy[band] = ptr_energy[band - 1] - code_book_scf_lav_lvl_freq;
       }
 
@@ -195,8 +198,7 @@ IA_ERRORCODE ixheaace_code_envelope(WORD32 *ptr_sfb_energy, const ixheaace_freq_
 
         ixheaace_map_low_res_energy_value(current_energy, pstr_code_env->sfb_nrg_prev, offset,
                                           band, freq_res[i]);
-        if ((delta_t[band] > 31) || (delta_t[band] < -31))  // new tmp_var fix
-        {
+        if ((delta_t[band] > 31) || (delta_t[band] < -31)) {
           delta_t[band] = 31;
         }
 

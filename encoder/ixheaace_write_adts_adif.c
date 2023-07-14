@@ -103,9 +103,7 @@ static WORD32 ia_enhaacplus_enc_putbit(ixheaace_bitstream_params *pstr_bitstream
   return 0;
 }
 
-static WORD16 ia_enhaacplus_enc_get_sample_rate_index(
-    WORD32 sample_rate) /* in :  : sampling frequency information */
-{
+static WORD16 ia_enhaacplus_enc_get_sample_rate_index(WORD32 sample_rate) {
   if (92017 <= sample_rate) {
     return 0;
   }
@@ -245,7 +243,6 @@ WORD32 ia_enhaacplus_enc_write_pce(WORD32 samp_rate, WORD32 ch_mask, WORD32 num_
       }
     }
 
-    /* loop for numSideChannel elements */
     for (i = 0; i < num_side_chan_ele; i++) {
       if ((ch_mask & 0xC0) == 0xC0) {
         /* stereo channel */
@@ -259,7 +256,6 @@ WORD32 ia_enhaacplus_enc_write_pce(WORD32 samp_rate, WORD32 ch_mask, WORD32 num_
       ixheaace_write_bits(pstr_bit_stream_handle, 0x02, 4);
     }
 
-    /* loop for numBackChannel elements */
     for (i = 0; i < num_back_chan_ele; i++) {
       if ((ch_mask & 0x30) == 0x30) {
         /* stereo channel */
@@ -273,7 +269,6 @@ WORD32 ia_enhaacplus_enc_write_pce(WORD32 samp_rate, WORD32 ch_mask, WORD32 num_
       ixheaace_write_bits(pstr_bit_stream_handle, 0x01, 4);
     }
 
-    /* loop for numLFEChannel elements */
     for (i = 0; i < num_lfe_chan_ele; i++) {
       /* element tag select */
       ixheaace_write_bits(pstr_bit_stream_handle, 0x00, 4);

@@ -21,6 +21,10 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaac_type_def.h"
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
 #include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"

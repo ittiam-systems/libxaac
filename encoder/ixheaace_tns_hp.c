@@ -22,6 +22,10 @@
 #include <stddef.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
 #include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_common_rom.h"
@@ -123,8 +127,9 @@ VOID ia_enhaacplus_enc_calc_weighted_spectrum(FLOAT32 *ptr_spectrum, FLOAT32 *pt
       }
     }
 
-    ptr_weighted_spec[lpc_start_line + 1] = (FLOAT32)(
-        ((ptr_weighted_spec[lpc_start_line + 1]) + (ptr_weighted_spec[lpc_start_line])) * 0.5f);
+    ptr_weighted_spec[lpc_start_line + 1] = (FLOAT32)(((ptr_weighted_spec[lpc_start_line + 1]) +
+                                                       (ptr_weighted_spec[lpc_start_line])) *
+                                                      0.5f);
     multout_temp = (ptr_weighted_spec[lpc_start_line] * ptr_spectrum[lpc_start_line]);
     ptr_weighted_spec[lpc_start_line] = multout_temp;
 

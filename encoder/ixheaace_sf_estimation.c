@@ -223,9 +223,7 @@ static FLOAT32 iaace_calc_sfb_dist(const FLOAT32 *ptr_spec, const FLOAT32 *ptr_e
   FLOAT32 dist = 0;
   FLOAT32 k = -0.0946f + 0.5f;
   FLOAT32 quantizer = ixheaace_fd_quant_table[gain + 128];
-  ;
   FLOAT32 inv_quantizer = ixheaace_fd_inv_quant_table[gain + 128];
-  ;
 
   while (i < sfb_width) {
     FLOAT32 iq_val;
@@ -322,7 +320,7 @@ static VOID iaace_assimilate_single_scf(ixheaace_psy_out_channel *pstr_psy_out,
                                         FLOAT32 *ptr_sfb_num_lines, WORD16 *ptr_min_calc_scf,
                                         FLOAT32 *ptr_ptr_mdct_spec) {
   WORD32 sfb_prev, sfb_act, sfb_next;
-  WORD16 scf_act, *scf_prev, *scf_next, min_scf, max_scf;
+  WORD16 scf_act = 0, *scf_prev, *scf_next, min_scf, max_scf;
   WORD32 sfb_width, sfb_offs;
   FLOAT32 energy;
   FLOAT32 sfb_pe_prev, sfb_pe_new;
@@ -688,10 +686,12 @@ VOID iaace_estimate_scfs_chan(
 
         for (j = 0; j < pstr_psy_out_chan->sfb_offsets[i + 1] - pstr_psy_out_chan->sfb_offsets[i];
              j++) {
-          ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(
-              pstr_psy_out_chan->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
-          ptr_mdct_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(
-              pstr_psy_out_chan->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
+          ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] =
+              (FLOAT32)(pstr_psy_out_chan
+                            ->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
+          ptr_mdct_spec[pstr_psy_out_chan->sfb_offsets[i] + j] =
+              (FLOAT32)(pstr_psy_out_chan
+                            ->ptr_spec_coeffs[pstr_psy_out_chan->sfb_offsets[i] + j]);
         }
 
         iaace_calculate_exp_spec(

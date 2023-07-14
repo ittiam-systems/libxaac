@@ -55,3 +55,32 @@ IA_ERRORCODE ia_enhaacplus_enc_init_iir_resampler(ixheaace_iir21_resampler *pstr
 
   return error;
 }
+IA_ERRORCODE
+ia_enhaacplus_enc_init_iir_sos_resampler(ixheaace_iir_sos_resampler *pstr_resampler, WORD32 ratio,
+                                         ixheaace_resampler_sos_table *pstr_resampler_table)
+
+{
+  struct ixheaace_iir_params_sos const *current_set = NULL;
+  IA_ERRORCODE error = IA_NO_ERROR;
+
+  if (pstr_resampler == NULL) {
+    error = IA_EXHEAACE_INIT_FATAL_USAC_RESAMPLER_INIT_FAILED;
+    return error;
+  }
+
+  memset(pstr_resampler->iir_filter.ring_buf_sos_1, 0,
+         (LEN_RING_BUF_SOS_1 * sizeof(pstr_resampler->iir_filter.ring_buf_sos_1[0])));
+  memset(pstr_resampler->iir_filter.ring_buf_sos_2, 0,
+         (LEN_RING_BUF_SOS_2 * sizeof(pstr_resampler->iir_filter.ring_buf_sos_2[0])));
+
+  current_set = &(pstr_resampler_table->iir_param_set_sos);
+
+  pstr_resampler->iir_filter.ptr_coeff_iir_den = &current_set->coeff_iir_sos_den[0][0];
+  pstr_resampler->iir_filter.ptr_coeff_iir_num = &current_set->coeff_iir_sos_num[0][0];
+  pstr_resampler->ratio = ratio;
+  pstr_resampler->pending = ratio - 1;
+  pstr_resampler->iir_filter.gain_sos = current_set->gain_sos;
+  pstr_resampler->delay = current_set->delay;
+
+  return error;
+}

@@ -31,6 +31,7 @@
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
 #include "ixheaace_block_switch.h"
+#include "iusace_block_switch_struct_def.h"
 #include <string.h>
 
 static FLOAT32 iaace_fmult(FLOAT32 a, FLOAT32 b) { return (a * b); }
