@@ -24,6 +24,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ixheaac_type_def.h"
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
+#include "impd_drc_user_config.h"
+#include "iusace_cnst.h"
 #include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_handler.h"
@@ -56,12 +62,10 @@ extern ia_error_info_struct ia_enhaacplus_enc_error_info;
 /* Error codes for the testbench                                             */
 /*****************************************************************************/
 #define IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED 0xFFFFA001
-
+#define DRC_CONFIG_FILE "impd_drc_config_params.txt"
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
-pVOID g_pv_arr_alloc_memory[MAX_MEM_ALLOCS];
-WORD g_w_malloc_count;
 FILE *g_pf_inp, *g_pf_out;
 FILE *g_drc_inp = NULL;
 FILE *g_pf_meta;
@@ -87,7 +91,7 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
   WORD16 output_format;
   WORD32 check, count = 0;
   FLAG wav_format_pcm = 0, wav_format_extensible = 0;
-  UWORD16 cbSize = 0;
+  UWORD16 cb_size = 0;
   WORD32 curr_pos, size;
 
   *i_channel_mask = 0;
@@ -125,13 +129,14 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
     data_start[2] = wav_hdr[38];
     data_start[3] = wav_hdr[39];
   } else if (wav_format_extensible) {
-    cbSize |= ((UWORD8)wav_hdr[37] << 8);
-    cbSize |= ((UWORD8)wav_hdr[36]);
+    cb_size |= ((UWORD8)wav_hdr[37] << 8);
+    cb_size |= ((UWORD8)wav_hdr[36]);
 
-    if (fread(&(wav_hdr[40]), 1, (UWORD16)(cbSize - 2 + 4), in_file) != (UWORD16)(cbSize - 2 + 4))
+    if (fread(&(wav_hdr[40]), 1, (UWORD16)(cb_size - 2 + 4), in_file) !=
+        (UWORD16)(cb_size - 2 + 4))
       return 1;
 
-    if (cbSize > 34) {
+    if (cb_size > 34) {
       return 1;
     }
 
@@ -141,10 +146,10 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
     *i_channel_mask |= (UWORD8)wav_hdr[41] << 8;
     *i_channel_mask |= (UWORD8)wav_hdr[40];
 
-    data_start[0] = wav_hdr[40 + cbSize - 2 + 0];
-    data_start[1] = wav_hdr[40 + cbSize - 2 + 1];
-    data_start[2] = wav_hdr[40 + cbSize - 2 + 2];
-    data_start[3] = wav_hdr[40 + cbSize - 2 + 3];
+    data_start[0] = wav_hdr[40 + cb_size - 2 + 0];
+    data_start[1] = wav_hdr[40 + cb_size - 2 + 1];
+    data_start[2] = wav_hdr[40 + cb_size - 2 + 2];
+    data_start[3] = wav_hdr[40 + cb_size - 2 + 3];
   }
 
   check = 1;
@@ -187,12 +192,21 @@ void ia_enhaacplus_enc_print_usage() {
   printf("\n[-mps:<use_mps>]");
   printf("\n[-adts:<use_adts_flag>]");
   printf("\n[-tns:<use_tns_flag>]");
+  printf("\n[-nf:<use_noise_filling>]");
+  printf("\n[-cmpx_pred:<use_complex_prediction>]");
   printf("\n[-framesize:<framesize_to_be_used>]");
   printf("\n[-aot:<audio_object_type>]");
   printf("\n[-esbr:<esbr_flag>]");
-  printf("\n[-full_bandwidth:<Enable use of full bandwidth of input>]");
+  printf("\n[-full_bandwidth:<enable_full_bandwidth>]");
   printf("\n[-max_out_buffer_per_ch:<bitreservoir_size>]");
   printf("\n[-tree_cfg:<tree_config>]");
+  printf("\n[-usac:<usac_encoding_mode>]");
+  printf("\n[-ccfl_idx:<corecoder_framelength_index>]");
+  printf("\n[-pvc_enc:<pvc_enc_flag>]");
+  printf("\n[-harmonic_sbr:<harmonic_sbr_flag>]");
+  printf("\n[-esbr_hq:<esbr_hq_flag>]");
+  printf("\n[-drc:<drc_flag>]");
+  printf("\n[-inter_tes_enc:<inter_tes_enc_flag>]");
   printf("\n\nwhere, \n  <paramfile> is the parameter file with multiple commands");
   printf("\n  <inputfile> is the input 16-bit WAV or PCM file name");
   printf("\n  <outputfile> is the output ADTS/ES file name");
@@ -202,6 +216,10 @@ void ia_enhaacplus_enc_print_usage() {
       "\n  <use_adts_flag> Valid values are 0 ( No ADTS header) and 1 ( generate ADTS header). "
       "Default is 0.");
   printf("\n  <use_tns_flag> Valid values are 0 (disable TNS) and 1 (enable TNS). Default is 1.");
+  printf("\n  <use_noise_filling> controls usage of noise filling in encoding. Default 0.");
+  printf(
+      "\n  <use_complex_prediction> controls usage of complex prediction in encoding. Default "
+      "0.");
   printf("\n  <framesize_to_be_used> is the framesize to be used.");
   printf(
       "\n        For AOT 23, 39 (LD core coder profiles) valid values are 480 and 512. Default "
@@ -211,19 +229,23 @@ void ia_enhaacplus_enc_print_usage() {
       "\n        For AOT 2, 5, 29 (LC core coder profiles) valid values are 960 and 1024. "
       "Default "
       "is 1024.");
+  printf(
+      "\n        For AOT 42 (USAC profile) valid values are 768 and 1024. "
+      "Default "
+      "is 1024.");
   printf("\n  <audio_object_type> is the Audio object type");
   printf("\n        2 for AAC-LC");
   printf("\n        5 for HE-AACv1(Legacy SBR)");
   printf("\n        23 for AAC-LD");
   printf("\n        29 for HE-AACv2");
   printf("\n        39 for AAC-ELD");
+  printf("\n        42 for USAC");
   printf("\n        Default is 2 for AAC-LC.");
+  printf("\n  <esbr_flag> Valid values are 0 (disable eSBR) and 1 (enable eSBR).");
+  printf("\n      Default is 0 for HE-AACv1 profile (legacy SBR) and 1 for USAC profile.");
   printf(
-      "\n  <esbr_flag> Valid values are 0 (disable eSBR) and 1 (enable eSBR in HE-AACv1 "
-      "encoding). Default is 0.");
-  printf(
-      "\n  <full_bandwidth> Enable use of full bandwidth of input. Valid values are 0(disable "
-      "full bandwidth) and 1(enable full bandwidth). Default is 0.");
+      "\n  <enable_full_bandwidth> Enable use of full bandwidth of input. Valid values are "
+      "0(disable full bandwidth) and 1(enable full bandwidth). Default is 0.");
   printf("\n  <bitreservoir_size> is the maximum size of bit reservoir to be used.");
   printf(
       "\n        Valid values are from -1 to 6144. -1 will omit use of bit reservoir. Default is "
@@ -235,6 +257,30 @@ void ia_enhaacplus_enc_print_usage() {
       "\n        2 for '5152'"
       "\n        3 for '525'"
       "\n        Default '212' for stereo input and '5151' for 6ch input.");
+  printf(
+      "\n  <usac_encoding_mode> USAC encoding mode to be chose"
+      "0 for 'usac_switched'"
+      "1 for 'usac_fd'"
+      "2 for 'usac_td'"
+      "Default 'usac_fd'");
+  printf(
+      "\n  <corecoder_framelength_index> is the core coder framelength index for USAC encoder");
+  printf("\n    Valid values are 0, 1, 2, 3, 4. eSBR enabling is implicit");
+  printf("\n    0 - Core coder framelength of USAC is  768 and eSBR is disabled");
+  printf("\n    1 - Core coder framelength of USAC is 1024 and eSBR is disabled");
+  printf("\n    2 - Core coder framelength of USAC is  768 and eSBR ratio 8:3");
+  printf("\n    3 - Core coder framelength of USAC is 1024 and eSBR ratio 2:1");
+  printf("\n    4 - Core coder framelength of USAC is 1024 and eSBR ratio 4:1");
+  printf("\n  <pvc_enc_flag> Valid values are 0 (disable PVC encoding) and "
+          "1 (enable PVC encoding). Default is 0.");
+  printf("\n  <harmonic_sbr_flag> Valid values are 0 (disable harmonic SBR) and "
+          "1 (enable harmonic SBR). Default is 0.");
+  printf("\n  <esbr_hq_flag> Valid values are 0 (disable high quality eSBR) and "
+         "1 (enable high quality eSBR). Default is 0.");
+  printf("\n  <drc_flag> Valid values are 0 (disable DRC encoding) and "
+         "1 (enable DRC encoding). Default is 0.");
+  printf("\n  <inter_tes_enc_flag> Valid values are 0 (disable inter - TES encoding) and "
+         "1 (enable inter - TES encoding). Default is 0.\n");
   exit(1);
 }
 
@@ -260,6 +306,16 @@ static VOID ixheaace_parse_config_param(WORD32 argc, pWORD8 argv[], pVOID ptr_en
       pstr_enc_api->input_config.aac_config.use_tns = atoi(pb_arg_val);
       pstr_enc_api->input_config.user_tns_flag = 1;
     }
+    /*noise filling*/
+    if (!strncmp((pCHAR8)argv[i], "-nf:", 4)) {
+      pCHAR8 pb_arg_val = (pCHAR8)argv[i] + 4;
+      pstr_enc_api->input_config.aac_config.noise_filling = atoi(pb_arg_val);
+    }
+    /* Complex Prediction */
+    if (!strncmp((pCHAR8)argv[i], "-cmpx_pred:", 11)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 11);
+      pstr_enc_api->input_config.cplx_pred = atoi(pb_arg_val);
+    }
     /*Use full bandwidth*/
     if (!strncmp((const char *)argv[i], "-full_bandwidth:", 16)) {
       char *pb_arg_val = (char *)argv[i] + 16;
@@ -278,6 +334,7 @@ static VOID ixheaace_parse_config_param(WORD32 argc, pWORD8 argv[], pVOID ptr_en
     if (!strncmp((const char *)argv[i], "-esbr:", 6)) {
       char *pb_arg_val = (char *)argv[i] + 6;
       pstr_enc_api->input_config.esbr_flag = atoi(pb_arg_val);
+      pstr_enc_api->input_config.user_esbr_flag = 1;
     }
 
     if (!strncmp((const char *)argv[i], "-max_out_buffer_per_ch:", 23)) {
@@ -292,6 +349,37 @@ static VOID ixheaace_parse_config_param(WORD32 argc, pWORD8 argv[], pVOID ptr_en
     if (!strncmp((const char *)argv[i], "-adts:", 6)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 6);
       pstr_enc_api->input_config.i_use_adts = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-usac:", 6)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 6);
+      pstr_enc_api->input_config.codec_mode = atoi(pb_arg_val);
+      pstr_enc_api->input_config.usac_en = 1;
+      pstr_enc_api->input_config.aot = AOT_USAC;
+    }
+    if (!strncmp((const char *)argv[i], "-ccfl_idx:", 10)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 10);
+      pstr_enc_api->input_config.ccfl_idx = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-pvc_enc:", 9)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 9);
+      pstr_enc_api->input_config.pvc_active = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-harmonic_sbr:", 14)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 14);
+      pstr_enc_api->input_config.harmonic_sbr = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-esbr_hq:", 9)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 9);
+      pstr_enc_api->input_config.hq_esbr = atoi(pb_arg_val);
+    }
+    /* DRC */
+    if (!strncmp((pCHAR8)argv[i], "-drc:", 5)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 5);
+      pstr_enc_api->input_config.use_drc_element = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-inter_tes_enc:", 15)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 15);
+      pstr_enc_api->input_config.inter_tes_active = atoi(pb_arg_val);
     }
   }
 
@@ -382,6 +470,11 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
     }
   } else if (pstr_input_config->aot == AOT_AAC_LD) {
     printf(" - AAC LD ");
+  } else if (pstr_input_config->aot == AOT_USAC) {
+    printf(" - USAC ");
+    if (pstr_input_config->i_use_mps == 1) {
+      printf(" MPS ");
+    }
   } else if (pstr_input_config->aot == AOT_PS) {
     printf(" - HEAACv2 ");
   }
@@ -393,7 +486,77 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
              pstr_input_config->esbr_flag);
     }
   }
+  if (pstr_input_config->aot == AOT_USAC) {
+    if (pstr_input_config_user->codec_mode == pstr_input_config->codec_mode) {
+      printf("\nUSAC Codec Mode : ");
+    } else {
+      printf("\nUSAC Codec Mode (Invalid config value, setting to default) : ");
+    }
 
+    if (pstr_input_config->usac_en) {
+      if (pstr_input_config->codec_mode == USAC_SWITCHED) {
+        printf("Switched Mode");
+      } else if (pstr_input_config->codec_mode == USAC_ONLY_FD) {
+        printf("FD Mode");
+      } else if (pstr_input_config->codec_mode == USAC_ONLY_TD) {
+        printf("TD Mode");
+      }
+    } else {
+      printf("Not Enabled");
+    }
+  }
+
+  if (pstr_input_config->aot == AOT_USAC) {
+    if (pstr_input_config_user->harmonic_sbr == pstr_input_config->harmonic_sbr) {
+      printf("\nHarmonic SBR : %d", pstr_input_config->harmonic_sbr);
+    } else {
+      printf("\nHarmonic SBR (Invalid config value, setting to default) : %d",
+             pstr_input_config->harmonic_sbr);
+    }
+    if (pstr_input_config_user->hq_esbr == pstr_input_config->hq_esbr) {
+      printf("\nHigh quality esbr : %d", pstr_input_config->hq_esbr);
+    } else {
+      printf("\nHigh quality esbr Flag (Invalid config value, setting to default) : %d",
+             pstr_input_config->hq_esbr);
+    }
+    if (pstr_input_config_user->cplx_pred == pstr_input_config->cplx_pred) {
+      printf("\nComplex Prediction Flag : %d", pstr_input_config->cplx_pred);
+    } else {
+      printf("\nComplex Prediction Flag (Invalid config value, setting to default) : %d",
+             pstr_input_config->cplx_pred);
+    }
+    if (pstr_input_config_user->aac_config.use_tns == pstr_input_config->aac_config.use_tns) {
+      printf("\nTNS Flag : %d", pstr_input_config->aac_config.use_tns);
+    } else {
+      printf("\nTNS Flag (Invalid config value, setting to default) : %d",
+             pstr_input_config->aac_config.use_tns);
+    }
+
+    if (pstr_input_config_user->ccfl_idx == pstr_input_config->ccfl_idx) {
+      printf("\nCore-coder framelength index : %d", pstr_input_config->ccfl_idx);
+    } else {
+      if (pstr_input_config_user->ccfl_idx >= NO_SBR_CCFL_768 &&
+          pstr_input_config_user->ccfl_idx <= SBR_4_1) {
+        if (pstr_input_config_user->ccfl_idx == NO_SBR_CCFL_768 &&
+            pstr_input_config->ccfl_idx == SBR_8_3) {
+          printf(
+              "\nCore-coder framelength index (Unsupported configuration, enabling 8:3 eSBR) : "
+              "%d",
+              pstr_input_config->ccfl_idx);
+        }
+        if (pstr_input_config_user->ccfl_idx == NO_SBR_CCFL_1024 &&
+            pstr_input_config->ccfl_idx == SBR_2_1) {
+          printf(
+              "\nCore-coder framelength index (Unsupported configuration, enabling 2:1 eSBR) : "
+              "%d",
+              pstr_input_config->ccfl_idx);
+        }
+      } else {
+        printf("\nCore-coder framelength index (Invalid config value, setting to default) : %d",
+               pstr_input_config->ccfl_idx);
+      }
+    }
+  }
   if (pstr_input_config_user->aac_config.noise_filling ==
       pstr_input_config->aac_config.noise_filling) {
     printf("\nNoise Filling Flag : %d", pstr_input_config->aac_config.noise_filling);
@@ -472,6 +635,12 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
         pstr_input_config->i_samp_freq);
   } else {
     printf("\nSampling Frequency : %d Hz", pstr_input_config_user->i_samp_freq);
+  }
+
+  if (pstr_input_config->aot == AOT_USAC && pstr_input_config->use_drc_element) {
+    printf("\nDRC : Enabled");
+    printf("\nDRC Effects : ");
+    printf("Night, Noisy, Limited, Low level, Dialog, General, Expand, Artistic");
   }
   printf(
       "\n*************************************************************************************"
@@ -552,6 +721,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
   pstr_in_cfg->i_bitrate = pstr_in_cfg->aac_config.bitrate;
   pstr_in_cfg->aot = AOT_AAC_LC;
+  pstr_in_cfg->codec_mode = USAC_ONLY_FD;
   pstr_in_cfg->i_channels = 2;
   pstr_in_cfg->i_samp_freq = 44100;
   pstr_in_cfg->i_use_mps = 0;
@@ -559,7 +729,12 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   pstr_in_cfg->i_use_adts = 0;
   pstr_in_cfg->esbr_flag = 0;
   pstr_in_cfg->i_use_es = 1;
-
+  pstr_in_cfg->cplx_pred = 0;
+  pstr_in_cfg->ccfl_idx = NO_SBR_CCFL_1024;
+  pstr_in_cfg->pvc_active = 0;
+  pstr_in_cfg->harmonic_sbr = 0;
+  pstr_in_cfg->inter_tes_active = 0;
+  pstr_in_cfg->use_drc_element = 0;
   pstr_in_cfg->i_channels_mask = 0;
   pstr_in_cfg->i_num_coupling_chan = 0;
   pstr_in_cfg->aac_config.full_bandwidth = 0;
@@ -568,6 +743,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   pstr_in_cfg->frame_cmd_flag = 0;
   pstr_in_cfg->out_bytes_flag = 0;
   pstr_in_cfg->user_tns_flag = 0;
+  pstr_in_cfg->user_esbr_flag = 0;
   pstr_in_cfg->i_use_adts = !eld_ga_hdr;
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
@@ -594,6 +770,13 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
         pstr_in_cfg->aac_config.bitreservoir_size = APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LD;
       }
 
+      if (pstr_in_cfg->user_tns_flag == 0) {
+        pstr_in_cfg->aac_config.use_tns = 1;
+      }
+    } else if (pstr_in_cfg->aot == AOT_USAC) {
+      if (pstr_in_cfg->user_esbr_flag == 0) {
+        pstr_in_cfg->esbr_flag = 1;
+      }
       if (pstr_in_cfg->user_tns_flag == 0) {
         pstr_in_cfg->aac_config.use_tns = 1;
       }
@@ -641,7 +824,56 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   /* ******************************************************************/
   /* Initialize API structure and set config params to default        */
   /* ******************************************************************/
+  /* DRC */
+  if (pstr_in_cfg->use_drc_element == 1 && pstr_in_cfg->aot == AOT_USAC) {
+    LOOPIDX k;
+    CHAR8 drc_config_file_name[IA_MAX_CMD_LINE_LENGTH];
+    strcpy(drc_config_file_name, DRC_CONFIG_FILE);
+    g_drc_inp = fopen(drc_config_file_name, "rt");
 
+    if (!g_drc_inp) {
+      printf("\nError in opening DRC configuration file\n\n");
+      pstr_in_cfg->use_drc_element = 0;
+    }
+
+    if (g_drc_inp != 0) {
+      memset(&pstr_in_cfg->str_drc_cfg, 0, sizeof(ia_drc_input_config));
+      ixheaace_read_drc_config_params(g_drc_inp, &pstr_in_cfg->str_drc_cfg.str_enc_params,
+                                      &pstr_in_cfg->str_drc_cfg.str_uni_drc_config,
+                                      &pstr_in_cfg->str_drc_cfg.str_enc_loudness_info_set,
+                                      &pstr_in_cfg->str_drc_cfg.str_enc_gain_extension);
+
+      pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = FALSE;
+      for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.drc_coefficients_uni_drc_count;
+           k++) {
+        if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
+                .drc_location == 1) {
+          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
+                  .gain_set_count > 0) {
+            pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+            break;
+          }
+        }
+      }
+
+      if (pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present == FALSE) {
+        for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                            .drc_coefficients_uni_drc_v1_count;
+             k++) {
+          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                  .str_drc_coefficients_uni_drc_v1[k]
+                  .drc_location == 1) {
+            if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                    .str_drc_coefficients_uni_drc_v1[k]
+                    .gain_sequence_count > 0) {
+              pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
   memcpy(pstr_in_cfg_user, pstr_in_cfg, sizeof(ixheaace_input_config));
 
   err_code = ixheaace_create((pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
@@ -680,7 +912,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
   { ia_enhaacplus_enc_fwrite(pb_out_buf, g_pf_out, 0); }
 
-  if (pstr_in_cfg->i_use_es) {
+  if ((pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es)) {
     i_dec_len = pstr_out_cfg->i_out_bytes;
     ia_enhaacplus_enc_fwrite(pb_out_buf, g_pf_out, pstr_out_cfg->i_out_bytes);
     fflush(g_pf_out);
@@ -713,7 +945,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
     if (max_frame_size < i_out_bytes) max_frame_size = i_out_bytes;
 
-    if (pstr_in_cfg->i_use_es || !(pstr_in_cfg->i_use_adts)) {
+    if (pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es || !(pstr_in_cfg->i_use_adts)) {
       if (i_out_bytes)
         ia_stsz_size[frame_count - 1] = i_out_bytes;
       else
@@ -747,7 +979,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
     return (err_code);
   }
 
-  if ((pstr_in_cfg->i_use_es) && (g_pf_meta)) {
+  if ((pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es) && (g_pf_meta)) {
     fprintf(g_pf_meta, "-dec_info_init:%d\n", i_dec_len);
     fprintf(g_pf_meta, "-g_track_count:%d\n", 1);
     fprintf(g_pf_meta, "-ia_mp4_stsz_entries:%d\n", frame_count);
@@ -773,7 +1005,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
 int main(WORD32 argc, pCHAR8 argv[]) {
   FILE *param_file_id = NULL;
-
+  WORD32 usac_en = 0;
   WORD8 curr_cmd[IA_MAX_CMD_LINE_LENGTH];
   WORD32 fargc, curpos;
   WORD32 processcmd = 0;
@@ -813,6 +1045,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
       WORD8 pb_meta_file_name[IA_MAX_CMD_LINE_LENGTH] = "";
       curpos = 0;
       fargc = 0;
+      usac_en = 0;
       /* if it is not a param_file command and if */
       /* CLP processing is not enabled */
       if (curr_cmd[0] != '@' && !processcmd) { /* skip it */
@@ -905,7 +1138,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
             }
             file_count++;
           }
-
+          if (!strncmp((const char *)fargv[i], "-usac:", 6)) {
+            usac_en = 1;
+          }
           if (!strncmp((const char *)fargv[i], "-aot:", 5)) {
             pWORD8 pb_arg_val = fargv[i] + 5;
             aot_value = atoi((const char *)(pb_arg_val));
@@ -919,7 +1154,6 @@ int main(WORD32 argc, pCHAR8 argv[]) {
             if ((atoi((const char *)pb_arg_val))) eld_ga_hdr = 0;
           }
         }
-        g_w_malloc_count = 0;
 
         printf("\n");
 
@@ -931,7 +1165,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
           eld_ga_hdr = 1;
         }
 
-        if ((strcmp((const char *)pb_output_file_name, "")) && (eld_ga_hdr)) {
+        if ((strcmp((const char *)pb_output_file_name, "")) && (usac_en || eld_ga_hdr)) {
           char *file_name = strrchr((const char *)pb_output_file_name, '.');
           SIZE_T idx = file_name - (char *)pb_output_file_name;
           memcpy(pb_meta_file_name, pb_output_file_name, idx);
@@ -997,6 +1231,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
         file_count++;
       }
 
+      if (!strncmp((const char *)argv[i], "-usac:", 6)) {
+        usac_en = 1;
+      }
       if (!strncmp((const char *)argv[i], "-aot:", 5)) {
         pCHAR8 pb_arg_val = argv[i] + 5;
         aot_value = atoi((const char *)(pb_arg_val));
@@ -1014,7 +1251,6 @@ int main(WORD32 argc, pCHAR8 argv[]) {
         ia_enhaacplus_enc_print_usage();
       }
     }
-    g_w_malloc_count = 0;
 
     printf("\n");
     if (file_count != 2) {
@@ -1027,7 +1263,8 @@ int main(WORD32 argc, pCHAR8 argv[]) {
 #ifdef _WIN32
 #pragma warning(suppress : 6001)
 #endif
-    if ((strcmp((const char *)pb_output_file_name, "")) && (eld_ga_hdr)) {
+
+    if ((strcmp((const char *)pb_output_file_name, "")) && (usac_en || eld_ga_hdr)) {
       char *file_name = strrchr((const char *)pb_output_file_name, '.');
       SIZE_T idx = file_name - (char *)pb_output_file_name;
       memcpy(pb_meta_file_name, pb_output_file_name, idx);

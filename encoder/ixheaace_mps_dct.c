@@ -102,7 +102,7 @@ IA_ERRORCODE ixheaace_mps_212_dct_iv(FLOAT32 *ptr_data, WORD32 length, WORD8 *pt
   accu_2 = ptr_data_1[1];
   ptr_data_1[1] = -ptr_data_0[1];
 
-  for (step = sin_step, idx = 1; idx<(length_by_2 + 1)>> 1; idx++, step += sin_step) {
+  for (step = sin_step, idx = 1; idx < (length_by_2 + 1) >> 1; idx++, step += sin_step) {
     ixheaace_cmplx_str twd = ptr_cmplx_sin_twiddle[step];
     accu_3 = (accu_1 * twd.re) - (accu_2 * twd.im);
     accu_4 = (accu_1 * twd.im) + (accu_2 * twd.re);
@@ -182,7 +182,7 @@ IA_ERRORCODE ixheaace_mps_212_dst_iv(FLOAT32 *ptr_data, WORD32 length, WORD8 *pt
   ptr_data_1[1] = -ptr_data_0[0];
   ptr_data_0[0] = ptr_data_0[1];
 
-  for (step = sin_step, idx = 1; idx<(length_by_2 + 1)>> 1; idx++, step += sin_step) {
+  for (step = sin_step, idx = 1; idx < (length_by_2 + 1) >> 1; idx++, step += sin_step) {
     ixheaace_cmplx_str twd = ptr_cmplx_sin_twiddle[step];
 
     accu_3 = (accu_1 * twd.re) - (accu_2 * twd.im);

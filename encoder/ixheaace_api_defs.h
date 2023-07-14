@@ -37,3 +37,10 @@
 
 #define IA_LAST_COMP_APIVERSION \
   IA_MAKE_VERSION_STR(IA_LASTCOMP_APIVERSION_MAJOR, IA_LASTCOMP_APIVERSION_MINOR)
+
+IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
+                                  ia_usac_encoder_config_struct *ptr_usac_config,
+                                  ia_usac_data_struct *pstr_state,
+                                  ixheaace_audio_specific_config_struct *pstr_asc,
+                                  ia_bit_buf_struct *pstr_it_bit_buff,
+                                  ixheaace_pstr_sbr_enc ptr_env_encoder, FLOAT32 **ptr_drc_inp);

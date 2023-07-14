@@ -24,22 +24,318 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+extern "C" {
 #include "ixheaac_type_def.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_error_standards.h"
-
-extern "C" {
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
 #include "ixheaace_api.h"
-}
 #include "ixheaace_memory_standards.h"
 #include "ixheaace_config_params.h"
+}
 
 /*****************************************************************************/
 /* Constant hash defines                                                     */
 /*****************************************************************************/
 #define MAX_MEM_ALLOCS 100
+#define IA_MAX_CMD_LINE_LENGTH 300
+#define DRC_CONFIG_FILE "impd_drc_config_params.txt"
+#ifndef TRUE
+#define TRUE (1)
+#endif
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+WORD8 pb_drc_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
+FILE *g_drc_inp = NULL;
 
 pVOID malloc_global(UWORD32 size, UWORD32 alignment) { return malloc(size + alignment); }
+
+static FLOAT32 impd_drc_get_float_value(FILE *fp) {
+  WORD32 i = 0;
+  FLOAT32 result = 0.0f;
+  CHAR8 line[1024];
+  pCHAR8 retval;
+  retval = fgets(line, sizeof(line), fp);
+  if (retval) {
+    pCHAR8 c = line;
+    while ((line[0] == '#' || line[0] == '\n') && (retval != NULL)) {
+      retval = fgets(line, sizeof(line), fp);
+    }
+    while (line[i] != ':') {
+      c++;
+      i++;
+    }
+    c++;
+    result = (FLOAT32)atof(c);
+  }
+  return result;
+}
+
+static WORD32 impd_drc_get_integer_value(FILE *fp) {
+  WORD32 i = 0;
+  WORD32 result = 0;
+  CHAR8 line[1024];
+  pCHAR8 retval;
+  retval = fgets(line, sizeof(line), fp);
+  if (retval) {
+    pCHAR8 c = line;
+    while ((line[0] == '#' || line[0] == '\n') && (retval != NULL)) {
+      retval = fgets(line, sizeof(line), fp);
+    }
+    while (line[i] != ':') {
+      c++;
+      i++;
+    }
+    c++;
+    if (c[0] == '0' && c[1] == 'x') {
+      result = (WORD32)strtol(c, NULL, 16);
+    } else {
+      result = atoi(c);
+    }
+  }
+  return result;
+}
+
+static VOID ixheaace_read_drc_config_params(
+    FILE *fp, ia_drc_enc_params_struct *pstr_enc_params,
+    ia_drc_uni_drc_config_struct *pstr_uni_drc_config,
+    ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set,
+    ia_drc_uni_drc_gain_ext_struct *pstr_enc_gain_extension) {
+  WORD32 n, g, s, m, ch, p;
+  WORD32 gain_set_channels;
+
+  pstr_enc_params->delay_mode = DELAY_MODE_REGULAR_DELAY;
+  pstr_uni_drc_config->sample_rate_present = 1;
+  pstr_uni_drc_config->str_drc_coefficients_uni_drc->drc_frame_size_present = 0;
+  pstr_uni_drc_config->loudness_info_set_present = 1;
+
+  /***********  str_drc_instructions_uni_drc  *************/
+
+  pstr_uni_drc_config->drc_instructions_uni_drc_count = impd_drc_get_integer_value(fp);
+  for (n = 0; n < pstr_uni_drc_config->drc_instructions_uni_drc_count; n++) {
+    ia_drc_instructions_uni_drc *pstr_drc_instructions_uni_drc =
+        &pstr_uni_drc_config->str_drc_instructions_uni_drc[n];
+    pstr_drc_instructions_uni_drc->drc_set_id = n + 1;
+    pstr_drc_instructions_uni_drc->downmix_id = impd_drc_get_integer_value(fp);
+    pstr_drc_instructions_uni_drc->additional_downmix_id_present = 0;
+    pstr_drc_instructions_uni_drc->additional_downmix_id_count = 0;
+    pstr_drc_instructions_uni_drc->drc_location = 1;
+    pstr_drc_instructions_uni_drc->depends_on_drc_set_present = 0;
+    pstr_drc_instructions_uni_drc->depends_on_drc_set = 0;
+    pstr_drc_instructions_uni_drc->no_independent_use = 0;
+    pstr_drc_instructions_uni_drc->drc_set_effect = impd_drc_get_integer_value(fp);
+    pstr_drc_instructions_uni_drc->drc_set_target_loudness_present = 0;
+    pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_upper = 0;
+    pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower_present = 0;
+    pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower = 0;
+
+    gain_set_channels = impd_drc_get_integer_value(fp);
+    for (ch = 0; ch < gain_set_channels; ch++) {
+      pstr_drc_instructions_uni_drc->gain_set_index[ch] = impd_drc_get_integer_value(fp);
+    }
+    for (; ch < MAX_CHANNEL_COUNT; ch++) {
+      pstr_drc_instructions_uni_drc->gain_set_index[ch] =
+          pstr_drc_instructions_uni_drc->gain_set_index[gain_set_channels - 1];
+    }
+
+    pstr_drc_instructions_uni_drc->num_drc_channel_groups = impd_drc_get_integer_value(fp);
+
+    for (g = 0; g < pstr_drc_instructions_uni_drc->num_drc_channel_groups; g++) {
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_scaling_present[0] = 0;
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].attenuation_scaling[0] = 1.5f;
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].amplification_scaling[0] = 1.5f;
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset_present[0] = 0;
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset[0] = 16.0f;
+    }
+
+    pstr_drc_instructions_uni_drc->limiter_peak_target_present = 0;
+    pstr_drc_instructions_uni_drc->limiter_peak_target = 0.0f;
+    pstr_drc_instructions_uni_drc->drc_instructions_type = 0;
+    pstr_drc_instructions_uni_drc->mae_group_id = 0;
+    pstr_drc_instructions_uni_drc->mae_group_preset_id = 0;
+  }
+
+  /***********  str_drc_coefficients_uni_drc  *************/
+
+  pstr_uni_drc_config->drc_coefficients_uni_drc_count = impd_drc_get_integer_value(fp);
+  for (n = 0; n < pstr_uni_drc_config->drc_coefficients_uni_drc_count; n++) {
+    ia_drc_coefficients_uni_drc_struct *pstr_drc_coefficients_uni_drc =
+        &pstr_uni_drc_config->str_drc_coefficients_uni_drc[n];
+    pstr_drc_coefficients_uni_drc->drc_location = 1;
+    pstr_drc_coefficients_uni_drc->gain_set_count = impd_drc_get_integer_value(fp);
+
+    for (s = 0; s < pstr_drc_coefficients_uni_drc->gain_set_count; s++) {
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_coding_profile = 0;
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_interpolation_type = 1;
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].full_frame = 0;
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].time_alignment = 0;
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].time_delta_min_present = 0;
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count =
+          impd_drc_get_integer_value(fp);
+      if (pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count == 1) {
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points =
+            impd_drc_get_integer_value(fp);
+        for (p = 0;
+             p < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points;
+             p++) {
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].gain_points[p].x =
+              impd_drc_get_float_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].gain_points[p].y =
+              impd_drc_get_float_value(fp);
+        }
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].width =
+            impd_drc_get_float_value(fp);
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].attack =
+            impd_drc_get_float_value(fp);
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].decay =
+            impd_drc_get_float_value(fp);
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].drc_characteristic =
+            0;
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+            .gain_params[0]
+            .crossover_freq_index = 0;
+      } else {
+        for (m = 0; m < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count; m++) {
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points =
+              impd_drc_get_integer_value(fp);
+          for (p = 0;
+               p < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points;
+               p++) {
+            pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+                .gain_params[m]
+                .gain_points[p]
+                .x = impd_drc_get_float_value(fp);
+            pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+                .gain_params[m]
+                .gain_points[p]
+                .y = impd_drc_get_float_value(fp);
+          }
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].width =
+              impd_drc_get_float_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].attack =
+              impd_drc_get_float_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].decay =
+              impd_drc_get_float_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].drc_band_type = 0;
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+              .gain_params[m]
+              .start_sub_band_index = impd_drc_get_integer_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+              .gain_params[m]
+              .drc_characteristic = 0;
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s]
+              .gain_params[m]
+              .crossover_freq_index = 0;
+        }
+      }
+    }
+  }
+
+  pstr_enc_loudness_info_set->loudness_info_count = impd_drc_get_integer_value(fp);
+  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_count; n++) {
+    pstr_enc_loudness_info_set->str_loudness_info[n].drc_set_id = impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info[n].downmix_id = impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level_present =
+        impd_drc_get_integer_value(fp);
+    if (1 == pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level_present) {
+      pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level =
+          impd_drc_get_float_value(fp);
+    }
+    pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_present =
+        impd_drc_get_integer_value(fp);
+    if (1 == pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_present) {
+      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level =
+          impd_drc_get_float_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_measurement_system =
+          impd_drc_get_integer_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_reliability =
+          impd_drc_get_integer_value(fp);
+    }
+    pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count =
+        impd_drc_get_integer_value(fp);
+
+    for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count; m++) {
+      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].method_definition =
+          impd_drc_get_integer_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].method_value =
+          impd_drc_get_float_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info[n]
+          .str_loudness_measure[m]
+          .measurement_system = impd_drc_get_integer_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].reliability =
+          impd_drc_get_integer_value(fp);
+    }
+  }
+
+  pstr_enc_loudness_info_set->loudness_info_album_count = impd_drc_get_integer_value(fp);
+  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_album_count; n++) {
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].drc_set_id =
+        impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].downmix_id =
+        impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level_present =
+        impd_drc_get_integer_value(fp);
+    if (1 == pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level_present) {
+      pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level =
+          impd_drc_get_float_value(fp);
+    }
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_present =
+        impd_drc_get_integer_value(fp);
+    if (1 == pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_present) {
+      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level =
+          impd_drc_get_float_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_measurement_system =
+          impd_drc_get_integer_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_reliability =
+          impd_drc_get_integer_value(fp);
+    }
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count =
+        impd_drc_get_integer_value(fp);
+
+    for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count;
+         m++) {
+      pstr_enc_loudness_info_set->str_loudness_info_album[n]
+          .str_loudness_measure[m]
+          .method_definition = impd_drc_get_integer_value(fp); /* 0 = program loudness */
+      pstr_enc_loudness_info_set->str_loudness_info_album[n]
+          .str_loudness_measure[m]
+          .method_value = impd_drc_get_float_value(fp);
+      pstr_enc_loudness_info_set->str_loudness_info_album[n]
+          .str_loudness_measure[m]
+          .measurement_system = impd_drc_get_integer_value(fp); /* 2 = ITU-R BS.1770-3 */
+      pstr_enc_loudness_info_set->str_loudness_info_album[n].str_loudness_measure[m].reliability =
+          impd_drc_get_integer_value(fp); /* 0 = unknown */
+    }
+  }
+
+  /***********  str_channel_layout  *************/
+
+  pstr_uni_drc_config->str_channel_layout.layout_signaling_present = 0;
+  pstr_uni_drc_config->str_channel_layout.defined_layout = 0;
+  pstr_uni_drc_config->str_channel_layout.speaker_position[0] = 0;
+
+  /***********  str_downmix_instructions  *************/
+
+  pstr_uni_drc_config->downmix_instructions_count =
+      0;  // pstr_ext_cfg_downmix_input->downmix_id_count;
+  for (n = 0; n < pstr_uni_drc_config->downmix_instructions_count; n++) {
+    pstr_uni_drc_config->str_downmix_instructions[n].target_layout =
+        impd_drc_get_integer_value(fp);
+    pstr_uni_drc_config->str_downmix_instructions[n].downmix_coefficients_present =
+        impd_drc_get_integer_value(fp);
+  }
+
+  pstr_uni_drc_config->drc_description_basic_present = 0;
+  pstr_uni_drc_config->uni_drc_config_ext_present = 0;
+  pstr_enc_loudness_info_set->loudness_info_set_ext_present = 0;
+  pstr_enc_gain_extension->uni_drc_gain_ext_present = 0;
+}
 
 static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg, WORD8 *data) {
   // Set Default value for AAC config structure
@@ -61,6 +357,66 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg, WORD8 *data
   pstr_in_cfg->aac_config.bitreservoir_size = *(WORD16 *)(data + 19);
   pstr_in_cfg->i_mps_tree_config = *(WORD8 *)(data + 20);
   pstr_in_cfg->i_channels_mask = *(WORD8 *)(data + 21);
+  pstr_in_cfg->cplx_pred = *(WORD8 *)(data + 22);
+  pstr_in_cfg->usac_en = *(WORD8 *)(data + 23);
+  pstr_in_cfg->ccfl_idx = *(WORD8 *)(data + 24);
+  pstr_in_cfg->pvc_active = *(WORD8 *)(data + 25);
+  pstr_in_cfg->harmonic_sbr = *(WORD8 *)(data + 26);
+  pstr_in_cfg->hq_esbr = *(WORD8 *)(data + 27);
+  pstr_in_cfg->use_drc_element = *(WORD8 *)(data + 28);
+  pstr_in_cfg->inter_tes_active = *(WORD8 *)(data + 39);
+  pstr_in_cfg->codec_mode = *(WORD8 *)(data + 30);
+
+  /* DRC */
+  if (pstr_in_cfg->use_drc_element == 1 /*&& pstr_in_cfg->aot == AOT_USAC*/) {
+    LOOPIDX k;
+    CHAR8 drc_config_file_name[IA_MAX_CMD_LINE_LENGTH];
+    strcpy(drc_config_file_name, DRC_CONFIG_FILE);
+    g_drc_inp = fopen(drc_config_file_name, "rt");
+
+    if (!g_drc_inp) {
+      // Disable DRC
+      pstr_in_cfg->use_drc_element = 0;
+    }
+
+    if (g_drc_inp != 0) {
+      memset(&pstr_in_cfg->str_drc_cfg, 0, sizeof(ia_drc_input_config));
+      ixheaace_read_drc_config_params(g_drc_inp, &pstr_in_cfg->str_drc_cfg.str_enc_params,
+                                      &pstr_in_cfg->str_drc_cfg.str_uni_drc_config,
+                                      &pstr_in_cfg->str_drc_cfg.str_enc_loudness_info_set,
+                                      &pstr_in_cfg->str_drc_cfg.str_enc_gain_extension);
+
+      pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = FALSE;
+      for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.drc_coefficients_uni_drc_count;
+           k++) {
+        if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
+                .drc_location == 1) {
+          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
+                  .gain_set_count > 0) {
+            pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+            break;
+          }
+        }
+      }
+
+      if (pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present == FALSE) {
+        for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                            .drc_coefficients_uni_drc_v1_count;
+             k++) {
+          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                  .str_drc_coefficients_uni_drc_v1[k]
+                  .drc_location == 1) {
+            if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+                    .str_drc_coefficients_uni_drc_v1[k]
+                    .gain_sequence_count > 0) {
+              pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 VOID free_global(pVOID ptr) {
@@ -120,8 +476,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   file_data_size = size;
   data_size_left = file_data_size;
   bytes_consumed = 0;
+
   ixheaace_fuzzer_flag(&pstr_enc_api->input_config, (WORD8 *)data);
-  bytes_consumed = 22;
+  bytes_consumed = 31;
 
   {
     if (pstr_in_cfg->aot == AOT_AAC_LC || pstr_in_cfg->aot == AOT_SBR ||

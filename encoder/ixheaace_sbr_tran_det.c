@@ -207,11 +207,20 @@ ixheaace_frame_splitter(FLOAT32 **ptr_energies,
 VOID ixheaace_create_sbr_transient_detector(
     ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_detector, WORD32 sample_freq,
     WORD32 total_bitrate, WORD32 codec_bitrate, WORD32 tran_thr, WORD32 mode, WORD32 tran_fc,
-    WORD32 frame_flag_480, WORD32 is_ld_sbr, WORD32 start_band) {
+    WORD32 frame_flag_480, WORD32 is_ld_sbr, WORD32 sbr_ratio_idx,
+    ixheaace_sbr_codec_type sbr_codec, WORD32 start_band) {
   WORD32 no_cols = 32, buffer_length = 96;
   FLOAT32 br_fac;
   FLOAT32 frm_dur = 2048.0f / (FLOAT32)sample_freq;
   FLOAT32 split_thr_fac = frm_dur - 0.01f;
+  if ((sbr_codec == USAC_SBR) && (sbr_ratio_idx == USAC_SBR_RATIO_INDEX_4_1)) {
+    frm_dur = frm_dur * 2;
+    split_thr_fac = frm_dur - 0.01f;
+  }
+  if ((1 == is_ld_sbr) && (1 == frame_flag_480)) {
+    no_cols = 30;
+    buffer_length = 90;
+  }
 
   memset(pstr_sbr_trans_detector, 0, sizeof(ixheaace_str_sbr_trans_detector));
 

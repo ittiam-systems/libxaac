@@ -76,7 +76,6 @@ typedef struct {
   WORD32 num_bit;     /* number of bits in buffer */
   WORD32 size;        /* buffer size in bytes */
   WORD32 current_bit; /* current bit position in bit stream */
-  WORD32 numByte;     /* number of bytes read/written (only file) */
 } ixheaace_bitstream_params;
 
 /* bits in byte (char) */
@@ -115,8 +114,8 @@ typedef struct {
 
 #define NUM_CHANS_MONO (1)
 #define NUM_CHANS_STEREO (2)
-#define MAX_NUM_CHANNELS (6)
-#define MIN_NUM_CHANNELS (1)
+#define MAX_NUM_CORE_CODER_CHANNELS (6)
+#define MIN_NUM_CORE_CODER_CHANNELS (1)
 /*-------------------------- defines --------------------------------------*/
 
 #define BUFFERSIZE 1024 /* anc data */

@@ -121,3 +121,7 @@ WORD32 ia_enhaacplus_enc_compute_resampling_ratio(WORD32 ccfl_idx);
 
 VOID ixheaace_upsampling_inp_buf_generation(FLOAT32 *ptr_inp_buf, FLOAT32 *ptr_temp_buf,
                                             WORD32 num_samples, WORD32 upsamp_fac, WORD32 offset);
+
+IA_ERRORCODE
+ia_enhaacplus_enc_init_iir_sos_resampler(ixheaace_iir_sos_resampler *pstr_resampler, WORD32 ratio,
+                                         ixheaace_resampler_sos_table *pstr_resampler_table);

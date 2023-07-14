@@ -331,15 +331,15 @@ VOID ixheaace_hybrid_synthesis(const FLOAT32 **ptr_hybrid_real_flt,
                                FLOAT32 **ptr_qmf_imag_flt, const WORD32 *ptr_hyb_res) {
   WORD32 k, n, band;
   ixheaace_hybrid_res hybrid_res;
-  WORD32 chOffset = 0;
+  WORD32 ch_offset = 0;
 
   FLOAT32 temp1, temp2;
   FLOAT32 *ptr_qmf_real;
   FLOAT32 *ptr_qmf_imag;
 
   for (band = 0; band < IXHEAACE_NUM_QMF_BANDS_IN_HYBRID; band++) {
-    const FLOAT32 *ptr_hybrid_real = &ptr_hybrid_real_flt[0][chOffset];
-    const FLOAT32 *ptr_hybrid_imag = &ptr_hybrid_imag_flt[0][chOffset];
+    const FLOAT32 *ptr_hybrid_real = &ptr_hybrid_real_flt[0][ch_offset];
+    const FLOAT32 *ptr_hybrid_imag = &ptr_hybrid_imag_flt[0][ch_offset];
 
     hybrid_res = (ixheaace_hybrid_res)ptr_hyb_res[band];
 
@@ -365,6 +365,6 @@ VOID ixheaace_hybrid_synthesis(const FLOAT32 **ptr_hybrid_real_flt,
       *ptr_qmf_imag = temo_imag;
       ptr_qmf_imag += IXHEAACE_QMF_CHANNELS;
     }
-    chOffset += hybrid_res;
+    ch_offset += hybrid_res;
   }
 }

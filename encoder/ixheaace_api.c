@@ -39,6 +39,17 @@
 
 #include "iusace_bitbuffer.h"
 
+/* DRC */
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
+#include "impd_drc_uni_drc_eq.h"
+#include "impd_drc_uni_drc_filter_bank.h"
+#include "impd_drc_gain_enc.h"
+#include "impd_drc_struct_def.h"
+#include "impd_drc_enc.h"
+
 #include "ixheaace_sbr_header.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_resampler.h"
@@ -56,8 +67,13 @@
 #include "ixheaace_definitions.h"
 #include "ixheaace_api.h"
 #include "ixheaace_memory_standards.h"
+#include "iusace_block_switch_const.h"
+#include "iusace_block_switch_struct_def.h"
 #include "iusace_cnst.h"
+#include "iusace_tns_usac.h"
+#include "iusace_psy_mod.h"
 #include "iusace_config.h"
+#include "iusace_arith_enc.h"
 #include "ixheaace_version_number.h"
 
 #include "ixheaace_adjust_threshold_data.h"
@@ -72,10 +88,15 @@
 #include "ixheaace_common_rom.h"
 
 #include "ixheaace_psy_mod.h"
+#include "iusace_fd_qc_util.h"
+#include "iusace_fd_quant.h"
+#include "iusace_ms.h"
+#include "iusace_signal_classifier.h"
 #include "ixheaace_sbr_header.h"
 
 #include "ixheaace_config.h"
 #include "ixheaace_asc_write.h"
+#include "iusace_main.h"
 #include "ixheaace_stereo_preproc.h"
 #include "ixheaace_enc_main.h"
 #include "ixheaace_qc_util.h"
@@ -115,6 +136,42 @@
 #include "ixheaace_api_defs.h"
 
 #include "ixheaace_write_adts_adif.h"
+
+/* Ensure all memory are aligned */
+#define IXHEAACE_ALIGN_MEMORY(address, alignment) \
+  ((WORD8 *)((address + (alignment - 1)) & ~(alignment - 1)))
+
+static WORD32 iusace_scratch_size(VOID) {
+  WORD32 scr_size;
+  scr_size = USACE_MAX_SCR_SIZE;
+  return scr_size;
+}
+
+static WORD32 iusace_calc_pers_buf_sizes(ixheaace_api_struct *pstr_api_struct) {
+  WORD32 pers_size = 0;
+  ia_usac_encoder_config_struct *pstr_config = &pstr_api_struct->config[0].usac_config;
+
+  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
+  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
+  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
+  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
+
+  pers_size += ((2 * pstr_config->ccfl) * sizeof(FLOAT32) * pstr_config->channels);
+  pers_size += ((2 * pstr_config->drc_frame_size) * sizeof(FLOAT32) * pstr_config->channels);
+
+  pers_size += 2 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+
+  pers_size += pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+
+  pers_size += 2 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+
+  pers_size += 3 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+
+  if (pstr_config->tns_select != 0) pers_size += sizeof(ia_tns_info) * pstr_config->channels;
+
+  pers_size += sizeof(ia_usac_td_encoder_struct) * pstr_config->channels;
+  return pers_size;
+}
 
 static WORD32 ia_enhaacplus_enc_sizeof_delay_buffer(FLAG flag_framelength_small, WORD32 aot,
                                                     WORD32 resamp_idx, WORD32 delay_buf_size,
@@ -245,7 +302,7 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
                                                   WORD32 *element_instance_tag,
                                                   WORD32 i_num_coupling_chan,
                                                   WORD32 i_channel_mask) {
-  WORD32 slot = 0, i;
+  WORD32 i;
   WORD32 slots_for_elements[2 * MAXIMUM_BS_ELE];
   *num_bs_elements = 0;
 
@@ -257,7 +314,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     chan_config[*num_bs_elements] = 1;
     element_type[*num_bs_elements] = ID_SCE;
     element_slot[*num_bs_elements] = slots_for_elements[FRONT_CENTER];
-    slot += chan_config[*num_bs_elements];
     element_instance_tag[*num_bs_elements] = 0;
     (*num_bs_elements)++;
   }
@@ -267,7 +323,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     chan_config[*num_bs_elements] = 2;
     element_type[*num_bs_elements] = ID_CPE;
     element_slot[*num_bs_elements] = slots_for_elements[FRONT_LEFT_RIGHT];
-    slot += chan_config[*num_bs_elements];
     element_instance_tag[*num_bs_elements] = 0;
     (*num_bs_elements)++;
   }
@@ -277,7 +332,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     chan_config[*num_bs_elements] = 2;
     element_type[*num_bs_elements] = ID_CPE;
     element_slot[*num_bs_elements] = slots_for_elements[BACK_LEFT_RIGHT];
-    slot += chan_config[*num_bs_elements];
     element_instance_tag[*num_bs_elements] = 1;
     (*num_bs_elements)++;
   }
@@ -287,8 +341,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     chan_config[*num_bs_elements] = 2;
     element_type[*num_bs_elements] = ID_CPE;
     element_slot[*num_bs_elements] = slots_for_elements[BACK_LR_OF_CENTER];
-    ;
-    slot += chan_config[*num_bs_elements];
     element_instance_tag[*num_bs_elements] = 2;
     (*num_bs_elements)++;
   }
@@ -298,7 +350,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     chan_config[*num_bs_elements] = 1;
     element_type[*num_bs_elements] = ID_LFE;
     element_slot[*num_bs_elements] = slots_for_elements[LFE_CHANNEL];
-    slot += chan_config[*num_bs_elements];
     element_instance_tag[*num_bs_elements] = 0;
     (*num_bs_elements)++;
   }
@@ -309,8 +360,6 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
       chan_config[*num_bs_elements] = 1;
       element_type[*num_bs_elements] = ID_CCE;
       element_slot[*num_bs_elements] = slots_for_elements[COUPLING_CH + i];
-      slot += chan_config[*num_bs_elements];
-      // element_instance_tag[*num_bs_elements] = i;
       element_instance_tag[*num_bs_elements] = i_num_coupling_chan - i - 1;
       (*num_bs_elements)++;
     }
@@ -395,6 +444,7 @@ static WORD32 ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
 
 static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
                                         ixheaace_input_config *pstr_input_config) {
+  ia_usac_encoder_config_struct *pstr_usac_config = &pstr_api_struct->config[0].usac_config;
   WORD32 i;
 
   for (i = 0; i < MAXIMUM_BS_ELE; i++) {
@@ -426,7 +476,22 @@ static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
     pstr_api_struct->config[i].use_mps = USE_MPS_PARAM_DEFAULT_VALUE;
     pstr_api_struct->config[i].mps_tree_config = USE_MPS_TREE_CONFIG_PARAM_DEFAULT_VALUE;
   }
-
+  if (pstr_input_config->aot == AOT_USAC) {
+    memset(pstr_usac_config, 0, sizeof(*pstr_usac_config));
+    pstr_usac_config->channels = NUM_CHANNELS_CONFIG_PARAM_DEFAULT_VALUE;
+    pstr_usac_config->sample_rate = USAC_SAMP_FREQ_CONFIG_PARAM_DEFAULT_VALUE;
+    pstr_usac_config->core_sample_rate = USAC_SAMP_FREQ_CONFIG_PARAM_DEFAULT_VALUE;
+    pstr_usac_config->native_sample_rate = USAC_SAMP_FREQ_CONFIG_PARAM_DEFAULT_VALUE;
+    pstr_usac_config->sbr_pvc_active = USAC_SBR_PVC_DEFAULT_VALUE;
+    pstr_usac_config->sbr_inter_tes_active = USAC_SBR_INTER_TES_DEFAULT_VALUE;
+    pstr_usac_config->sbr_harmonic = USAC_SBR_HARMONIC_DEFAULT_VALUE;
+    pstr_usac_config->bit_rate = USAC_BITRATE_DEFAULT_VALUE;
+    pstr_usac_config->use_fill_element = USAC_FILL_ELEMENT_DEFAULT_VALUE;
+    pstr_usac_config->use_drc_element = USAC_DRC_DEFAULT_VALUE;
+    pstr_usac_config->cmplx_pred_flag = USAC_COMPLEX_PREDECTION_DEFAULT_VALUE;
+    pstr_usac_config->tns_select = USAC_TNS_DEFAULT_VALUE;
+    pstr_usac_config->flag_noiseFilling = USAC_FLAG_NOISE_FILLING_DEFAULT_VALUE;
+  }
   /* Initialize table pointers */
   ia_enhaacplus_enc_init_aac_tabs(&(pstr_api_struct->pstr_aac_tabs));
   ia_enhaacplus_enc_init_sbr_tabs(&(pstr_api_struct->spectral_band_replication_tabs));
@@ -439,6 +504,9 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
       pstr_input_config->aot != AOT_AAC_LD && pstr_input_config->aot != AOT_PS &&
       pstr_input_config->aot != AOT_SBR && pstr_input_config->aot != AOT_USAC) {
     pstr_input_config->aot = AOT_AAC_LC;
+  }
+  if (1 == pstr_input_config->usac_en) {
+    pstr_input_config->aot = AOT_USAC;
   }
   pstr_input_config->i_native_samp_freq = pstr_input_config->i_samp_freq;
   if (pstr_input_config->aot == AOT_USAC) {
@@ -479,8 +547,8 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     }
   }
 
-  if ((pstr_input_config->i_channels < MIN_NUM_CHANNELS) ||
-      (pstr_input_config->i_channels > MAX_NUM_CHANNELS)) {
+  if ((pstr_input_config->i_channels < MIN_NUM_CORE_CODER_CHANNELS) ||
+      (pstr_input_config->i_channels > MAX_NUM_CORE_CODER_CHANNELS)) {
     pstr_input_config->i_channels = 1;
   }
   if (pstr_input_config->esbr_flag != 1 && pstr_input_config->esbr_flag != 0) {
@@ -500,6 +568,18 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
   }
   if (pstr_input_config->aot != AOT_AAC_ELD && pstr_input_config->aot != AOT_USAC) {
     pstr_input_config->i_use_mps = 0;
+  }
+  if (pstr_input_config->aot == AOT_USAC && pstr_input_config->i_use_mps == 1) {
+    if (pstr_input_config->ccfl_idx < SBR_8_3) {
+      pstr_input_config->ccfl_idx = SBR_2_1;
+    }
+  }
+  if (AOT_USAC == pstr_input_config->aot) {
+    if ((pstr_input_config->i_channels != 2) || (pstr_input_config->i_samp_freq > 48000)) {
+      // Num qmf bands is mapped only till 48000. Hence, disable mps if fs > 48000 or if input
+      // channels is not 2
+      pstr_input_config->i_use_mps = 0;
+    }
   }
   if (pstr_input_config->i_use_mps == 1) {
     if (pstr_input_config->i_channels == 2) {
@@ -521,8 +601,118 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     pstr_input_config->i_use_adts = 0;
     pstr_input_config->i_use_es = 1;
   }
+  if (pstr_input_config->aot == AOT_USAC) {
+    if (pstr_input_config->codec_mode != USAC_SWITCHED &&
+        pstr_input_config->codec_mode != USAC_ONLY_FD &&
+        pstr_input_config->codec_mode != USAC_ONLY_TD) {
+      pstr_input_config->codec_mode = USAC_ONLY_FD;
+    }
+    if (pstr_input_config->ccfl_idx < NO_SBR_CCFL_768 || pstr_input_config->ccfl_idx > SBR_4_1) {
+      pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;  // default value
+    }
+    if (pstr_input_config->cplx_pred != 1 && pstr_input_config->cplx_pred != 0) {
+      pstr_input_config->cplx_pred = 0;
+    }
+    if (pstr_input_config->use_drc_element != 0 && pstr_input_config->use_drc_element != 1) {
+      pstr_input_config->use_drc_element = 0;
+    }
 
-  {
+    if (pstr_input_config->hq_esbr != 0 && pstr_input_config->hq_esbr != 1) {
+      pstr_input_config->hq_esbr = 0;
+    }
+    if (pstr_input_config->harmonic_sbr != 0 && pstr_input_config->harmonic_sbr != 1) {
+      pstr_input_config->harmonic_sbr = 0;
+    }
+    if (pstr_input_config->pvc_active != 0 && pstr_input_config->pvc_active != 1) {
+      pstr_input_config->pvc_active = 0;
+    }
+    if (pstr_input_config->inter_tes_active != 0 && pstr_input_config->inter_tes_active != 1) {
+      pstr_input_config->inter_tes_active = 0;
+    }
+    if ((pstr_input_config->ccfl_idx != 3 && pstr_input_config->ccfl_idx != 4)) {
+      pstr_input_config->harmonic_sbr = 0;
+    }
+    if (pstr_input_config->harmonic_sbr != 1) {
+      pstr_input_config->hq_esbr = 0;
+    }
+    if (pstr_input_config->i_bitrate != 64000 && pstr_input_config->i_bitrate != 96000) {
+      pstr_input_config->i_bitrate = USAC_BITRATE_DEFAULT_VALUE;
+    }
+    {
+      if (pstr_input_config->i_bitrate < MINIMUM_BITRATE * pstr_input_config->i_channels) {
+        pstr_input_config->i_bitrate = MINIMUM_BITRATE * pstr_input_config->i_channels;
+      }
+      if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_768 ||
+          pstr_input_config->ccfl_idx == NO_SBR_CCFL_1024) {
+        if (pstr_input_config->i_bitrate >
+            (6 * pstr_input_config->i_samp_freq * pstr_input_config->i_channels)) {
+          pstr_input_config->i_bitrate =
+              (6 * pstr_input_config->i_samp_freq * pstr_input_config->i_channels);
+        }
+      } else if (pstr_input_config->ccfl_idx == SBR_8_3) {
+        if (pstr_input_config->i_bitrate >
+            (6 * ((pstr_input_config->i_samp_freq * 3) / 8) * pstr_input_config->i_channels)) {
+          pstr_input_config->i_bitrate =
+              (6 * ((pstr_input_config->i_samp_freq * 3) / 8) * pstr_input_config->i_channels);
+        }
+      } else if (pstr_input_config->ccfl_idx == SBR_2_1) {
+        if (pstr_input_config->i_bitrate >
+            (6 * (pstr_input_config->i_samp_freq / 2) * pstr_input_config->i_channels)) {
+          pstr_input_config->i_bitrate =
+              (6 * (pstr_input_config->i_samp_freq / 2) * pstr_input_config->i_channels);
+        }
+      } else if (pstr_input_config->ccfl_idx == SBR_4_1) {
+        if (pstr_input_config->i_bitrate >
+            (6 * (pstr_input_config->i_samp_freq / 4) * pstr_input_config->i_channels)) {
+          pstr_input_config->i_bitrate =
+              (6 * (pstr_input_config->i_samp_freq / 4) * pstr_input_config->i_channels);
+        }
+      }
+    }
+
+    {
+      if (pstr_input_config->i_samp_freq > 64000)
+      {
+        pstr_input_config->codec_mode = USAC_ONLY_FD;
+        pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;
+        pstr_input_config->esbr_flag = 0;
+      }
+      if ((pstr_input_config->codec_mode == USAC_SWITCHED ||
+           pstr_input_config->codec_mode == USAC_ONLY_TD) &&
+          pstr_input_config->i_samp_freq > 24000) {
+        if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_768) {
+          pstr_input_config->ccfl_idx = SBR_8_3;  // Use 8:3 eSBR
+        }
+        if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_1024) {
+          pstr_input_config->ccfl_idx = SBR_2_1;  // Use 2:1 eSBR
+        }
+      }
+
+      if (pstr_input_config->codec_mode == USAC_ONLY_FD &&
+          pstr_input_config->i_samp_freq > 24000 && pstr_input_config->esbr_flag &&
+          pstr_input_config->i_bitrate <= MAX_USAC_ESBR_BITRATE) {
+        if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_768) {
+          pstr_input_config->ccfl_idx = SBR_8_3;  // Use 8:3 eSBR
+        }
+        if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_1024) {
+          pstr_input_config->ccfl_idx = SBR_2_1;  // Use 2:1 eSBR
+        }
+      }
+
+      if (pstr_input_config->ccfl_idx == NO_SBR_CCFL_768 ||
+          pstr_input_config->ccfl_idx == SBR_8_3) {
+        pstr_input_config->frame_length = LEN_SUPERFRAME_768;
+      } else {
+        pstr_input_config->frame_length = LEN_SUPERFRAME;
+      }
+    }
+  } else {
+    pstr_input_config->cplx_pred = 0;
+    pstr_input_config->harmonic_sbr = 0;
+    pstr_input_config->pvc_active = 0;
+    pstr_input_config->inter_tes_active = 0;
+    pstr_input_config->use_drc_element = 0;
+    pstr_input_config->hq_esbr = 0;
     if (pstr_input_config->i_channels != 2 && pstr_input_config->aot == AOT_PS) {
       pstr_input_config->aot = AOT_SBR;
     }
@@ -575,7 +765,7 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
 static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_struct,
                                                ixheaace_input_config *pstr_input_config) {
   WORD32 ele_idx;
-
+  ia_usac_encoder_config_struct *pstr_usac_config = &pstr_api_struct->config[0].usac_config;
   ixheaace_validate_config_params(pstr_input_config);
 
   if (pstr_input_config->ui_pcm_wd_sz != 16) {
@@ -669,10 +859,117 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
     if ((pstr_input_config->i_samp_freq < 6000) || (pstr_input_config->i_samp_freq > 96000)) {
       return (IA_EXHEAACE_CONFIG_FATAL_SAMP_FREQ);
     }
+    pstr_api_struct->usac_en = 1;
 
+    pstr_usac_config->codec_mode = pstr_input_config->codec_mode;
+    pstr_usac_config->channels = pstr_input_config->i_channels;
+
+    pstr_usac_config->core_sample_rate = pstr_input_config->i_samp_freq;
+    pstr_usac_config->sample_rate = pstr_input_config->i_samp_freq;
+    pstr_usac_config->native_sample_rate = pstr_input_config->i_native_samp_freq;
+
+    pstr_usac_config->ui_pcm_wd_sz = pstr_input_config->ui_pcm_wd_sz;
+    pstr_usac_config->ccfl_idx = pstr_input_config->ccfl_idx;
+    pstr_usac_config->bit_rate = pstr_input_config->i_bitrate;
+    pstr_usac_config->basic_bitrate = pstr_input_config->i_bitrate;
+    pstr_usac_config->tns_select = pstr_input_config->aac_config.use_tns;
+    pstr_usac_config->cmplx_pred_flag = pstr_input_config->cplx_pred;
+    pstr_usac_config->flag_noiseFilling = pstr_input_config->aac_config.noise_filling;
+    pstr_usac_config->sbr_pvc_active = pstr_input_config->pvc_active;
+    pstr_usac_config->sbr_harmonic = pstr_input_config->harmonic_sbr;
+    pstr_usac_config->hq_esbr = pstr_input_config->hq_esbr;
+    pstr_usac_config->sbr_inter_tes_active = pstr_input_config->inter_tes_active;
     pstr_api_struct->config[0].chmode_nchannels = pstr_api_struct->config[0].i_channels;
+
+    switch (pstr_input_config->ccfl_idx) {
+      case NO_SBR_CCFL_768:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME_768;
+        pstr_usac_config->in_frame_length = LEN_SUPERFRAME_768;
+        pstr_usac_config->sbr_enable = 0;
+        pstr_usac_config->drc_frame_size = LEN_SUPERFRAME_768;
+        break;
+      case NO_SBR_CCFL_1024:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME;
+        pstr_usac_config->in_frame_length = LEN_SUPERFRAME;
+        pstr_usac_config->sbr_enable = 0;
+        pstr_usac_config->drc_frame_size = LEN_SUPERFRAME;
+        break;
+      case SBR_8_3:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME_768;
+        pstr_usac_config->in_frame_length = (LEN_SUPERFRAME_768 * 8) / 3;
+        pstr_usac_config->sbr_enable = 1;
+        pstr_usac_config->drc_frame_size = (LEN_SUPERFRAME_768 * 8) / 3;
+        break;
+      case SBR_2_1:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME;
+        pstr_usac_config->in_frame_length = (LEN_SUPERFRAME * 2);
+        pstr_usac_config->sbr_enable = 1;
+        pstr_usac_config->drc_frame_size = (LEN_SUPERFRAME * 2);
+        break;
+      case SBR_4_1:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME;
+        pstr_usac_config->in_frame_length = (LEN_SUPERFRAME * 4);
+        pstr_usac_config->sbr_enable = 1;
+        pstr_usac_config->drc_frame_size = (LEN_SUPERFRAME * 4);
+        break;
+      default:
+        pstr_usac_config->ccfl = LEN_SUPERFRAME;
+        pstr_usac_config->in_frame_length = LEN_SUPERFRAME;
+        pstr_usac_config->sbr_enable = 0;
+        pstr_usac_config->drc_frame_size = LEN_SUPERFRAME;
+        break;
+    }
+    if (pstr_input_config->ccfl_idx < NO_SBR_CCFL_768 || pstr_input_config->ccfl_idx > SBR_4_1) {
+      pstr_api_struct->config[0].ccfl_idx = NO_SBR_CCFL_1024;  // default value
+    } else {
+      pstr_api_struct->config[0].ccfl_idx = pstr_input_config->ccfl_idx;
+    }
+    if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+      pstr_api_struct->spectral_band_replication_tabs.ptr_sos_upsamp_tab =
+          (ixheaace_resampler_sos_table *)&iixheaace_resamp_1_to_3_filt_params;
+
+      pstr_api_struct->spectral_band_replication_tabs.ptr_sos_downsamp_tab =
+          (ixheaace_resampler_sos_table *)&iixheaace_resamp_8_to_1_filt_params;
+    } else if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1) {
+      pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab =
+          (ixheaace_resampler_table *)&ixheaace_resamp_2_to_1_iir_filt_params;
+    } else if (pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
+      pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab =
+          (ixheaace_resampler_table *)&ixheaace_resamp_4_to_1_iir_filt_params;
+    }
+    pstr_usac_config->use_drc_element = pstr_input_config->use_drc_element;
+    if (pstr_usac_config->use_drc_element) {
+      pstr_input_config->str_drc_cfg.str_uni_drc_config.str_channel_layout.base_ch_count =
+          pstr_input_config->i_channels;
+      pstr_input_config->str_drc_cfg.str_enc_params.sample_rate = pstr_input_config->i_samp_freq;
+
+      pstr_input_config->str_drc_cfg.str_uni_drc_config.sample_rate =
+          pstr_input_config->str_drc_cfg.str_enc_params.sample_rate;
+      for (WORD32 i = 0;
+           i < pstr_input_config->str_drc_cfg.str_uni_drc_config.drc_coefficients_uni_drc_count;
+           i++) {
+        for (WORD32 j = 0;
+             j < pstr_input_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[i]
+                     .gain_set_count;
+             j++) {
+          pstr_input_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[i]
+              .str_gain_set_params[j]
+              .delta_tmin = impd_drc_get_delta_t_min(
+              pstr_input_config->str_drc_cfg.str_uni_drc_config.sample_rate);
+        }
+      }
+
+      pstr_usac_config->str_drc_cfg = pstr_input_config->str_drc_cfg;
+      pstr_usac_config->str_drc_cfg.str_enc_params.frame_size = pstr_usac_config->drc_frame_size;
+      pstr_usac_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc
+          ->drc_frame_size = pstr_usac_config->drc_frame_size;
+      pstr_input_config->drc_frame_size = pstr_usac_config->drc_frame_size;
+    } else {
+      pstr_usac_config->drc_frame_size = 0;
+      pstr_input_config->drc_frame_size = 0;
+    }
   } else {
-    if ((pstr_input_config->i_channels > MAX_NUM_CHANNELS)) {
+    if ((pstr_input_config->i_channels > MAX_NUM_CORE_CODER_CHANNELS)) {
       return (IA_EXHEAACE_CONFIG_FATAL_NUM_CHANNELS);
     }
     if (!((pstr_input_config->i_native_samp_freq == 7350) ||
@@ -830,7 +1127,126 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
   ixheaace_mem_info_struct *pstr_mem_info;
   frame_length = pstr_api_struct->config[0].frame_length;
   WORD32 offset_size = 0;
-  {
+  if (pstr_api_struct->usac_en) {
+    WORD32 fac_downsample = 1;
+    if (pstr_api_struct->config[0].ccfl_idx > NO_SBR_CCFL_1024) {
+      fac_downsample = pstr_api_struct->config[0].ccfl_idx >> 1;
+    } else {
+      fac_downsample = 1;
+    }
+    /* persistant */
+    {
+      pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_PERSIST_IDX];
+      {
+        pstr_mem_info->ui_size =
+            sizeof(ixheaace_state_struct) + iusace_calc_pers_buf_sizes(pstr_api_struct);
+        if (pstr_api_struct->config[0].usac_config.sbr_enable) {
+          pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(
+              2, 0, pstr_api_struct->config[0].usac_config.sbr_harmonic);
+        }
+        pstr_mem_info->ui_size += 2 *
+                                  ia_enhaacplus_enc_sizeof_delay_buffer(
+                                      0, AOT_USAC, pstr_api_struct->config[0].ccfl_idx,
+                                      sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
+                                      pstr_api_struct->config[0].use_mps) *
+                                  pstr_api_struct->config[0].num_bs_elements;
+
+        if (pstr_api_struct->config[0].use_mps) {
+          pstr_mem_info->ui_size +=
+              (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
+
+          pstr_mem_info->ui_size +=
+              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+
+          pstr_mem_info->ui_size += sizeof(ixheaace_mps_212_memory_struct) + 7;
+        }
+        if (1 == pstr_api_struct->config[0].usac_config.sbr_enable) {
+          pstr_mem_info->ui_size +=
+              (MAX_FRAME_LEN * (1 << fac_downsample) + MAX_DS_8_1_FILTER_DELAY + INPUT_DELAY) *
+              MAX_CHANNELS * sizeof(pstr_mem_info->ui_size);
+        }
+        if ((2 != pstr_api_struct->config[0].usac_config.channels) &&
+            (1 == pstr_api_struct->config[0].usac_config.sbr_enable)) {
+          pstr_mem_info->ui_size +=
+              (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
+        }
+      }
+
+      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_type = IA_MEMTYPE_PERSIST;
+      pstr_mem_info->ui_placement[0] = 0;
+      pstr_mem_info->ui_placement[1] = 0;
+      pstr_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+      pstr_mem_info->ui_placed[0] = 0;
+      pstr_mem_info->ui_placed[1] = 0;
+    }
+
+    /* scratch */
+    {
+      pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_SCRATCH_IDX];
+      UWORD32 usac_scr_size = iusace_scratch_size();
+      if (pstr_api_struct->config[0].usac_config.sbr_enable) {
+        UWORD32 sbr_scr_size = ixheaace_sbr_enc_scr_size() + ixheaace_resampler_scr_size();
+        pstr_mem_info->ui_size = max(usac_scr_size, sbr_scr_size);
+      } else {
+        pstr_mem_info->ui_size = usac_scr_size;
+      }
+
+      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
+      pstr_mem_info->ui_placement[0] = 0;
+      pstr_mem_info->ui_placement[1] = 0;
+      pstr_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+      pstr_mem_info->ui_placed[0] = 0;
+      pstr_mem_info->ui_placed[1] = 0;
+    }
+
+    /* input */
+    {
+      pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_INPUT_IDX];
+      WORD32 pcm_wd_sz;
+      num_channel = pstr_api_struct->config[0].i_channels;
+      pcm_wd_sz = pstr_api_struct->config[0].usac_config.ui_pcm_wd_sz;
+      pstr_mem_info->ui_size = frame_length * num_channel * (pcm_wd_sz >> 3);
+      if (1 == pstr_api_struct->config[0].usac_config.sbr_enable) {
+        switch (pstr_api_struct->config[0].ccfl_idx) {
+          case SBR_8_3:  // 8:3
+            pstr_mem_info->ui_size *= 8;
+            pstr_mem_info->ui_size /= 3;
+            break;
+
+          case SBR_2_1:  // 2:1
+            pstr_mem_info->ui_size *= 2;
+            break;
+
+          case SBR_4_1:  // 4:1
+            pstr_mem_info->ui_size *= 4;
+            break;
+        }
+      }
+
+      pstr_mem_info->ui_alignment = 8; /* As input is used as scratch memory internally */
+      pstr_mem_info->ui_type = IA_MEMTYPE_INPUT;
+      pstr_mem_info->ui_placement[0] = 0;
+      pstr_mem_info->ui_placement[1] = 0;
+      pstr_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+      pstr_mem_info->ui_placed[0] = 0;
+      pstr_mem_info->ui_placed[1] = 0;
+    }
+
+    /* output */
+    {
+      pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_OUTPUT_IDX];
+      pstr_mem_info->ui_size = pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_INPUT_IDX].ui_size;
+      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_type = IA_MEMTYPE_OUTPUT;
+      pstr_mem_info->ui_placement[0] = 0;
+      pstr_mem_info->ui_placement[1] = 0;
+      pstr_mem_info->ui_priority = IA_MEMPRIORITY_ANYWHERE;
+      pstr_mem_info->ui_placed[0] = 0;
+      pstr_mem_info->ui_placed[1] = 0;
+    }
+  } else {
     /* persistant */
     {
       pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_PERSIST_IDX];
@@ -847,7 +1263,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
           if (pstr_api_struct->config[0].aot != AOT_AAC_LC &&
               pstr_api_struct->config[0].aot != AOT_AAC_LD) {
             pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(
-                num_channel, pstr_api_struct->config[0].use_parametric_stereo);
+                num_channel, pstr_api_struct->config[0].use_parametric_stereo, 0);
           }
           offset_size = ia_enhaacplus_enc_sizeof_delay_buffer(
                             pstr_api_struct->config[0].aac_config.flag_framelength_small, aot, 3,
@@ -867,8 +1283,8 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
           for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
             num_channel = pstr_api_struct->config[ele_idx].i_channels;
             if (pstr_api_struct->config[ele_idx].element_type != ID_LFE)
-              pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(num_channel, 0);
-            pstr_mem_info->ui_size += ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot);
+              pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(num_channel, 0, 0);
+            pstr_mem_info->ui_size += ia_enhaacplus_enc_aac_enc_pers_size(num_channel, aot) + 32;
           }
         }
 
@@ -1028,8 +1444,135 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
 
       /* Set persistent memory pointer in api obj */
       pstr_api_struct->pstr_state = (ixheaace_state_struct *)pv_value;
+      WORD32 i, inp_delay_size;
+      WORD8 *p_temp;
+      if (pstr_api_struct->usac_en) {
+        memset(pstr_api_struct->pstr_state, 0, sizeof(*(pstr_api_struct->pstr_state)));
+        ia_usac_encoder_config_struct *pstr_usac_config = &pstr_api_struct->config[0].usac_config;
+        ixheaace_state_struct *pstr_state = pstr_api_struct->pstr_state;
+        ia_usac_data_struct *pstr_usac_enc_data = &(pstr_state->str_usac_enc_data);
 
-      {
+        pstr_state->ptr_in_buf = (FLOAT32 **)((WORD8 *)pstr_state + offset_size);
+
+        p_offset =
+            (WORD8 *)pstr_state->ptr_in_buf + (pstr_usac_config->channels * sizeof(FLOAT32 *));
+
+        // Input delay
+        pstr_state->inp_delay = (FLOAT32 *)(p_offset);
+        inp_delay_size =
+            2 *
+            ia_enhaacplus_enc_sizeof_delay_buffer(
+                0, AOT_USAC, pstr_api_struct->config[0].ccfl_idx,
+                sizeof(pstr_state->inp_delay[0]), pstr_api_struct->config[0].use_mps) *
+            pstr_api_struct->config[0].num_bs_elements;
+        memset(pstr_state->inp_delay, 0, inp_delay_size);
+        p_offset += inp_delay_size;
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        if (1 == pstr_usac_config->sbr_enable) {
+          if (2 != pstr_usac_config->channels) {
+            pstr_api_struct->pstr_state->time_signal = (FLOAT32 *)(p_offset);
+
+            memset(pstr_api_struct->pstr_state->time_signal, 0,
+                   (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]));
+            p_offset += (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
+            p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          }
+
+          pstr_api_struct->pstr_state->spectral_band_replication_enc_pers_mem[0] =
+              (struct ixheaace_str_sbr_enc *)p_offset;
+          p_offset = p_offset + ixheaace_sbr_enc_pers_size(pstr_usac_config->channels, 0,
+                                                           pstr_usac_config->sbr_harmonic);
+
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        }
+        if (1 == pstr_api_struct->config[0].use_mps) {
+          pstr_api_struct->pstr_state->time_signal_mps = (FLOAT32 *)(p_offset);
+
+          memset(pstr_api_struct->pstr_state->time_signal_mps, 0,
+                 (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]));
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          p_offset +=
+              (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
+
+          pstr_api_struct->pstr_state->mps_bs = (UWORD8 *)(p_offset);
+
+          memset(pstr_api_struct->pstr_state->mps_bs, 0,
+                 (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]));
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
+          p_offset += (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
+          pstr_api_struct->pstr_state->mps_pers_mem = (ixheaace_mps_212_memory_struct *)p_offset;
+          p_offset += sizeof(ixheaace_mps_212_memory_struct);
+
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        } else {
+          pstr_api_struct->pstr_state->mps_bs = NULL;
+        }
+        if (1 == pstr_usac_config->use_drc_element) {
+          pstr_state->pp_drc_in_buf = (FLOAT32 **)((WORD8 *)p_offset);
+          p_offset += pstr_usac_config->channels * sizeof(pstr_state->pp_drc_in_buf[0]);
+          p_temp = p_offset;
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          for (i = 0; i < pstr_usac_config->channels; i++) {
+            pstr_state->pp_drc_in_buf[i] = (FLOAT32 *)p_offset;
+            p_offset +=
+                pstr_usac_config->drc_frame_size * sizeof(pstr_state->pp_drc_in_buf[0][0]) * 2;
+          }
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          memset(p_temp, 0, (p_offset - p_temp));
+        }
+        p_temp = p_offset;
+
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_state->ptr_in_buf[i] = (FLOAT32 *)p_offset;
+          p_offset += pstr_usac_config->ccfl * sizeof(FLOAT32) * 2;
+        }
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        memset(p_temp, 0, (p_offset - p_temp));
+
+        p_temp = p_offset;
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_usac_enc_data->ptr_time_data[i] = (FLOAT64 *)p_offset;
+          p_offset += 2 * (pstr_usac_config->ccfl) * sizeof(FLOAT64);
+        }
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_usac_enc_data->ptr_look_ahead_time_data[i] = (FLOAT64 *)p_offset;
+          p_offset += pstr_usac_config->ccfl * sizeof(FLOAT64);
+        }
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_usac_enc_data->spectral_line_vector[i] = (FLOAT64 *)p_offset;
+          p_offset += 2 * pstr_usac_config->ccfl * sizeof(FLOAT64);
+        }
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_usac_enc_data->ptr_2frame_time_data[i] = (FLOAT64 *)p_offset;
+          p_offset += 3 * pstr_usac_config->ccfl * sizeof(FLOAT64);
+        }
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        memset(p_temp, 0, p_offset - p_temp);
+
+        if (pstr_usac_config->tns_select != 0) {
+          p_temp = p_offset;
+          for (i = 0; i < pstr_usac_config->channels; i++) {
+            pstr_usac_enc_data->pstr_tns_info[i] = (ia_tns_info *)p_offset;
+            p_offset += sizeof(ia_tns_info);
+          }
+          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          memset(p_temp, 0, p_offset - p_temp);
+        }
+
+        p_temp = p_offset;
+        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        for (i = 0; i < pstr_usac_config->channels; i++) {
+          pstr_usac_enc_data->td_encoder[i] = (ia_usac_td_encoder_struct *)p_offset;
+          p_offset += sizeof(ia_usac_td_encoder_struct);
+        }
+        memset(p_temp, 0, p_offset - p_temp);
+      } else {
         WORD32 num_aac_chan;
         ixheaace_state_struct *pstr_state = pstr_api_struct->pstr_state;
         memset(pstr_api_struct->pstr_state, 0, sizeof(*(pstr_api_struct->pstr_state)));
@@ -1097,21 +1640,312 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
               /* Set spectral_band_replication_ enc persistent memory pointer in api obj */
               pstr_api_struct->pstr_state->spectral_band_replication_enc_pers_mem[ele_idx] =
                   (struct ixheaace_str_sbr_enc *)p_offset;
-              p_offset = p_offset + ixheaace_sbr_enc_pers_size(
-                                        num_aac_chan,
-                                        pstr_api_struct->config[ele_idx].use_parametric_stereo);
+
+              p_offset =
+                  p_offset +
+                  ixheaace_sbr_enc_pers_size(
+                      num_aac_chan, pstr_api_struct->config[ele_idx].use_parametric_stereo, 0);
+              p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
             }
           }
         }
       }
     }
 
+    if ((i_idx == IA_MEMTYPE_SCRATCH) && pstr_api_struct->usac_en) {
+      pstr_api_struct->pstr_state->str_usac_enc_data.str_scratch.ptr_scratch_buf =
+          (UWORD8 *)pstr_api_struct->pp_mem[IA_MEMTYPE_SCRATCH];
+      memset(pstr_api_struct->pp_mem[IA_MEMTYPE_SCRATCH], 0,
+             pstr_api_struct->pstr_mem_info[i_idx].ui_size);
+    }
     if (i_idx == IA_ENHAACPLUSENC_INPUT_IDX) {
       ptr_out_cfg->ui_inp_buf_size = ptr_out_cfg->mem_info_table[i_idx].ui_size;
     }
     ptr_out_cfg->malloc_count++;
   }
   return err_code;
+}
+static IA_ERRORCODE ia_usac_enc_init(ixheaace_api_struct *pstr_api_struct, WORD32 ccfl_idx) {
+  IA_ERRORCODE error = IA_NO_ERROR;
+  WORD32 i = 0;
+  ixheaace_config_struct *pstr_config = &pstr_api_struct->config[0];
+  ixheaace_state_struct *pstr_enc_state = pstr_api_struct->pstr_state;
+  ia_usac_data_struct *pstr_enc_data = &pstr_enc_state->str_usac_enc_data;
+  ia_usac_encoder_config_struct *pstr_usac_config = &pstr_config->usac_config;
+
+  pstr_usac_config->bit_rate = pstr_api_struct->config[0].aac_config.bit_rate;
+
+  if ((pstr_usac_config->codec_mode == USAC_SWITCHED) ||
+      (pstr_usac_config->codec_mode == USAC_ONLY_FD)) {
+    pstr_usac_config->aac_allow_scalefacs = 1;
+    if (pstr_usac_config->aac_scale_facs == 0) pstr_usac_config->aac_allow_scalefacs = 0;
+  }
+
+  if (pstr_usac_config->codec_mode == USAC_ONLY_TD) {
+    for (i = 0; i < pstr_config->i_channels; i++) {
+      pstr_enc_data->core_mode_prev[i] = CORE_MODE_FD;
+      pstr_enc_data->core_mode[i] = CORE_MODE_TD;
+    }
+  } else {
+    for (i = 0; i < pstr_config->i_channels; i++) {
+      pstr_enc_data->core_mode_prev[i] = CORE_MODE_FD;
+      pstr_enc_data->core_mode[i] = CORE_MODE_FD;
+    }
+  }
+
+  if (1 == pstr_usac_config->use_drc_element) {
+    pstr_enc_data->str_scratch.drc_scratch = pstr_enc_data->str_scratch.ptr_scratch_buf;
+  }
+  if (pstr_usac_config->sbr_enable) {
+    WORD8 *sbr_scr_ptr = (WORD8 *)pstr_enc_data->str_scratch.ptr_scratch_buf;
+    ixheaace_audio_specific_config_struct *pstr_asc = &pstr_enc_state->audio_specific_config;
+    ixheaace_str_sbr_cfg spectral_band_replication_config;
+    // SBR defaults
+    iaace_config *pstr_sbr_config = &(pstr_api_struct->config[0].aac_config);
+    WORD32 sbr_ratio = 0;
+    WORD32 samples = pstr_usac_config->ccfl;
+    // Set scratch buffers for SBR and resampler
+    pstr_api_struct->pstr_state->temp_buff_sbr =
+        (WORD8 *)pstr_enc_data->str_scratch.ptr_scratch_buf;
+    pstr_api_struct->pstr_state->ptr_temp_buff_resamp =
+        (WORD8 *)pstr_enc_data->str_scratch.ptr_scratch_buf + ixheaace_sbr_enc_scr_size();
+
+    ixheaace_initialize_sbr_defaults(&spectral_band_replication_config);
+    // Set SBR codec as USAC
+    spectral_band_replication_config.sbr_codec = USAC_SBR;
+    spectral_band_replication_config.sbr_pvc_active = pstr_usac_config->sbr_pvc_active;
+    spectral_band_replication_config.sbr_harmonic = pstr_usac_config->sbr_harmonic;
+    spectral_band_replication_config.hq_esbr = pstr_usac_config->hq_esbr;
+    pstr_usac_config->core_sample_rate = pstr_usac_config->sample_rate / 2;
+    switch (pstr_usac_config->ccfl_idx) {
+      case SBR_4_1:
+        spectral_band_replication_config.sbr_ratio_idx = USAC_SBR_RATIO_INDEX_4_1;
+        spectral_band_replication_config.sbr_pvc_rate = USAC_SBR_DOWNSAMPLE_RATIO_4_1;
+        pstr_usac_config->core_sample_rate = pstr_usac_config->sample_rate / 4;
+        sbr_ratio = 4;
+        samples *= 4;
+        break;
+      case SBR_8_3:
+        spectral_band_replication_config.sbr_ratio_idx = USAC_SBR_RATIO_INDEX_8_3;
+        spectral_band_replication_config.sbr_pvc_rate = USAC_SBR_DOWNSAMPLE_RATIO_2_1;
+        sbr_ratio = 2;
+        samples *= 8;
+        samples /= 3;
+        break;
+      case SBR_2_1:
+        spectral_band_replication_config.sbr_ratio_idx = USAC_SBR_RATIO_INDEX_2_1;
+        spectral_band_replication_config.sbr_pvc_rate = USAC_SBR_DOWNSAMPLE_RATIO_2_1;
+        sbr_ratio = 2;
+        samples *= 2;
+        break;
+      default:
+        spectral_band_replication_config.sbr_ratio_idx = USAC_SBR_RATIO_NO_SBR;
+        spectral_band_replication_config.sbr_pvc_rate = 2;
+        sbr_ratio = 2;
+        break;
+    }
+    if (pstr_api_struct->pstr_state->mps_enable) {
+      ixheaace_mps_212_memory_struct *pstr_mps_memory;
+      pstr_mps_memory = pstr_api_struct->pstr_state->mps_pers_mem;
+      ixheaace_mps_212_open(&pstr_api_struct->pstr_mps_212_enc, pstr_mps_memory);
+      pstr_asc->str_aac_config.num_sac_cfg_bits = 0;
+
+      error = ixheaace_mps_212_initialise(
+          pstr_api_struct->pstr_mps_212_enc, AOT_USAC, pstr_usac_config->sample_rate,
+          &pstr_sbr_config->bit_rate, sbr_ratio, (WORD32)samples, samples, 515 * sbr_ratio,
+          (WORD8 *)pstr_api_struct->pstr_state->ptr_temp_buff_resamp);
+      if (error) {
+        return error;
+      }
+
+      pstr_asc->str_aac_config.num_sac_cfg_bits = ixheaace_mps_212_get_spatial_specific_config(
+          pstr_api_struct->pstr_mps_212_enc, (WORD8 *)pstr_asc->str_aac_config.sac_cfg_data,
+          sizeof(pstr_asc->str_aac_config.sac_cfg_data), AOT_USAC);
+    }
+    ixheaace_adjust_sbr_settings(
+        &spectral_band_replication_config, pstr_sbr_config->bit_rate,
+        (pstr_api_struct->pstr_state->mps_enable != 1) ? pstr_config->i_channels : 1,
+        pstr_usac_config->core_sample_rate, AACENC_TRANS_FAC, 24000,
+        pstr_api_struct->spectral_band_replication_tabs.ptr_qmf_tab,
+        pstr_api_struct->pstr_state->aot);
+
+    error = ixheaace_env_open(
+        &pstr_api_struct->pstr_state->spectral_band_replication_enc_pers_mem[0],
+        &spectral_band_replication_config, &pstr_sbr_config->band_width, sbr_scr_ptr,
+        &(pstr_api_struct->spectral_band_replication_tabs), &pstr_asc->str_aac_config.sbr_config);
+    if (error) {
+      return error;
+    }
+
+    if (pstr_api_struct->config[0].ccfl_idx >= 2) {
+      pstr_api_struct->pstr_state->downsample[0] = 1;
+    } else {
+      pstr_api_struct->pstr_state->downsample[0] = 0;
+    }
+
+    if (pstr_api_struct->pstr_state->downsample[0]) {
+      IA_ERRORCODE resamp_error = IA_NO_ERROR;
+      WORD32 resamp_ratio = 0, upsamp_fac = 0, downsamp_fac = 0;
+      WORD32 ele_idx = 0, ch_idx = 0;
+
+      if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+        upsamp_fac = 3;
+        downsamp_fac = 8;
+        pstr_usac_config->sample_rate /= 2;
+      } else if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1) {
+        resamp_ratio = 2;
+        pstr_usac_config->sample_rate /= 2;
+      } else if (pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
+        resamp_ratio = 4;
+        pstr_usac_config->sample_rate /= 4;
+      }
+
+      if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+        if (upsamp_fac != 3 || downsamp_fac != 8) {
+          return IA_EXHEAACE_CONFIG_FATAL_USAC_RESAMPLER_RATIO;
+        }
+      } else {
+        if (resamp_ratio != 2 && resamp_ratio != 4) {
+          return IA_EXHEAACE_CONFIG_FATAL_USAC_RESAMPLER_RATIO;
+        }
+      }
+      if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {  // Upsampler initialization
+        resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+            &(pstr_api_struct->pstr_state->up_sampler[ele_idx][ch_idx]), upsamp_fac,
+            pstr_api_struct->spectral_band_replication_tabs.ptr_sos_upsamp_tab);
+        if (resamp_error) {
+          return resamp_error;
+        }
+        if (pstr_api_struct->config[0].i_channels > 1) {
+          resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+              &(pstr_api_struct->pstr_state->up_sampler[ele_idx][ch_idx + 1]), upsamp_fac,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_sos_upsamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+        }
+        if (pstr_usac_config->sbr_harmonic) {
+          resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+              &(pstr_api_struct->pstr_state->hbe_up_sampler[ele_idx][ch_idx]), upsamp_fac,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_sos_upsamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+          if (pstr_api_struct->config[0].i_channels > 1) {
+            resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+                &(pstr_api_struct->pstr_state->hbe_up_sampler[ele_idx][ch_idx + 1]), upsamp_fac,
+                pstr_api_struct->spectral_band_replication_tabs.ptr_sos_upsamp_tab);
+            if (resamp_error) {
+              return resamp_error;
+            }
+          }
+        }
+        // Downsampler initialization
+        resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+            &(pstr_api_struct->pstr_state->down_samp_sos[ele_idx][ch_idx]), downsamp_fac,
+            pstr_api_struct->spectral_band_replication_tabs.ptr_sos_downsamp_tab);
+        if (resamp_error) {
+          return resamp_error;
+        }
+        if (pstr_api_struct->config[0].i_channels > 1) {
+          resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+              &(pstr_api_struct->pstr_state->down_samp_sos[ele_idx][ch_idx + 1]), downsamp_fac,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_sos_downsamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+        }
+        if (pstr_usac_config->sbr_harmonic) {
+          resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+              &(pstr_api_struct->pstr_state->hbe_down_samp_sos[ele_idx][ch_idx]), downsamp_fac,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_sos_downsamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+          if (pstr_api_struct->config[0].i_channels > 1) {
+            resamp_error = ia_enhaacplus_enc_init_iir_sos_resampler(
+                &(pstr_api_struct->pstr_state->hbe_down_samp_sos[ele_idx][ch_idx + 1]),
+                downsamp_fac,
+                pstr_api_struct->spectral_band_replication_tabs.ptr_sos_downsamp_tab);
+            if (resamp_error) {
+              return resamp_error;
+            }
+          }
+        }
+      } else if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1 ||
+                 pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
+        resamp_error = ia_enhaacplus_enc_init_iir_resampler(
+            &(pstr_api_struct->pstr_state->down_sampler[ele_idx][ch_idx]), resamp_ratio,
+            pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab);
+        if (resamp_error) {
+          return resamp_error;
+        }
+        if (pstr_api_struct->config[0].i_channels > 1) {
+          resamp_error = ia_enhaacplus_enc_init_iir_resampler(
+              &(pstr_api_struct->pstr_state->down_sampler[ele_idx][ch_idx + 1]), resamp_ratio,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+        }
+        if (pstr_usac_config->sbr_harmonic) {
+          resamp_error = ia_enhaacplus_enc_init_iir_resampler(
+              &(pstr_api_struct->pstr_state->hbe_down_sampler[ele_idx][ch_idx]), resamp_ratio,
+              pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab);
+          if (resamp_error) {
+            return resamp_error;
+          }
+          if (pstr_api_struct->config[0].i_channels > 1) {
+            resamp_error = ia_enhaacplus_enc_init_iir_resampler(
+                &(pstr_api_struct->pstr_state->hbe_down_sampler[ele_idx][ch_idx + 1]),
+                resamp_ratio, pstr_api_struct->spectral_band_replication_tabs.ptr_resamp_tab);
+            if (resamp_error) {
+              return resamp_error;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  error = iusace_enc_init(pstr_usac_config, &pstr_api_struct->pstr_state->audio_specific_config,
+                          &pstr_api_struct->pstr_state->str_usac_enc_data);
+  if (error) {
+    return error;
+  }
+
+  ia_bit_buf_struct *pstr_ia_asc_bit_buf;
+  pstr_ia_asc_bit_buf = iusace_create_bit_buffer(
+      &(pstr_api_struct->pstr_state->str_bit_buf), pstr_api_struct->pp_mem[IA_MEMTYPE_OUTPUT],
+      pstr_api_struct->pstr_mem_info[IA_MEMTYPE_OUTPUT].ui_size, 1);
+#ifdef ENABLE_SET_JUMP
+  pstr_ia_asc_bit_buf->iusace_jmp_buf = &api_init_jmp_buf;
+#endif
+  if (pstr_usac_config->sbr_enable) {
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->stereo_config_index = (pstr_api_struct->pstr_state->mps_enable == 1) ? 2 : 0;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.bs_inter_tes = pstr_usac_config->sbr_inter_tes_active;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.bs_pvc = pstr_usac_config->sbr_pvc_active;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.dflt_header_extra1 = 0;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.dflt_header_extra2 = 0;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.dflt_start_freq = 0;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.dflt_stop_freq = 4;
+    pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
+        ->str_usac_sbr_config.harmonic_sbr = pstr_usac_config->sbr_harmonic;
+  }
+
+  ixheaace_get_audiospecific_config_bytes(pstr_ia_asc_bit_buf,
+                                          &pstr_api_struct->pstr_state->audio_specific_config,
+                                          AOT_USAC, ccfl_idx);
+  pstr_api_struct->pstr_state->i_out_bytes = (pstr_ia_asc_bit_buf->cnt_bits + 7) >> 3;
+
+  return IA_NO_ERROR;
 }
 
 static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct, WORD32 ele_idx) {
@@ -1824,7 +2658,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
             pstr_api_struct->pstr_state->anc_data_bytes[ele_idx],
             &(pstr_api_struct->spectral_band_replication_tabs), &(pstr_api_struct->common_tabs),
             &(mps_extension_payload.p_data[0]), mps_extension_payload.data_size,
-            pstr_api_struct->config[0].aac_config.flag_framelength_small);
+            pstr_api_struct->config[0].aac_config.flag_framelength_small, NULL);
 
         if (error != IA_NO_ERROR) {
           return error;
@@ -1873,11 +2707,9 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
   if (pstr_api_struct->config->adts_flag) {
     pub_out_buf = ((pUWORD8)pstr_api_struct->pp_mem[IA_ENHAACPLUSENC_OUTPUT_IDX]);
     {
-      WORD32 bit_rate = 0;
       WORD32 num_channels = 0;
 
       for (ele = 0; ele < pstr_api_struct->config[0].num_bs_elements; ele++) {
-        bit_rate += pstr_api_struct->config[ele].aac_config.bit_rate;
         num_channels += pstr_api_struct->config[ele].i_channels;
       }
       {
@@ -1895,7 +2727,555 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
 
   return IA_NO_ERROR;
 }
+static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
+  IA_ERRORCODE error = IA_NO_ERROR;
+  WORD32 idx;
+#ifdef ENABLE_SET_JUMP
+  jmp_buf api_execute_jmp_buf;
+  error = setjmp(api_execute_jmp_buf);
+  if (error != IA_NO_ERROR) {
+    return IA_EXHEAACE_EXE_NONFATAL_USAC_INSUFFICIENT_WRITE_BUFFER_SIZE;
+  }
+#endif  // ENABLE_SET_JUMP
 
+  WORD32 write_off_set = 0;
+  WORD32 core_coder_frame_length;
+  WORD32 usac_independency_flg;
+  UWORD32 padding_bits = 0;
+  WORD32 core_sample;
+  WORD32 drc_sample;
+  WORD32 i4_inp_data;
+  WORD32 ptr_inp_buf_offset = 0;
+  WORD32 num_ch;
+  WORD16 *ps_inp_buf = NULL;
+  WORD8 *pi1_inp_buf = NULL;
+  WORD8 *ps_out_buf = NULL;
+  WORD32 *pi4_inp_buf = NULL;
+  FLOAT32 *ptr_input_buffer = NULL;
+  FLOAT32 *ptr_inp_buf[MAX_TIME_CHANNELS];
+  FLOAT32 *ptr_drc_inp_buf[MAX_TIME_CHANNELS];
+  ixheaace_state_struct *pstr_state = pstr_api_struct->pstr_state;
+  ia_bit_buf_struct *pstr_it_bit_buff = &pstr_state->str_bit_buf;
+  ia_usac_encoder_config_struct *pstr_config = &pstr_api_struct->config[0].usac_config;
+  ia_usac_data_struct *pstr_usac_data = &pstr_api_struct->pstr_state->str_usac_enc_data;
+  iusace_scratch_mem *pstr_scratch = &pstr_usac_data->str_scratch;
+  ia_classification_struct *pstr_sig_class_data =
+      &pstr_state->str_usac_enc_data.str_sig_class_data;
+  core_sample = (pstr_config->ccfl * pstr_config->channels);
+  drc_sample = pstr_config->drc_frame_size * pstr_config->channels;
+  core_coder_frame_length = pstr_config->ccfl;
+  num_ch = pstr_config->channels;
+  usac_independency_flg = !(pstr_usac_data->usac_independency_flag_count %
+                            pstr_usac_data->usac_independency_flag_interval);
+  pstr_usac_data->usac_independency_flag = usac_independency_flg;
+  ps_inp_buf = (WORD16 *)pstr_api_struct->pp_mem[IA_MEMTYPE_INPUT];
+  pi1_inp_buf = (WORD8 *)pstr_api_struct->pp_mem[IA_MEMTYPE_INPUT];
+  ps_out_buf = (WORD8 *)pstr_api_struct->pp_mem[IA_MEMTYPE_OUTPUT];
+
+  if (pstr_config->use_drc_element) {
+    for (idx = 0; idx < core_sample; idx++) {
+      pstr_api_struct->pstr_state->pp_drc_in_buf[idx % num_ch][idx / num_ch] =
+          pstr_api_struct->pstr_state
+              ->pp_drc_in_buf[idx % num_ch][idx / num_ch + pstr_config->drc_frame_size];
+    }
+    ptr_inp_buf_offset = pstr_config->drc_frame_size;
+    for (idx = 0; idx < num_ch; idx++) {
+      ptr_drc_inp_buf[idx] = pstr_api_struct->pstr_state->pp_drc_in_buf[idx];
+    }
+  }
+
+  ixheaace_pstr_sbr_enc pstr_sbr_encoder =
+      pstr_api_struct->pstr_state->spectral_band_replication_enc_pers_mem[0];
+  if (pstr_config->sbr_enable) {
+    ixheaace_mps_enc_ext_payload mps_extension_payload;
+    UWORD8 *mps_bs = pstr_api_struct->pstr_state->mps_bs;
+    FLOAT32 *time_signal_mps = pstr_api_struct->pstr_state->time_signal_mps;
+    WORD32 sbr_pvc_mode = 0;
+    WORD32 sbr_patching_mode = 1;
+    WORD32 ccfl_size;
+    WORD32 num_samples_read;
+    WORD32 out_samples, ch;
+    WORD32 resamp_ratio =
+        ia_enhaacplus_enc_compute_resampling_ratio(pstr_api_struct->config[0].ccfl_idx);
+    switch (pstr_config->codec_mode) {
+      case USAC_SWITCHED:
+        if (pstr_usac_data->str_sig_class_data.coding_mode == 2) {
+          sbr_pvc_mode = 0;
+        } else {
+          sbr_pvc_mode = 2;
+        }
+        sbr_patching_mode = 1;
+        break;
+      case USAC_ONLY_FD:
+        sbr_pvc_mode = 0;
+        sbr_patching_mode = 0;
+        break;
+      case USAC_ONLY_TD:
+        sbr_pvc_mode = 2;
+        sbr_patching_mode = 1;
+        break;
+    }
+
+    write_off_set = INPUT_DELAY_LC * IXHEAACE_MAX_CH_IN_BS_ELE;
+    if (pstr_api_struct->pstr_state->downsample[0]) {
+      if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+        write_off_set +=
+            (pstr_api_struct->pstr_state->down_samp_sos[0][0].delay) * IXHEAACE_MAX_CH_IN_BS_ELE;
+
+        write_off_set +=
+            (pstr_api_struct->pstr_state->up_sampler[0][0].delay) * IXHEAACE_MAX_CH_IN_BS_ELE;
+      } else if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1 ||
+                 pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
+        write_off_set +=
+            (pstr_api_struct->pstr_state->down_sampler[0][0].delay) * IXHEAACE_MAX_CH_IN_BS_ELE;
+      }
+    }
+
+    ptr_input_buffer = pstr_api_struct->pstr_state->inp_delay;
+    ccfl_size = pstr_api_struct->config[0].usac_config.ccfl;
+    num_samples_read = ccfl_size * pstr_api_struct->config[0].i_channels;
+    switch (pstr_api_struct->config[0].ccfl_idx) {
+      case SBR_8_3:
+        num_samples_read *= 8;
+        num_samples_read /= 3;
+        break;
+
+      case SBR_2_1:
+        num_samples_read *= 2;
+        break;
+
+      case SBR_4_1:
+        num_samples_read *= 4;
+        break;
+    }
+
+    mps_extension_payload.p_data = mps_bs;
+    memset(&mps_extension_payload, 0, sizeof(ixheaace_mps_enc_ext_payload));
+
+    if ((pstr_api_struct->pstr_mps_212_enc != NULL) && pstr_api_struct->pstr_state->mps_enable) {
+      for (idx = 0; idx < num_samples_read / 2; idx++) {
+        time_signal_mps[idx] = (FLOAT32)ps_inp_buf[2 * idx];
+        time_signal_mps[num_samples_read / 2 + idx] = (FLOAT32)ps_inp_buf[2 * idx + 1];
+      }
+      error = ixheaace_mps_212_process(pstr_api_struct->pstr_mps_212_enc, time_signal_mps,
+                                       num_samples_read, &mps_extension_payload);
+      if (error) {
+        return error;
+      }
+      if (pstr_api_struct->pstr_state->mps_enable == 1) {
+        for (idx = 0; idx < num_samples_read / 2; idx++) {
+          ptr_input_buffer[write_off_set + 2 * idx] = time_signal_mps[idx];
+          ptr_input_buffer[write_off_set + 2 * idx + 1] =
+              time_signal_mps[num_samples_read / 2 + idx];
+        }
+      }
+    } else if (pstr_api_struct->config[0].i_channels == 2 &&
+               pstr_api_struct->config[0].chmode_nchannels == 2) {
+      for (idx = 0; idx < (num_samples_read); idx++) {
+        ptr_input_buffer[write_off_set + idx] = (FLOAT32)ps_inp_buf[idx];
+      }
+    } else if (pstr_api_struct->config[0].i_channels == 1) {
+      for (idx = 0; idx < num_samples_read; idx++) {
+        ptr_input_buffer[write_off_set + (IXHEAACE_MAX_CH_IN_BS_ELE * idx)] =
+            (FLOAT32)ps_inp_buf[idx];
+      }
+    }
+
+    if (num_ch == 2) {
+      if (1 == pstr_config->use_drc_element) {
+        if (16 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                ptr_input_buffer[idx];
+          }
+        } else if (24 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = ((WORD32)(*pi1_inp_buf)) & 0xFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 8) & 0xFFFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 16) & 0xFFFFFF;
+            pi1_inp_buf++;
+            i4_inp_data = i4_inp_data - (i4_inp_data >> 23 << 24);
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_24_BIT_PCM;
+          }
+        } else if (32 == pstr_config->ui_pcm_wd_sz) {
+          pi4_inp_buf = (WORD32 *)pi1_inp_buf;
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = *pi4_inp_buf++;
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_32_BIT_PCM;
+          }
+        }
+      }
+
+      // update Header and bit-stream parameters
+      if (0 == pstr_config->sbr_pvc_active) {
+        sbr_pvc_mode = 0;
+      }
+
+      ixheaace_set_usac_sbr_params(
+          pstr_sbr_encoder, usac_independency_flg, 0, pstr_config->sbr_pvc_active, sbr_pvc_mode,
+          pstr_config->sbr_inter_tes_active, pstr_config->sbr_harmonic, sbr_patching_mode);
+
+      // Downsample SBR input buffer for Harmonic SBR
+      if (pstr_config->sbr_harmonic) {
+        FLOAT32 *in_buffer_temp;
+        ixheaace_get_input_scratch_buf(pstr_api_struct->pstr_state->ptr_temp_buff_resamp,
+                                       &in_buffer_temp);
+        FLOAT32 *outbuf = ixheaace_get_hbe_resample_buffer(pstr_sbr_encoder);
+        if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+          WORD32 input_tot = num_samples_read / pstr_api_struct->config[0].i_channels;
+          ixheaace_upsampling_inp_buf_generation(ptr_input_buffer, in_buffer_temp, input_tot,
+                                                 UPSAMPLE_FAC, 0);
+        }
+
+        // Resampler
+        for (ch = 0; ch < num_ch; ch++) {
+          FLOAT32 *shared_buf1_ring, *shared_buf2_ring;
+          ixheaace_resampler_scratch *pstr_scratch_resampler =
+              (ixheaace_resampler_scratch *)(ixheaace_resampler_scratch *)
+                  pstr_api_struct->pstr_state->ptr_temp_buff_resamp;
+
+          ia_enhaacplus_enc_get_scratch_bufs(pstr_api_struct->pstr_state->temp_buff_sbr,
+                                             &shared_buf1_ring, &shared_buf2_ring);
+
+          if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+            // Upsampling by factor 3 - SOS implementation
+            ia_enhaacplus_enc_iir_sos_upsampler(
+                &(pstr_api_struct->pstr_state->hbe_up_sampler[0][ch]), in_buffer_temp + ch,
+                num_samples_read / pstr_api_struct->config[0].i_channels,
+                IXHEAACE_MAX_CH_IN_BS_ELE, in_buffer_temp + ch, &out_samples, shared_buf1_ring,
+                shared_buf2_ring, pstr_scratch_resampler);
+
+            // Downsampling by factor 8
+            ia_enhaacplus_enc_iir_sos_downsampler(
+                &(pstr_api_struct->pstr_state->hbe_down_samp_sos[0][ch]), in_buffer_temp + ch,
+                out_samples, IXHEAACE_MAX_CH_IN_BS_ELE, outbuf + ch, &out_samples,
+                shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
+          } else {
+            WORD32 out_stride = IXHEAACE_MAX_CH_IN_BS_ELE * resamp_ratio;
+
+            ia_enhaacplus_enc_iir_downsampler(
+                &(pstr_api_struct->pstr_state->hbe_down_sampler[0][ch]), ptr_input_buffer + ch,
+                num_samples_read / pstr_api_struct->config[0].i_channels,
+                IXHEAACE_MAX_CH_IN_BS_ELE, outbuf + ch, &out_samples, out_stride,
+                shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
+          }
+        }
+      }
+
+      // SBR Encode
+      error = ixheaace_env_encode_frame(
+          pstr_sbr_encoder, ptr_input_buffer, ptr_input_buffer,
+          pstr_api_struct->config[0].i_channels,
+          &(pstr_api_struct->pstr_state->num_anc_data_bytes[0][0]),
+          pstr_api_struct->pstr_state->anc_data_bytes[0],
+          &(pstr_api_struct->spectral_band_replication_tabs), &(pstr_api_struct->common_tabs),
+          &(mps_extension_payload.p_data[0]), mps_extension_payload.data_size, 0,
+          &pstr_api_struct->pstr_state->str_usac_enc_data.num_sbr_bits);
+      if (error != IA_NO_ERROR) {
+        return error;
+      }
+    } else {
+      if (0 == pstr_config->sbr_pvc_active) {
+        sbr_pvc_mode = 0;
+      }
+
+      ixheaace_set_usac_sbr_params(
+          pstr_sbr_encoder, usac_independency_flg, 0, pstr_config->sbr_pvc_active, sbr_pvc_mode,
+          pstr_config->sbr_inter_tes_active, pstr_config->sbr_harmonic, sbr_patching_mode);
+      if (pstr_config->sbr_harmonic) {
+        FLOAT32 *in_buffer_temp;
+        ixheaace_get_input_scratch_buf(pstr_api_struct->pstr_state->ptr_temp_buff_resamp,
+                                       &in_buffer_temp);
+        FLOAT32 *outbuf = ixheaace_get_hbe_resample_buffer(pstr_sbr_encoder);
+        if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+          WORD32 input_tot = num_samples_read / pstr_api_struct->config[0].i_channels;
+          ixheaace_upsampling_inp_buf_generation(ptr_input_buffer, in_buffer_temp, input_tot,
+                                                 UPSAMPLE_FAC, 0);
+        }
+
+        // Resampler
+        for (ch = 0; ch < num_ch; ch++) {
+          FLOAT32 *shared_buf1_ring, *shared_buf2_ring;
+          ixheaace_resampler_scratch *pstr_scratch_resampler =
+              (ixheaace_resampler_scratch *)(ixheaace_resampler_scratch *)
+                  pstr_api_struct->pstr_state->ptr_temp_buff_resamp;
+
+          ia_enhaacplus_enc_get_scratch_bufs(pstr_api_struct->pstr_state->temp_buff_sbr,
+                                             &shared_buf1_ring, &shared_buf2_ring);
+
+          if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+            // Upsampling by factor 3 - SOS implementation
+            ia_enhaacplus_enc_iir_sos_upsampler(
+                &(pstr_api_struct->pstr_state->hbe_up_sampler[0][ch]), in_buffer_temp + ch,
+                num_samples_read / pstr_api_struct->config[0].i_channels,
+                IXHEAACE_MAX_CH_IN_BS_ELE, in_buffer_temp + ch, &out_samples, shared_buf1_ring,
+                shared_buf2_ring, pstr_scratch_resampler);
+
+            // Downsampling by factor 8
+            ia_enhaacplus_enc_iir_sos_downsampler(
+                &(pstr_api_struct->pstr_state->hbe_down_samp_sos[0][ch]), in_buffer_temp + ch,
+                out_samples, IXHEAACE_MAX_CH_IN_BS_ELE, outbuf + ch, &out_samples,
+                shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
+          } else {
+            WORD32 out_stride = IXHEAACE_MAX_CH_IN_BS_ELE * resamp_ratio;
+
+            ia_enhaacplus_enc_iir_downsampler(
+                &(pstr_api_struct->pstr_state->hbe_down_sampler[0][ch]),
+                ptr_input_buffer /*input_buffer_fix + write_off_set*/ + ch,
+                num_samples_read / pstr_api_struct->config[0].i_channels,
+                IXHEAACE_MAX_CH_IN_BS_ELE, outbuf + ch, &out_samples, out_stride,
+                shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
+          }
+        }
+      }
+
+      FLOAT32 *time_signal = pstr_api_struct->pstr_state->time_signal;
+      for (idx = 0; idx < num_samples_read; idx++) {
+        time_signal[idx] = (FLOAT32)ptr_input_buffer[2 * idx];
+      }
+
+      if (1 == pstr_config->use_drc_element) {
+        if (16 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] = time_signal[idx];
+          }
+        } else if (24 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = ((WORD32)(*pi1_inp_buf)) & 0xFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 8) & 0xFFFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 16) & 0xFFFFFF;
+            pi1_inp_buf++;
+            i4_inp_data = i4_inp_data - (i4_inp_data >> 23 << 24);
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_24_BIT_PCM;
+          }
+        } else if (32 == pstr_config->ui_pcm_wd_sz) {
+          pi4_inp_buf = (WORD32 *)pi1_inp_buf;
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = *pi4_inp_buf++;
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_32_BIT_PCM;
+          }
+        }
+      }
+
+      // SBR Encode
+      error = ixheaace_env_encode_frame(
+          pstr_sbr_encoder, time_signal, time_signal, pstr_api_struct->config[0].i_channels,
+          &(pstr_api_struct->pstr_state->num_anc_data_bytes[0][0]),
+          pstr_api_struct->pstr_state->anc_data_bytes[0],
+          &(pstr_api_struct->spectral_band_replication_tabs), &(pstr_api_struct->common_tabs),
+          &(mps_extension_payload.p_data[0]), mps_extension_payload.data_size, 0, NULL);
+      if (error != IA_NO_ERROR) {
+        return error;
+      }
+    }
+
+    /* Resampling for USAC core */
+    {
+      FLOAT32 *in_buffer_temp;
+      ixheaace_get_input_scratch_buf(pstr_api_struct->pstr_state->ptr_temp_buff_resamp,
+                                     &in_buffer_temp);
+      if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+        WORD32 input_tot = num_samples_read / pstr_api_struct->config[0].i_channels;
+        ixheaace_upsampling_inp_buf_generation(ptr_input_buffer, in_buffer_temp, input_tot,
+                                               UPSAMPLE_FAC, write_off_set);
+      }
+
+      for (ch = 0; ch < num_ch; ch++) {
+        FLOAT32 *shared_buf1_ring, *shared_buf2_ring;
+        ixheaace_resampler_scratch *pstr_scratch_resampler =
+            (ixheaace_resampler_scratch *)pstr_api_struct->pstr_state->ptr_temp_buff_resamp;
+
+        ia_enhaacplus_enc_get_scratch_bufs(pstr_api_struct->pstr_state->temp_buff_sbr,
+                                           &shared_buf1_ring, &shared_buf2_ring);
+
+        if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
+          // Upsampling by factor 3 - SOS implementation
+          ia_enhaacplus_enc_iir_sos_upsampler(
+              &(pstr_api_struct->pstr_state->up_sampler[0][ch]), in_buffer_temp + ch,
+              num_samples_read / pstr_api_struct->config[0].i_channels, IXHEAACE_MAX_CH_IN_BS_ELE,
+              in_buffer_temp + ch, &out_samples, shared_buf1_ring, shared_buf2_ring,
+              pstr_scratch_resampler);
+
+          // Downsampling by factor 8
+          ia_enhaacplus_enc_iir_sos_downsampler(
+              &(pstr_api_struct->pstr_state->down_samp_sos[0][ch]), in_buffer_temp + ch,
+              out_samples, IXHEAACE_MAX_CH_IN_BS_ELE, ptr_input_buffer + ch, &out_samples,
+              shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
+        } else {
+          WORD32 out_stride = IXHEAACE_MAX_CH_IN_BS_ELE * resamp_ratio;
+
+          ia_enhaacplus_enc_iir_downsampler(
+              &(pstr_api_struct->pstr_state->down_sampler[0][ch]),
+              ptr_input_buffer + write_off_set + ch,
+              num_samples_read / pstr_api_struct->config[0].i_channels, IXHEAACE_MAX_CH_IN_BS_ELE,
+              ptr_input_buffer + ch, &out_samples, out_stride, shared_buf1_ring, shared_buf2_ring,
+              pstr_scratch_resampler);
+        }
+      }
+    }
+
+    if (num_ch != 0) {
+      for (idx = 0; idx < num_ch; idx++) {
+        ptr_inp_buf[idx] = pstr_api_struct->pstr_state->ptr_in_buf[idx];
+      }
+
+      if (16 == pstr_config->ui_pcm_wd_sz) {
+        if (num_ch == 1) {
+          for (idx = 0; idx < core_sample; idx++) {
+            ptr_inp_buf[idx % num_ch][idx / num_ch] = ptr_input_buffer[2 * idx];
+          }
+        } else {
+          for (idx = 0; idx < core_sample; idx++) {
+            ptr_inp_buf[idx % num_ch][idx / num_ch] = ptr_input_buffer[idx];
+          }
+        }
+      } else if (24 == pstr_config->ui_pcm_wd_sz) {
+        for (idx = 0; idx < core_sample; idx++) {
+          i4_inp_data = ((WORD32)(*pi1_inp_buf)) & 0xFF;
+          pi1_inp_buf++;
+          i4_inp_data += ((WORD32)(*pi1_inp_buf) << 8) & 0xFFFF;
+          pi1_inp_buf++;
+          i4_inp_data += ((WORD32)(*pi1_inp_buf) << 16) & 0xFFFFFF;
+          pi1_inp_buf++;
+          i4_inp_data = i4_inp_data - (i4_inp_data >> 23 << 24);
+          ptr_inp_buf[idx % num_ch][idx / num_ch] = (FLOAT32)i4_inp_data / DIV_FAC_24_BIT_PCM;
+        }
+      } else if (32 == pstr_config->ui_pcm_wd_sz) {
+        pi4_inp_buf = (WORD32 *)pi1_inp_buf;
+        for (idx = 0; idx < core_sample; idx++) {
+          i4_inp_data = *pi4_inp_buf++;
+          ptr_inp_buf[idx % num_ch][idx / num_ch] = (FLOAT32)i4_inp_data / DIV_FAC_32_BIT_PCM;
+        }
+      }
+    }
+  } else {
+    if (num_ch != 0) {
+      for (idx = 0; idx < num_ch; idx++) {
+        ptr_inp_buf[idx] = pstr_api_struct->pstr_state->ptr_in_buf[idx];
+      }
+
+      if (16 == pstr_config->ui_pcm_wd_sz) {
+        for (idx = 0; idx < core_sample; idx++) {
+          ptr_inp_buf[idx % num_ch][idx / num_ch] = ps_inp_buf[idx];
+        }
+      } else if (24 == pstr_config->ui_pcm_wd_sz) {
+        for (idx = 0; idx < core_sample; idx++) {
+          i4_inp_data = ((WORD32)(*pi1_inp_buf)) & 0xFF;
+          pi1_inp_buf++;
+          i4_inp_data += ((WORD32)(*pi1_inp_buf) << 8) & 0xFFFF;
+          pi1_inp_buf++;
+          i4_inp_data += ((WORD32)(*pi1_inp_buf) << 16) & 0xFFFFFF;
+          pi1_inp_buf++;
+          i4_inp_data = i4_inp_data - (i4_inp_data >> 23 << 24);
+          ptr_inp_buf[idx % num_ch][idx / num_ch] = (FLOAT32)i4_inp_data / DIV_FAC_24_BIT_PCM;
+        }
+      } else if (32 == pstr_config->ui_pcm_wd_sz) {
+        pi4_inp_buf = (WORD32 *)pi1_inp_buf;
+        for (idx = 0; idx < core_sample; idx++) {
+          i4_inp_data = *pi4_inp_buf++;
+          ptr_inp_buf[idx % num_ch][idx / num_ch] = (FLOAT32)i4_inp_data / DIV_FAC_32_BIT_PCM;
+        }
+      }
+      if (1 == pstr_config->use_drc_element) {
+        if (16 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] = ps_inp_buf[idx];
+          }
+        } else if (24 == pstr_config->ui_pcm_wd_sz) {
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = ((WORD32)(*pi1_inp_buf)) & 0xFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 8) & 0xFFFF;
+            pi1_inp_buf++;
+            i4_inp_data += ((WORD32)(*pi1_inp_buf) << 16) & 0xFFFFFF;
+            pi1_inp_buf++;
+            i4_inp_data = i4_inp_data - (i4_inp_data >> 23 << 24);
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_24_BIT_PCM;
+          }
+        } else if (32 == pstr_config->ui_pcm_wd_sz) {
+          pi4_inp_buf = (WORD32 *)pi1_inp_buf;
+          for (idx = 0; idx < drc_sample; idx++) {
+            i4_inp_data = *pi4_inp_buf++;
+            ptr_drc_inp_buf[idx % num_ch][idx / num_ch + ptr_inp_buf_offset] =
+                (FLOAT32)i4_inp_data / DIV_FAC_32_BIT_PCM;
+          }
+        }
+      }
+    }
+  }
+
+  if (pstr_sig_class_data->is_switch_mode) {
+    for (idx = 0; idx < core_coder_frame_length; idx++) {
+      pstr_sig_class_data->input_samples[pstr_sig_class_data->n_buffer_samples + idx] =
+          pstr_api_struct->pstr_state->ptr_in_buf[0][idx];
+    }
+    pstr_sig_class_data->n_buffer_samples += core_coder_frame_length;
+    iusace_classification(pstr_sig_class_data, pstr_scratch, core_coder_frame_length);
+  }
+
+  pstr_it_bit_buff =
+      iusace_create_bit_buffer(pstr_it_bit_buff, pstr_api_struct->pp_mem[IA_MEMTYPE_OUTPUT],
+                               pstr_api_struct->pstr_mem_info[IA_MEMTYPE_OUTPUT].ui_size, 1);
+  if (pstr_it_bit_buff == NULL) {
+    return -1;
+  }
+#ifdef ENABLE_SET_JUMP
+  pstr_it_bit_buff->iusace_jmp_buf = &api_execute_jmp_buf;
+#endif
+  error =
+      ixheaace_usac_encode(pstr_api_struct->pstr_state->ptr_in_buf, pstr_config,
+                           &pstr_api_struct->pstr_state->str_usac_enc_data,
+                           &pstr_api_struct->pstr_state->audio_specific_config, pstr_it_bit_buff,
+                           pstr_sbr_encoder, pstr_api_struct->pstr_state->pp_drc_in_buf);
+  if (error) return error;
+
+  padding_bits = 8 - (pstr_it_bit_buff->cnt_bits & 7);
+  if (padding_bits > 0 && padding_bits < 8) {
+    ps_out_buf[pstr_it_bit_buff->cnt_bits >> 3] =
+        (WORD8)((UWORD32)ps_out_buf[pstr_it_bit_buff->cnt_bits >> 3]) & (0xFF << padding_bits);
+  }
+  pstr_api_struct->pstr_state->i_out_bytes =
+      (padding_bits > 0 && padding_bits < 8) ? (pstr_it_bit_buff->cnt_bits + padding_bits) >> 3
+                                             : pstr_it_bit_buff->cnt_bits >> 3;
+
+  pstr_state->str_usac_enc_data.frame_count++;
+  pstr_usac_data->usac_independency_flag_count =
+      (pstr_usac_data->usac_independency_flag_count + 1) %
+      pstr_usac_data->usac_independency_flag_interval;
+
+  if (pstr_config->sbr_enable) {
+    WORD32 num_samples = pstr_api_struct->config[0].usac_config.ccfl * IXHEAACE_MAX_CH_IN_BS_ELE;
+    switch (pstr_api_struct->config[0].ccfl_idx) {
+      case SBR_8_3:
+        num_samples *= 8;
+        num_samples /= 3;
+        break;
+
+      case SBR_2_1:
+        num_samples *= 2;
+        break;
+
+      case SBR_4_1:
+        num_samples *= 4;
+        break;
+    }
+
+    if (ptr_input_buffer != NULL) {
+      memmove(ptr_input_buffer, ptr_input_buffer + num_samples,
+              write_off_set * sizeof(ptr_input_buffer[0]));
+    }
+  }
+  return IA_NO_ERROR;
+}
 IA_ERRORCODE ixheaace_get_lib_id_strings(pVOID pv_output) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   ixheaace_version *pstr_output_config = (ixheaace_version *)pv_output;
@@ -1915,7 +3295,7 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
 
   if (pstr_input_config->aot != AOT_AAC_ELD && pstr_input_config->aot != AOT_AAC_LC &&
       pstr_input_config->aot != AOT_AAC_LD && pstr_input_config->aot != AOT_SBR &&
-      pstr_input_config->aot != AOT_PS) {
+      pstr_input_config->aot != AOT_PS && pstr_input_config->aot != AOT_USAC) {
     return IA_EXHEAACE_API_FATAL_UNSUPPORTED_AOT;
   }
   ui_api_size = sizeof(ixheaace_api_struct);
@@ -2072,7 +3452,10 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
 
       ixheaace_get_audiospecific_config_bytes(pstr_ia_asc_bit_buf,
                                               &pstr_api_struct->pstr_state->audio_specific_config,
-                                              pstr_api_struct->pstr_state->aot);
+                                              pstr_api_struct->pstr_state->aot
+
+                                              ,
+                                              pstr_input_config->ccfl_idx);
 
       pstr_api_struct->pstr_state->i_out_bytes = (pstr_ia_asc_bit_buf->cnt_bits + 7) >> 3;
     }
@@ -2117,6 +3500,39 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
     }
   }
 
+  else {
+    pstr_api_struct->pstr_state->pstr_config[0] = &pstr_api_struct->config[0];
+    error = ia_usac_enc_init(pstr_api_struct, pstr_input_config->ccfl_idx);
+    if (error) {
+      return error;
+    }
+    pstr_output_config->input_size =
+        frame_length * channels * (pstr_api_struct->config[0].usac_config.ui_pcm_wd_sz >> 3);
+    pstr_output_config->down_sampling_ratio = 1;
+    if (pstr_api_struct->config[0].usac_config.sbr_enable == 1) {
+      switch (pstr_api_struct->config[0].ccfl_idx) {
+        case SBR_8_3:
+          pstr_output_config->input_size *= 8;
+          pstr_output_config->input_size /= 3;
+          pstr_output_config->down_sampling_ratio = 8.0f / 3.0f;
+          break;
+
+        case SBR_2_1:
+          pstr_output_config->input_size *= 2;
+          pstr_output_config->down_sampling_ratio = 2;
+          break;
+
+        case SBR_4_1:
+          pstr_output_config->input_size *= 4;
+          pstr_output_config->down_sampling_ratio = 4;
+          break;
+      }
+    }
+    pstr_output_config->samp_freq = pstr_api_struct->config[0].usac_config.native_sample_rate;
+    pstr_output_config->header_samp_freq =
+        pstr_api_struct->config[0].usac_config.native_sample_rate;
+    pstr_output_config->audio_profile = AUDIO_PROFILE_USAC_L2;
+  }
   pstr_api_struct->pstr_state->ui_init_done = 1;
   pstr_output_config->i_out_bytes = pstr_api_struct->pstr_state->i_out_bytes;
 
@@ -2141,10 +3557,13 @@ IA_ERRORCODE ixheaace_process(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_
   ixheaace_api_struct *pstr_api_struct = (ixheaace_api_struct *)pstr_obj_ixheaace;
   ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;
 
-  for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
-    error = ia_enhaacplus_enc_execute(pstr_api_struct, ele_idx);
+  if (!pstr_api_struct->usac_en) {
+    for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
+      error = ia_enhaacplus_enc_execute(pstr_api_struct, ele_idx);
+    }
+  } else {
+    error = iusace_process(pstr_api_struct);
   }
-
   pstr_output_config->i_out_bytes = pstr_api_struct->pstr_state->i_out_bytes;
 
   return error;

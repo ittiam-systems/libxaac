@@ -19,16 +19,21 @@
  */
 
 #pragma once
-
-extern const FLOAT64 ixheaace_twid_tbl_fft[514];
-extern const WORD32 twiddle_tab_fft_32x32[514];
-extern const FLOAT64 ixheaace_twid_tbl_fft_ntwt3r[1155];
-extern const FLOAT64 ixheaace_twid_tbl_fft_ntwt3i[1155];
-extern const FLOAT32 ixheaace_twid_tbl_fft_224[372];
-extern const FLOAT32 ixheaace_twid_tbl_fft_288[380];
-extern const FLOAT32 ixheaace_twid_tbl_fft_336[564];
-extern const FLOAT32 ixheaace_twid_tbl_fft_168[276];
-
-extern const FLOAT32 ixheaace_twiddle_tab_fft_float[514];
-extern const FLOAT32 ixheaace_twidle_tbl_48[64];
-extern const FLOAT32 ixheaace_twidle_tbl_24[32];
+extern const FLOAT32 iusace_lsf_init[ORDER];
+extern const FLOAT32 iusace_sin_window_96[96];
+extern const FLOAT32 iusace_sin_window_128[128];
+extern const FLOAT32 iusace_sin_window_192[192];
+extern const FLOAT32 iusace_sin_window_256[256];
+extern const FLOAT32 iusace_res_interp_filter1_4[INTER_LP_FIL_LEN + 4];
+extern const FLOAT32 iusace_lag_window[17];
+extern const FLOAT32 iusace_lsf_init[ORDER];
+extern const FLOAT32 iusace_ispold_init[ORDER];
+extern const FLOAT32 iusace_cos_window_512[512];
+extern const FLOAT32 iusace_cos_window_448[448];
+extern const WORD32 iusace_acelp_core_numbits_1024[NUM_ACELP_CORE_MODES];
+extern const FLOAT32 iusace_acelp_quant_gain_table[];
+extern const UWORD8 iusace_acelp_ipos[36];
+extern const FLOAT32 iexheaac_cos_window_384[384];
+extern const FLOAT32 iusace_hp20_filter_coeffs[12][4];
+extern const FLOAT32 iusace_ol_corr_weight[518];
+extern const FLOAT32 iusace_interp4_1[17];

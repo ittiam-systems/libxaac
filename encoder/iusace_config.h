@@ -130,3 +130,206 @@ typedef struct {
   VOID *ptr_drc_scratch_buf;
   VOID *ptr_stack_mem;
 } iusace_scratch_mem;
+
+#define USAC_MAX_ELEMENTS (32)
+#define USAC_MAX_CONFIG_EXTENSIONS (16)
+
+#define ID_USAC_SCE 0
+#define ID_USAC_CPE 1
+#define ID_USAC_EXT 3
+
+#define AOT_SBR (5)
+#define AOT_USAC (42)
+
+#define ID_EXT_ELE_FILL 0
+#define ID_EXT_ELE_UNI_DRC 4
+
+#define ID_CONFIG_EXT_FILL 0
+#define ID_CONFIG_EXT_DOWNMIX (1)
+#define ID_CONFIG_EXT_LOUDNESS_INFO (2)
+#define NUM_COEFF (1024)
+
+typedef enum {
+
+  USAC_ELEMENT_TYPE_INVALID = -1,
+  USAC_ELEMENT_TYPE_SCE = 0,
+  USAC_ELEMENT_TYPE_CPE = 1,
+  USAC_ELEMENT_TYPE_EXT = 3
+
+} ia_usac_ele_type;
+
+typedef struct {
+  UWORD32 harmonic_sbr;
+  UWORD32 bs_inter_tes;
+  UWORD32 bs_pvc;
+  UWORD32 dflt_start_freq;
+  UWORD32 dflt_stop_freq;
+  UWORD32 dflt_header_extra1;
+  UWORD32 dflt_header_extra2;
+  UWORD32 dflt_freq_scale;
+  UWORD32 dflt_alter_scale;
+  UWORD32 dflt_noise_bands;
+  UWORD32 dflt_limiter_bands;
+  UWORD32 dflt_limiter_gains;
+  UWORD32 dflt_interpol_freq;
+  UWORD32 dflt_smoothing_mode;
+} ia_usac_enc_sbr_config_struct;
+
+typedef struct {
+  WORD32 bs_tree_config;
+  WORD32 bs_freq_res;
+  WORD32 bs_fixed_gain_dmx;
+  WORD32 bs_temp_shape_config;
+  WORD32 bs_decorr_config;
+  WORD32 bs_residual_coding;
+  WORD32 bs_residual_bands;
+  WORD32 bs_low_rate_mode;
+  WORD32 bs_phase_coding;
+  WORD32 bs_quant_coarse_xxx;
+  WORD32 bs_ott_bands_phase;
+  WORD32 bs_ott_bands_phase_present;
+  WORD32 bs_pseudo_lr;
+  WORD32 bs_env_quant_mode;
+  WORD32 bs_high_rate_mode;
+} ia_usac_enc_mps_config_struct;
+
+typedef struct {
+  UWORD32 usac_ext_ele_type;
+  UWORD32 usac_ext_ele_cfg_len;
+  UWORD32 usac_ext_ele_dflt_len_present;
+  UWORD32 usac_ext_ele_dflt_len;
+  UWORD32 usac_ext_ele_payload_present;
+  UWORD32 stereo_config_index;
+  UWORD32 tw_mdct;
+  UWORD32 noise_filling;
+  UWORD8 usac_ext_ele_cfg_payload[6144 / 8];
+  ia_usac_enc_sbr_config_struct str_usac_sbr_config;
+  ia_usac_enc_mps_config_struct str_usac_mps212_config;
+  UWORD8 *drc_config_data;
+} ia_usac_enc_element_config_struct;
+
+typedef struct {
+  UWORD32 num_elements;
+  UWORD32 num_ext_elements;
+  UWORD32 usac_element_type[USAC_MAX_ELEMENTS];
+  UWORD32 usac_cfg_ext_present;
+  UWORD32 num_config_extensions;
+  UWORD32 usac_config_ext_type[USAC_MAX_CONFIG_EXTENSIONS];
+  UWORD32 usac_config_ext_len[USAC_MAX_CONFIG_EXTENSIONS];
+  UWORD8 *usac_config_ext_buf[USAC_MAX_CONFIG_EXTENSIONS];
+  UWORD8 usac_cfg_ext_info_buf[USAC_MAX_CONFIG_EXTENSIONS][6144 / 8];
+  WORD32 num_out_channels;
+  WORD32 num_signal_grp;
+  WORD32 output_channel_pos[BS_MAX_NUM_OUT_CHANNELS];
+  WORD32 ccfl;
+  ia_usac_enc_element_config_struct str_usac_element_config[USAC_MAX_ELEMENTS];
+} ia_usac_config_struct;
+
+typedef struct {
+  WORD32 aac_allow_scalefacs;
+  WORD32 aac_scale_facs;
+  WORD32 bit_rate;
+  WORD32 basic_bitrate;
+  WORD32 bw_limit[USAC_MAX_ELEMENTS];
+  WORD32 ccfl;
+  WORD32 ccfl_idx;
+  WORD32 channels;
+  WORD32 codec_mode;
+  WORD32 flag_noiseFilling;
+  WORD32 iframes_interval;
+  UWORD32 num_elements;
+  UWORD32 num_ext_elements;
+
+  WORD32 sample_rate;
+  WORD32 native_sample_rate;
+  WORD32 core_sample_rate;
+
+  WORD32 tns_select;
+  WORD32 ui_pcm_wd_sz;
+  WORD32 use_fill_element;
+  WORD32 window_shape_prev[MAX_TIME_CHANNELS];
+  WORD32 window_shape_prev_copy[MAX_TIME_CHANNELS];
+  WORD32 window_sequence[MAX_TIME_CHANNELS];
+  WORD32 window_sequence_prev[MAX_TIME_CHANNELS];
+  WORD32 window_sequence_prev_copy[MAX_TIME_CHANNELS];
+  WORD32 cmplx_pred_flag;
+  WORD32 wshape_flag;
+  WORD32 delay_total;
+  WORD32 in_frame_length;
+  // eSBR Parameters
+  WORD32 sbr_enable;
+  WORD32 sbr_ratio_idx;
+  WORD32 up_sample_ratio;
+  WORD32 sbr_pvc_active;
+  WORD32 sbr_harmonic;
+  WORD32 hq_esbr;
+  WORD32 sbr_inter_tes_active;
+  // MPS Parameters
+  WORD32 usac212enable;
+  ia_sfb_params_struct str_sfb_prms;
+  // DRC Params
+  FLAG use_drc_element;
+  WORD32 drc_frame_size;
+  ia_drc_input_config str_drc_cfg;
+} ia_usac_encoder_config_struct;
+
+typedef struct {
+  WORD32 mode;
+  WORD32 num_bits;
+  FLOAT32 lpc_coeffs_quant[2 * (ORDER + 1)];
+  FLOAT32 lpc_coeffs[2 * (ORDER + 1)];
+  FLOAT32 synth[ORDER + 128];
+  FLOAT32 wsynth[1 + 128];
+  FLOAT32 acelp_exc[2 * LEN_FRAME];
+  WORD32 avq_params[FAC_LENGTH];
+  FLOAT32 tcx_mem[128];
+  FLOAT32 tcx_quant[1 + (2 * 128)];
+  FLOAT32 tcx_fac;
+  FLOAT32 mem_wsyn;
+} ia_usac_lpd_state_struct;
+
+typedef struct {
+  WORD32 len_frame;
+  WORD32 len_subfrm;
+  WORD32 num_subfrm;
+  WORD16 acelp_core_mode;
+  WORD32 fscale;
+  FLOAT32 mem_lp_decim2[3];
+  WORD32 decim_frac;
+  FLOAT32 mem_sig_in[4];
+  FLOAT32 mem_preemph;
+  FLOAT32 old_speech_pe[L_OLD_SPEECH_HIGH_RATE + LEN_LPC0];
+  FLOAT32 weighted_sig[128];
+  ia_usac_lpd_state_struct lpd_state;
+  FLOAT32 prev_wsp[MAX_PITCH / OPL_DECIM];
+  FLOAT32 prev_exc[MAX_PITCH + LEN_INTERPOL];
+  FLOAT32 prev_wsyn_mem;
+  FLOAT32 prev_wsp_mem;
+  FLOAT32 prev_xnq_mem;
+  WORD32 prev_ovlp_size;
+  FLOAT32 isf_old[ORDER];
+  FLOAT32 isp_old[ORDER];
+  FLOAT32 isp_old_q[ORDER];
+  FLOAT32 mem_wsp;
+  FLOAT32 ada_w;
+  FLOAT32 ol_gain;
+  WORD16 ol_wght_flg;
+  WORD32 prev_ol_lags[5];
+  WORD32 prev_pitch_med;
+  FLOAT32 prev_hp_wsp[LEN_SUPERFRAME / OPL_DECIM + (MAX_PITCH / OPL_DECIM)];
+  FLOAT32 hp_ol_ltp_mem[3 * 2 + 1];
+  const FLOAT32 *lp_analysis_window;
+  FLOAT32 xn_buffer[128];
+  WORD32 c_prev[(NUM_COEFF / 2) + 4];
+  WORD32 c_pres[(NUM_COEFF / 2) + 4];
+  WORD32 arith_reset_flag;
+  WORD16 prev_mode;
+  WORD32 num_bits_per_supfrm;
+  FLOAT32 fd_synth[2 * LEN_FRAME + 1 + ORDER];
+  FLOAT32 fd_orig[2 * LEN_FRAME + 1 + ORDER];
+  WORD32 low_pass_line;
+  WORD32 last_was_short;
+  WORD32 next_is_short;
+  FLOAT32 gain_tcx;
+  WORD32 max_sfb_short;
+} ia_usac_td_encoder_struct;

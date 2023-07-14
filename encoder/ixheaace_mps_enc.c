@@ -22,6 +22,10 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaac_type_def.h"
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
 #include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -861,7 +865,7 @@ static WORD32 ixheaace_mps_212_write_spatial_specific_config_data(
   ixheaace_mps_space_info pstr_space_encoder_info;
   ixheaace_mps_212_get_info(pstr_mps_enc->ptr_sac_encoder, &pstr_space_encoder_info);
 
-  for (idx = 0; idx<pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits>> 3; idx++) {
+  for (idx = 0; idx < pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits >> 3; idx++) {
     ixheaace_write_bits(pstr_bit_buf, pstr_space_encoder_info.p_ssc_buf->ptr_ssc[idx], 8);
     written_bits += 8;
   }
@@ -907,6 +911,7 @@ IA_ERRORCODE ixheaace_mps_212_initialise(VOID *pstr_handle_mps, const WORD32 aud
       }
       break;
     case 2:
+    case 4:
       if (!((sampling_rate >= fs_low) && (sampling_rate < fs_high))) {
         return IA_EXHEAACE_INIT_FATAL_MPS_INIT_FAILED;
       }

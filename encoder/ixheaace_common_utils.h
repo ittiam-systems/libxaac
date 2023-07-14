@@ -27,6 +27,8 @@
 #define ia_mul_flt(a, b) ((a) * (b))
 #define ia_negate_flt(a) (-a)
 
+#define MASK 0x0001
+
 #define C70 (-0.1666667014f)  //(cos(u) + cos(2 * u) + cos(3 * u)) / 3;
 #define C71 (0.7901564837f)   //(2 * cos(u) - cos(2 * u) - cos(3 * u)) / 3;
 #define C72 (0.0558542535f)   //(cos(u) - 2 * cos(2 * u) + cos(3 * u)) / 3;

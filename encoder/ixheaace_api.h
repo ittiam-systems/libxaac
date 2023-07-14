@@ -79,6 +79,7 @@ typedef struct {
   WORD32 frame_cmd_flag;
   WORD32 out_bytes_flag;
   WORD32 user_tns_flag;
+  WORD32 user_esbr_flag;
   WORD32 aot;
   WORD32 i_mps_tree_config;
   WORD32 esbr_flag;
@@ -91,6 +92,17 @@ typedef struct {
   WORD32 i_use_mps;
   WORD32 i_use_adts;
   WORD32 i_use_es;
+  WORD32 usac_en;
+  WORD32 codec_mode;
+  WORD32 cplx_pred;
+  WORD32 ccfl_idx;
+  WORD32 pvc_active;
+  WORD32 harmonic_sbr;
+  WORD32 inter_tes_active;
+  ia_drc_input_config str_drc_cfg;
+  FLAG use_drc_element;
+  WORD32 drc_frame_size;
+  WORD32 hq_esbr;
   FLAG write_program_config_element;
   ixheaace_aac_enc_config aac_config;
 } ixheaace_input_config;

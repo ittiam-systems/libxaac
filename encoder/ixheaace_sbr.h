@@ -57,6 +57,7 @@ struct ixheaace_str_sbr_env_data {
   ixheaace_freq_res freq_res_fix;
   ixheaace_invf_mode sbr_invf_mode;
   ixheaace_invf_mode sbr_invf_mode_vec[MAXIMUM_NUM_NOISE_VALUES];
+  ixheaace_pvc_bs_info pvc_info;
   ixheaace_sbr_xpos_mode sbr_xpos_mode;
   WORD32 ienvelope[IXHEAACE_MAX_ENV][MAXIMUM_FREQ_COEFFS];
   WORD32 code_book_scf_lav_balance;
@@ -128,6 +129,8 @@ struct ixheaace_str_enc_channel {
   ixheaace_str_sbr_qmf_filter_bank str_sbr_qmf;
   ixheaace_str_sbr_env_frame str_sbr_env_frame;
   ixheaace_str_sbr_ton_corr_est str_ton_corr;
+  ixheaace_str_inter_tes_params str_inter_tes_enc;
+  ixheaace_str_hbe_enc *pstr_hbe_enc;
   WORD32 sbr_amp_res_init;
   struct ixheaace_str_sbr_env_data enc_env_data;
 };

@@ -22,6 +22,10 @@
 #include <stddef.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
+#include "impd_drc_common_enc.h"
+#include "impd_drc_uni_drc.h"
+#include "impd_drc_tables.h"
+#include "impd_drc_api.h"
 #include "ixheaace_api.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_error_standards.h"
@@ -254,21 +258,21 @@ static VOID ia_enhaacplus_enc_encode_ms_info(WORD32 sfb_cnt, WORD32 sfb_grp, WOR
         num_of_bits = (UWORD8)max_sfb;
 
       for (sfb_offset = 0; sfb_offset < sfb_cnt; sfb_offset += sfb_grp) {
-        WORD8 Flag;
+        WORD8 flag;
         jsflag = &js_flags[sfb_offset];
         tmp_var = 0;
 
         for (sfb = num_of_bits - 1; sfb >= 0; sfb--) {
-          Flag = (WORD8)(*jsflag++);
-          tmp_var = ((tmp_var << 1) | Flag);
+          flag = (WORD8)(*jsflag++);
+          tmp_var = ((tmp_var << 1) | flag);
         }
 
         ixheaace_write_bits(pstr_bit_stream_handle, tmp_var, num_of_bits);
 
         if (remaining) {
           for (sfb = remaining - 1; sfb >= 0; sfb--) {
-            Flag = (WORD8)(*jsflag++);
-            tmp_var = ((tmp_var << 1) | Flag);
+            flag = (WORD8)(*jsflag++);
+            tmp_var = ((tmp_var << 1) | flag);
           }
 
           ixheaace_write_bits(pstr_bit_stream_handle, tmp_var, remaining);
@@ -452,7 +456,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_write_single_chan_elem(
 }
 
 static IA_ERRORCODE ia_enhaacplus_enc_write_channel_pair_element(
-    WORD32 instance_tag, WORD32 ms_digest, WORD32 msFlags[MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
+    WORD32 instance_tag, WORD32 ms_digest, WORD32 ms_flags[MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     WORD32 *pstr_sfb_offset[2], ixheaace_qc_out_channel pstr_qc_out_ch[2],
     ixheaace_bit_buf_handle pstr_bit_stream_handle, WORD32 aot,
     ixheaace_temporal_noise_shaping_params pstr_tns_info[2],
@@ -482,9 +486,10 @@ static IA_ERRORCODE ia_enhaacplus_enc_write_channel_pair_element(
                                     &(pstr_qc_out_ch[0].section_data), pstr_bit_stream_handle,
                                     aot);
 
-  ia_enhaacplus_enc_encode_ms_info(
-      pstr_qc_out_ch[0].section_data.sfb_cnt, pstr_qc_out_ch[0].section_data.sfb_per_group,
-      pstr_qc_out_ch[0].section_data.max_sfb_per_grp, ms_digest, msFlags, pstr_bit_stream_handle);
+  ia_enhaacplus_enc_encode_ms_info(pstr_qc_out_ch[0].section_data.sfb_cnt,
+                                   pstr_qc_out_ch[0].section_data.sfb_per_group,
+                                   pstr_qc_out_ch[0].section_data.max_sfb_per_grp, ms_digest,
+                                   ms_flags, pstr_bit_stream_handle);
   err_code = ia_enhaacplus_enc_write_ic_stream(
       1, pstr_qc_out_ch[0].win_shape, pstr_qc_out_ch[0].grouping_mask, pstr_sfb_offset[0],
       pstr_qc_out_ch[0].scalefactor, pstr_qc_out_ch[0].max_val_in_sfb,
@@ -742,7 +747,7 @@ IA_ERRORCODE ia_enhaacplus_enc_write_bitstream(
       case ID_CPE: /* channel pair */
       {
         WORD32 ms_digest = pstr_psy_out->psy_out_element.tools_info.ms_digest;
-        WORD32 *msFlags = pstr_psy_out->psy_out_element.tools_info.ms_mask;
+        WORD32 *ms_flags = pstr_psy_out->psy_out_element.tools_info.ms_mask;
 
         ptr_sfb_offset[0] =
             pstr_psy_out->psy_out_ch[pstr_element_info.channel_index[0]]->sfb_offsets;
@@ -753,7 +758,7 @@ IA_ERRORCODE ia_enhaacplus_enc_write_bitstream(
         tns_info[1] = pstr_psy_out->psy_out_ch[pstr_element_info.channel_index[1]]->tns_info;
 
         err_code = ia_enhaacplus_enc_write_channel_pair_element(
-            pstr_element_info.instance_tag, ms_digest, msFlags, ptr_sfb_offset,
+            pstr_element_info.instance_tag, ms_digest, ms_flags, ptr_sfb_offset,
             pstr_qc_out->qc_channel[pstr_element_info.channel_index[0]], pstr_bit_stream_handle,
             aot, tns_info, pstr_aac_tables);
         if (err_code != IA_NO_ERROR) {
@@ -821,7 +826,6 @@ IA_ERRORCODE ia_enhaacplus_enc_write_bitstream(
   if (frame_bits != pstr_qc_out->tot_static_bits_used + pstr_qc_out->tot_dyn_bits_used +
                         pstr_qc_out->tot_anc_bits_used + +pstr_qc_out->total_fill_bits +
                         pstr_qc_out->align_bits) {
-    // return -1;
   }
 
   return IA_NO_ERROR;

@@ -48,6 +48,9 @@ pWORD8 ppb_ia_enhaacplus_enc_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
 pWORD8 ppb_ia_enhaacplus_enc_mps_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid configuration", (pWORD8) "Invalid Parameter"};
 
+pWORD8 ppb_ia_enhaacplus_enc_drc_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Missing configuration"};
+
 /* Fatal Errors */
 pWORD8 ppb_ia_enhaacplus_enc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid sampling frequency of the stream",
@@ -62,6 +65,16 @@ pWORD8 ppb_ia_enhaacplus_enc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid PCE (Program Configuration Element) flag, use 0 or 1",
     (pWORD8) "Invalid use full band width flag, use 0 or 1",
     (pWORD8) "Invalid speech configuration flag, use 0 or 1",
+};
+
+pWORD8 ppb_ia_enhaacplus_enc_usac_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Invalid sampling frequency", (pWORD8) "Invalid resampler ratio"};
+
+pWORD8 ppb_ia_enhaacplus_enc_drc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Invalid configuration",
+    (pWORD8) "Unsupported configuration",
+    (pWORD8) "Parameter out of range",
+    (pWORD8) "Compand failure",
 };
 
 /*****************************************************************************/
@@ -89,6 +102,9 @@ pWORD8 ppb_ia_enhaacplus_enc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "MPS Initialization failed"};
+
+pWORD8 ppb_ia_enhaacplus_enc_usac_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Resampler initialization failed", (pWORD8) "Insufficient bit-reservoir size"};
 
 pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid number of channels",     (pWORD8) "Invalid sample rate mode",
@@ -149,6 +165,14 @@ pWORD8 ppb_ia_enhaacplus_enc_mps_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid number of PCB levels",
     (pWORD8) "Error in complex FFT processing"};
 
+pWORD8 ppb_ia_enhaacplus_enc_usac_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Invalid FAC length",
+    (pWORD8) "Invalid number of SBK",
+    (pWORD8) "Invalid number of channels",
+    (pWORD8) "Invalid bit reservoir level",
+    (pWORD8) "Invalid mapping",
+};
+
 /*****************************************************************************/
 /* error info structure                                                      */
 /*****************************************************************************/
@@ -198,14 +222,22 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_config_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][1][1] =
       ppb_ia_enhaacplus_enc_mps_config_non_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][1][2] =
+      ppb_ia_enhaacplus_enc_drc_config_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][1][0] =
       ppb_ia_enhaacplus_enc_config_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][1][2] =
+      ppb_ia_enhaacplus_enc_usac_config_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][1][3] =
+      ppb_ia_enhaacplus_enc_drc_config_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][2][1] =
       ppb_ia_enhaacplus_enc_mps_init_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][0] =
       ppb_ia_enhaacplus_enc_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][1] =
       ppb_ia_enhaacplus_enc_mps_init_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][2] =
+      ppb_ia_enhaacplus_enc_usac_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][4] =
       ppb_ia_enhaacplus_enc_sbr_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][1] =
@@ -216,6 +248,8 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_exe_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][3][1] =
       ppb_ia_enhaacplus_enc_mps_exe_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][3][2] =
+      ppb_ia_enhaacplus_enc_usac_exe_fatal;
 }
 
 IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_context,

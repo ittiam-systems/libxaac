@@ -39,7 +39,8 @@ IA_ERRORCODE
 ixheaace_find_start_and_stop_band(const WORD32 sampling_freq, const WORD32 num_channels,
                                   const WORD32 start_freq, const WORD32 stop_freq,
                                   const ixheaace_sr_mode sample_rate_mode, WORD32 *ptr_k0,
-                                  WORD32 *ptr_k2);
+                                  WORD32 *ptr_k2, WORD32 sbr_ratio_idx,
+                                  ixheaace_sbr_codec_type sbr_codec);
 
 WORD32 ixheaace_get_sbr_start_freq_raw(WORD32 start_freq, WORD32 qmf_bands, WORD32 fs);
 

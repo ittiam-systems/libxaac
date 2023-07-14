@@ -78,6 +78,10 @@ typedef struct ixheaace_str_sbr_cfg {
   WORD32 frame_flag_960;
   WORD32 is_ld_sbr;
   WORD32 is_esbr;
+  WORD32 sbr_pvc_rate;
+  WORD32 sbr_ratio_idx;
+  WORD32 sbr_pvc_active;
+  WORD32 sbr_harmonic;
   WORD32 hq_esbr;
   ixheaace_sbr_codec_type sbr_codec;
 } ixheaace_str_sbr_cfg, *ixheaace_pstr_sbr_cfg;
@@ -108,9 +112,6 @@ ixheaace_env_open(ixheaace_pstr_sbr_enc *pstr_env_encoder, ixheaace_pstr_sbr_cfg
 VOID ixheaace_env_close(ixheaace_pstr_sbr_enc pstr_env_encoder);
 
 WORD32
-ixheaace_sbr_get_x_over_freq(ixheaace_pstr_sbr_enc ptr_env, WORD32 xoverFreq);
-
-WORD32
 ixheaace_sbr_get_stop_freq_raw(ixheaace_pstr_sbr_enc ptr_env);
 
 IA_ERRORCODE
@@ -118,11 +119,18 @@ ixheaace_env_encode_frame(ixheaace_pstr_sbr_enc ptr_env_encoder, FLOAT32 *sample
                           FLOAT32 *core_buffer, UWORD32 time_sn_stride, UWORD8 *num_anc_bytes,
                           UWORD8 *anc_data, ixheaace_str_sbr_tabs *pstr_sbr_tab,
                           ixheaace_comm_tables *common_tab, UWORD8 *mps_data, WORD32 mps_bits,
-                          WORD32 flag_framelength_small);
+                          WORD32 flag_framelength_small, WORD32 *usac_stat_bits);
 
 VOID ixheaace_sbr_set_scratch_ptr(ixheaace_pstr_sbr_enc h_env_enc, VOID *scr);
-WORD32 ixheaace_sbr_enc_pers_size(WORD32 num_chan, WORD32 use_ps);
+WORD32 ixheaace_sbr_enc_pers_size(WORD32 num_chan, WORD32 use_ps, WORD32 harmonic_sbr);
 WORD32 ixheaace_sbr_enc_scr_size(VOID);
+
+VOID ixheaace_set_usac_sbr_params(ixheaace_pstr_sbr_enc h_env_enc, WORD32 usac_indep_flag,
+                                  WORD32 sbr_pre_proc, WORD32 sbr_pvc_active, WORD32 sbr_pvc_mode,
+                                  WORD32 inter_tes_active, WORD32 sbr_harmonic,
+                                  WORD32 sbr_patching_mode);
+
+FLOAT32 *ixheaace_get_hbe_resample_buffer(ixheaace_pstr_sbr_enc h_env_enc);
 
 IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_core_buf,
                                            UWORD32 time_sn_stride,

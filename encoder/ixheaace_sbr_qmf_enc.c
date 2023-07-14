@@ -941,9 +941,14 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
   }
 }
 
-VOID ixheaace_get_energy_from_cplx_qmf(FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_real_values,
-                                       FLOAT32 **ptr_imag_values, WORD32 is_ld_sbr,
-                                       WORD32 num_time_slots, WORD32 samp_ratio_fac) {
+VOID ixheaace_get_energy_from_cplx_qmf(
+    FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_real_values, FLOAT32 **ptr_imag_values,
+    WORD32 is_ld_sbr, WORD32 num_time_slots, WORD32 samp_ratio_fac,
+    FLOAT32 qmf_buf_real[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
+    FLOAT32 qmf_buf_imag[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
+    WORD32 op_delay, WORD32 harmonic_sbr)
+
+{
   WORD32 j, k;
   FLOAT32 avg_fac = 0.5f;
   if (samp_ratio_fac == 4) {
@@ -953,11 +958,21 @@ VOID ixheaace_get_energy_from_cplx_qmf(FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_
     FLOAT32 *ptr_energy_val = &ptr_energy_vals[0][0];
     FLOAT32 *ptr_real = &ptr_real_values[0][0];
     FLOAT32 *ptr_imag = &ptr_imag_values[0][0];
+    FLOAT32 *ptr_hbe_real = &qmf_buf_real[op_delay][0];
+    FLOAT32 *ptr_hbe_imag = &qmf_buf_imag[op_delay][0];
     k = (num_time_slots - 1);
     while (k >= 0) {
       for (j = 63; j >= 0; j--) {
         FLOAT32 tmp = 0.0f;
-        {
+        if (harmonic_sbr == 1) {
+          FLOAT32 real_hbe, imag_hbe;
+          real_hbe = *(ptr_hbe_real);
+          imag_hbe = *(ptr_hbe_imag);
+          tmp += (real_hbe * real_hbe) + (imag_hbe * imag_hbe);
+          *ptr_energy_val = tmp;
+          ptr_hbe_real++;
+          ptr_hbe_imag++;
+        } else {
           FLOAT32 real, imag;
           WORD32 i;
           for (i = 0; i < samp_ratio_fac; i++) {
@@ -971,7 +986,10 @@ VOID ixheaace_get_energy_from_cplx_qmf(FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_
         }
         ptr_energy_val++;
       }
-      {
+      if (harmonic_sbr == 1) {
+        ptr_hbe_real += 64;
+        ptr_hbe_imag += 64;
+      } else {
         ptr_real += 64;
         ptr_imag += 64;
       }

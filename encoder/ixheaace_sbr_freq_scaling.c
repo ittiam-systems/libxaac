@@ -37,6 +37,123 @@
 #include "ixheaace_resampler.h"
 #include "ixheaace_sbr_rom.h"
 
+static WORD32 ixheaace_get_start_freq_4_1(WORD32 fs, WORD32 start_freq) {
+  WORD32 minimum_k0;
+  const WORD32 *ptr_start_offset;
+
+  switch (fs) {
+    case 16000:
+      minimum_k0 = 12;
+      break;
+    case 22050:
+      minimum_k0 = 9;
+      break;
+    case 24000:
+      minimum_k0 = 8;
+      break;
+    case 32000:
+      minimum_k0 = 8;
+      break;
+    case 44100:
+      minimum_k0 = 6;
+      break;
+    case 48000:
+      minimum_k0 = 5;
+      break;
+    default:
+      minimum_k0 = 5; /* illegal fs */
+  }
+
+  switch (fs) {
+    case 16000: {
+      ptr_start_offset = &ixheaace_start_freq_16k_4_1[0];
+    } break;
+
+    case 22050: {
+      ptr_start_offset = &ixheaace_start_freq_22k_4_1[0];
+    } break;
+
+    case 24000: {
+      ptr_start_offset = &ixheaace_start_freq_24k_4_1[0];
+    } break;
+
+    case 32000: {
+      ptr_start_offset = &ixheaace_start_freq_32k_4_1[0];
+    } break;
+
+    case 44100:
+    case 48000:
+    case 64000: {
+      ptr_start_offset = &ixheaace_start_freq_48k_4_1[0];
+    } break;
+
+    case 88200:
+    case 96000: {
+      ptr_start_offset = &ixheaace_start_freq_96k_4_1[0];
+    } break;
+
+    default: {
+      ptr_start_offset = &ixheaace_start_freq_dflt_4_1[0];
+    }
+  }
+  return (minimum_k0 + ptr_start_offset[start_freq]);
+}
+
+static WORD32 ixheaace_get_stop_freq_4_1(WORD32 fs, WORD32 stop_freq) {
+  WORD32 result, i;
+  WORD32 *v_stop_freq = 0;
+  WORD32 k1_min;
+  WORD32 v_dstop[13];
+
+  /* counting previous operations */
+  switch (fs) {
+    case 16000:
+      k1_min = 24;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_16k_4_1[0];
+      break;
+    case 22050:
+      k1_min = 17;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_22k_4_1[0];
+      break;
+    case 24000:
+      k1_min = 16;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_24k_4_1[0];
+      break;
+    case 32000:
+      k1_min = 16;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_32k_4_1[0];
+      break;
+
+    case 44100:
+      k1_min = 12;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_44k_4_1[0];
+      break;
+
+    case 48000:
+      k1_min = 11;
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_48k_4_1[0];
+      break;
+
+    default:
+      v_stop_freq = (WORD32 *)&ixheaace_stop_freq_32k_4_1[0];
+      k1_min = 11; /* illegal fs  */
+  }
+
+  for (i = 0; i <= 12; i++) {
+    v_dstop[i] = v_stop_freq[i + 1] - v_stop_freq[i];
+  }
+
+  ixheaace_shellsort_int(v_dstop, 13);
+
+  result = k1_min;
+
+  for (i = 0; i < stop_freq; i++) {
+    result = result + v_dstop[i];
+  }
+
+  return result;
+}
+
 static WORD32 ixheaace_get_start_freq(WORD32 fs, WORD32 start_freq) {
   WORD32 minimum_k0;
 
@@ -241,14 +358,41 @@ IA_ERRORCODE
 ixheaace_find_start_and_stop_band(const WORD32 sampling_freq, const WORD32 num_channels,
                                   const WORD32 start_freq, const WORD32 stop_freq,
                                   const ixheaace_sr_mode sample_rate_mode, WORD32 *ptr_k0,
-                                  WORD32 *ptr_k2) {
-  *ptr_k0 = ixheaace_get_start_freq(sampling_freq, start_freq);
+                                  WORD32 *ptr_k2, WORD32 sbr_ratio_idx,
+                                  ixheaace_sbr_codec_type sbr_codec) {
+  switch (sbr_codec) {
+    case USAC_SBR: {
+      if (sbr_ratio_idx == USAC_SBR_RATIO_INDEX_4_1) {
+        *ptr_k0 = ixheaace_get_start_freq_4_1(sampling_freq, start_freq);
+      } else {
+        *ptr_k0 = ixheaace_get_start_freq(sampling_freq, start_freq);
+      }
+      break;
+    }
+    default: {
+      *ptr_k0 = ixheaace_get_start_freq(sampling_freq, start_freq);
+      break;
+    }
+  }
   if ((sample_rate_mode == 1) && (sampling_freq * num_channels < 2 * *ptr_k0 * sampling_freq)) {
     return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_SAMPLERATE_MODE;
   }
 
   if (stop_freq < 14) {
-    *ptr_k2 = ixheaace_get_stop_freq(sampling_freq, stop_freq);
+    switch (sbr_codec) {
+      case USAC_SBR: {
+        if (USAC_SBR_RATIO_INDEX_4_1 == sbr_ratio_idx) {
+          *ptr_k2 = ixheaace_get_stop_freq_4_1(sampling_freq, stop_freq);
+        } else {
+          *ptr_k2 = ixheaace_get_stop_freq(sampling_freq, stop_freq);
+        }
+        break;
+      }
+      default: {
+        *ptr_k2 = ixheaace_get_stop_freq(sampling_freq, stop_freq);
+        break;
+      }
+    }
   }
 
   else {
@@ -258,8 +402,35 @@ ixheaace_find_start_and_stop_band(const WORD32 sampling_freq, const WORD32 num_c
   if (*ptr_k2 > num_channels) {
     *ptr_k2 = num_channels;
   }
-
-  {
+  if (sbr_codec == USAC_SBR) {
+    if (sbr_ratio_idx == USAC_SBR_RATIO_INDEX_4_1) {
+      if (((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_USAC) || (*ptr_k2 <= *ptr_k0)) {
+        return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+      }
+      if ((2 * sampling_freq == 44100) && ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_USAC)) {
+        return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+      }
+      if ((2 * sampling_freq >= 48000) && ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_USAC)) {
+        return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+      }
+    } else {
+      if (sampling_freq <= 32000) {
+        if ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_LE32KHZ) {
+          return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+        }
+      } else if (sampling_freq == 44100) {
+        if ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_EQ44KHZ) {
+          return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+        }
+      } else if (sampling_freq >= 48000) {
+        if ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_GE48KHZ) {
+          return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+        }
+      } else {
+        return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;
+      }
+    }
+  } else {
     if (sampling_freq <= 32000) {
       if ((*ptr_k2 - *ptr_k0) > MAXIMUM_FREQ_COEFFS_LE32KHZ) {
         return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_FREQ_COEFFS;

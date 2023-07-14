@@ -47,6 +47,8 @@
 #include "ixheaace_sbr_noise_floor_est.h"
 
 #include "ixheaace_sbr_ton_corr.h"
+#include "iusace_esbr_pvc.h"
+#include "iusace_esbr_inter_tes.h"
 #include "ixheaace_sbr.h"
 #include "ixheaace_common_utils.h"
 
@@ -108,7 +110,7 @@ ixheaace_init_sbr_huffman_tabs(ixheaace_pstr_sbr_env_data pstr_sbr_env,
       break;
 
     default:
-      return IA_EXHAACE_EXE_FATAL_SBR_INVALID_AMP_RES;
+      return IA_EXHEAACE_EXE_FATAL_SBR_INVALID_AMP_RES;
       break;
   }
 

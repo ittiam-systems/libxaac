@@ -54,8 +54,10 @@ typedef struct {
   WORD32 mps_tree_config;
   WORD32 use_mps;
   WORD32 eldsbr_found;
+  WORD32 ccfl_idx;
   UWORD32 ui_pcm_wd_sz;
   WORD32 frame_length;
+  ia_usac_encoder_config_struct usac_config;
 } ixheaace_config_struct;
 
 typedef struct ixheaace_state_struct {
@@ -86,6 +88,9 @@ typedef struct ixheaace_state_struct {
   ixheaace_iir21_resampler down_sampler[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
   ixheaace_iir_sos_resampler down_samp_sos[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
   ixheaace_iir_sos_resampler up_sampler[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
+  ixheaace_iir21_resampler hbe_down_sampler[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
+  ixheaace_iir_sos_resampler hbe_down_samp_sos[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
+  ixheaace_iir_sos_resampler hbe_up_sampler[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
   UWORD8 num_anc_data_bytes[MAXIMUM_BS_ELE][IXHEAACE_MAX_CH_IN_BS_ELE];
   UWORD8 anc_data_bytes[MAXIMUM_BS_ELE][IXHEAACE_MAX_PAYLOAD_SIZE];
   WORD32 total_fill_bits;
@@ -95,6 +100,7 @@ typedef struct ixheaace_state_struct {
   FLOAT32 **pp_drc_in_buf;
   FLOAT32 *mps_scratch;
   ixheaace_audio_specific_config_struct audio_specific_config;
+  ia_usac_data_struct str_usac_enc_data;
   ia_bit_buf_struct str_bit_buf;
   ixheaace_mps_212_memory_struct *mps_pers_mem;
   ixheaace_mps_515_memory_struct *mps_515_pers_mem;
@@ -112,6 +118,7 @@ typedef struct ixheaace_api_struct {
   ixheaace_aac_tables pstr_aac_tabs;
   ixheaace_comm_tables common_tabs;
   ixheaace_str_sbr_tabs spectral_band_replication_tabs;
+  WORD32 usac_en;
   VOID *pstr_mps_212_enc;
   VOID *pstr_mps_515_enc;
 } ixheaace_api_struct;
