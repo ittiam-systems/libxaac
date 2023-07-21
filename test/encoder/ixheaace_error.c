@@ -94,7 +94,6 @@ pWORD8 ppb_ia_enhaacplus_enc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid TNS parameter",
     (pWORD8) "Scale factor band not supported",
     (pWORD8) "Invalid core sample rate",
-    (pWORD8) "Invalid bit rate",
     (pWORD8) "Invalid element type",
     (pWORD8) "Number of channels not supported",
     (pWORD8) "Invalid number of channels in element",

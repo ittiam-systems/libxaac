@@ -20,6 +20,20 @@
 
 #pragma once
 
+#define IXHEAACE_MEM_FREE(pv_output)                                                   \
+  {                                                                                    \
+    WORD32 idx;                                                                        \
+    ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;  \
+    if (pstr_output_config->malloc_count > 0) {                                        \
+      for (idx = pstr_output_config->malloc_count - 1; idx >= 0; idx--) {              \
+        if (pstr_output_config->arr_alloc_memory[idx]) {                               \
+          pstr_output_config->free_xheaace(pstr_output_config->arr_alloc_memory[idx]); \
+        }                                                                              \
+      }                                                                                \
+      pstr_output_config->malloc_count = 0;                                            \
+    }                                                                                  \
+  }
+
 /*-------------------- structure definitions ------------------------------*/
 
 typedef struct {

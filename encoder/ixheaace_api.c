@@ -282,9 +282,9 @@ static VOID ia_enhaacplus_enc_find_slots_for_elements(WORD32 i_channel_mask,
     slot += 2;
   }
 
-  if ((i_channel_mask & 0xC0)) {
-    slots_for_elements[BACK_LR_OF_CENTER] = slot;
-    slot += 2;
+  if ((i_channel_mask & 0x100)) {
+    slots_for_elements[REAR_CENTER] = slot;
+    slot += 1;
   }
 
   if (i_num_coupling_chan != 0) {
@@ -336,12 +336,12 @@ static VOID ia_enhaacplus_enc_find_channel_config(WORD32 *num_bs_elements, WORD3
     (*num_bs_elements)++;
   }
 
-  if ((i_channel_mask & 0xC0)) {
-    /*Back Left and Right of center Present*/
-    chan_config[*num_bs_elements] = 2;
-    element_type[*num_bs_elements] = ID_CPE;
-    element_slot[*num_bs_elements] = slots_for_elements[BACK_LR_OF_CENTER];
-    element_instance_tag[*num_bs_elements] = 2;
+  if ((i_channel_mask & 0x100)) {
+    /* Rear Center Present*/
+    chan_config[*num_bs_elements] = 1;
+    element_type[*num_bs_elements] = ID_SCE;
+    element_slot[*num_bs_elements] = slots_for_elements[REAR_CENTER];
+    element_instance_tag[*num_bs_elements] = 1;
     (*num_bs_elements)++;
   }
 
@@ -671,8 +671,7 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     }
 
     {
-      if (pstr_input_config->i_samp_freq > 64000)
-      {
+      if (pstr_input_config->i_samp_freq > 64000) {
         pstr_input_config->codec_mode = USAC_ONLY_FD;
         pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;
         pstr_input_config->esbr_flag = 0;
@@ -1237,7 +1236,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
     /* output */
     {
       pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_OUTPUT_IDX];
-      pstr_mem_info->ui_size = pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_INPUT_IDX].ui_size;
+      pstr_mem_info->ui_size = (MAXIMUM_CHANNEL_BITS_1024 / BYTE_NUMBIT) * num_channel;
       pstr_mem_info->ui_alignment = 8;
       pstr_mem_info->ui_type = IA_MEMTYPE_OUTPUT;
       pstr_mem_info->ui_placement[0] = 0;
@@ -2056,6 +2055,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct,
   if (pstr_api_struct->config[ele_idx].use_parametric_stereo) {
     pstr_api_struct->config[ele_idx].chmode_nchannels = 2;
     pstr_aac_config->num_out_channels = 1;
+    core_ch = 1;
     pstr_api_struct->config[ele_idx].element_type = ID_SCE;
   }
   if ((pstr_api_struct->config[ele_idx].i_channels == 2) &&
@@ -2090,8 +2090,8 @@ static IA_ERRORCODE ia_enhaacplus_enc_init(ixheaace_api_struct *pstr_api_struct,
     case AOT_PS:
       pstr_aac_config->bit_rate = ia_enhaacplus_aac_limitbitrate(
           pstr_aac_config->core_sample_rate,
-          (pstr_aac_config->flag_framelength_small ? FRAME_LEN_960 : FRAME_LEN_1024),
-          pstr_api_struct->config[ele_idx].chmode_nchannels, pstr_aac_config->bit_rate);
+          (pstr_aac_config->flag_framelength_small ? FRAME_LEN_960 : FRAME_LEN_1024), core_ch,
+          pstr_aac_config->bit_rate);
       break;
 
     case AOT_AAC_LD:
@@ -3543,11 +3543,13 @@ IA_ERRORCODE ixheaace_create(pVOID pv_input, pVOID pv_output) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   ixheaace_output_config *pstr_out_cfg = (ixheaace_output_config *)pv_output;
   err_code = ixheaace_allocate(pv_input, pv_output);
-  if (err_code) {
-    return err_code;
-  } else {
-    return ixheaace_init(pstr_out_cfg->pv_ia_process_api_obj, pv_input, pv_output);
+  if (!err_code) {
+    err_code = ixheaace_init(pstr_out_cfg->pv_ia_process_api_obj, pv_input, pv_output);
   }
+  if (err_code) {
+    IXHEAACE_MEM_FREE(pv_output);
+  }
+  return err_code;
 }
 
 IA_ERRORCODE ixheaace_process(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_output) {
@@ -3570,15 +3572,6 @@ IA_ERRORCODE ixheaace_process(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_
 }
 
 IA_ERRORCODE ixheaace_delete(pVOID pv_output) {
-  WORD32 idx;
-  ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;
-
-  if (pstr_output_config->malloc_count > 0) {
-    for (idx = pstr_output_config->malloc_count - 1; idx >= 0; idx--) {
-      if (pstr_output_config->arr_alloc_memory[idx]) {
-        pstr_output_config->free_xheaace(pstr_output_config->arr_alloc_memory[idx]);
-      }
-    }
-  }
+  IXHEAACE_MEM_FREE(pv_output);
   return IA_NO_ERROR;
 }

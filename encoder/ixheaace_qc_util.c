@@ -493,20 +493,22 @@ VOID ia_enhaacplus_enc_adjust_bitrate(ixheaace_qc_state *pstr_qc_state, WORD32 b
 WORD32 ia_enhaacplus_aac_limitbitrate(WORD32 core_sampling_rate, WORD32 frame_length,
                                       WORD32 num_channels, WORD32 bit_rate) {
   WORD32 prev_bit_rate, shift = 0, iter = 0;
+  WORD32 max_ch_bits = MAXIMUM_CHANNEL_BITS_1024;
 
   while ((frame_length & ~((1 << (shift + 1)) - 1)) == frame_length &&
          (core_sampling_rate & ~((1 << (shift + 1)) - 1)) == core_sampling_rate) {
     shift++;
   }
 
+  max_ch_bits = MAXIMUM_CHANNEL_BITS_1024 * frame_length / MAX_FRAME_LEN;
+
   do {
     prev_bit_rate = bit_rate;
 
     bit_rate = MAX(bit_rate, ((((40 * num_channels) + TRANSPORT_BITS) * (core_sampling_rate)) /
                               frame_length));
-    bit_rate = MIN(bit_rate,
-                   ((num_channels * MAXIMUM_CHANNEL_BITS_1024) * (core_sampling_rate >> shift)) /
-                       (frame_length >> shift));
+    bit_rate = MIN(bit_rate, ((num_channels * max_ch_bits) * (core_sampling_rate >> shift)) /
+                                 (frame_length >> shift));
 
   } while (prev_bit_rate != bit_rate && iter++ < 3);
 

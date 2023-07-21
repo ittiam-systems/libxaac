@@ -26,6 +26,9 @@
 #define IA_MEMTYPE_OUTPUT 0x03
 
 #define DEFAULT_MEM_ALIGN_8 (8)
+#define IXHEAACE_MEM_ALLOC_CNT (6)
+/* 1 <ixheaace_api_struct>  2 <ixheaace_mem_info_struct>  3 <Persistent>  4 <Scratch>  5 <Input>
+ * 6 <Output> */
 
 /* Audio Object Type */
 #define AOT_AAC_LC (2)
@@ -120,7 +123,7 @@ typedef struct {
   SIZE_T ui_rem;
   UWORD32 ui_proc_mem_tabs_size;
   pVOID pv_ia_process_api_obj;
-  pVOID arr_alloc_memory[100];
+  pVOID arr_alloc_memory[IXHEAACE_MEM_ALLOC_CNT];
   pVOID (*malloc_xheaace)(UWORD32, UWORD32);
   VOID (*free_xheaace)(pVOID);
   ixheaace_version version;

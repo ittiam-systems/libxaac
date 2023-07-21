@@ -59,7 +59,7 @@ static VOID iusace_calc_pds(FLOAT32 *ptr_input, WORD32 ccfl) {
           10e-15,
       MIN_POW);
 
-  for (i = 1; i < ccfl >> 1; i++) {
+  for (i = 1; i<ccfl>> 1; i++) {
     /* removed the sqrt along with clubbing the for loops */
     ptr_input[2 * i] = (FLOAT32)MAX(10 * (log10(ptr_input[2 * i] * ptr_input[2 * i] +
                                                 ptr_input[2 * i + 1] * ptr_input[2 * i + 1]) -
@@ -73,7 +73,7 @@ static VOID iusace_calc_pds(FLOAT32 *ptr_input, WORD32 ccfl) {
   /* Normalized to reference sound pressure level 96 dB */
   delta = 96 - max_pow;
 
-  for (i = 0; i < ccfl >> 1; i++) {
+  for (i = 0; i<ccfl>> 1; i++) {
     ptr_input[2 * i] = ptr_input[2 * i] + (FLOAT32)delta;
   }
   return;
@@ -86,7 +86,7 @@ static VOID iusace_find_tonal(FLOAT32 *ptr_input, WORD32 *ptr_tonal_flag, FLOAT3
   FLOAT64 tonal_spl;
   FLOAT64 absolute_threshold_xm;
 
-  for (i = 0; i < ccfl >> 1; i++) {
+  for (i = 0; i<ccfl>> 1; i++) {
     ptr_scratch[i] = ptr_input[2 * i];
   }
 
@@ -309,10 +309,9 @@ static VOID iusace_tonal_analysis(ia_tonal_params_struct *pstr_ton_params,
   WORD32 n_tonal_total, n_tonal_low_frequency_total;
 
   for (i = 0; i < ccfl; i++) {
-    ptr_complex_fft[2 * i] =
-        (FLOAT32)(ptr_time_sig[i] * ((ccfl == 1024)
-                                         ? iusace_classify_arrays.hanning_window_1024[i]
-                                         : iusace_classify_arrays.hanning_window_768[i]));
+    ptr_complex_fft[2 * i] = (FLOAT32)(
+        ptr_time_sig[i] * ((ccfl == 1024) ? iusace_classify_arrays.hanning_window_1024[i]
+                                          : iusace_classify_arrays.hanning_window_768[i]));
     ptr_complex_fft[2 * i + 1] = 0;
   }
 
@@ -331,7 +330,7 @@ static VOID iusace_tonal_analysis(ia_tonal_params_struct *pstr_ton_params,
     ptr_n_tonal_low_frequency[i] = ptr_n_tonal_low_frequency[i + 1];
   }
   ptr_n_tonal[99] = 0;
-  for (i = 0; i < ccfl >> 1; i++) {
+  for (i = 0; i<ccfl>> 1; i++) {
     ptr_n_tonal[99] += ptr_tonal_flag[i];
   }
   ptr_n_tonal_low_frequency[99] = 0;

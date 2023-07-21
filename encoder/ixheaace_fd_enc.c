@@ -52,10 +52,6 @@
 #include "ixheaace_cplx_pred.h"
 #include "iusace_func_prototypes.h"
 
-#if DEBUG_DUMP
-extern FILE *out_file;
-#endif
-
 IA_ERRORCODE iusace_fd_encode(ia_sfb_params_struct *pstr_sfb_prms, WORD32 usac_independancy_flag,
                               ia_usac_data_struct *pstr_usac_data,
                               ia_usac_encoder_config_struct *pstr_usac_config,
@@ -115,10 +111,6 @@ IA_ERRORCODE iusace_fd_encode(ia_sfb_params_struct *pstr_sfb_prms, WORD32 usac_i
                                                    tns_data_present, usac_independancy_flag,
                                                    pstr_usac_config, pstr_usac_data, chn);
   }
-
-#if DEBUG_DUMP
-  fprintf(out_file, "%d\t", *bit_written);
-#endif
 
   idx = 0;
   for (i_ch = chn; i_ch < chn + nr_core_coder_ch; i_ch++) {

@@ -106,10 +106,10 @@ static VOID iusace_gosset_compute_base_idx(WORD32 *x, WORD32 ka, WORD32 *idx) {
 }
 
 static WORD32 iusace_find_absolute_leader(WORD32 *y) {
-  WORD32 i, s, C[8], nb, pos, ka;
-  long id;
+  WORD32 i, nb, pos, ka;
+  WORD64 s, C[8], id;
   for (i = 0; i < 8; i++) {
-    C[i] = y[i] * y[i];
+    C[i] = (WORD64)y[i] * y[i];
   }
   s = 0;
   for (i = 0; i < 8; i++) {

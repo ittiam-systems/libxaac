@@ -57,10 +57,6 @@
 #include "iusace_rom.h"
 #include "ixheaace_cplx_pred.h"
 
-#if DEBUG_DUMP
-extern FILE *out_file;
-#endif
-
 static WORD32 iusace_window_shape[5] = {WIN_SEL_1, WIN_SEL_0, WIN_SEL_0, WIN_SEL_1, WIN_SEL_0};
 
 static WORD32 iusace_count_ms_bits(WORD32 sfb_count, WORD32 sfb_per_grp, WORD32 max_sfb_per_grp) {
@@ -509,10 +505,6 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
   pstr_qc_out->static_bits =
       iusace_count_static_bits(ptr_usac_data, ptr_usac_config, pstr_sfb_prms, pstr_psy_out,
                                num_chans, chn, usac_independancy_flag, ele_id);
-#if DEBUG_DUMP
-  fprintf(out_file, "\nFrame: %d\n", ptr_usac_data->frame_count);
-  fprintf(out_file, "%d\t", pstr_qc_out->static_bits);
-#endif
 
   iusace_adj_bitrate(pstr_qc_data, pstr_qc_data->ch_bitrate, ptr_usac_config->core_sample_rate,
                      ptr_usac_config->ccfl);

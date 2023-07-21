@@ -374,9 +374,8 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
 
       for (j = 0; j < num_bands; j++) {
         if (freq_res == FREQ_RES_HIGH && pstr_sbr->str_sbr_extract_env.envelope_compensation[j]) {
-          ptr_sfb_ene_l[m] -=
-              (WORD32)(ca *
-                       ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
+          ptr_sfb_ene_l[m] -= (WORD32)(
+              ca * ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
         }
 
         if (ptr_sfb_ene_l[m] < 0) {
@@ -1136,7 +1135,7 @@ VOID ixheaace_esbr_postradixcompute2(FLOAT32 *ptr_y, FLOAT32 *ptr_x,
   ptr_y3 = ptr_y2 + (WORD32)(npoints >> 2);
 
   for (k = 0; k < 2; k++) {
-    for (i = 0; i < npoints >> 1; i += 8) {
+    for (i = 0; i<npoints>> 1; i += 8) {
       h2 = (WORD32)*ptr_dig_rev_tbl++ / 4;
 
       x_0 = *ptr_x0++;
@@ -1229,7 +1228,7 @@ VOID ixheaace_esbr_postradixcompute4(FLOAT32 *ptr_y, FLOAT32 *ptr_x,
   ptr_y3 = ptr_y2 + (WORD32)(npoints >> 1);
 
   for (k = 0; k < 2; k++) {
-    for (i = 0; i < npoints >> 1; i += 8) {
+    for (i = 0; i<npoints>> 1; i += 8) {
       h2 = (WORD32)*ptr_dig_rev_tbl++ / 4;
       x_0 = *ptr_x0++;
       x_1 = *ptr_x0++;

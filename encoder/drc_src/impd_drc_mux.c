@@ -1213,10 +1213,10 @@ static VOID impd_drc_write_split_drc_characteristic(
         it_bit_buf, pstr_split_characteristic->characteristic_node_count - 1, 2);
 
     for (idx = 1; idx <= pstr_split_characteristic->characteristic_node_count; idx++) {
-      bs_node_level_delta = (WORD32)(floor(fabs(pstr_split_characteristic->node_level[idx] -
-                                                bs_node_level_previous) +
-                                           0.5f) -
-                                     1);
+      bs_node_level_delta = (WORD32)(
+          floor(fabs(pstr_split_characteristic->node_level[idx] - bs_node_level_previous) +
+                0.5f) -
+          1);
 
       if (bs_node_level_delta < 0) {
         bs_node_level_delta = 0;
