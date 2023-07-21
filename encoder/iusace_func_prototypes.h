@@ -26,9 +26,8 @@ WORD32 iusace_get_num_params(WORD32 *qn);
 VOID iusace_highpass_50hz_12k8(FLOAT32 *signal, WORD32 lg, FLOAT32 *mem, WORD32 fscale);
 
 IA_ERRORCODE iusace_lpd_frm_enc(ia_usac_data_struct *usac_data, WORD32 *mod_out,
-                                WORD32 const usac_independency_flg,
-                                WORD32 len_frame,
-                                WORD32 i_ch, ia_bit_buf_struct *pstr_it_bit_buff);
+                                WORD32 const usac_independency_flg, WORD32 len_frame, WORD32 i_ch,
+                                ia_bit_buf_struct *pstr_it_bit_buff);
 
 VOID iusace_init_td_data(ia_usac_td_encoder_struct *st, WORD32 len_frame);
 

@@ -126,9 +126,9 @@ static VOID iusace_lpc_mdct(FLOAT32 *ptr_lpc_coeffs, FLOAT32 *mdct_gains, WORD32
 
   iusace_complex_fft(in_out, length, pstr_scratch);
 
-  for (i = 0; i < length >> 1; i++) {
-    mdct_gains[i] = (FLOAT32)(1.0f / sqrt(in_out[2 * i] * in_out[2 * i] +
-                                          in_out[2 * i + 1] * in_out[2 * i + 1]));
+  for (i = 0; i<length>> 1; i++) {
+    mdct_gains[i] = (FLOAT32)(
+        1.0f / sqrt(in_out[2 * i] * in_out[2 * i] + in_out[2 * i + 1] * in_out[2 * i + 1]));
   }
 
   return;
@@ -681,11 +681,11 @@ VOID iusace_tcx_fac_encode(ia_usac_data_struct *usac_data, FLOAT32 *lpc_coeffs,
   for (i = 0; i < fac_len; i++) {
     x2[i] *= gain_next;
   }
-  for (i = 0; i < fac_len_prev >> 2; i++) {
+  for (i = 0; i<fac_len_prev>> 2; i++) {
     k = i * lg / (fac_len_prev << 3);
     x1[i] *= alfd_gains[k];
   }
-  for (i = 0; i < fac_len >> 2; i++) {
+  for (i = 0; i<fac_len>> 2; i++) {
     k = i * lg / (fac_len << 3);
     x2[i] *= alfd_gains[k];
   }

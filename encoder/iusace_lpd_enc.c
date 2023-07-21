@@ -604,12 +604,10 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
       memcpy(lpd_state_temp, lpd_state[k], sizeof(*lpd_state[0]));
 
-
       iusace_tcx_fac_encode(usac_data,
                             &lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
                             lp_filter_coeff_q, &speech[k * st->len_subfrm], st->len_subfrm,
-                            num_bits_tcx, lpd_state_temp, prm_tcx, &num_params,
-                            ch_idx, k);
+                            num_bits_tcx, lpd_state_temp, prm_tcx, &num_params, ch_idx, k);
 
       mem_wsyn = lpd_state[k]->mem_wsyn;
 
@@ -650,8 +648,7 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
     iusace_tcx_fac_encode(usac_data,
                           &lp_filter_coeff[2 * i1 * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
                           lp_filter_coeff_q, &speech[2 * i1 * st->len_subfrm], 2 * st->len_subfrm,
-                          2 * num_bits_tcx, lpd_state_temp, prm_tcx, &num_params,
-                          ch_idx, 2 * i1);
+                          2 * num_bits_tcx, lpd_state_temp, prm_tcx, &num_params, ch_idx, 2 * i1);
 
     mem_wsyn = lpd_state[2 * i1]->mem_wsyn;
 
@@ -692,8 +689,7 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
   iusace_tcx_fac_encode(usac_data, &lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
                         lp_filter_coeff_q, &speech[k * st->len_subfrm], 4 * st->len_subfrm,
-                        4 * num_bits_tcx, lpd_state_temp, prm_tcx, &num_params,
-                        ch_idx, k);
+                        4 * num_bits_tcx, lpd_state_temp, prm_tcx, &num_params, ch_idx, k);
 
   mem_wsyn = lpd_state[k]->mem_wsyn;
 
@@ -728,9 +724,8 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 }
 
 IA_ERRORCODE iusace_lpd_frm_enc(ia_usac_data_struct *usac_data, WORD32 *mod_out,
-                                WORD32 const usac_independency_flg,
-                                WORD32 len_frame,
-                                WORD32 i_ch, ia_bit_buf_struct *pstr_it_bit_buff) {
+                                WORD32 const usac_independency_flg, WORD32 len_frame, WORD32 i_ch,
+                                ia_bit_buf_struct *pstr_it_bit_buff) {
   WORD32 i;
   WORD32 len_next_high_rate = (LEN_NEXT_HIGH_RATE * len_frame) / LEN_SUPERFRAME;
   WORD32 len_lpc0 = (LEN_LPC0 * len_frame) / LEN_SUPERFRAME;

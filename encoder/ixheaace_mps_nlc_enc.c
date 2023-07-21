@@ -170,9 +170,11 @@ static VOID ixheaace_mps_212_apply_pcm_coding(ixheaace_bit_buf_handle pstr_bit_b
     grp_val = 0;
     for (lvl = 0; lvl < grp_len; lvl++) {
       idx = val + lvl;
-      next_val = (in_data_2 == NULL)   ? in_data_1[idx]
-                 : (in_data_1 == NULL) ? in_data_2[idx]
-                                       : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
+      next_val = (in_data_2 == NULL)
+                     ? in_data_1[idx]
+                     : (in_data_1 == NULL)
+                           ? in_data_2[idx]
+                           : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
       grp_val = grp_val * n_levels + next_val + offset;
     }
     ixheaace_write_bits(pstr_bit_buf, grp_val, pcm_block_size[grp_len]);
@@ -856,9 +858,11 @@ static VOID ixheaace_mps_515_apply_pcm_coding(ixheaace_bit_buf_handle pstr_bit_b
     grp_val = 0;
     for (j = 0; j < grp_len; j++) {
       idx = i + j;
-      next_val = (in_data_2 == NULL)   ? in_data_1[idx]
-                 : (in_data_1 == NULL) ? in_data_2[idx]
-                                       : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
+      next_val = (in_data_2 == NULL)
+                     ? in_data_1[idx]
+                     : (in_data_1 == NULL)
+                           ? in_data_2[idx]
+                           : ((idx & 01) ? in_data_2[idx >> 1] : in_data_1[idx >> 1]);
       grp_val = grp_val * n_levels + next_val + offset;
     }
 

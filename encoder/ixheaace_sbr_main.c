@@ -941,9 +941,8 @@ ixheaace_env_open(ixheaace_pstr_sbr_enc *pstr_env_encoder, ixheaace_pstr_sbr_cfg
     pstr_env_enc->str_sbr_bs.count_send_header_data = 0;
   }
   if (params->send_header_data_time > 0) {
-    pstr_env_enc->str_sbr_bs.nr_send_header_data =
-        (WORD32)(params->send_header_data_time * 0.001 * pstr_env_enc->str_sbr_cfg.sample_freq /
-                 2048);
+    pstr_env_enc->str_sbr_bs.nr_send_header_data = (WORD32)(
+        params->send_header_data_time * 0.001 * pstr_env_enc->str_sbr_cfg.sample_freq / 2048);
 
     pstr_env_enc->str_sbr_bs.nr_send_header_data =
         ixheaac_max32(pstr_env_enc->str_sbr_bs.nr_send_header_data, 1);

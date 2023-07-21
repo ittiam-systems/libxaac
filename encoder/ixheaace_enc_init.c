@@ -336,42 +336,6 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac
       break;
   }
 
-  /* check if bit rate is not too high for sample rate */
-
-  switch (aot) {
-    case AOT_AAC_LC:
-    case AOT_SBR:
-    case AOT_PS:
-      if (config.flag_framelength_small) {
-        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_960 - 744) / frame_len_long *
-                               config.core_sample_rate * config.num_out_channels)) {
-          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-        }
-      } else {
-        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_1024 - 744) / frame_len_long *
-                               config.core_sample_rate * config.num_out_channels)) {
-          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-        }
-      }
-      break;
-
-    case AOT_AAC_LD:
-    case AOT_AAC_ELD:
-
-      if (config.flag_framelength_small) {
-        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_480) / frame_len_long *
-                               config.core_sample_rate * config.num_out_channels)) {
-          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-        }
-      } else {
-        if (config.bit_rate > ((float)(MAXIMUM_CHANNEL_BITS_512) / frame_len_long *
-                               config.core_sample_rate * config.num_out_channels)) {
-          return IA_EXHEAACE_INIT_FATAL_INVALID_BIT_RATE;
-        }
-      }
-      break;
-  }
-
   pstr_exheaac_encoder->config = config;
 
   error = ia_enhaacplus_enc_init_element_info(config.num_out_channels,
@@ -476,11 +440,11 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac
     case AOT_PS:
       if (config.flag_framelength_small) {
         qc_init.max_bit_fac =
-            (float)((MAXIMUM_CHANNEL_BITS_960 - 744) * pstr_element_info->n_channels_in_el) /
+            (float)(MAXIMUM_CHANNEL_BITS_960 * pstr_element_info->n_channels_in_el) /
             (float)(qc_init.average_bits ? qc_init.average_bits : 1);
       } else {
         qc_init.max_bit_fac =
-            (float)((MAXIMUM_CHANNEL_BITS_1024 - 744) * pstr_element_info->n_channels_in_el) /
+            (float)(MAXIMUM_CHANNEL_BITS_1024 * pstr_element_info->n_channels_in_el) /
             (float)(qc_init.average_bits ? qc_init.average_bits : 1);
       }
       break;

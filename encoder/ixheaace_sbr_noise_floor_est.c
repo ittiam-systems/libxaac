@@ -308,10 +308,8 @@ ixheaace_reset_sbr_noise_floor_estimate(ixheaace_pstr_noise_flr_est_sbr pstr_noi
   if (pstr_noise_floor_est_sbr->noise_groups == 0) {
     pstr_noise_floor_est_sbr->num_of_noise_bands = 1;
   } else {
-    pstr_noise_floor_est_sbr->num_of_noise_bands =
-        (WORD32)((pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) *
-                  SBR_INV_LOG_2) +
-                 0.5f);
+    pstr_noise_floor_est_sbr->num_of_noise_bands = (WORD32)(
+        (pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) * SBR_INV_LOG_2) + 0.5f);
 
     if (pstr_noise_floor_est_sbr->num_of_noise_bands == 0) {
       pstr_noise_floor_est_sbr->num_of_noise_bands = 1;

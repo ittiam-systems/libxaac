@@ -41,15 +41,8 @@ extern ia_error_info_struct ia_testbench_error_info;
 extern ia_error_info_struct ia_enhaacplus_enc_error_info;
 
 /*****************************************************************************/
-/* Process select hash defines                                               */
-/*****************************************************************************/
-#define WAV_READER
-#define DISPLAY_MESSAGE
-
-/*****************************************************************************/
 /* Constant hash defines                                                     */
 /*****************************************************************************/
-#define MAX_MEM_ALLOCS 100
 #define IA_MAX_CMD_LINE_LENGTH 300
 #define IA_MAX_ARGS 20
 #define IA_SCREEN_WIDTH 80
@@ -64,13 +57,14 @@ extern ia_error_info_struct ia_enhaacplus_enc_error_info;
 #define IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED 0xFFFFA001
 #define DRC_CONFIG_FILE "impd_drc_config_params.txt"
 /*****************************************************************************/
-/* Global variables                                                          */
+/* Application Context structure                                                          */
 /*****************************************************************************/
-FILE *g_pf_inp, *g_pf_out;
-FILE *g_drc_inp = NULL;
-FILE *g_pf_meta;
-WORD32 eld_ga_hdr;
-WORD8 pb_drc_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
+typedef struct {
+  FILE *pf_inp;
+  FILE *pf_out;
+  FILE *pf_meta;
+  WORD32 use_ga_hdr;
+} ixheaace_app_context;
 
 int ia_enhaacplus_enc_fread(void *buf, int size, int bytes, FILE *fp) {
   return (int)fread(buf, size, bytes, fp);
@@ -271,16 +265,21 @@ void ia_enhaacplus_enc_print_usage() {
   printf("\n    2 - Core coder framelength of USAC is  768 and eSBR ratio 8:3");
   printf("\n    3 - Core coder framelength of USAC is 1024 and eSBR ratio 2:1");
   printf("\n    4 - Core coder framelength of USAC is 1024 and eSBR ratio 4:1");
-  printf("\n  <pvc_enc_flag> Valid values are 0 (disable PVC encoding) and "
-          "1 (enable PVC encoding). Default is 0.");
-  printf("\n  <harmonic_sbr_flag> Valid values are 0 (disable harmonic SBR) and "
-          "1 (enable harmonic SBR). Default is 0.");
-  printf("\n  <esbr_hq_flag> Valid values are 0 (disable high quality eSBR) and "
-         "1 (enable high quality eSBR). Default is 0.");
-  printf("\n  <drc_flag> Valid values are 0 (disable DRC encoding) and "
-         "1 (enable DRC encoding). Default is 0.");
-  printf("\n  <inter_tes_enc_flag> Valid values are 0 (disable inter - TES encoding) and "
-         "1 (enable inter - TES encoding). Default is 0.\n");
+  printf(
+      "\n  <pvc_enc_flag> Valid values are 0 (disable PVC encoding) and "
+      "1 (enable PVC encoding). Default is 0.");
+  printf(
+      "\n  <harmonic_sbr_flag> Valid values are 0 (disable harmonic SBR) and "
+      "1 (enable harmonic SBR). Default is 0.");
+  printf(
+      "\n  <esbr_hq_flag> Valid values are 0 (disable high quality eSBR) and "
+      "1 (enable high quality eSBR). Default is 0.");
+  printf(
+      "\n  <drc_flag> Valid values are 0 (disable DRC encoding) and "
+      "1 (enable DRC encoding). Default is 0.");
+  printf(
+      "\n  <inter_tes_enc_flag> Valid values are 0 (disable inter - TES encoding) and "
+      "1 (enable inter - TES encoding). Default is 0.\n");
   exit(1);
 }
 
@@ -646,7 +645,8 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
       "\n*************************************************************************************"
       "***********\n\n");
 }
-IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
+IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, WORD32 argc,
+                                            pWORD8 argv[]) {
   LOOPIDX frame_count = 0;
 
   /* Error code */
@@ -675,7 +675,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
                                                    ui_num_coupling_chans = 0;
   WORD32 max_frame_size = 0;
   WORD32 expected_frame_count = 0;
-
+  FILE *pf_drc_inp = NULL;
   /* The error init function */
   VOID (*p_error_init)();
 
@@ -744,7 +744,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   pstr_in_cfg->out_bytes_flag = 0;
   pstr_in_cfg->user_tns_flag = 0;
   pstr_in_cfg->user_esbr_flag = 0;
-  pstr_in_cfg->i_use_adts = !eld_ga_hdr;
+  pstr_in_cfg->i_use_adts = !pstr_context->use_ga_hdr;
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
   /* ******************************************************************/
@@ -796,7 +796,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
 
   if (!ui_pcm) {
     /* Decode WAV header */
-    if (ia_enhaacplus_enc_wav_header_decode(g_pf_inp, &ui_num_chan, &ui_channel_mask,
+    if (ia_enhaacplus_enc_wav_header_decode(pstr_context->pf_inp, &ui_num_chan, &ui_channel_mask,
                                             &ui_samp_freq, &ui_pcm_wd_sz, &i_total_length) == 1) {
       fprintf(stdout, "Unable to Read Input WAV File\n");
       exit(1);
@@ -829,16 +829,16 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
     LOOPIDX k;
     CHAR8 drc_config_file_name[IA_MAX_CMD_LINE_LENGTH];
     strcpy(drc_config_file_name, DRC_CONFIG_FILE);
-    g_drc_inp = fopen(drc_config_file_name, "rt");
+    pf_drc_inp = fopen(drc_config_file_name, "rt");
 
-    if (!g_drc_inp) {
+    if (!pf_drc_inp) {
       printf("\nError in opening DRC configuration file\n\n");
       pstr_in_cfg->use_drc_element = 0;
     }
 
-    if (g_drc_inp != 0) {
+    if (pf_drc_inp != 0) {
       memset(&pstr_in_cfg->str_drc_cfg, 0, sizeof(ia_drc_input_config));
-      ixheaace_read_drc_config_params(g_drc_inp, &pstr_in_cfg->str_drc_cfg.str_enc_params,
+      ixheaace_read_drc_config_params(pf_drc_inp, &pstr_in_cfg->str_drc_cfg.str_enc_params,
                                       &pstr_in_cfg->str_drc_cfg.str_uni_drc_config,
                                       &pstr_in_cfg->str_drc_cfg.str_enc_loudness_info_set,
                                       &pstr_in_cfg->str_drc_cfg.str_enc_gain_extension);
@@ -910,15 +910,16 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
   down_sampling_ratio = pstr_out_cfg->down_sampling_ratio;
   samp_freq = (WORD32)(pstr_out_cfg->samp_freq / down_sampling_ratio);
 
-  { ia_enhaacplus_enc_fwrite(pb_out_buf, g_pf_out, 0); }
+  { ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, 0); }
 
   if ((pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es)) {
     i_dec_len = pstr_out_cfg->i_out_bytes;
-    ia_enhaacplus_enc_fwrite(pb_out_buf, g_pf_out, pstr_out_cfg->i_out_bytes);
-    fflush(g_pf_out);
+    ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, pstr_out_cfg->i_out_bytes);
+    fflush(pstr_context->pf_out);
   }
 
-  i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size, g_pf_inp);
+  i_bytes_read =
+      ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size, pstr_context->pf_inp);
 
   while (i_bytes_read) {
     /*****************************************************************************/
@@ -952,11 +953,11 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
         frame_count--;
     }
 
-    ia_enhaacplus_enc_fwrite(pb_out_buf, g_pf_out, i_out_bytes);
-    fflush(g_pf_out);
+    ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, i_out_bytes);
+    fflush(pstr_context->pf_out);
 
-    i_bytes_read =
-        ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size, g_pf_inp);
+    i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
+                                           pstr_context->pf_inp);
 
     if (frame_count == expected_frame_count) break;
   }
@@ -979,17 +980,18 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(WORD32 argc, pWORD8 argv[]) {
     return (err_code);
   }
 
-  if ((pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es) && (g_pf_meta)) {
-    fprintf(g_pf_meta, "-dec_info_init:%d\n", i_dec_len);
-    fprintf(g_pf_meta, "-g_track_count:%d\n", 1);
-    fprintf(g_pf_meta, "-ia_mp4_stsz_entries:%d\n", frame_count);
-    fprintf(g_pf_meta, "-movie_time_scale:%d\n", samp_freq);
-    fprintf(g_pf_meta, "-media_time_scale:%d\n", samp_freq);
-    fprintf(g_pf_meta, "-playTimeInSamples:%d\n",
+  if ((pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es) && (pstr_context->pf_meta)) {
+    fprintf(pstr_context->pf_meta, "-dec_info_init:%d\n", i_dec_len);
+    fprintf(pstr_context->pf_meta, "-g_track_count:%d\n", 1);
+    fprintf(pstr_context->pf_meta, "-ia_mp4_stsz_entries:%d\n", frame_count);
+    fprintf(pstr_context->pf_meta, "-movie_time_scale:%d\n", samp_freq);
+    fprintf(pstr_context->pf_meta, "-media_time_scale:%d\n", samp_freq);
+    fprintf(pstr_context->pf_meta, "-playTimeInSamples:%d\n",
             i_total_length / ((ui_pcm_wd_sz >> 3) * ui_num_chan));
-    fprintf(g_pf_meta, "-startOffsetInSamples:%d\n-useEditlist:%d\n", start_offset_samples, 1);
+    fprintf(pstr_context->pf_meta, "-startOffsetInSamples:%d\n-useEditlist:%d\n",
+            start_offset_samples, 1);
     for (WORD32 i = 0; i < frame_count; i++)
-      fprintf(g_pf_meta, "-ia_mp4_stsz_size:%d\n", ia_stsz_size[i]);
+      fprintf(pstr_context->pf_meta, "-ia_mp4_stsz_size:%d\n", ia_stsz_size[i]);
   }
   if (pstr_in_cfg_user) {
     free_global(pstr_in_cfg_user);
@@ -1015,7 +1017,10 @@ int main(WORD32 argc, pCHAR8 argv[]) {
 
   WORD8 pb_input_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
   WORD8 pb_output_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
-  eld_ga_hdr = 1;
+  WORD8 pb_drc_file_path[IA_MAX_CMD_LINE_LENGTH] = "";
+  ixheaace_app_context str_context;
+  memset(&str_context, 0, sizeof(ixheaace_app_context));
+  str_context.use_ga_hdr = 1;
   ia_testbench_error_handler_init();
 
   ixheaace_version instance = {0};
@@ -1115,9 +1120,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
             strcat((char *)pb_input_file_name, (const char *)pb_input_file_path);
             strcat((char *)pb_input_file_name, (const char *)pb_arg_val);
 
-            g_pf_inp = NULL;
-            g_pf_inp = fopen((const char *)pb_input_file_name, "rb");
-            if (g_pf_inp == NULL) {
+            str_context.pf_inp = NULL;
+            str_context.pf_inp = fopen((const char *)pb_input_file_name, "rb");
+            if (str_context.pf_inp == NULL) {
               err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
               ia_error_handler(&ia_testbench_error_info, (pWORD8) "Input File", err_code);
             }
@@ -1130,9 +1135,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
             strcat((char *)pb_output_file_name, (const char *)pb_output_file_path);
             strcat((char *)pb_output_file_name, (const char *)pb_arg_val);
 
-            g_pf_out = NULL;
-            g_pf_out = fopen((const char *)pb_output_file_name, "wb");
-            if (g_pf_out == NULL) {
+            str_context.pf_out = NULL;
+            str_context.pf_out = fopen((const char *)pb_output_file_name, "wb");
+            if (str_context.pf_out == NULL) {
               err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
               ia_error_handler(&ia_testbench_error_info, (pWORD8) "Output File", err_code);
             }
@@ -1151,7 +1156,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
           if (!strncmp((const char *)fargv[i], "-adts:", 6)) {
             pWORD8 pb_arg_val = fargv[i] + 6;
 
-            if ((atoi((const char *)pb_arg_val))) eld_ga_hdr = 0;
+            if ((atoi((const char *)pb_arg_val))) str_context.use_ga_hdr = 0;
           }
         }
 
@@ -1162,30 +1167,31 @@ int main(WORD32 argc, pCHAR8 argv[]) {
           ia_error_handler(&ia_testbench_error_info, (pWORD8) "Input or Output File", err_code);
         }
         if (is_ld_eld) {
-          eld_ga_hdr = 1;
+          str_context.use_ga_hdr = 1;
         }
 
-        if ((strcmp((const char *)pb_output_file_name, "")) && (usac_en || eld_ga_hdr)) {
+        if ((strcmp((const char *)pb_output_file_name, "")) &&
+            (usac_en || str_context.use_ga_hdr)) {
           char *file_name = strrchr((const char *)pb_output_file_name, '.');
           SIZE_T idx = file_name - (char *)pb_output_file_name;
           memcpy(pb_meta_file_name, pb_output_file_name, idx);
           strcat((char *)pb_meta_file_name, ".txt");
-          g_pf_meta = NULL;
-          g_pf_meta = fopen((const char *)pb_meta_file_name, "wt");
-          if (g_pf_meta == NULL) {
+          str_context.pf_meta = NULL;
+          str_context.pf_meta = fopen((const char *)pb_meta_file_name, "wt");
+          if (str_context.pf_meta == NULL) {
             err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
             ia_error_handler(&ia_testbench_error_info, (pWORD8) "Meta File", err_code);
           }
         }
-        if (err_code == IA_NO_ERROR) ia_enhaacplus_enc_main_process(fargc, pargv);
+        if (err_code == IA_NO_ERROR) ia_enhaacplus_enc_main_process(&str_context, fargc, pargv);
 
-        eld_ga_hdr = 1;
+        str_context.use_ga_hdr = 1;
 
-        if (g_pf_inp) fclose(g_pf_inp);
-        if (g_pf_out) fclose(g_pf_out);
-        if (g_pf_meta != NULL) {
-          fclose(g_pf_meta);
-          g_pf_meta = NULL;
+        if (str_context.pf_inp) fclose(str_context.pf_inp);
+        if (str_context.pf_out) fclose(str_context.pf_out);
+        if (str_context.pf_meta != NULL) {
+          fclose(str_context.pf_meta);
+          str_context.pf_meta = NULL;
         }
       }
     }
@@ -1207,9 +1213,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
         strcat((char *)pb_input_file_name, (const char *)pb_input_file_path);
         strcat((char *)pb_input_file_name, (const char *)pb_arg_val);
 
-        g_pf_inp = NULL;
-        g_pf_inp = fopen((const char *)pb_input_file_name, "rb");
-        if (g_pf_inp == NULL) {
+        str_context.pf_inp = NULL;
+        str_context.pf_inp = fopen((const char *)pb_input_file_name, "rb");
+        if (str_context.pf_inp == NULL) {
           err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
           ia_error_handler(&ia_testbench_error_info, (pWORD8) "Input File", err_code);
         }
@@ -1222,9 +1228,9 @@ int main(WORD32 argc, pCHAR8 argv[]) {
         strcat((char *)pb_output_file_name, (const char *)pb_output_file_path);
         strcat((char *)pb_output_file_name, (const char *)pb_arg_val);
 
-        g_pf_out = NULL;
-        g_pf_out = fopen((const char *)pb_output_file_name, "wb");
-        if (g_pf_out == NULL) {
+        str_context.pf_out = NULL;
+        str_context.pf_out = fopen((const char *)pb_output_file_name, "wb");
+        if (str_context.pf_out == NULL) {
           err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
           ia_error_handler(&ia_testbench_error_info, (pWORD8) "Output File", err_code);
         }
@@ -1244,7 +1250,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
 
       if (!strncmp((const char *)argv[i], "-adts:", 6)) {
         pCHAR8 pb_arg_val = argv[i] + 6;
-        if (atoi((const char *)pb_arg_val)) eld_ga_hdr = 0;
+        if (atoi((const char *)pb_arg_val)) str_context.use_ga_hdr = 0;
       }
 
       if (!strncmp((const char *)argv[i], "-help", 5)) {
@@ -1258,32 +1264,33 @@ int main(WORD32 argc, pCHAR8 argv[]) {
       ia_error_handler(&ia_testbench_error_info, (pWORD8) "Input or Output File", err_code);
     }
     if (is_ld_eld) {
-      eld_ga_hdr = 1;
+      str_context.use_ga_hdr = 1;
     }
 #ifdef _WIN32
 #pragma warning(suppress : 6001)
 #endif
 
-    if ((strcmp((const char *)pb_output_file_name, "")) && (usac_en || eld_ga_hdr)) {
+    if ((strcmp((const char *)pb_output_file_name, "")) && (usac_en || str_context.use_ga_hdr)) {
       char *file_name = strrchr((const char *)pb_output_file_name, '.');
       SIZE_T idx = file_name - (char *)pb_output_file_name;
       memcpy(pb_meta_file_name, pb_output_file_name, idx);
       strcat((char *)pb_meta_file_name, ".txt");
-      g_pf_meta = NULL;
-      g_pf_meta = fopen((const char *)pb_meta_file_name, "wt");
-      if (g_pf_meta == NULL) {
+      str_context.pf_meta = NULL;
+      str_context.pf_meta = fopen((const char *)pb_meta_file_name, "wt");
+      if (str_context.pf_meta == NULL) {
         err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
         ia_error_handler(&ia_testbench_error_info, (pWORD8) "Meta File", err_code);
       }
     }
-    if (err_code == IA_NO_ERROR) ia_enhaacplus_enc_main_process(argc - 1, (pWORD8 *)&argv[1]);
+    if (err_code == IA_NO_ERROR)
+      ia_enhaacplus_enc_main_process(&str_context, argc - 1, (pWORD8 *)&argv[1]);
 
-    eld_ga_hdr = 1;
-    if (g_pf_inp) fclose(g_pf_inp);
-    if (g_pf_out) fclose(g_pf_out);
-    if (g_pf_meta != NULL) {
-      fclose(g_pf_meta);
-      g_pf_meta = NULL;
+    str_context.use_ga_hdr = 1;
+    if (str_context.pf_inp) fclose(str_context.pf_inp);
+    if (str_context.pf_out) fclose(str_context.pf_out);
+    if (str_context.pf_meta != NULL) {
+      fclose(str_context.pf_meta);
+      str_context.pf_meta = NULL;
     }
   }
   if (param_file_id != NULL) {

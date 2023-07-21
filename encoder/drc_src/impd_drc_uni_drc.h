@@ -213,7 +213,7 @@ typedef struct {
   FLOAT32 width;
   FLOAT32 attack;
   FLOAT32 decay;
-  ia_drc_gain_points_struct gain_points[512];
+  ia_drc_gain_points_struct gain_points[MAX_GAIN_POINTS];
 } ia_drc_gain_params_struct;
 
 typedef struct {

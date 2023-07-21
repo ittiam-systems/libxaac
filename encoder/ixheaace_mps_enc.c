@@ -865,7 +865,7 @@ static WORD32 ixheaace_mps_212_write_spatial_specific_config_data(
   ixheaace_mps_space_info pstr_space_encoder_info;
   ixheaace_mps_212_get_info(pstr_mps_enc->ptr_sac_encoder, &pstr_space_encoder_info);
 
-  for (idx = 0; idx < pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits >> 3; idx++) {
+  for (idx = 0; idx<pstr_space_encoder_info.p_ssc_buf->num_ssc_size_bits>> 3; idx++) {
     ixheaace_write_bits(pstr_bit_buf, pstr_space_encoder_info.p_ssc_buf->ptr_ssc[idx], 8);
     written_bits += 8;
   }

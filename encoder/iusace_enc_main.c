@@ -945,7 +945,6 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
 
   WORD32 *num_window_groups = pstr_sfb_prms->num_window_groups;
   WORD32 average_bits_total;
-  WORD32 min_bits_needed;
   WORD32 num_bits;
   WORD32 padding_bits;
   WORD32 *common_win = pstr_sfb_prms->common_win;
@@ -967,10 +966,11 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
   average_bits_total =
       (ptr_usac_config->bit_rate * ptr_usac_config->ccfl) / ptr_usac_config->core_sample_rate;
 
-  min_bits_needed = (long)(ptr_usac_data->available_bitreservoir_bits + 2 * average_bits_total -
-                           ptr_usac_data->max_bitreservoir_bits);
-  if (min_bits_needed < 0) {
-    min_bits_needed = 0;
+  ptr_usac_data->min_bits_needed =
+      (long)(ptr_usac_data->available_bitreservoir_bits + 2 * average_bits_total -
+             ptr_usac_data->max_bitreservoir_bits);
+  if (ptr_usac_data->min_bits_needed < 0) {
+    ptr_usac_data->min_bits_needed = 0;
   }
 
   if (ptr_usac_config->use_drc_element == 1) {
@@ -1226,8 +1226,8 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
       if (ptr_usac_data->core_mode[i_ch] == CORE_MODE_TD) {
         WORD32 error;
 
-        error = iusace_lpd_frm_enc(ptr_usac_data, mod, usac_independency_flg,
-                                   len_frame, i_ch, pstr_it_bit_buff);
+        error = iusace_lpd_frm_enc(ptr_usac_data, mod, usac_independency_flg, len_frame, i_ch,
+                                   pstr_it_bit_buff);
         if (error) return error;
 
         num_bits = pstr_it_bit_buff->cnt_bits;
@@ -1313,7 +1313,7 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
 
   if (ptr_usac_config->use_fill_element) {
     WORD32 full_elem_num_bits = 0;
-    padding_bits = min_bits_needed - num_bits;
+    padding_bits = ptr_usac_data->min_bits_needed - num_bits;
     full_elem_num_bits = iusace_write_fill_ele(pstr_it_bit_buff, padding_bits);
     num_bits += full_elem_num_bits;
   }

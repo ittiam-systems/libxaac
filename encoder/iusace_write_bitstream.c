@@ -53,10 +53,6 @@
 #include "iusace_main.h"
 #include "iusace_rom.h"
 
-#if DEBUG_DUMP
-extern FILE *out_file;
-#endif
-
 WORD32 iusace_write_scf_data(ia_bit_buf_struct *it_bit_buf, WORD32 max_sfb, WORD32 num_sfb,
                              const WORD32 *ptr_scale_factors, WORD32 num_win_grps,
                              WORD32 global_gain, const WORD32 huff_tab[CODE_BOOK_ALPHA_LAV][2]) {
@@ -589,18 +585,10 @@ WORD32 iusace_write_fd_data(ia_bit_buf_struct *it_bit_buf, ia_sfb_params_struct 
     bit_count += iusace_write_ics_info(it_bit_buf, pstr_sfb_prms, ch_idx);
   }
 
-#if DEBUG_DUMP
-  WORD32 bit_count_start = bit_count;
-#endif
-
   bit_count += iusace_write_scf_data(
       it_bit_buf, pstr_sfb_prms->max_sfb[ch_idx], pstr_sfb_prms->num_sfb[ch_idx],
       pstr_quant_info->scale_factor, pstr_sfb_prms->num_window_groups[ch_idx], global_gain,
       iusace_huffman_code_table);
-
-#if DEBUG_DUMP
-  WORD32 bit_count_mid_1 = bit_count;
-#endif
 
   if (pstr_tns_info != NULL && pstr_tns_info->tns_data_present == 1) {
     bit_count += iusace_write_tns_data(it_bit_buf, pstr_tns_info,
@@ -612,9 +600,6 @@ WORD32 iusace_write_fd_data(ia_bit_buf_struct *it_bit_buf, ia_sfb_params_struct 
     bit_count += 1;
   }
 
-#if DEBUG_DUMP
-  WORD32 bit_count_mid_2 = bit_count;
-#endif
   if (pstr_quant_info->max_spec_coeffs == FRAME_LEN_SHORT_768) {
     pstr_quant_info->max_spec_coeffs = pstr_quant_info->max_spec_coeffs;
   }
@@ -623,10 +608,6 @@ WORD32 iusace_write_fd_data(ia_bit_buf_struct *it_bit_buf, ia_sfb_params_struct 
       pstr_quant_info->max_spec_coeffs, pstr_quant_info->c_pres, pstr_quant_info->c_prev,
       &(pstr_quant_info->arith_size_prev), usac_independency_flg || pstr_quant_info->reset,
       pstr_usac_config->ccfl);
-
-#if DEBUG_DUMP
-  WORD32 bit_count_end = bit_count;
-#endif
 
   iusace_write_bits_buf(it_bit_buf, fac_data_present, 1);
   bit_count += 1;
@@ -640,11 +621,6 @@ WORD32 iusace_write_fd_data(ia_bit_buf_struct *it_bit_buf, ia_sfb_params_struct 
     }
     bit_count += num_fac_bits;
   }
-
-#if DEBUG_DUMP
-  fprintf(out_file, "%d\t",
-          bit_count - (bit_count_mid_1 - bit_count_start) - (bit_count_end - bit_count_mid_2));
-#endif
 
   return (bit_count);
 }
