@@ -88,6 +88,15 @@ static VOID impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config
                                                   .gain_params[k]
                                                   .nb_points,
                                               0, MAX_GAIN_POINTS);
+        pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+            .str_gain_set_params[j]
+            .gain_params[k]
+            .start_sub_band_index =
+            impd_drc_bound_check(pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                                     .str_gain_set_params[j]
+                                     .gain_params[k]
+                                     .start_sub_band_index,
+                                 0, STFT256_HOP_SIZE - 1);
       }
     }
   }
@@ -208,8 +217,8 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   return err_code;
 }
 
-VOID impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 inp_offset,
-                  WORD32 *ptr_bits_written, VOID *pstr_scratch) {
+IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 inp_offset,
+                          WORD32 *ptr_bits_written, VOID *pstr_scratch) {
   LOOPIDX i, j, k;
   WORD32 band_count = 0;
   WORD32 stop_sub_band_index;
@@ -220,7 +229,7 @@ VOID impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 inp_offset
   ia_drc_uni_drc_config_struct *pstr_uni_drc_config = &pstr_drc_state_local->str_uni_drc_config;
   ia_drc_compand_struct *pstr_drc_compand;
   ia_drc_stft_gain_calc_struct *pstr_drc_stft_gain_calc;
-
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   if (pstr_drc_state_local->str_enc_params.gain_sequence_present) {
     for (i = 0; i < MAX_DRC_COEFF_COUNT; i++) {
       for (j = 0; j < GAIN_SET_COUNT_MAX; j++) {
@@ -279,11 +288,16 @@ VOID impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 inp_offset
       }
     }
   }
-  impd_drc_encode_uni_drc_gain(pstr_gain_enc, pstr_drc_state_local->gain_buffer[0], pstr_scratch);
+  err_code = impd_drc_encode_uni_drc_gain(pstr_gain_enc, pstr_drc_state_local->gain_buffer[0],
+                                          pstr_scratch);
+  if (err_code) {
+    return err_code;
+  }
 
   if (pstr_drc_state_local->is_first_drc_process_complete == 1) {
     impd_drc_write_uni_drc_gain(pstr_drc_state_local, &num_bits_payload);
   }
 
   *ptr_bits_written = num_bits_payload;
+  return err_code;
 }

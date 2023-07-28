@@ -102,7 +102,7 @@ typedef struct {
   WORD32 pvc_active;
   WORD32 harmonic_sbr;
   WORD32 inter_tes_active;
-  ia_drc_input_config str_drc_cfg;
+  pVOID pv_drc_cfg;
   FLAG use_drc_element;
   WORD32 drc_frame_size;
   WORD32 hq_esbr;

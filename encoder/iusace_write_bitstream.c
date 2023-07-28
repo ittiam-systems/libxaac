@@ -60,8 +60,6 @@ WORD32 iusace_write_scf_data(ia_bit_buf_struct *it_bit_buf, WORD32 max_sfb, WORD
   WORD32 i, j, bit_count = 0;
   WORD32 diff, length, codeword;
   WORD32 index = 0;
-  WORD32 sf_out = 0;
-  WORD32 sf_not_out = 0;
   WORD32 previous_scale_factor = global_gain;
 
   for (j = 0; j < num_win_grps; j++) {
@@ -74,13 +72,11 @@ WORD32 iusace_write_scf_data(ia_bit_buf_struct *it_bit_buf, WORD32 max_sfb, WORD
         if (write_flag == 1) {
           codeword = huff_tab[diff + 60][1];
           iusace_write_bits_buf(it_bit_buf, codeword, (UWORD8)length);
-          sf_out++;
         }
       }
       index++;
     }
     for (; i < num_sfb; i++) {
-      sf_not_out++;
       index++;
     }
   }

@@ -27,8 +27,8 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
 
 WORD32 impd_drc_get_delta_t_min(const WORD32 sample_rate);
 
-VOID impd_drc_encode_uni_drc_gain(ia_drc_gain_enc_struct *pstr_gain_enc, FLOAT32 *ptr_gain_buffer,
-                                  VOID *pstr_scratch);
+IA_ERRORCODE impd_drc_encode_uni_drc_gain(ia_drc_gain_enc_struct *pstr_gain_enc,
+                                          FLOAT32 *ptr_gain_buffer, VOID *pstr_scratch);
 
 IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
     ia_drc_enc_state *pstr_drc_state, ia_bit_buf_struct *it_bit_buf,

@@ -182,7 +182,9 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
           break;
         }
       }
-
+      if (ch_idx >= (UWORD32)pstr_gain_enc->base_ch_count) {
+        return IA_EXHEAACE_INIT_FATAL_DRC_INVALID_CHANNEL_INDEX;
+      }
       if (pstr_gain_set_params->band_count > 1) {
         impd_drc_util_stft_read_gain_config(pstr_gain_enc->str_drc_stft_gain_handle[0][j],
                                             pstr_gain_set_params->band_count,
@@ -254,17 +256,22 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
   return err_code;
 }
 
-VOID impd_drc_encode_uni_drc_gain(ia_drc_gain_enc_struct *pstr_gain_enc, FLOAT32 *ptr_gain_buffer,
-                                  VOID *pstr_scratch) {
+IA_ERRORCODE impd_drc_encode_uni_drc_gain(ia_drc_gain_enc_struct *pstr_gain_enc,
+                                          FLOAT32 *ptr_gain_buffer, VOID *pstr_scratch) {
   LOOPIDX idx;
-
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   for (idx = 0; idx < pstr_gain_enc->n_sequences; idx++) {
-    impd_drc_quantize_and_encode_drc_gain(
+    err_code = impd_drc_quantize_and_encode_drc_gain(
         pstr_gain_enc, &ptr_gain_buffer[idx * MAX_DRC_FRAME_SIZE],
         &(pstr_gain_enc->drc_gain_per_sample_with_prev_frame[idx][0]),
         pstr_gain_enc->str_delta_time_code_table, &(pstr_gain_enc->str_drc_gain_seq_buf[idx]),
         pstr_scratch);
+
+    if (err_code) {
+      return err_code;
+    }
   }
+  return err_code;
 }
 
 WORD32 impd_drc_get_delta_t_min(const WORD32 sample_rate) {

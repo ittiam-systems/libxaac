@@ -938,27 +938,24 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
     }
     pstr_usac_config->use_drc_element = pstr_input_config->use_drc_element;
     if (pstr_usac_config->use_drc_element) {
-      pstr_input_config->str_drc_cfg.str_uni_drc_config.str_channel_layout.base_ch_count =
+      ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)pstr_input_config->pv_drc_cfg;
+      pstr_drc_cfg->str_uni_drc_config.str_channel_layout.base_ch_count =
           pstr_input_config->i_channels;
-      pstr_input_config->str_drc_cfg.str_enc_params.sample_rate = pstr_input_config->i_samp_freq;
-
-      pstr_input_config->str_drc_cfg.str_uni_drc_config.sample_rate =
-          pstr_input_config->str_drc_cfg.str_enc_params.sample_rate;
-      for (WORD32 i = 0;
-           i < pstr_input_config->str_drc_cfg.str_uni_drc_config.drc_coefficients_uni_drc_count;
+      pstr_drc_cfg->str_enc_params.sample_rate = pstr_input_config->i_samp_freq;
+      pstr_drc_cfg->str_uni_drc_config.sample_rate = pstr_drc_cfg->str_enc_params.sample_rate;
+      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
            i++) {
         for (WORD32 j = 0;
-             j < pstr_input_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[i]
-                     .gain_set_count;
+             j < pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i].gain_set_count;
              j++) {
-          pstr_input_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[i]
+          pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i]
               .str_gain_set_params[j]
-              .delta_tmin = impd_drc_get_delta_t_min(
-              pstr_input_config->str_drc_cfg.str_uni_drc_config.sample_rate);
+              .delta_tmin =
+              impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
         }
       }
 
-      pstr_usac_config->str_drc_cfg = pstr_input_config->str_drc_cfg;
+      pstr_usac_config->str_drc_cfg = *pstr_drc_cfg;
       pstr_usac_config->str_drc_cfg.str_enc_params.frame_size = pstr_usac_config->drc_frame_size;
       pstr_usac_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc
           ->drc_frame_size = pstr_usac_config->drc_frame_size;

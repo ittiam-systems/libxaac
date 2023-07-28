@@ -34,12 +34,6 @@
 #include "impd_drc_enc.h"
 #include "impd_drc_user_config.h"
 
-static UWORD32 ixheaace_bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
-  var = MIN(var, upper_bound);
-  var = MAX(var, lower_bound);
-  return var;
-}
-
 static FLOAT32 impd_drc_get_float_value(FILE *fp) {
   WORD32 i = 0;
   FLOAT32 result = 0.0f;
@@ -100,16 +94,16 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   /***********  str_drc_instructions_uni_drc  *************/
 
+  pstr_uni_drc_config->drc_instructions_uni_drc_count = impd_drc_get_integer_value(fp);
   pstr_uni_drc_config->drc_instructions_uni_drc_count =
-      ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_DRC_INSTRUCTIONS_COUNT);
+      MIN(pstr_uni_drc_config->drc_instructions_uni_drc_count, MAX_DRC_INSTRUCTIONS_COUNT);
   for (n = 0; n < pstr_uni_drc_config->drc_instructions_uni_drc_count; n++) {
     ia_drc_instructions_uni_drc *pstr_drc_instructions_uni_drc =
         &pstr_uni_drc_config->str_drc_instructions_uni_drc[n];
     pstr_drc_instructions_uni_drc->drc_set_id = n + 1;
     pstr_drc_instructions_uni_drc->downmix_id = impd_drc_get_integer_value(fp);
     pstr_drc_instructions_uni_drc->additional_downmix_id_present = 0;
-    pstr_drc_instructions_uni_drc->additional_downmix_id_count =
-        ixheaace_bound_check(0, 0, ADDITIONAL_DOWNMIX_ID_COUNT_MAX);
+    pstr_drc_instructions_uni_drc->additional_downmix_id_count = 0;
     pstr_drc_instructions_uni_drc->drc_location = 1;
     pstr_drc_instructions_uni_drc->depends_on_drc_set_present = 0;
     pstr_drc_instructions_uni_drc->depends_on_drc_set = 0;
@@ -120,11 +114,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
     pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower_present = 0;
     pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower = 0;
 
-    gain_set_channels =
-        ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_CHANNEL_COUNT);
+    gain_set_channels = impd_drc_get_integer_value(fp);
+    gain_set_channels = MIN(gain_set_channels, MAX_CHANNEL_COUNT);
     for (ch = 0; ch < gain_set_channels; ch++) {
-      pstr_drc_instructions_uni_drc->gain_set_index[ch] =
-          ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, GAIN_SET_COUNT_MAX - 1);
+      pstr_drc_instructions_uni_drc->gain_set_index[ch] = impd_drc_get_integer_value(fp);
     }
     for (; ch < MAX_CHANNEL_COUNT; ch++) {
       if (gain_set_channels > 0) {
@@ -135,8 +128,9 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       }
     }
 
+    pstr_drc_instructions_uni_drc->num_drc_channel_groups = impd_drc_get_integer_value(fp);
     pstr_drc_instructions_uni_drc->num_drc_channel_groups =
-        ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_CHANNEL_GROUP_COUNT);
+        MIN(pstr_drc_instructions_uni_drc->num_drc_channel_groups, MAX_CHANNEL_GROUP_COUNT);
     for (g = 0; g < pstr_drc_instructions_uni_drc->num_drc_channel_groups; g++) {
       pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_scaling_present[0] = 0;
       pstr_drc_instructions_uni_drc->str_gain_modifiers[g].attenuation_scaling[0] = 1.5f;
@@ -154,14 +148,16 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   /***********  str_drc_coefficients_uni_drc  *************/
 
+  pstr_uni_drc_config->drc_coefficients_uni_drc_count = impd_drc_get_integer_value(fp);
   pstr_uni_drc_config->drc_coefficients_uni_drc_count =
-      ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_DRC_COEFF_COUNT);
+      MIN(pstr_uni_drc_config->drc_coefficients_uni_drc_count, MAX_DRC_COEFF_COUNT);
   for (n = 0; n < pstr_uni_drc_config->drc_coefficients_uni_drc_count; n++) {
     ia_drc_coefficients_uni_drc_struct *pstr_drc_coefficients_uni_drc =
         &pstr_uni_drc_config->str_drc_coefficients_uni_drc[n];
     pstr_drc_coefficients_uni_drc->drc_location = 1;
+    pstr_drc_coefficients_uni_drc->gain_set_count = impd_drc_get_integer_value(fp);
     pstr_drc_coefficients_uni_drc->gain_set_count =
-        ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, GAIN_SET_COUNT_MAX);
+        MIN(pstr_drc_coefficients_uni_drc->gain_set_count, GAIN_SET_COUNT_MAX);
     for (s = 0; s < pstr_drc_coefficients_uni_drc->gain_set_count; s++) {
       pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_coding_profile = 0;
       pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_interpolation_type = 1;
@@ -169,10 +165,15 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       pstr_drc_coefficients_uni_drc->str_gain_set_params[s].time_alignment = 0;
       pstr_drc_coefficients_uni_drc->str_gain_set_params[s].time_delta_min_present = 0;
       pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count =
-          ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_BAND_COUNT);
+          impd_drc_get_integer_value(fp);
+      pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count =
+          MIN(pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count, MAX_BAND_COUNT);
       if (pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count == 1) {
         pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points =
-            ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_GAIN_POINTS);
+            impd_drc_get_integer_value(fp);
+        pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points =
+            MIN(pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points,
+                MAX_GAIN_POINTS);
         for (p = 0;
              p < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[0].nb_points;
              p++) {
@@ -195,7 +196,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       } else {
         for (m = 0; m < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].band_count; m++) {
           pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points =
-              ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_GAIN_POINTS);
+              impd_drc_get_integer_value(fp);
+          pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points =
+              MIN(pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points,
+                  MAX_GAIN_POINTS);
           for (p = 0;
                p < pstr_drc_coefficients_uni_drc->str_gain_set_params[s].gain_params[m].nb_points;
                p++) {
@@ -229,8 +233,9 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
     }
   }
 
+  pstr_enc_loudness_info_set->loudness_info_count = impd_drc_get_integer_value(fp);
   pstr_enc_loudness_info_set->loudness_info_count =
-      ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_LOUDNESS_INFO_COUNT);
+      MIN(pstr_enc_loudness_info_set->loudness_info_count, MAX_LOUDNESS_INFO_COUNT);
   for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_count; n++) {
     pstr_enc_loudness_info_set->str_loudness_info[n].drc_set_id = impd_drc_get_integer_value(fp);
     pstr_enc_loudness_info_set->str_loudness_info[n].downmix_id = impd_drc_get_integer_value(fp);
@@ -251,7 +256,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
           impd_drc_get_integer_value(fp);
     }
     pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count =
-        ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_MEASUREMENT_COUNT);
+        impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count =
+        MIN(pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count,
+            MAX_MEASUREMENT_COUNT);
 
     for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count; m++) {
       pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].method_definition =
@@ -266,8 +274,9 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
     }
   }
 
+  pstr_enc_loudness_info_set->loudness_info_album_count = impd_drc_get_integer_value(fp);
   pstr_enc_loudness_info_set->loudness_info_album_count =
-      ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_LOUDNESS_INFO_COUNT);
+      MIN(pstr_enc_loudness_info_set->loudness_info_album_count, MAX_LOUDNESS_INFO_COUNT);
   for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_album_count; n++) {
     pstr_enc_loudness_info_set->str_loudness_info_album[n].drc_set_id =
         impd_drc_get_integer_value(fp);
@@ -290,7 +299,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
           impd_drc_get_integer_value(fp);
     }
     pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count =
-        ixheaace_bound_check(impd_drc_get_integer_value(fp), 0, MAX_MEASUREMENT_COUNT);
+        impd_drc_get_integer_value(fp);
+    pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count =
+        MIN(pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count,
+            MAX_MEASUREMENT_COUNT);
     for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count;
          m++) {
       pstr_enc_loudness_info_set->str_loudness_info_album[n]
@@ -315,14 +327,7 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   /***********  str_downmix_instructions  *************/
 
-  pstr_uni_drc_config->downmix_instructions_count =
-      ixheaace_bound_check(0, 0, MAX_DOWNMIX_INSTRUCTION_COUNT);
-  for (n = 0; n < pstr_uni_drc_config->downmix_instructions_count; n++) {
-    pstr_uni_drc_config->str_downmix_instructions[n].target_layout =
-        impd_drc_get_integer_value(fp);
-    pstr_uni_drc_config->str_downmix_instructions[n].downmix_coefficients_present =
-        impd_drc_get_integer_value(fp);
-  }
+  pstr_uni_drc_config->downmix_instructions_count = 0;
 
   pstr_uni_drc_config->drc_description_basic_present = 0;
   pstr_uni_drc_config->uni_drc_config_ext_present = 0;

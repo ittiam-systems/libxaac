@@ -182,7 +182,7 @@ typedef struct {
   FLOAT32 complex_fft_ptr[MAX_NUM_CHANNELS][IMPD_DRCMAX_FRAMESIZE << 1];
 } ia_drc_gain_enc_struct;
 
-VOID impd_drc_quantize_and_encode_drc_gain(
+IA_ERRORCODE impd_drc_quantize_and_encode_drc_gain(
     ia_drc_gain_enc_struct *pstr_gain_enc, const FLOAT32 *ptr_drc_gain_per_sample,
     FLOAT32 *ptr_drc_gain_per_sample_with_prev_frame,
     ia_drc_delta_time_code_table_entry_struct *pstr_delta_time_code_table,
