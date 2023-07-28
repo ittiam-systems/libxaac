@@ -872,17 +872,22 @@ static IA_ERRORCODE iusace_enc_ext_elemts(UWORD32 usac_ext_ele_type,
       case ID_EXT_ELE_UNI_DRC: {
         if (pstr_usac_data->str_drc_state.is_first_drc_process_complete == 0) {
           iusace_reset_bit_buffer(&pstr_usac_data->str_drc_state.str_bit_buf_out);
-          impd_drc_enc(&pstr_usac_data->str_drc_state, pptr_input, 0, &num_bits_payload,
-                       pstr_scratch);
-
+          err_code = impd_drc_enc(&pstr_usac_data->str_drc_state, pptr_input, 0,
+                                  &num_bits_payload, pstr_scratch);
+          if (err_code) {
+            return err_code;
+          }
           pstr_usac_data->str_drc_state.is_first_drc_process_complete = 1;
           num_bits_payload = 0;
         }
 
         iusace_reset_bit_buffer(&pstr_usac_data->str_drc_state.str_bit_buf_out);
-        impd_drc_enc(&pstr_usac_data->str_drc_state, pptr_input, pstr_usac_config->drc_frame_size,
-                     &num_bits_payload, pstr_scratch);
-
+        err_code =
+            impd_drc_enc(&pstr_usac_data->str_drc_state, pptr_input,
+                         pstr_usac_config->drc_frame_size, &num_bits_payload, pstr_scratch);
+        if (err_code) {
+          return err_code;
+        }
         num_byts_payload = (num_bits_payload + 7) >> 3;
       } break;
       default: {

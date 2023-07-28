@@ -685,24 +685,16 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   /* ******************************************************************/
   /* The API config structure                                         */
   /* ******************************************************************/
-  ixheaace_user_config_struct *pstr_enc_api = (ixheaace_user_config_struct *)malloc_global(
-      sizeof(ixheaace_user_config_struct), DEFAULT_MEM_ALIGN_8);
-  if (pstr_enc_api == NULL) {
+  ixheaace_user_config_struct str_enc_api = {{0}, {0}};
+  ixheaace_input_config *pstr_in_cfg = &str_enc_api.input_config;
+  ixheaace_output_config *pstr_out_cfg = &str_enc_api.output_config;
+  pstr_in_cfg->pv_drc_cfg = malloc_global(sizeof(ia_drc_input_config), DEFAULT_MEM_ALIGN_8);
+  if (pstr_in_cfg->pv_drc_cfg == NULL) {
     printf("fatal error: libxaac encoder: Memory allocation failed");
     return -1;
   }
-  memset(pstr_enc_api, 0, sizeof(ixheaace_user_config_struct));
-  ixheaace_input_config *pstr_in_cfg = &pstr_enc_api->input_config;
-  ixheaace_output_config *pstr_out_cfg = &pstr_enc_api->output_config;
-  ixheaace_input_config *pstr_in_cfg_user =
-      (ixheaace_input_config *)malloc_global(sizeof(ixheaace_input_config), DEFAULT_MEM_ALIGN_8);
-  if (pstr_in_cfg_user == NULL) {
-    if (pstr_enc_api) {
-      free_global(pstr_enc_api);
-    }
-    printf("fatal error: libxaac encoder: Memory allocation failed");
-    return -1;
-  }
+  ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)pstr_in_cfg->pv_drc_cfg;
+
   /* Stack process struct initing */
   p_error_init = ia_enhaacplus_enc_error_handler_init;
   p_proc_err_info = &ia_enhaacplus_enc_error_info;
@@ -748,7 +740,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
   /* ******************************************************************/
-  ixheaace_parse_config_param(argc, argv, pstr_enc_api);
+  ixheaace_parse_config_param(argc, argv, &str_enc_api);
 
   {
     if (pstr_in_cfg->aot == AOT_AAC_LC || pstr_in_cfg->aot == AOT_SBR ||
@@ -816,6 +808,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     pstr_in_cfg->aac_config.length = i_total_length;
   }
 
+  ixheaace_input_config pstr_in_cfg_user = *pstr_in_cfg;
+
   /* Get library id and version number and display it */
   ixheaace_get_lib_id_strings((pVOID)&pstr_out_cfg->version);
   ia_enhaacplus_enc_display_id_message(pstr_out_cfg->version.p_lib_name,
@@ -837,36 +831,33 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     }
 
     if (pf_drc_inp != 0) {
-      memset(&pstr_in_cfg->str_drc_cfg, 0, sizeof(ia_drc_input_config));
-      ixheaace_read_drc_config_params(pf_drc_inp, &pstr_in_cfg->str_drc_cfg.str_enc_params,
-                                      &pstr_in_cfg->str_drc_cfg.str_uni_drc_config,
-                                      &pstr_in_cfg->str_drc_cfg.str_enc_loudness_info_set,
-                                      &pstr_in_cfg->str_drc_cfg.str_enc_gain_extension);
+      memset(pstr_drc_cfg, 0, sizeof(ia_drc_input_config));
+      ixheaace_read_drc_config_params(
+          pf_drc_inp, &pstr_drc_cfg->str_enc_params, &pstr_drc_cfg->str_uni_drc_config,
+          &pstr_drc_cfg->str_enc_loudness_info_set, &pstr_drc_cfg->str_enc_gain_extension);
 
-      pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = FALSE;
-      for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.drc_coefficients_uni_drc_count;
-           k++) {
-        if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
-                .drc_location == 1) {
-          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc[k]
-                  .gain_set_count > 0) {
-            pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+      pstr_drc_cfg->str_enc_params.gain_sequence_present = FALSE;
+      for (k = 0; k < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count; k++) {
+        if (pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[k].drc_location == 1) {
+          if (pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[k].gain_set_count >
+              0) {
+            pstr_drc_cfg->str_enc_params.gain_sequence_present = TRUE;
             break;
           }
         }
       }
 
-      if (pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present == FALSE) {
-        for (k = 0; k < pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+      if (pstr_drc_cfg->str_enc_params.gain_sequence_present == FALSE) {
+        for (k = 0; k < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
                             .drc_coefficients_uni_drc_v1_count;
              k++) {
-          if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+          if (pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
                   .str_drc_coefficients_uni_drc_v1[k]
                   .drc_location == 1) {
-            if (pstr_in_cfg->str_drc_cfg.str_uni_drc_config.str_uni_drc_config_ext
+            if (pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
                     .str_drc_coefficients_uni_drc_v1[k]
                     .gain_sequence_count > 0) {
-              pstr_in_cfg->str_drc_cfg.str_enc_params.gain_sequence_present = TRUE;
+              pstr_drc_cfg->str_enc_params.gain_sequence_present = TRUE;
               break;
             }
           }
@@ -874,7 +865,6 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
       }
     }
   }
-  memcpy(pstr_in_cfg_user, pstr_in_cfg, sizeof(ixheaace_input_config));
 
   err_code = ixheaace_create((pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
   _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code, pstr_out_cfg);
@@ -884,7 +874,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   pb_inp_buf = (pWORD8)pstr_out_cfg->mem_info_table[IA_MEMTYPE_INPUT].mem_ptr;
   pb_out_buf = (pWORD8)pstr_out_cfg->mem_info_table[IA_MEMTYPE_OUTPUT].mem_ptr;
 
-  ixheaace_print_config_params(pstr_in_cfg, pstr_in_cfg_user);
+  ixheaace_print_config_params(pstr_in_cfg, &pstr_in_cfg_user);
   start_offset_samples = 0;
   input_size = pstr_out_cfg->input_size;
 
@@ -896,11 +886,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     ia_stsz_size = (UWORD32 *)malloc_global((expected_frame_count + 2) * sizeof(*ia_stsz_size),
                                             DEFAULT_MEM_ALIGN_8);
     if (ia_stsz_size == NULL) {
-      if (pstr_enc_api) {
-        free_global(pstr_enc_api);
-      }
-      if (pstr_in_cfg_user) {
-        free_global(pstr_in_cfg_user);
+      if (pstr_in_cfg->pv_drc_cfg) {
+        free_global(pstr_in_cfg->pv_drc_cfg);
       }
       printf("fatal error: libxaac encoder: Memory allocation failed");
       return -1;
@@ -968,11 +955,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   // Error handler is not invoked here to avoid invoking ixheaace_delete() twice.
   err_code = ixheaace_delete((pVOID)pstr_out_cfg);
   if ((err_code)&IA_FATAL_ERROR) {
-    if (pstr_in_cfg_user) {
-      free_global(pstr_in_cfg_user);
-    }
-    if (pstr_enc_api) {
-      free_global(pstr_enc_api);
+    if (pstr_in_cfg->pv_drc_cfg) {
+      free_global(pstr_in_cfg->pv_drc_cfg);
     }
     if (ia_stsz_size != NULL) {
       free_global(ia_stsz_size);
@@ -993,11 +977,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     for (WORD32 i = 0; i < frame_count; i++)
       fprintf(pstr_context->pf_meta, "-ia_mp4_stsz_size:%d\n", ia_stsz_size[i]);
   }
-  if (pstr_in_cfg_user) {
-    free_global(pstr_in_cfg_user);
-  }
-  if (pstr_enc_api) {
-    free_global(pstr_enc_api);
+  if (pstr_in_cfg->pv_drc_cfg) {
+    free_global(pstr_in_cfg->pv_drc_cfg);
   }
   if (ia_stsz_size != NULL) {
     free_global(ia_stsz_size);

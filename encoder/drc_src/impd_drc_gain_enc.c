@@ -22,6 +22,7 @@
 #include <string.h>
 #include <math.h>
 #include "ixheaac_type_def.h"
+#include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
 
 #include "iusace_cnst.h"
@@ -387,7 +388,7 @@ static VOID impd_drc_advance_nodes(ia_drc_gain_enc_struct *pstr_gain_enc,
   pstr_drc_group_for_output->n_gain_values = pstr_drc_group->n_gain_values;
 }
 
-static VOID impd_drc_post_process_nodes(
+static IA_ERRORCODE impd_drc_post_process_nodes(
     ia_drc_gain_enc_struct *pstr_gain_enc,
     ia_drc_delta_time_code_table_entry_struct *pstr_delta_time_code_table,
     ia_drc_gain_seq_buf_struct *pstr_drc_gain_seq_buf, VOID *pstr_scratch) {
@@ -413,6 +414,7 @@ static VOID impd_drc_post_process_nodes(
   FLOAT32 thr_low, thr_high;
   FLOAT32 delta_left, delta_right;
   FLOAT32 slope_0, slope_1, slope_2;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
 
   const ia_drc_slope_code_table_entry_struct *pstr_slope_code_table;
   ia_drc_group_for_output_struct *pstr_drc_group_for_output =
@@ -788,10 +790,14 @@ static VOID impd_drc_post_process_nodes(
           &(pstr_drc_group_for_output->gain_code[n]));
       gain_value_quant = delta_gain_quant + drc_gain_quant_prev;
     } else {
-      impd_drc_enc_initial_gain(pstr_drc_gain_seq_buf->str_gain_set_params.gain_coding_profile,
-                                pstr_drc_group_for_output->drc_gain_quant[n], &gain_value_quant,
-                                &(pstr_drc_group_for_output->gain_code_length[n]),
-                                &(pstr_drc_group_for_output->gain_code[n]));
+      err_code = impd_drc_enc_initial_gain(
+          pstr_drc_gain_seq_buf->str_gain_set_params.gain_coding_profile,
+          pstr_drc_group_for_output->drc_gain_quant[n], &gain_value_quant,
+          &(pstr_drc_group_for_output->gain_code_length[n]),
+          &(pstr_drc_group_for_output->gain_code[n]));
+      if (err_code) {
+        return err_code;
+      }
     }
     drc_gain_quant_prev = gain_value_quant;
     pstr_drc_group_for_output->drc_gain_quant[n] = gain_value_quant;
@@ -837,9 +843,10 @@ static VOID impd_drc_post_process_nodes(
           pstr_delta_time_code_table[pstr_drc_group_for_output->time_delta_code_index[n]].code;
     }
   }
+  return err_code;
 }
 
-static VOID impd_drc_quantize_drc_frame(
+static IA_ERRORCODE impd_drc_quantize_drc_frame(
     const WORD32 drc_frame_size, const WORD32 time_delta_min, const WORD32 num_gain_values_max,
     const FLOAT32 *ptr_drc_gain_per_sample_with_prev_frame,
     const WORD32 *ptr_delta_time_quant_table, const WORD32 gain_coding_profile,
@@ -847,7 +854,7 @@ static VOID impd_drc_quantize_drc_frame(
     ia_drc_group_for_output_struct *pstr_drc_group_for_output) {
   LOOPIDX i, n;
   WORD32 t, k = 0;
-  WORD32 num_bits, code, tmp;
+  WORD32 num_bits = 0, code = 0, tmp;
   WORD32 t_left, t_right;
   WORD32 time_delta_left, time_delta_right;
   WORD32 restart = TRUE;
@@ -869,6 +876,7 @@ static VOID impd_drc_quantize_drc_frame(
   FLOAT32 *ptr_slope_quant = pstr_drc_group->slope_quant;
   const FLOAT32 *ptr_drc_gain_per_sample =
       ptr_drc_gain_per_sample_with_prev_frame + drc_frame_size;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
 
   while (restart) {
     n = 0;
@@ -951,8 +959,11 @@ static VOID impd_drc_quantize_drc_frame(
                                             &num_bits, &code);
       gain_value_quant = delta_gain_quant + *drc_gain_quant_prev;
     } else {
-      impd_drc_enc_initial_gain(gain_coding_profile, drc_gain_per_sample_limited,
-                                &gain_value_quant, &num_bits, &code);
+      err_code = impd_drc_enc_initial_gain(gain_coding_profile, drc_gain_per_sample_limited,
+                                           &gain_value_quant, &num_bits, &code);
+      if (err_code) {
+        return err_code;
+      }
     }
     pstr_drc_group->gain_code[n] = code;
     pstr_drc_group->gain_code_length[n] = num_bits;
@@ -971,9 +982,11 @@ static VOID impd_drc_quantize_drc_frame(
   pstr_drc_group_for_output->time_quant_next = pstr_drc_group->ts_gain_quant[0] + drc_frame_size;
   pstr_drc_group_for_output->slope_code_index_next = pstr_drc_group->slope_code_index[0];
   pstr_drc_group_for_output->drc_gain_quant_next = pstr_drc_group->drc_gain_quant[0];
+
+  return err_code;
 }
 
-VOID impd_drc_quantize_and_encode_drc_gain(
+IA_ERRORCODE impd_drc_quantize_and_encode_drc_gain(
     ia_drc_gain_enc_struct *pstr_gain_enc, const FLOAT32 *ptr_drc_gain_per_sample,
     FLOAT32 *ptr_drc_gain_per_sample_with_prev_frame,
     ia_drc_delta_time_code_table_entry_struct *pstr_delta_time_code_table,
@@ -982,7 +995,7 @@ VOID impd_drc_quantize_and_encode_drc_gain(
   const WORD32 *ptr_delta_time_quant_table = pstr_gain_enc->delta_time_quant_table;
   ia_drc_group_struct *pstr_drc_group;
   ia_drc_group_for_output_struct *pstr_drc_group_for_output;
-
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   impd_drc_advance_nodes(pstr_gain_enc, pstr_drc_gain_seq_buf);
 
   pstr_drc_group = &(pstr_drc_gain_seq_buf->str_drc_group);
@@ -992,12 +1005,18 @@ VOID impd_drc_quantize_and_encode_drc_gain(
       pstr_gain_enc, ptr_drc_gain_per_sample, ptr_drc_gain_per_sample_with_prev_frame,
       pstr_drc_group, pstr_drc_gain_seq_buf->str_gain_set_params.full_frame, pstr_scratch);
 
-  impd_drc_quantize_drc_frame(drc_frame_size, pstr_gain_enc->delta_tmin,
-                              pstr_gain_enc->drc_frame_size / pstr_gain_enc->delta_tmin,
-                              ptr_drc_gain_per_sample_with_prev_frame, ptr_delta_time_quant_table,
-                              pstr_drc_gain_seq_buf->str_gain_set_params.gain_coding_profile,
-                              pstr_drc_group, pstr_drc_group_for_output);
+  err_code = impd_drc_quantize_drc_frame(
+      drc_frame_size, pstr_gain_enc->delta_tmin,
+      pstr_gain_enc->drc_frame_size / pstr_gain_enc->delta_tmin,
+      ptr_drc_gain_per_sample_with_prev_frame, ptr_delta_time_quant_table,
+      pstr_drc_gain_seq_buf->str_gain_set_params.gain_coding_profile, pstr_drc_group,
+      pstr_drc_group_for_output);
 
-  impd_drc_post_process_nodes(pstr_gain_enc, pstr_delta_time_code_table, pstr_drc_gain_seq_buf,
-                              pstr_scratch);
+  if (err_code) {
+    return err_code;
+  }
+
+  err_code = impd_drc_post_process_nodes(pstr_gain_enc, pstr_delta_time_code_table,
+                                         pstr_drc_gain_seq_buf, pstr_scratch);
+  return err_code;
 }

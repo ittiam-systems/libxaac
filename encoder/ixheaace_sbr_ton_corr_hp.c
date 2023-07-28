@@ -179,8 +179,7 @@ VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_
         FLOAT32 tmp =
             -(alphar[0] * r01r + alphai[0] * r01i + alphar[1] * r02r + alphai[1] * r02i) / (r00r);
         FLOAT32 denum = 1.0f - tmp;
-        if (fabs(denum) < EPS)
-        {
+        if (fabs(denum) < EPS) {
           denum = (FLOAT32)EPS;
         }
         ptr_quota_mtx[time_index][r] = (FLOAT32)(tmp / denum);

@@ -59,12 +59,10 @@ pWORD8 ppb_ia_enhaacplus_enc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid quality level",
     (pWORD8) "Invalid PCM wordsize",
     (pWORD8) "Parametric stereo not allowed with AAC classic profiles",
-    (pWORD8) "Invalid AAC classic flag, use 1 or 0",
     (pWORD8) "Invalid TNS flag, use 0 or 1",
     (pWORD8) "Invalid channels mask",
     (pWORD8) "Invalid PCE (Program Configuration Element) flag, use 0 or 1",
     (pWORD8) "Invalid use full band width flag, use 0 or 1",
-    (pWORD8) "Invalid speech configuration flag, use 0 or 1",
 };
 
 pWORD8 ppb_ia_enhaacplus_enc_usac_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
@@ -105,6 +103,9 @@ pWORD8 ppb_ia_enhaacplus_enc_mps_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 pWORD8 ppb_ia_enhaacplus_enc_usac_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Resampler initialization failed", (pWORD8) "Insufficient bit-reservoir size"};
 
+pWORD8 ppb_ia_enhaacplus_enc_drc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Invalid channel index"};
+
 pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid number of channels",     (pWORD8) "Invalid sample rate mode",
     (pWORD8) "Invalid frequency coefficients", (pWORD8) "Invalid number of bands",
@@ -116,7 +117,8 @@ pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 /* Non Fatal Errors */
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Encoding Failed"};
+    (pWORD8) "Encoding Failed",
+    (pWORD8) "Invalid MPS data bands"};
 
 pWORD8 ppb_ia_enhaacplus_enc_esbr_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid bandwidth index encountered",
@@ -136,7 +138,6 @@ pWORD8 ppb_ia_enhaacplus_enc_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid block type",
     (pWORD8) "Invalid SBR frame type",
     (pWORD8) "Invalid SBR number of envelope",
-    (pWORD8) "Invalid SBR number of bands",
     (pWORD8) "Invalid SBR bit stream",
     (pWORD8) "Invalid SBR code book",
     (pWORD8) "Invalid scale factor gain",
@@ -148,6 +149,7 @@ pWORD8 ppb_ia_enhaacplus_enc_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid amplitude resolution",
     (pWORD8) "Invalid output bytes",
     (pWORD8) "Invalid TNS filter order",
+    (pWORD8) "Invalid SBR sample rate"
 };
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
@@ -237,6 +239,8 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_mps_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][2] =
       ppb_ia_enhaacplus_enc_usac_init_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][3] =
+      ppb_ia_enhaacplus_enc_drc_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][4] =
       ppb_ia_enhaacplus_enc_sbr_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][1] =
