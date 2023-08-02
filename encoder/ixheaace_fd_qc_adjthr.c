@@ -50,6 +50,7 @@
 #include "iusace_fd_qc_util.h"
 #include "iusace_fd_qc_adjthr.h"
 #include "ixheaace_aac_constants.h"
+#include "ixheaace_sbr_def.h"
 
 FLOAT32 iusace_bits_to_pe(const FLOAT32 bits) { return (bits * 1.18f); }
 
@@ -938,6 +939,7 @@ VOID iusace_calc_form_fac_per_chan(ia_psy_mod_out_data_struct *pstr_psy_out_chan
   FLOAT32 *ptr_sfb_form_factor = pstr_scratch->ptr_sfb_form_fac[i_ch];
   FLOAT32 *ptr_sfb_num_relevant_lines = pstr_scratch->ptr_sfb_num_relevant_lines[i_ch];
   FLOAT32 *ptr_sfb_ld_energy = pstr_scratch->ptr_sfb_ld_energy[i_ch];
+  FLOAT64 spec_coef = 0;
 
   memset(ptr_sfb_num_relevant_lines, 0, sizeof(FLOAT32) * pstr_psy_out_chan->sfb_count);
 
@@ -951,7 +953,9 @@ VOID iusace_calc_form_fac_per_chan(ia_psy_mod_out_data_struct *pstr_psy_out_chan
 
         for (j = pstr_psy_out_chan->sfb_offsets[i]; j < pstr_psy_out_chan->sfb_offsets[i + 1];
              j++) {
-          ptr_sfb_form_factor[i] += (FLOAT32)sqrt(fabs(pstr_psy_out_chan->ptr_spec_coeffs[j]));
+          spec_coef = fabs(pstr_psy_out_chan->ptr_spec_coeffs[j]);
+          if (spec_coef < EPS && spec_coef != 0) spec_coef = EPS;
+          ptr_sfb_form_factor[i] += (FLOAT32)sqrt(spec_coef);
         }
 
         sfb_width = pstr_psy_out_chan->sfb_offsets[i + 1] - pstr_psy_out_chan->sfb_offsets[i];

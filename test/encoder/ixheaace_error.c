@@ -117,8 +117,7 @@ pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 /* Non Fatal Errors */
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Encoding Failed",
-    (pWORD8) "Invalid MPS data bands"};
+    (pWORD8) "Encoding Failed", (pWORD8) "Invalid MPS data bands"};
 
 pWORD8 ppb_ia_enhaacplus_enc_esbr_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid bandwidth index encountered",
@@ -149,8 +148,7 @@ pWORD8 ppb_ia_enhaacplus_enc_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid amplitude resolution",
     (pWORD8) "Invalid output bytes",
     (pWORD8) "Invalid TNS filter order",
-    (pWORD8) "Invalid SBR sample rate"
-};
+    (pWORD8) "Invalid SBR sample rate"};
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Null data handle",
