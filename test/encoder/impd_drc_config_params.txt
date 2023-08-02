@@ -4,9 +4,7 @@ drc_instructions_uni_drc_count:8
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0001
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -20,9 +18,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0002
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -36,9 +32,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0004
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -52,9 +46,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0008
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -68,9 +60,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0010
-gain_set_channels:10
-gain_set_index:1
-gain_set_index:1
+gain_set_channels:8
 gain_set_index:1
 gain_set_index:1
 gain_set_index:1
@@ -84,9 +74,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0020
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -100,9 +88,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0040
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0
@@ -116,9 +102,7 @@ num_drc_channel_groups:1
 downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0080
-gain_set_channels:10
-gain_set_index:0
-gain_set_index:0
+gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
 gain_set_index:0

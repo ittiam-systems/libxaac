@@ -509,42 +509,40 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     pstr_input_config->aot = AOT_USAC;
   }
   pstr_input_config->i_native_samp_freq = pstr_input_config->i_samp_freq;
-  if (pstr_input_config->aot == AOT_USAC) {
-    if (pstr_input_config->i_samp_freq < 9391) {
-      pstr_input_config->i_samp_freq = 8000;
-    } else if ((pstr_input_config->i_samp_freq >= 9391) &&
-               (pstr_input_config->i_samp_freq < 11502)) {
-      pstr_input_config->i_samp_freq = 11025;
-    } else if ((pstr_input_config->i_samp_freq >= 11502) &&
-               (pstr_input_config->i_samp_freq < 13856)) {
-      pstr_input_config->i_samp_freq = 12000;
-    } else if ((pstr_input_config->i_samp_freq >= 13856) &&
-               (pstr_input_config->i_samp_freq < 18783)) {
-      pstr_input_config->i_samp_freq = 16000;
-    } else if ((pstr_input_config->i_samp_freq >= 18783) &&
-               (pstr_input_config->i_samp_freq < 23004)) {
-      pstr_input_config->i_samp_freq = 22050;
-    } else if ((pstr_input_config->i_samp_freq >= 23004) &&
-               (pstr_input_config->i_samp_freq < 27713)) {
-      pstr_input_config->i_samp_freq = 24000;
-    } else if ((pstr_input_config->i_samp_freq >= 27713) &&
-               (pstr_input_config->i_samp_freq < 37566)) {
-      pstr_input_config->i_samp_freq = 32000;
-    } else if ((pstr_input_config->i_samp_freq >= 37566) &&
-               (pstr_input_config->i_samp_freq < 46009)) {
-      pstr_input_config->i_samp_freq = 44100;
-    } else if ((pstr_input_config->i_samp_freq >= 46009) &&
-               (pstr_input_config->i_samp_freq < 55426)) {
-      pstr_input_config->i_samp_freq = 48000;
-    } else if ((pstr_input_config->i_samp_freq >= 55426) &&
-               (pstr_input_config->i_samp_freq < 75132)) {
-      pstr_input_config->i_samp_freq = 64000;
-    } else if ((pstr_input_config->i_samp_freq >= 75132) &&
-               (pstr_input_config->i_samp_freq < 92017)) {
-      pstr_input_config->i_samp_freq = 88200;
-    } else if (pstr_input_config->i_samp_freq >= 92017) {
-      pstr_input_config->i_samp_freq = 96000;
-    }
+  if (pstr_input_config->i_samp_freq < 9391) {
+    pstr_input_config->i_samp_freq = 8000;
+  } else if ((pstr_input_config->i_samp_freq >= 9391) &&
+             (pstr_input_config->i_samp_freq < 11502)) {
+    pstr_input_config->i_samp_freq = 11025;
+  } else if ((pstr_input_config->i_samp_freq >= 11502) &&
+             (pstr_input_config->i_samp_freq < 13856)) {
+    pstr_input_config->i_samp_freq = 12000;
+  } else if ((pstr_input_config->i_samp_freq >= 13856) &&
+             (pstr_input_config->i_samp_freq < 18783)) {
+    pstr_input_config->i_samp_freq = 16000;
+  } else if ((pstr_input_config->i_samp_freq >= 18783) &&
+             (pstr_input_config->i_samp_freq < 23004)) {
+    pstr_input_config->i_samp_freq = 22050;
+  } else if ((pstr_input_config->i_samp_freq >= 23004) &&
+             (pstr_input_config->i_samp_freq < 27713)) {
+    pstr_input_config->i_samp_freq = 24000;
+  } else if ((pstr_input_config->i_samp_freq >= 27713) &&
+             (pstr_input_config->i_samp_freq < 37566)) {
+    pstr_input_config->i_samp_freq = 32000;
+  } else if ((pstr_input_config->i_samp_freq >= 37566) &&
+             (pstr_input_config->i_samp_freq < 46009)) {
+    pstr_input_config->i_samp_freq = 44100;
+  } else if ((pstr_input_config->i_samp_freq >= 46009) &&
+             (pstr_input_config->i_samp_freq < 55426)) {
+    pstr_input_config->i_samp_freq = 48000;
+  } else if ((pstr_input_config->i_samp_freq >= 55426) &&
+             (pstr_input_config->i_samp_freq < 75132)) {
+    pstr_input_config->i_samp_freq = 64000;
+  } else if ((pstr_input_config->i_samp_freq >= 75132) &&
+             (pstr_input_config->i_samp_freq < 92017)) {
+    pstr_input_config->i_samp_freq = 88200;
+  } else if (pstr_input_config->i_samp_freq >= 92017) {
+    pstr_input_config->i_samp_freq = 96000;
   }
 
   if ((pstr_input_config->i_channels < MIN_NUM_CORE_CODER_CHANNELS) ||
@@ -969,6 +967,7 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       return (IA_EXHEAACE_CONFIG_FATAL_NUM_CHANNELS);
     }
     if (!((pstr_input_config->i_native_samp_freq == 7350) ||
+          (pstr_input_config->i_native_samp_freq == 8000) ||
           (pstr_input_config->i_native_samp_freq == 11025) ||
           (pstr_input_config->i_native_samp_freq == 12000) ||
           (pstr_input_config->i_native_samp_freq == 16000) ||
