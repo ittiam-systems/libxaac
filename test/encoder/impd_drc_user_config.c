@@ -136,7 +136,7 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       pstr_drc_instructions_uni_drc->str_gain_modifiers[g].attenuation_scaling[0] = 1.5f;
       pstr_drc_instructions_uni_drc->str_gain_modifiers[g].amplification_scaling[0] = 1.5f;
       pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset_present[0] = 0;
-      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset[0] = 16.0f;
+      pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset[0] = 8.0f;
     }
 
     pstr_drc_instructions_uni_drc->limiter_peak_target_present = 0;
