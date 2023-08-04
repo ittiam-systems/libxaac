@@ -443,6 +443,277 @@ static VOID iaace_aac_set_default_config(ixheaace_aac_enc_config *config) {
   config->bitreservoir_size = APP_BITRES_SIZE_CONFIG_PARAM_DEF_VALUE_LC;
 }
 
+static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_config,
+                                             ixheaace_input_config *pstr_input_config_user) {
+  WORD32 flag = 0, i, j, k;
+  ia_drc_input_config *drc_cfg = (ia_drc_input_config *)(pstr_input_config->pv_drc_cfg);
+  ia_drc_input_config *drc_cfg_user = (ia_drc_input_config *)(pstr_input_config_user->pv_drc_cfg);
+
+  ia_drc_uni_drc_config_struct *pstr_uni_drc_config = &drc_cfg->str_uni_drc_config;
+  ia_drc_uni_drc_config_struct *pstr_uni_drc_config_user = &drc_cfg_user->str_uni_drc_config;
+
+  ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set =
+      &drc_cfg->str_enc_loudness_info_set;
+  ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set_user =
+      &drc_cfg_user->str_enc_loudness_info_set;
+
+  for (i = 0; i < pstr_uni_drc_config->drc_instructions_uni_drc_count; i++) {
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].additional_downmix_id_count !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].additional_downmix_id_count) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_location !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].drc_location) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_upper !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_upper) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_lower !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_lower) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_lower !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+            .drc_set_target_loudness_value_lower) {
+      flag = 1;
+    }
+    for (j = 0; j < MAX_CHANNEL_COUNT; j++) {
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].gain_set_index[j] !=
+          pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].gain_set_index[j]) {
+        flag = 1;
+      }
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].num_drc_channel_groups !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].num_drc_channel_groups) {
+      flag = 1;
+    }
+    for (j = 0; j < pstr_uni_drc_config->str_drc_instructions_uni_drc[i].num_drc_channel_groups;
+         j++) {
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+              .str_gain_modifiers[j]
+              .attenuation_scaling[0] != pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+                                             .str_gain_modifiers[j]
+                                             .attenuation_scaling[0]) {
+        flag = 1;
+      }
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+              .str_gain_modifiers[j]
+              .amplification_scaling[0] !=
+          pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+              .str_gain_modifiers[j]
+              .amplification_scaling[0]) {
+        flag = 1;
+      }
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i]
+              .str_gain_modifiers[j]
+              .gain_offset[0] != pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i]
+                                     .str_gain_modifiers[j]
+                                     .gain_offset[0]) {
+        flag = 1;
+      }
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].limiter_peak_target !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].limiter_peak_target) {
+      flag = 1;
+    }
+  }
+  if (flag == 1) {
+    printf("\nDRC : Invalid config str_drc_instructions_uni_drc");
+    flag = 0;
+  }
+  for (i = 0; i < pstr_uni_drc_config->drc_coefficients_uni_drc_count; i++) {
+    if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].drc_location !=
+        pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i].drc_location) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].gain_set_count !=
+        pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i].gain_set_count) {
+      flag = 1;
+    }
+    for (j = 0; j < pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].gain_set_count; j++) {
+      if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+              .str_gain_set_params[j]
+              .gain_coding_profile != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                          .str_gain_set_params[j]
+                                          .gain_coding_profile) {
+        flag = 1;
+      }
+      if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+              .str_gain_set_params[j]
+              .band_count != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                 .str_gain_set_params[j]
+                                 .band_count) {
+        flag = 1;
+      }
+      for (k = 0;
+           k <
+           pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count;
+           k++) {
+        if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .gain_params[k]
+                .nb_points != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                  .str_gain_set_params[j]
+                                  .gain_params[k]
+                                  .nb_points) {
+          flag = 1;
+        }
+        if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .gain_params[k]
+                .drc_characteristic != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                           .str_gain_set_params[j]
+                                           .gain_params[k]
+                                           .drc_characteristic) {
+          flag = 1;
+        }
+        if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .gain_params[k]
+                .crossover_freq_index != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                             .str_gain_set_params[j]
+                                             .gain_params[k]
+                                             .crossover_freq_index) {
+          flag = 1;
+        }
+        if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .gain_params[k]
+                .start_sub_band_index != pstr_uni_drc_config_user->str_drc_coefficients_uni_drc[i]
+                                             .str_gain_set_params[j]
+                                             .gain_params[k]
+                                             .start_sub_band_index) {
+          flag = 1;
+        }
+      }
+    }
+  }
+  if (flag == 1) {
+    printf("\nDRC : Invalid config: str_drc_coefficients_uni_drc");
+    flag = 0;
+  }
+  for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_count; i++) {
+    if (pstr_enc_loudness_info_set->str_loudness_info[i].sample_peak_level !=
+        pstr_enc_loudness_info_set_user->str_loudness_info[i].sample_peak_level) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level !=
+        pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_measurement_system !=
+        pstr_enc_loudness_info_set_user->str_loudness_info[i]
+            .true_peak_level_measurement_system) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_reliability !=
+        pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level_reliability) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count !=
+        pstr_enc_loudness_info_set_user->str_loudness_info[i].measurement_count) {
+      flag = 1;
+    }
+    for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count; j++) {
+      if (pstr_enc_loudness_info_set->str_loudness_info[i]
+              .str_loudness_measure[j]
+              .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                        .str_loudness_measure[j]
+                                        .method_definition) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].str_loudness_measure[j].method_value !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i]
+              .str_loudness_measure[j]
+              .method_value) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info[i]
+              .str_loudness_measure[j]
+              .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                         .str_loudness_measure[j]
+                                         .measurement_system) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].str_loudness_measure[j].reliability !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i]
+              .str_loudness_measure[j]
+              .reliability) {
+        flag = 1;
+      }
+    }
+  }
+  if (flag == 1) {
+    printf("\nDRC : Invalid config str_loudness_info");
+    flag = 0;
+  }
+  for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_album_count; i++) {
+    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].sample_peak_level !=
+        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].sample_peak_level) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level !=
+        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].true_peak_level) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+            .true_peak_level_measurement_system !=
+        pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+            .true_peak_level_measurement_system) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level_reliability !=
+        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].true_peak_level_reliability) {
+      flag = 1;
+    }
+    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count !=
+        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].measurement_count) {
+      flag = 1;
+    }
+    for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count;
+         j++) {
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+              .str_loudness_measure[j]
+              .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                        .str_loudness_measure[j]
+                                        .method_definition) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+              .str_loudness_measure[j]
+              .method_value != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                   .str_loudness_measure[j]
+                                   .method_value) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+              .str_loudness_measure[j]
+              .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                         .str_loudness_measure[j]
+                                         .measurement_system) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+              .str_loudness_measure[j]
+              .reliability != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                  .str_loudness_measure[j]
+                                  .reliability) {
+        flag = 1;
+      }
+    }
+  }
+  if (flag == 1) {
+    printf("\nDRC : Invalid config str_loudness_info_album");
+  }
+}
+
 static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_config,
                                          ixheaace_input_config *pstr_input_config_user) {
   printf(
@@ -594,12 +865,9 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
              pstr_input_config->aac_config.bitreservoir_size);
     }
   }
-  if (pstr_input_config_user->i_bitrate == pstr_input_config->i_bitrate) {
-    printf("\nBitrate : %d bps", pstr_input_config->i_bitrate);
-  } else {
-    printf("\nBitrate (Invalid config value, setting to default) : %d bps",
-           pstr_input_config->i_bitrate);
-  }
+
+  printf("\nBitrate : %d bps", pstr_input_config->i_bitrate);
+
   if (pstr_input_config_user->i_use_mps != pstr_input_config->i_use_mps) {
     printf("\nMPS (Invalid config value, setting to default) : %d ",
            pstr_input_config->i_use_mps);
@@ -636,11 +904,18 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
     printf("\nSampling Frequency : %d Hz", pstr_input_config_user->i_samp_freq);
   }
 
-  if (pstr_input_config->aot == AOT_USAC && pstr_input_config->use_drc_element) {
-    printf("\nDRC : Enabled");
-    printf("\nDRC Effects : ");
-    printf("Night, Noisy, Limited, Low level, Dialog, General, Expand, Artistic");
+  // DRC validation
+  if (pstr_input_config->aot == AOT_USAC) {
+    if (pstr_input_config->use_drc_element != pstr_input_config_user->use_drc_element) {
+      printf("\nDRC (Invalid config value, setting to default) : %d",
+             pstr_input_config->use_drc_element);
+    }
+    if (pstr_input_config->use_drc_element) {
+      printf("\nDRC : 1");
+      ixheaace_print_drc_config_params(pstr_input_config, pstr_input_config_user);
+    }
   }
+
   printf(
       "\n*************************************************************************************"
       "***********\n\n");
@@ -810,6 +1085,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
 
   ixheaace_input_config pstr_in_cfg_user = *pstr_in_cfg;
 
+  ia_drc_input_config *pstr_drc_cfg_user = NULL;
+
   /* Get library id and version number and display it */
   ixheaace_get_lib_id_strings((pVOID)&pstr_out_cfg->version);
   ia_enhaacplus_enc_display_id_message(pstr_out_cfg->version.p_lib_name,
@@ -823,6 +1100,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     LOOPIDX k;
     CHAR8 drc_config_file_name[IA_MAX_CMD_LINE_LENGTH];
     strcpy(drc_config_file_name, DRC_CONFIG_FILE);
+
     pf_drc_inp = fopen(drc_config_file_name, "rt");
 
     if (!pf_drc_inp) {
@@ -863,6 +1141,18 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
           }
         }
       }
+
+      pstr_drc_cfg_user =
+          (ia_drc_input_config *)malloc_global(sizeof(ia_drc_input_config), DEFAULT_MEM_ALIGN_8);
+      if (pstr_drc_cfg_user == NULL) {
+        printf("fatal error: libxaac encoder: Memory allocation failed");
+        free_global(pstr_in_cfg->pv_drc_cfg);
+        return -1;
+      }
+      // Copy DRC config to user DRC config
+      memcpy(pstr_drc_cfg_user, pstr_drc_cfg, sizeof(ia_drc_input_config));
+
+      pstr_in_cfg_user.pv_drc_cfg = pstr_drc_cfg_user;
     }
   }
 
@@ -875,6 +1165,11 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   pb_out_buf = (pWORD8)pstr_out_cfg->mem_info_table[IA_MEMTYPE_OUTPUT].mem_ptr;
 
   ixheaace_print_config_params(pstr_in_cfg, &pstr_in_cfg_user);
+
+  if (pstr_drc_cfg_user) {
+    free_global(pstr_drc_cfg_user);
+  }
+
   start_offset_samples = 0;
   input_size = pstr_out_cfg->input_size;
 

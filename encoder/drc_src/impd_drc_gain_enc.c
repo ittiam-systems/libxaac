@@ -407,7 +407,7 @@ static IA_ERRORCODE impd_drc_post_process_nodes(
 
   FLOAT32 delta_gain;
   FLOAT32 delta_gain_quant;
-  FLOAT32 gain_value_quant;
+  FLOAT32 gain_value_quant = 0;
   FLOAT32 slope_average;
   FLOAT32 slope_of_nodes_left;
   FLOAT32 slope_of_nodes_right;
@@ -862,7 +862,7 @@ static IA_ERRORCODE impd_drc_quantize_drc_frame(
 
   FLOAT32 slope;
   FLOAT32 delta_gain;
-  FLOAT32 gain_value_quant;
+  FLOAT32 gain_value_quant = 0;
   FLOAT32 delta_gain_quant;
   FLOAT32 max_time_deviation;
   FLOAT32 drc_gain_per_sample_limited;
@@ -982,6 +982,7 @@ static IA_ERRORCODE impd_drc_quantize_drc_frame(
   pstr_drc_group_for_output->time_quant_next = pstr_drc_group->ts_gain_quant[0] + drc_frame_size;
   pstr_drc_group_for_output->slope_code_index_next = pstr_drc_group->slope_code_index[0];
   pstr_drc_group_for_output->drc_gain_quant_next = pstr_drc_group->drc_gain_quant[0];
+  pstr_drc_group_for_output->drc_gain_quant_prev = pstr_drc_group->drc_gain_quant_prev;
 
   return err_code;
 }

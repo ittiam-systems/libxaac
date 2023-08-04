@@ -3365,6 +3365,7 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
   ixheaace_api_struct *pstr_api_struct = (ixheaace_api_struct *)pstr_obj_ixheaace;
   ixheaace_input_config *pstr_input_config = (ixheaace_input_config *)pv_input;
   ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;
+  WORD32 total_bitrate_used = 0;
   frame_length = pstr_input_config->frame_length;
   channels = 0;
   for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
@@ -3393,13 +3394,10 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
       }
 
       pstr_api_struct->pstr_state->ui_init_done = 1;
-      if (pstr_input_config->i_bitrate != pstr_api_struct->config[0].aac_config.bit_rate) {
-        if (pstr_input_config->i_bitrate < pstr_api_struct->config[0].aac_config.bit_rate) {
-          pstr_input_config->i_bitrate = pstr_api_struct->config[0].aac_config.bit_rate - 8;
-        } else {
-          pstr_input_config->i_bitrate = pstr_api_struct->config[0].aac_config.bit_rate + 8;
-        }
-      }
+      total_bitrate_used += pstr_api_struct->config[ele_idx].aac_config.bit_rate;
+    }
+    if (pstr_input_config->i_bitrate != total_bitrate_used) {
+      pstr_input_config->i_bitrate = total_bitrate_used;
     }
     if (pstr_api_struct->config[0].aac_config.bitreservoir_size != -1) {
       WORD32 avg_bytes_per_frame_per_ch = pstr_api_struct->config[0].aac_config.bitreservoir_size;
@@ -3504,6 +3502,13 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
     }
     pstr_output_config->input_size =
         frame_length * channels * (pstr_api_struct->config[0].usac_config.ui_pcm_wd_sz >> 3);
+
+    if (pstr_input_config->use_drc_element) {
+      ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)(pstr_input_config->pv_drc_cfg);
+      memcpy(pstr_drc_cfg, &pstr_api_struct->config[0].usac_config.str_drc_cfg,
+             sizeof(ia_drc_input_config));
+    }
+
     pstr_output_config->down_sampling_ratio = 1;
     if (pstr_api_struct->config[0].usac_config.sbr_enable == 1) {
       switch (pstr_api_struct->config[0].ccfl_idx) {
