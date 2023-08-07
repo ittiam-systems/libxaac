@@ -382,7 +382,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (pstr_drc_cfg) {
       free(pstr_drc_cfg);
     }
-    return err_code;
+    return 0;
   }
 
   pv_ia_process_api_obj = pstr_out_cfg->pv_ia_process_api_obj;
