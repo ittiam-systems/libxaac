@@ -47,6 +47,8 @@ function(libxaac_add_definitions)
     add_definitions(-DARMV7)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
     add_definitions(-DX86 -D_X86_)
+  elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    add_definitions(-DX86_64 -D_X86_64_)
   endif()
 endfunction()
 
