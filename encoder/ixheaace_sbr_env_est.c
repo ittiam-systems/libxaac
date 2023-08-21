@@ -1834,7 +1834,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
       (WORD32 *)pstr_env_ch[0]->str_sbr_extract_env.ptr_r_buffer[0];
 
   WORD32 max_quant_error;
-  ixheaace_str_esbr_bs_data str_esbr = { 0 };
+  ixheaace_str_esbr_bs_data str_esbr = {0};
   WORD32 samp_ratio_fac = DOWNSAMPLE_FAC_2_1;
   if ((pstr_env_enc->str_sbr_cfg.sbr_codec == USAC_SBR) &&
       (pstr_env_enc->str_sbr_cfg.sbr_ratio_idx == USAC_SBR_RATIO_INDEX_4_1)) {

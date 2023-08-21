@@ -137,13 +137,9 @@
 
 #include "ixheaace_write_adts_adif.h"
 
-/* Ensure all memory are aligned */
-#define IXHEAACE_ALIGN_MEMORY(address, alignment) \
-  ((WORD8 *)((address + (alignment - 1)) & ~(alignment - 1)))
-
 static WORD32 iusace_scratch_size(VOID) {
   WORD32 scr_size;
-  scr_size = USACE_MAX_SCR_SIZE;
+  scr_size = IXHEAACE_GET_SIZE_ALIGNED(USACE_MAX_SCR_SIZE, BYTE_ALIGN_8);
   return scr_size;
 }
 
@@ -151,25 +147,40 @@ static WORD32 iusace_calc_pers_buf_sizes(ixheaace_api_struct *pstr_api_struct) {
   WORD32 pers_size = 0;
   ia_usac_encoder_config_struct *pstr_config = &pstr_api_struct->config[0].usac_config;
 
-  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
-  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
-  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
-  pers_size += pstr_config->channels * sizeof(FLOAT32 *);
+  pers_size += IXHEAACE_GET_SIZE_ALIGNED(pstr_config->channels * sizeof(FLOAT32 *), BYTE_ALIGN_8);
+  pers_size += IXHEAACE_GET_SIZE_ALIGNED(pstr_config->channels * sizeof(FLOAT32 *), BYTE_ALIGN_8);
+  pers_size += IXHEAACE_GET_SIZE_ALIGNED(pstr_config->channels * sizeof(FLOAT32 *), BYTE_ALIGN_8);
+  pers_size += IXHEAACE_GET_SIZE_ALIGNED(pstr_config->channels * sizeof(FLOAT32 *), BYTE_ALIGN_8);
 
-  pers_size += ((2 * pstr_config->ccfl) * sizeof(FLOAT32) * pstr_config->channels);
-  pers_size += ((2 * pstr_config->drc_frame_size) * sizeof(FLOAT32) * pstr_config->channels);
+  pers_size +=
+      (IXHEAACE_GET_SIZE_ALIGNED((2 * pstr_config->ccfl * sizeof(FLOAT32)), BYTE_ALIGN_8) *
+       pstr_config->channels);
+  pers_size += (IXHEAACE_GET_SIZE_ALIGNED((2 * pstr_config->drc_frame_size * sizeof(FLOAT32)),
+                                          BYTE_ALIGN_8) *
+                pstr_config->channels);
 
-  pers_size += 2 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+  pers_size +=
+      (IXHEAACE_GET_SIZE_ALIGNED((2 * pstr_config->ccfl * sizeof(FLOAT64)), BYTE_ALIGN_8) *
+       pstr_config->channels);
 
-  pers_size += pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+  pers_size += (IXHEAACE_GET_SIZE_ALIGNED((pstr_config->ccfl * sizeof(FLOAT64)), BYTE_ALIGN_8) *
+                pstr_config->channels);
 
-  pers_size += 2 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+  pers_size +=
+      (IXHEAACE_GET_SIZE_ALIGNED((2 * pstr_config->ccfl * sizeof(FLOAT64)), BYTE_ALIGN_8) *
+       pstr_config->channels);
 
-  pers_size += 3 * pstr_config->ccfl * sizeof(FLOAT64) * pstr_config->channels;
+  pers_size +=
+      (IXHEAACE_GET_SIZE_ALIGNED((3 * pstr_config->ccfl * sizeof(FLOAT64)), BYTE_ALIGN_8) *
+       pstr_config->channels);
 
-  if (pstr_config->tns_select != 0) pers_size += sizeof(ia_tns_info) * pstr_config->channels;
+  if (pstr_config->tns_select != 0) {
+    pers_size +=
+        (IXHEAACE_GET_SIZE_ALIGNED(sizeof(ia_tns_info), BYTE_ALIGN_8) * pstr_config->channels);
+  }
 
-  pers_size += sizeof(ia_usac_td_encoder_struct) * pstr_config->channels;
+  pers_size += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(ia_usac_td_encoder_struct), BYTE_ALIGN_8) *
+                pstr_config->channels);
   return pers_size;
 }
 
@@ -669,11 +680,6 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     }
 
     {
-      if (pstr_input_config->i_samp_freq > 64000) {
-        pstr_input_config->codec_mode = USAC_ONLY_FD;
-        pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;
-        pstr_input_config->esbr_flag = 0;
-      }
       if ((pstr_input_config->codec_mode == USAC_SWITCHED ||
            pstr_input_config->codec_mode == USAC_ONLY_TD) &&
           pstr_input_config->i_samp_freq > 24000) {
@@ -1134,40 +1140,46 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
       pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_PERSIST_IDX];
       {
         pstr_mem_info->ui_size =
-            sizeof(ixheaace_state_struct) + iusace_calc_pers_buf_sizes(pstr_api_struct);
+            IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_state_struct), BYTE_ALIGN_8) +
+            iusace_calc_pers_buf_sizes(pstr_api_struct);
         if (pstr_api_struct->config[0].usac_config.sbr_enable) {
           pstr_mem_info->ui_size += ixheaace_sbr_enc_pers_size(
               2, 0, pstr_api_struct->config[0].usac_config.sbr_harmonic);
         }
-        pstr_mem_info->ui_size += 2 *
-                                  ia_enhaacplus_enc_sizeof_delay_buffer(
-                                      0, AOT_USAC, pstr_api_struct->config[0].ccfl_idx,
-                                      sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
-                                      pstr_api_struct->config[0].use_mps) *
-                                  pstr_api_struct->config[0].num_bs_elements;
+        offset_size = 2 *
+                      ia_enhaacplus_enc_sizeof_delay_buffer(
+                          0, AOT_USAC, pstr_api_struct->config[0].ccfl_idx,
+                          sizeof(pstr_api_struct->pstr_state->inp_delay[0]),
+                          pstr_api_struct->config[0].use_mps) *
+                      pstr_api_struct->config[0].num_bs_elements;
+        pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
         if (pstr_api_struct->config[0].use_mps) {
-          pstr_mem_info->ui_size +=
+          offset_size =
               (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
+
+          offset_size =
+              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
           pstr_mem_info->ui_size +=
-              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
-
-          pstr_mem_info->ui_size += sizeof(ixheaace_mps_212_memory_struct) + 7;
+              IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_212_memory_struct), BYTE_ALIGN_8);
         }
         if (1 == pstr_api_struct->config[0].usac_config.sbr_enable) {
-          pstr_mem_info->ui_size +=
+          offset_size =
               (MAX_FRAME_LEN * (1 << fac_downsample) + MAX_DS_8_1_FILTER_DELAY + INPUT_DELAY) *
               MAX_CHANNELS * sizeof(pstr_mem_info->ui_size);
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
         }
         if ((2 != pstr_api_struct->config[0].usac_config.channels) &&
             (1 == pstr_api_struct->config[0].usac_config.sbr_enable)) {
-          pstr_mem_info->ui_size +=
-              (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
+          offset_size = (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
+          pstr_mem_info->ui_size += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
         }
       }
 
-      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_PERSIST;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -1187,7 +1199,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
         pstr_mem_info->ui_size = usac_scr_size;
       }
 
-      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -1220,7 +1232,8 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
         }
       }
 
-      pstr_mem_info->ui_alignment = 8; /* As input is used as scratch memory internally */
+      pstr_mem_info->ui_alignment =
+          BYTE_ALIGN_8; /* As input is used as scratch memory internally */
       pstr_mem_info->ui_type = IA_MEMTYPE_INPUT;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -1233,7 +1246,7 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
     {
       pstr_mem_info = &pstr_api_struct->pstr_mem_info[IA_ENHAACPLUSENC_OUTPUT_IDX];
       pstr_mem_info->ui_size = (MAXIMUM_CHANNEL_BITS_1024 / BYTE_NUMBIT) * num_channel;
-      pstr_mem_info->ui_alignment = 8;
+      pstr_mem_info->ui_alignment = BYTE_ALIGN_8;
       pstr_mem_info->ui_type = IA_MEMTYPE_OUTPUT;
       pstr_mem_info->ui_placement[0] = 0;
       pstr_mem_info->ui_placement[1] = 0;
@@ -1449,8 +1462,9 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
 
         pstr_state->ptr_in_buf = (FLOAT32 **)((WORD8 *)pstr_state + offset_size);
 
-        p_offset =
-            (WORD8 *)pstr_state->ptr_in_buf + (pstr_usac_config->channels * sizeof(FLOAT32 *));
+        offset_size = pstr_usac_config->channels * sizeof(FLOAT32 *);
+        p_offset = (WORD8 *)pstr_state->ptr_in_buf +
+                   IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
         // Input delay
         pstr_state->inp_delay = (FLOAT32 *)(p_offset);
@@ -1461,110 +1475,109 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
                 sizeof(pstr_state->inp_delay[0]), pstr_api_struct->config[0].use_mps) *
             pstr_api_struct->config[0].num_bs_elements;
         memset(pstr_state->inp_delay, 0, inp_delay_size);
-        p_offset += inp_delay_size;
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+        p_offset += IXHEAACE_GET_SIZE_ALIGNED(inp_delay_size, BYTE_ALIGN_8);
         if (1 == pstr_usac_config->sbr_enable) {
           if (2 != pstr_usac_config->channels) {
             pstr_api_struct->pstr_state->time_signal = (FLOAT32 *)(p_offset);
 
             memset(pstr_api_struct->pstr_state->time_signal, 0,
                    (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]));
-            p_offset += (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
-            p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+            offset_size =
+                (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal[0]);
+            p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
           }
 
           pstr_api_struct->pstr_state->spectral_band_replication_enc_pers_mem[0] =
               (struct ixheaace_str_sbr_enc *)p_offset;
           p_offset = p_offset + ixheaace_sbr_enc_pers_size(pstr_usac_config->channels, 0,
                                                            pstr_usac_config->sbr_harmonic);
-
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
         }
         if (1 == pstr_api_struct->config[0].use_mps) {
           pstr_api_struct->pstr_state->time_signal_mps = (FLOAT32 *)(p_offset);
 
           memset(pstr_api_struct->pstr_state->time_signal_mps, 0,
                  (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]));
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
-          p_offset +=
+          offset_size =
               (MAX_INPUT_SAMPLES) * sizeof(pstr_api_struct->pstr_state->time_signal_mps[0]);
-
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
           pstr_api_struct->pstr_state->mps_bs = (UWORD8 *)(p_offset);
 
           memset(pstr_api_struct->pstr_state->mps_bs, 0,
                  (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]));
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
 
-          p_offset += (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          offset_size =
+              (MAX_MPS_BS_PAYLOAD_SIZE) * sizeof(pstr_api_struct->pstr_state->mps_bs[0]);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
 
           pstr_api_struct->pstr_state->mps_pers_mem = (ixheaace_mps_212_memory_struct *)p_offset;
-          p_offset += sizeof(ixheaace_mps_212_memory_struct);
-
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+          p_offset +=
+              IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_mps_212_memory_struct), BYTE_ALIGN_8);
         } else {
           pstr_api_struct->pstr_state->mps_bs = NULL;
         }
         if (1 == pstr_usac_config->use_drc_element) {
           pstr_state->pp_drc_in_buf = (FLOAT32 **)((WORD8 *)p_offset);
-          p_offset += pstr_usac_config->channels * sizeof(pstr_state->pp_drc_in_buf[0]);
+          offset_size = pstr_usac_config->channels * sizeof(pstr_state->pp_drc_in_buf[0]);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(offset_size, BYTE_ALIGN_8);
           p_temp = p_offset;
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
           for (i = 0; i < pstr_usac_config->channels; i++) {
-            pstr_state->pp_drc_in_buf[i] = (FLOAT32 *)p_offset;
-            p_offset +=
-                pstr_usac_config->drc_frame_size * sizeof(pstr_state->pp_drc_in_buf[0][0]) * 2;
+            pstr_state->pp_drc_in_buf[i] = (FLOAT32 *)(p_offset);
+            p_offset += IXHEAACE_GET_SIZE_ALIGNED(
+                (pstr_usac_config->drc_frame_size * sizeof(pstr_state->pp_drc_in_buf[0][0]) * 2),
+                BYTE_ALIGN_8);
           }
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
           memset(p_temp, 0, (p_offset - p_temp));
         }
         p_temp = p_offset;
 
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_state->ptr_in_buf[i] = (FLOAT32 *)p_offset;
-          p_offset += pstr_usac_config->ccfl * sizeof(FLOAT32) * 2;
+          pstr_state->ptr_in_buf[i] = (FLOAT32 *)(p_offset);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED((pstr_usac_config->ccfl * sizeof(FLOAT32) * 2),
+                                                BYTE_ALIGN_8);
         }
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
         memset(p_temp, 0, (p_offset - p_temp));
 
         p_temp = p_offset;
+        offset_size = 0;
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_usac_enc_data->ptr_time_data[i] = (FLOAT64 *)p_offset;
-          p_offset += 2 * (pstr_usac_config->ccfl) * sizeof(FLOAT64);
+          pstr_usac_enc_data->ptr_time_data[i] = (FLOAT64 *)(p_offset);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED((2 * (pstr_usac_config->ccfl) * sizeof(FLOAT64)),
+                                                BYTE_ALIGN_8);
         }
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_usac_enc_data->ptr_look_ahead_time_data[i] = (FLOAT64 *)p_offset;
-          p_offset += pstr_usac_config->ccfl * sizeof(FLOAT64);
+          pstr_usac_enc_data->ptr_look_ahead_time_data[i] = (FLOAT64 *)(p_offset);
+          p_offset +=
+              IXHEAACE_GET_SIZE_ALIGNED((pstr_usac_config->ccfl * sizeof(FLOAT64)), BYTE_ALIGN_8);
         }
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_usac_enc_data->spectral_line_vector[i] = (FLOAT64 *)p_offset;
-          p_offset += 2 * pstr_usac_config->ccfl * sizeof(FLOAT64);
+          pstr_usac_enc_data->spectral_line_vector[i] = (FLOAT64 *)(p_offset);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED((2 * pstr_usac_config->ccfl * sizeof(FLOAT64)),
+                                                BYTE_ALIGN_8);
         }
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
+
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_usac_enc_data->ptr_2frame_time_data[i] = (FLOAT64 *)p_offset;
-          p_offset += 3 * pstr_usac_config->ccfl * sizeof(FLOAT64);
+          pstr_usac_enc_data->ptr_2frame_time_data[i] = (FLOAT64 *)(p_offset);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED((3 * pstr_usac_config->ccfl * sizeof(FLOAT64)),
+                                                BYTE_ALIGN_8);
         }
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
         memset(p_temp, 0, p_offset - p_temp);
 
         if (pstr_usac_config->tns_select != 0) {
           p_temp = p_offset;
           for (i = 0; i < pstr_usac_config->channels; i++) {
-            pstr_usac_enc_data->pstr_tns_info[i] = (ia_tns_info *)p_offset;
-            p_offset += sizeof(ia_tns_info);
+            pstr_usac_enc_data->pstr_tns_info[i] = (ia_tns_info *)(p_offset);
+            p_offset += IXHEAACE_GET_SIZE_ALIGNED(sizeof(ia_tns_info), BYTE_ALIGN_8);
           }
-          p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
           memset(p_temp, 0, p_offset - p_temp);
         }
 
         p_temp = p_offset;
-        p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
         for (i = 0; i < pstr_usac_config->channels; i++) {
-          pstr_usac_enc_data->td_encoder[i] = (ia_usac_td_encoder_struct *)p_offset;
-          p_offset += sizeof(ia_usac_td_encoder_struct);
+          pstr_usac_enc_data->td_encoder[i] = (ia_usac_td_encoder_struct *)(p_offset);
+          p_offset += IXHEAACE_GET_SIZE_ALIGNED(sizeof(ia_usac_td_encoder_struct), BYTE_ALIGN_8);
         }
         memset(p_temp, 0, p_offset - p_temp);
       } else {
@@ -1640,7 +1653,6 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
                   p_offset +
                   ixheaace_sbr_enc_pers_size(
                       num_aac_chan, pstr_api_struct->config[ele_idx].use_parametric_stereo, 0);
-              p_offset = IXHEAACE_ALIGN_MEMORY((SIZE_T)p_offset, 8);
             }
           }
         }
