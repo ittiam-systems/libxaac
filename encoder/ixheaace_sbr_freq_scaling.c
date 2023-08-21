@@ -584,6 +584,14 @@ ixheaace_update_freq_scale(UWORD8 *ptr_k_master, WORD32 *ptr_num_bands, const WO
     return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_NUM_BANDS;
   }
 
+  if (sbr_rate == IXHEAACE_QUAD_RATE) {
+    for (i = 1; i < *ptr_num_bands; i++) {
+      if (!(ptr_k_master[i] - ptr_k_master[i - 1] <= k0 - 2)) {
+        return IA_EXHEAACE_INIT_FATAL_SBR_INVALID_NUM_BANDS;
+      }
+    }
+  }
+
   return err_code;
 }
 
