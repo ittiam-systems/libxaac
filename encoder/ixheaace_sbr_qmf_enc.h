@@ -70,9 +70,7 @@ VOID ixheaace_create_qmf_bank(ixheaace_pstr_sbr_qmf_filter_bank pstr_sbr_qmf_han
 VOID ixheaace_get_energy_from_cplx_qmf(
     FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_real_values, FLOAT32 **ptr_imag_values,
     WORD32 is_ld_sbr, WORD32 num_time_slots, WORD32 samp_ratio_fac,
-    FLOAT32 qmf_buf_real[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
-    FLOAT32 qmf_buf_imag[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
-    WORD32 op_delay, WORD32 harmonic_sbr);
+    ixheaace_str_hbe_enc *pstr_hbe_enc, WORD32 op_delay, WORD32 harmonic_sbr);
 
 VOID ixheaace_enc_synthesis_qmf_filtering(FLOAT32 **ptr_sbr_re, FLOAT32 **ptr_sbr_im,
                                           FLOAT32 *time_float,

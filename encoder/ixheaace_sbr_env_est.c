@@ -38,12 +38,12 @@
 
 #include "ixheaace_sbr_rom.h"
 #include "ixheaace_common_rom.h"
+#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_qmf_enc.h"
 #include "ixheaace_sbr_tran_det.h"
 #include "ixheaace_sbr_frame_info_gen.h"
 #include "ixheaace_sbr_env_est.h"
 #include "ixheaace_sbr_code_envelope.h"
-#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_main.h"
 #include "ixheaace_sbr_missing_harmonics_det.h"
 #include "ixheaace_sbr_inv_filtering_estimation.h"
@@ -70,12 +70,12 @@
 #include "ixheaace_resampler.h"
 #include "ixheaace_sbr_rom.h"
 #include "ixheaace_common_rom.h"
+#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_qmf_enc.h"
 #include "ixheaace_sbr_tran_det.h"
 #include "ixheaace_sbr_frame_info_gen.h"
 #include "ixheaace_sbr_env_est.h"
 #include "ixheaace_sbr_code_envelope.h"
-#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_psy_const.h"
 #include "ixheaace_tns.h"
 #include "ixheaace_tns_params.h"
@@ -2124,9 +2124,8 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
         pstr_sbr_extract_env->ptr_y_buffer + pstr_sbr_extract_env->y_buffer_write_offset,
         pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
         pstr_sbr_cfg->is_ld_sbr, pstr_env_ch[ch]->str_sbr_qmf.num_time_slots, samp_ratio_fac,
-        pstr_hbe_enc->qmf_buf_real, pstr_hbe_enc->qmf_buf_imag,
-        (IXHEAACE_OP_DELAY_OFFSET + IXHEAACE_ESBR_HBE_DELAY_OFFSET + IXHEAACE_SBR_HF_ADJ_OFFSET),
-        pstr_sbr_hdr->sbr_harmonic);
+        pstr_hbe_enc, (IXHEAACE_OP_DELAY_OFFSET + IXHEAACE_ESBR_HBE_DELAY_OFFSET +
+        IXHEAACE_SBR_HF_ADJ_OFFSET), pstr_sbr_hdr->sbr_harmonic);
 
     ixheaace_calculate_tonality_quotas(
         &pstr_env_ch[ch]->str_ton_corr, pstr_sbr_extract_env->ptr_r_buffer,
