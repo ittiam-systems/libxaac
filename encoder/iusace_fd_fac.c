@@ -185,13 +185,17 @@ IA_ERRORCODE iusace_fd_fac(WORD32 *sfb_offsets, WORD32 sfb_active, FLOAT64 *orig
 
   *num_fac_bits = 0;
 
-  if (window_sequence == EIGHT_SHORT_SEQUENCE)
-    fac_len = (pstr_acelp->len_frame / 16);
-  else
-    fac_len = (pstr_acelp->len_frame / 8);
+  if (last_subfr_was_acelp || next_frm_lpd)
+  {
+    if (window_sequence == EIGHT_SHORT_SEQUENCE)
+      fac_len = (pstr_acelp->len_frame / 16);
+    else
+      fac_len = (pstr_acelp->len_frame / 8);
 
-  low_pass_line = (WORD32)((FLOAT32)sfb_offsets[sfb_active] * (FLOAT32)fac_len /
-                           (FLOAT32)pstr_acelp->len_frame);
+    low_pass_line = (WORD32)(sfb_offsets[sfb_active] * fac_len /
+      (FLOAT32)pstr_acelp->len_frame);
+  }
+
   if (last_subfr_was_acelp) {
     FLOAT32 *tmp_lp_res = pstr_scratch->ptr_tmp_lp_res;
     FLOAT32 lpc_coeffs[ORDER + 1];
