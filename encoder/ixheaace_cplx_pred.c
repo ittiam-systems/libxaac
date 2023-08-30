@@ -20,7 +20,7 @@
 
 #include <math.h>
 #include <string.h>
-
+#include <float.h>
 #include "iusace_type_def.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -372,7 +372,8 @@ static IA_ERRORCODE iusace_cplx_pred_main(
     nrg_res += (FLOAT32)(ptr_spec_mdct_res[i] * ptr_spec_mdct_res[i]);
   }
   pred_gain =
-      10.f * log10f((*pred_dir == 0 ? nrg_side : nrg_mid) / nrg_res); /* Prediction gain in dB */
+      10.f * log10f((*pred_dir == 0 ? nrg_side : nrg_mid) / (nrg_res + FLT_EPSILON));
+      /* Prediction gain in dB */
 
   if (pred_gain > 20.f) /* Retain complex prediction */
   {
