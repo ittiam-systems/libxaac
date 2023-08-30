@@ -201,10 +201,12 @@ static FLOAT32 iusace_bitres_calc_bitfac(const WORD32 bitres_bits, const WORD32 
                                          const WORD32 avg_bits, const FLOAT32 max_bit_fac,
                                          ia_adj_thr_elem_struct *pstr_adj_thr_elem) {
   FLOAT32 pex;
-  FLOAT32 fill_lvl;
+  FLOAT32 fill_lvl = 0.0f;
   FLOAT32 bit_save, bit_spend, bitres_factor;
 
-  fill_lvl = (FLOAT32)bitres_bits / (FLOAT32)max_bitres_bits;
+  if (max_bitres_bits) {
+    fill_lvl = (FLOAT32)bitres_bits / max_bitres_bits;
+  }
 
   if (win_seq != EIGHT_SHORT_SEQUENCE) {
     fill_lvl = MAX(fill_lvl, CLIP_SAVE_LO_LONG);
