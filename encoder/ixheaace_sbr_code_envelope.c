@@ -36,12 +36,11 @@
 #include "ixheaace_common_rom.h"
 #include "ixheaace_sbr_main.h"
 #include "ixheaace_sbr_frame_info_gen.h"
-
+#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_code_envelope.h"
 #include "ixheaace_sbr_qmf_enc.h"
 #include "ixheaace_sbr_tran_det.h"
 #include "ixheaace_sbr_env_est.h"
-#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_missing_harmonics_det.h"
 #include "ixheaace_sbr_inv_filtering_estimation.h"
 #include "ixheaace_sbr_noise_floor_est.h"

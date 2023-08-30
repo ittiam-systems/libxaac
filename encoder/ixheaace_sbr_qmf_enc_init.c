@@ -26,6 +26,7 @@
 #include "ixheaace_resampler.h"
 #include "ixheaace_sbr_rom.h"
 #include "ixheaace_common_rom.h"
+#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_qmf_enc.h"
 
 #include "ixheaace_sbr_hybrid.h"

@@ -27,7 +27,7 @@
 #include "ixheaace_resampler.h"
 #include "ixheaace_sbr_rom.h"
 #include "ixheaace_common_rom.h"
-
+#include "ixheaace_sbr_hbe.h"
 #include "ixheaace_sbr_qmf_enc.h"
 #include "ixheaace_sbr_hybrid.h"
 
@@ -944,9 +944,7 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
 VOID ixheaace_get_energy_from_cplx_qmf(
     FLOAT32 **ptr_energy_vals, FLOAT32 **ptr_real_values, FLOAT32 **ptr_imag_values,
     WORD32 is_ld_sbr, WORD32 num_time_slots, WORD32 samp_ratio_fac,
-    FLOAT32 qmf_buf_real[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
-    FLOAT32 qmf_buf_imag[IXHEAACE_TIMESLOT_BUFFER_SIZE + 2 * 32][IXHEAACE_NUM_QMF_SYNTH_CHANNELS],
-    WORD32 op_delay, WORD32 harmonic_sbr)
+    ixheaace_str_hbe_enc *pstr_hbe_enc, WORD32 op_delay, WORD32 harmonic_sbr)
 
 {
   WORD32 j, k;
@@ -958,8 +956,12 @@ VOID ixheaace_get_energy_from_cplx_qmf(
     FLOAT32 *ptr_energy_val = &ptr_energy_vals[0][0];
     FLOAT32 *ptr_real = &ptr_real_values[0][0];
     FLOAT32 *ptr_imag = &ptr_imag_values[0][0];
-    FLOAT32 *ptr_hbe_real = &qmf_buf_real[op_delay][0];
-    FLOAT32 *ptr_hbe_imag = &qmf_buf_imag[op_delay][0];
+    FLOAT32 *ptr_hbe_real = NULL;
+    FLOAT32 *ptr_hbe_imag = NULL;
+    if (harmonic_sbr == 1) {
+      ptr_hbe_real = &pstr_hbe_enc->qmf_buf_real[op_delay][0];
+      ptr_hbe_imag = &pstr_hbe_enc->qmf_buf_imag[op_delay][0];
+    }
     k = (num_time_slots - 1);
     while (k >= 0) {
       for (j = 63; j >= 0; j--) {
