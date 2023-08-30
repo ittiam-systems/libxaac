@@ -3079,7 +3079,8 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
           &(pstr_api_struct->pstr_state->num_anc_data_bytes[0][0]),
           pstr_api_struct->pstr_state->anc_data_bytes[0],
           &(pstr_api_struct->spectral_band_replication_tabs), &(pstr_api_struct->common_tabs),
-          &(mps_extension_payload.p_data[0]), mps_extension_payload.data_size, 0, NULL);
+          &(mps_extension_payload.p_data[0]), mps_extension_payload.data_size, 0,
+          &pstr_api_struct->pstr_state->str_usac_enc_data.num_sbr_bits);
       if (error != IA_NO_ERROR) {
         return error;
       }
