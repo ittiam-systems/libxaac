@@ -261,10 +261,13 @@ static FLOAT32 iaace_bitres_calc_bitfac(const WORD32 bitres_bits, const WORD32 m
                                         ia_adj_thr_elem_struct *pstr_adj_the_elem) {
   ia_bitres_param_struct *pstr_bitres_params;
   FLOAT32 pex;
-  FLOAT32 fill_lvl;
+  FLOAT32 fill_lvl = 0.0f;
   FLOAT32 bit_save, bit_spend, bitres_factor;
 
-  fill_lvl = (FLOAT32)bitres_bits / (FLOAT32)max_bitres_bits;
+  if (max_bitres_bits) {
+    fill_lvl = (FLOAT32)bitres_bits / max_bitres_bits;
+  }
+
   if (win_seq != SHORT_WINDOW) {
     pstr_bitres_params = &(pstr_adj_thr_state->str_bitres_params_long);
   } else {
