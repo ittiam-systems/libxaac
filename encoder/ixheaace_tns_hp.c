@@ -57,11 +57,7 @@ VOID ia_enhaacplus_enc_calc_weighted_spectrum(FLOAT32 *ptr_spectrum, FLOAT32 *pt
 
   for (sfb = lpc_start_band; sfb < lpc_stop_band; sfb++) {
     FLOAT32 sfb_nrg_tmp = ptr_sfb_energy[sfb];
-    if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS || aot == AOT_AAC_ELD) {
-      ptr_tns_sfb_mean[sfb] = 1 / ((FLOAT32)sqrt(sfb_nrg_tmp) + 1e-30f);
-    } else if (aot == AOT_AAC_LD) {
-      ptr_tns_sfb_mean[sfb] = 1 / (FLOAT32)sqrt(sfb_nrg_tmp);
-    }
+    ptr_tns_sfb_mean[sfb] = 1 / ((FLOAT32)sqrt(sfb_nrg_tmp) + 1e-30f);
   }
 
   sfb = lpc_start_band;
