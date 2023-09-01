@@ -20,7 +20,7 @@
 
 #include <string.h>
 #include <math.h>
-
+#include <float.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
 #include "ixheaac_error_standards.h"
@@ -538,7 +538,7 @@ static VOID ia_enhaacplus_enc_calculate_comp_vector(
           comp_val = SBR_MAX_COMP;
         }
 
-        if ((FLOAT32)1.0f / ptr_diff[max_pos_est][i - 1] >
+        if ((FLOAT32)1.0f / (ptr_diff[max_pos_est][i - 1] + FLT_EPSILON) >
             (SBR_DIFF_QUOTA * ptr_diff[max_pos_est][i])) {
           ptr_env_compensation[i - 1] = -1 * comp_val;
         }
@@ -549,7 +549,7 @@ static VOID ia_enhaacplus_enc_calculate_comp_vector(
           comp_val = SBR_MAX_COMP;
         }
 
-        if ((FLOAT32)1.0f / ptr_diff[max_pos_est][i + 1] >
+        if ((FLOAT32)1.0f / (ptr_diff[max_pos_est][i + 1] + FLT_EPSILON) >
             (SBR_DIFF_QUOTA * ptr_diff[max_pos_est][i])) {
           ptr_env_compensation[i + 1] = comp_val;
         }
