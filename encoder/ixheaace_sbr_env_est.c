@@ -1813,8 +1813,11 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
 
   ixheaace_sbr_stereo_mode stereo_mode = pstr_sbr_cfg->stereo_mode;
   struct ixheaace_str_sbr_env_data *pstr_env_0 = &(pstr_env_ch[0]->enc_env_data);
-  struct ixheaace_str_sbr_env_data *pstr_env_1 = &(pstr_env_ch[1]->enc_env_data);
+  struct ixheaace_str_sbr_env_data *pstr_env_1 = NULL;
 
+  if (num_channels > 1) {
+    pstr_env_1 = &(pstr_env_ch[1]->enc_env_data);
+  }
   ixheaace_freq_res res[MAXIMUM_NUM_NOISE_VALUES];
   WORD32 *ptr_v_tuning;
   WORD32 v_tuning_lc_sbr[6] = {0, 2, 4, 0, 0, 0};
