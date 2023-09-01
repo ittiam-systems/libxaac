@@ -445,11 +445,21 @@ IA_ERRORCODE ixheaacd_mps_frame_parsing(ia_mps_dec_state_struct *self,
     bits_param_slot = 6;
 
   if (bs_frame_type) {
+    WORD32 prev_param_slot = -1;
     for (i = 0; i < self->num_parameter_sets; i++) {
       self->param_slots[i] = ixheaacd_read_bits_buf(bitstream, bits_param_slot);
+
+      if (prev_param_slot >= self->param_slots[i] || self->param_slots[i] >= self->time_slots) {
+        return IA_FATAL_ERROR;
+      }
+      prev_param_slot = self->param_slots[i];
     }
   } else {
-    self->param_slots[0] = self->time_slots - 1;
+    for (i = 0; i < self->num_parameter_sets; i++) {
+      self->param_slots[i] = (((self->time_slots * (i + 1)) + self->num_parameter_sets - 1) /
+                              self->num_parameter_sets) -
+                             1;
+    }
   }
 
   if (!usac_independency_flag) {
