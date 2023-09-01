@@ -356,6 +356,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   pWORD8 pb_inp_buf = NULL;
   WORD32 input_size = 0;
+  WORD32 num_proc_iterations = 0;
 
   /* ******************************************************************/
   /* The API config structure                                         */
@@ -405,6 +406,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       memset(pb_inp_buf, fuzzed_data.ConsumeIntegral<WORD8>(), input_size);
     }
     ixheaace_process(pv_ia_process_api_obj, (pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
+    num_proc_iterations++;
+
+    /* Stop processing after 500 frames */
+    if (num_proc_iterations > 500)
+      break;
   }
 
   ixheaace_delete((pVOID)pstr_out_cfg);
