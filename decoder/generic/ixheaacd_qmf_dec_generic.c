@@ -597,7 +597,7 @@ VOID ixheaacd_cplx_anal_qmffilt(const WORD16 *time_sample_buf,
   WORD32 i, k;
   WORD32 num_time_slots = qmf_bank->num_time_slots;
 
-  WORD32 analysis_buffer[4 * NO_ANALYSIS_CHANNELS];
+  WORD32 analysis_buffer[4 * NO_ANALYSIS_CHANNELS] = { 0 };
   WORD16 *filter_states = qmf_bank->core_samples_buffer;
 
   WORD16 *fp1, *fp2, *tmp;
