@@ -157,18 +157,18 @@ UWORD32 iusace_rounded_sqrt(UWORD32 pos_num) {
   return value;
 }
 
-static VOID iusace_noise_shaping(FLOAT32 *rr, WORD32 lg, FLOAT32 *gain1, FLOAT32 *gain2) {
+static VOID iusace_noise_shaping(FLOAT32 *rr, WORD32 lg, WORD32 M, FLOAT32 *gain1,
+                                 FLOAT32 *gain2) {
   WORD32 i, k;
   FLOAT32 r, r_prev, g1, g2, a = 0, b = 0;
 
-  k = lg / FDNS_RESOLUTION;
+  k = lg/M;
 
   r_prev = 0;
   for (i = 0; i < lg; i++) {
     if ((i % k) == 0) {
       g1 = gain1[i / k];
       g2 = gain2[i / k];
-
       a = 2.0f * g1 * g2 / (g1 + g2);
       b = (g2 - g1) / (g1 + g2);
     }
@@ -182,11 +182,11 @@ static VOID iusace_noise_shaping(FLOAT32 *rr, WORD32 lg, FLOAT32 *gain1, FLOAT32
   return;
 }
 
-static VOID iusace_pre_shaping(FLOAT32 *rr, WORD32 lg, FLOAT32 *gain1, FLOAT32 *gain2) {
+static VOID iusace_pre_shaping(FLOAT32 *rr, WORD32 lg, WORD32 M, FLOAT32 *gain1, FLOAT32 *gain2) {
   WORD32 i, k;
   FLOAT32 r, r_prev, g1, g2, a = 0, b = 0;
 
-  k = lg / FDNS_RESOLUTION;
+  k = lg / M;
 
   r_prev = 0;
   for (i = 0; i < lg; i++) {
@@ -439,7 +439,7 @@ VOID iusace_tcx_fac_encode(ia_usac_data_struct *usac_data, FLOAT32 *lpc_coeffs,
   iusace_lpc_mdct(lp_flt_coeffs, gain2, ((FDNS_RESOLUTION * len_subfrm) / LEN_FRAME) << 1,
                   pstr_scratch);
 
-  iusace_pre_shaping(x, lg, gain1, gain2);
+  iusace_pre_shaping(x, lg, ((FDNS_RESOLUTION * len_subfrm) / LEN_FRAME), gain1, gain2);
 
   for (i = 0; i < lg; i++) {
     x_tmp[i] = x[i];
@@ -584,7 +584,7 @@ VOID iusace_tcx_fac_encode(ia_usac_data_struct *usac_data, FLOAT32 *lpc_coeffs,
 
   params[0] = index;
 
-  iusace_noise_shaping(x, lg, gain1, gain2);
+  iusace_noise_shaping(x, lg, ((FDNS_RESOLUTION * len_subfrm) / LEN_FRAME), gain1, gain2);
 
   iusace_tcx_imdct(x, xn_buf, (2 * fac_length), frame_len - (2 * fac_length), (2 * fac_length),
                    pstr_scratch);
