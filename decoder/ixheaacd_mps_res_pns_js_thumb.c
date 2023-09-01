@@ -99,7 +99,7 @@ VOID ixheaacd_res_ctns_apply(ia_mps_dec_residual_channel_info_struct *p_aac_deco
     for (index = 0; index < ind_len; index++) {
       ia_mps_dec_residual_filter_struct *filter = &p_tns_data->filter[window][index];
 
-      if (filter->order <= 0) continue;
+      if (filter->order <= 0 || filter->order > MAX_ORDER_LONG) continue;
 
       ixheaacd_res_tns_decode_coeffs_32x16(filter, (WORD16 *)coeff_parc, aac_tables_ptr);
 
