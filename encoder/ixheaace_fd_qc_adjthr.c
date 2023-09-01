@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <float.h>
 #include "iusace_type_def.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -1606,7 +1607,7 @@ VOID iusace_estimate_scfs_chan(ia_psy_mod_out_data_struct *pstr_psy_out,
       min_sf_max_quant[i] = MIN_SHRT_VAL;
 
       if ((max_spec > 0.0) && (energy > thresh) && (p_sfb_form_factor[i] != MIN_FLT_VAL)) {
-        energy_part = (FLOAT32)log10(p_sfb_form_factor[i]);
+        energy_part = (FLOAT32)log10(p_sfb_form_factor[i] + FLT_EPSILON);
 
         thr_part = (FLOAT32)log10(6.75 * thresh + MIN_FLT_VAL);
         scf_float = 8.8585f * (thr_part - energy_part);
