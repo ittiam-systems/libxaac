@@ -542,7 +542,7 @@ static WORD32 ixheaacd_decode_icc_diff_code(ia_bit_buf_struct *it_bit_buff) {
   return value;
 }
 
-static VOID ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_state) {
+static IA_ERRORCODE ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 ich, ch;
   WORD32 rfpsf;
   WORD32 ps;
@@ -565,6 +565,7 @@ static VOID ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_sta
 
   WORD32 *p_res_mdct = pstr_mps_state->array_struct->res_mdct;
   ia_bit_buf_struct *mps_bit_buf = pstr_mps_state->ptr_mps_bit_buff;
+  WORD16 error_code = IA_NO_ERROR;
 
   for (ich = 0; ich < loop_counter; ich++) {
     ch = ich;
@@ -585,8 +586,15 @@ static VOID ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_sta
       }
       p_mdct_res = p_res_mdct;
       for (rfpsf = 0; rfpsf < residual_frames_per_spatial_frame; rfpsf++) {
-        ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
-                              aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+        error_code =
+            ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
+                                  aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+        if (error_code) {
+          if (pstr_mps_state->ec_flag) {
+            pstr_mps_state->frame_ok = 0;
+          } else
+            return error_code;
+        }
         if (1 == pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
           ixheaacd_res_ctns_apply(
               pstr_mps_state->p_aac_decoder_channel_info[0],
@@ -602,8 +610,15 @@ static VOID ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_sta
         if ((pstr_mps_state->p_aac_decoder_channel_info[0]->ics_info.window_sequence ==
              EIGHT_SHORT_SEQUENCE) &&
             ((upd_qmf == UPD_QMF_18) || (upd_qmf == UPD_QMF_24) || (upd_qmf == UPD_QMF_30))) {
-          ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
-                                aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+          error_code =
+              ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
+                                    aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+          if (error_code) {
+            if (pstr_mps_state->ec_flag) {
+              pstr_mps_state->frame_ok = 0;
+            } else
+              return error_code;
+          }
           if (1 == pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
             ixheaacd_res_ctns_apply(
                 pstr_mps_state->p_aac_decoder_channel_info[0],
@@ -619,6 +634,7 @@ static VOID ixheaacd_parse_residual_data(ia_heaac_mps_state_struct *pstr_mps_sta
 
     p_res_mdct += RFX2XMDCTCOEF;
   }
+  return IA_NO_ERROR;
 }
 
 static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
@@ -712,7 +728,13 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
 
       switch (sac_ext_type) {
         case EXT_TYPE_0:
-          ixheaacd_parse_residual_data(pstr_mps_state);
+          error_code = ixheaacd_parse_residual_data(pstr_mps_state);
+          if (error_code) {
+            if (pstr_mps_state->ec_flag) {
+              pstr_mps_state->frame_ok = 0;
+            } else
+              return error_code;
+          }
           break;
 
         case EXT_TYPE_1:
@@ -746,8 +768,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
 
             if (channel_grouping[gr] == 1) {
               for (fr = 0; fr < arbdmx_frames_per_spatial_frame; fr++) {
-                ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
-                                      aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                error_code =
+                    ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
+                                          1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                if (error_code) {
+                  if (pstr_mps_state->ec_flag) {
+                    pstr_mps_state->frame_ok = 0;
+                  } else
+                    return error_code;
+                }
                 if (1 == pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
                   ixheaacd_res_ctns_apply(
                       pstr_mps_state->p_aac_decoder_channel_info[0],
@@ -765,8 +794,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
                      EIGHT_SHORT_SEQUENCE) &&
                     ((arbdmx_upd_qmf == UPD_QMF_18) || (arbdmx_upd_qmf == UPD_QMF_24) ||
                      (arbdmx_upd_qmf == UPD_QMF_30))) {
-                  ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
-                                        1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                  error_code = ixheaacd_res_read_ics(
+                      mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1, aac_tables_ptr,
+                      pstr_mps_state->tot_sf_bands_ls);
+                  if (error_code) {
+                    if (pstr_mps_state->ec_flag) {
+                      pstr_mps_state->frame_ok = 0;
+                    } else
+                      return error_code;
+                  }
                   if (1 ==
                       pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
                     ixheaacd_res_ctns_apply(
@@ -796,8 +832,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
                   return IA_XHEAAC_MPS_DEC_EXE_FATAL_NONZERO_BIT;
                 }
 
-                ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
-                                      aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                error_code =
+                    ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
+                                          1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                if (error_code) {
+                  if (pstr_mps_state->ec_flag) {
+                    pstr_mps_state->frame_ok = 0;
+                  } else
+                    return error_code;
+                }
 
                 if (1 == pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
                   ixheaacd_res_ctns_apply(
@@ -813,8 +856,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
                       (pstr_mps_state->p_aac_decoder_channel_info[0]->p_spectral_coefficient[i]);
                 }
 
-                ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1,
-                                      aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                error_code =
+                    ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
+                                          1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                if (error_code) {
+                  if (pstr_mps_state->ec_flag) {
+                    pstr_mps_state->frame_ok = 0;
+                  } else
+                    return error_code;
+                }
 
                 if (1 == pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
                   ixheaacd_res_ctns_apply(
@@ -839,8 +889,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
                     return IA_XHEAAC_MPS_DEC_EXE_FATAL_NONZERO_BIT;
                   }
 
-                  ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
-                                        1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                  error_code = ixheaacd_res_read_ics(
+                      mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1, aac_tables_ptr,
+                      pstr_mps_state->tot_sf_bands_ls);
+                  if (error_code) {
+                    if (pstr_mps_state->ec_flag) {
+                      pstr_mps_state->frame_ok = 0;
+                    } else
+                      return error_code;
+                  }
 
                   if (1 ==
                       pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
@@ -855,8 +912,15 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
                                          ->p_spectral_coefficient[i]);
                   }
 
-                  ixheaacd_res_read_ics(mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info,
-                                        1, aac_tables_ptr, pstr_mps_state->tot_sf_bands_ls);
+                  error_code = ixheaacd_res_read_ics(
+                      mps_bit_buf, pstr_mps_state->p_aac_decoder_channel_info, 1, aac_tables_ptr,
+                      pstr_mps_state->tot_sf_bands_ls);
+                  if (error_code) {
+                    if (pstr_mps_state->ec_flag) {
+                      pstr_mps_state->frame_ok = 0;
+                    } else
+                      return error_code;
+                  }
 
                   if (1 ==
                       pstr_mps_state->p_aac_decoder_channel_info[0]->tns_data.tns_data_present)
@@ -1144,7 +1208,14 @@ IA_ERRORCODE ixheaacd_parse_frame(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 
   ixheaacd_byte_align(mps_bit_buf, &alignment_bits);
-  ixheaacd_parse_extension_frame(pstr_mps_state);
+  error_code = ixheaacd_parse_extension_frame(pstr_mps_state);
+  if (error_code) {
+    if (pstr_mps_state->ec_flag) {
+      pstr_mps_state->frame_ok = 0;
+    }
+    else
+      return error_code;
+  }
 
   for (i = 0; i < num_ott_boxes; i++) {
     for (ps = 0; ps < num_parameter_sets; ps++) {
