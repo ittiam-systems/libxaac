@@ -284,7 +284,7 @@ static WORD16 iaace_improve_scf(FLOAT32 *ptr_spec, FLOAT32 *ptr_exp_spec, WORD16
     FLOAT32 allowed_sfb_dist = MIN(sfb_dist * 1.25f, threshold);
     WORD32 count;
 
-    for (count = 1; count >= 0; count--) {
+    for (count = SCF_COUNT_LIMIT_AAC; count >= 0; count--) {
       scf++;
 
       sfb_dist = iaace_calc_sfb_dist(ptr_spec, ptr_exp_spec, ptr_quant_spec_temp, sfb_width, scf);
@@ -683,7 +683,8 @@ VOID iaace_estimate_scfs_chan(
         scf_int = (WORD16)floor(scf_float);
         min_sf_max_quant[i] = (WORD16)floor(C1_SF + C2_SF * log(max_spec));
         scf_int = MAX(scf_int, min_sf_max_quant[i]);
-
+        scf_int = MAX(scf_int, MIN_GAIN_INDEX_AAC);
+        scf_int = MIN(scf_int, (MAX_GAIN_INDEX_AAC - SCF_COUNT_LIMIT_AAC));
         for (j = 0; j < pstr_psy_out_chan->sfb_offsets[i + 1] - pstr_psy_out_chan->sfb_offsets[i];
              j++) {
           ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(

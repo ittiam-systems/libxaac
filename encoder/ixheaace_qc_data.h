@@ -83,6 +83,10 @@ typedef struct {
 
 #define TRANSPORT_BITS (208)
 
+#define MAX_GAIN_INDEX_AAC (128)
+#define MIN_GAIN_INDEX_AAC (-128)
+#define SCF_COUNT_LIMIT_AAC (1)
+
 typedef struct {
   WORD16 *quant_spec;
   UWORD16 *max_val_in_sfb;
