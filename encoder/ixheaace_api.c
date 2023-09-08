@@ -1917,7 +1917,7 @@ static IA_ERRORCODE ia_usac_enc_init(ixheaace_api_struct *pstr_api_struct, WORD3
 
   error = iusace_enc_init(pstr_usac_config, &pstr_api_struct->pstr_state->audio_specific_config,
                           &pstr_api_struct->pstr_state->str_usac_enc_data);
-  if (error) {
+  if (error & IA_FATAL_ERROR) {
     return error;
   }
 
@@ -3515,10 +3515,11 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
     if (error) {
       return error;
     }
+
     pstr_output_config->input_size =
         frame_length * channels * (pstr_api_struct->config[0].usac_config.ui_pcm_wd_sz >> 3);
 
-    if (pstr_input_config->use_drc_element) {
+    if (pstr_api_struct->config[0].usac_config.use_drc_element) {
       ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)(pstr_input_config->pv_drc_cfg);
       memcpy(pstr_drc_cfg, &pstr_api_struct->config[0].usac_config.str_drc_cfg,
              sizeof(ia_drc_input_config));
@@ -3548,6 +3549,11 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
     pstr_output_config->header_samp_freq =
         pstr_api_struct->config[0].usac_config.native_sample_rate;
     pstr_output_config->audio_profile = AUDIO_PROFILE_USAC_L2;
+    if (pstr_input_config->use_drc_element !=
+        pstr_api_struct->config[0].usac_config.use_drc_element) {
+      error = IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS;
+    }
+    pstr_input_config->use_drc_element = pstr_api_struct->config[0].usac_config.use_drc_element;
   }
 
   pstr_api_struct->pstr_state->ui_init_done = 1;
@@ -3563,7 +3569,7 @@ IA_ERRORCODE ixheaace_create(pVOID pv_input, pVOID pv_output) {
   if (!err_code) {
     err_code = ixheaace_init(pstr_out_cfg->pv_ia_process_api_obj, pv_input, pv_output);
   }
-  if (err_code) {
+  if (err_code & IA_FATAL_ERROR) {
     IXHEAACE_MEM_FREE(pv_output);
   }
   return err_code;

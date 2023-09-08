@@ -274,10 +274,9 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
       &pstr_inp_config->str_enc_loudness_info_set, pstr_inp_config->str_enc_params.frame_size,
       pstr_inp_config->str_enc_params.sample_rate, pstr_inp_config->str_enc_params.delay_mode,
       pstr_inp_config->str_enc_params.domain);
-  if (err_code & IA_FATAL_ERROR) {
-    return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
+  if (err_code) {
+    return err_code;
   }
-
   pstr_drc_state_local->str_enc_params = pstr_inp_config->str_enc_params;
   pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
   pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;

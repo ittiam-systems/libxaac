@@ -99,6 +99,8 @@ typedef enum {
   /*****************************************************************************/
   /* Non Fatal Errors */
 
+  //DRC
+  IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS = 0x00001300,
   /* Fatal Errors */
 
   // AAC Profiles

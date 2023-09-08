@@ -82,6 +82,9 @@ pWORD8 ppb_ia_enhaacplus_enc_drc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {NULL};
 
+pWORD8 ppb_ia_enhaacplus_enc_drc_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Invalid DRC gain points" };
+
 /* Fatal Errors */
 
 pWORD8 ppb_ia_enhaacplus_enc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
@@ -260,6 +263,8 @@ VOID ia_enhaacplus_enc_error_handler_init() {
     ppb_ia_enhaacplus_enc_aac_exe_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][2] =
     ppb_ia_enhaacplus_enc_usac_exe_non_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][2][3] =
+    ppb_ia_enhaacplus_enc_drc_init_non_fatal;
 }
 
 IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_context,

@@ -18,6 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 #include <math.h>
+#include <float.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -392,29 +393,58 @@ IA_ERRORCODE impd_drc_stft_drc_gain_calc_init(ia_drc_gain_enc_struct *pstr_drc_g
   }
 
   for (i = 4; i < pstr_drc_stft_gain_handle->nb_segments; i += 2) {
+    FLOAT64 denominator;
+    FLOAT64 numerator;
+
+    denominator = pstr_drc_stft_gain_handle->str_segment[i - 2].x -
+                  pstr_drc_stft_gain_handle->str_segment[i - 4].x;
+    numerator = pstr_drc_stft_gain_handle->str_segment[i - 2].y -
+                pstr_drc_stft_gain_handle->str_segment[i - 4].y;
+    len = hypot(denominator , numerator);
+    if (len == 0) {
+      return IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS;
+    }
+    if (fabs(denominator) < FLT_EPSILON) {
+      if (denominator < 0)
+        denominator = -FLT_EPSILON;
+      else
+        denominator = FLT_EPSILON;
+    }
     pstr_drc_stft_gain_handle->str_segment[i - 4].a = 0;
-    pstr_drc_stft_gain_handle->str_segment[i - 4].b =
-        (pstr_drc_stft_gain_handle->str_segment[i - 2].y -
-         pstr_drc_stft_gain_handle->str_segment[i - 4].y) /
-        (pstr_drc_stft_gain_handle->str_segment[i - 2].x -
-         pstr_drc_stft_gain_handle->str_segment[i - 4].x);
+    pstr_drc_stft_gain_handle->str_segment[i - 4].b = numerator / denominator;
 
+    denominator = pstr_drc_stft_gain_handle->str_segment[i].x -
+                  pstr_drc_stft_gain_handle->str_segment[i - 2].x;
+    numerator = pstr_drc_stft_gain_handle->str_segment[i].y -
+                pstr_drc_stft_gain_handle->str_segment[i - 2].y;
+    len = hypot(denominator, numerator);
+    if (len == 0) {
+      return IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS;
+    }
+    if (fabs(denominator) < FLT_EPSILON) {
+      if (denominator < 0)
+        denominator = -FLT_EPSILON;
+      else
+        denominator = FLT_EPSILON;
+    }
     pstr_drc_stft_gain_handle->str_segment[i - 2].a = 0;
-    pstr_drc_stft_gain_handle->str_segment[i - 2].b =
-        (pstr_drc_stft_gain_handle->str_segment[i].y -
-         pstr_drc_stft_gain_handle->str_segment[i - 2].y) /
-        (pstr_drc_stft_gain_handle->str_segment[i].x -
-         pstr_drc_stft_gain_handle->str_segment[i - 2].x);
+    pstr_drc_stft_gain_handle->str_segment[i - 2].b = numerator / denominator;
 
-    theta = atan2(pstr_drc_stft_gain_handle->str_segment[i - 2].y -
-                      pstr_drc_stft_gain_handle->str_segment[i - 4].y,
-                  pstr_drc_stft_gain_handle->str_segment[i - 2].x -
-                      pstr_drc_stft_gain_handle->str_segment[i - 4].x);
-    len = hypot(pstr_drc_stft_gain_handle->str_segment[i - 2].x -
-                    pstr_drc_stft_gain_handle->str_segment[i - 4].x,
-                pstr_drc_stft_gain_handle->str_segment[i - 2].y -
-                    pstr_drc_stft_gain_handle->str_segment[i - 4].y);
-    r = MIN(width_e / (2.0f * cos(theta)), len);
+
+    denominator = pstr_drc_stft_gain_handle->str_segment[i - 2].x -
+                  pstr_drc_stft_gain_handle->str_segment[i - 4].x;
+    numerator = pstr_drc_stft_gain_handle->str_segment[i - 2].y -
+                pstr_drc_stft_gain_handle->str_segment[i - 4].y;
+    if (fabs(denominator) < FLT_EPSILON) {
+      if (denominator < 0)
+        denominator = -FLT_EPSILON;
+      else
+        denominator = FLT_EPSILON;
+    }
+    theta = atan2(numerator, denominator);
+    len = hypot(denominator, numerator);
+    r = MIN(width_e / (2.0f * cos(theta)), len / 2);
+
     pstr_drc_stft_gain_handle->str_segment[i - 3].x =
         pstr_drc_stft_gain_handle->str_segment[i - 2].x - r * cos(theta);
     pstr_drc_stft_gain_handle->str_segment[i - 3].y =
@@ -428,6 +458,7 @@ IA_ERRORCODE impd_drc_stft_drc_gain_calc_init(ia_drc_gain_enc_struct *pstr_drc_g
                     pstr_drc_stft_gain_handle->str_segment[i - 2].x,
                 pstr_drc_stft_gain_handle->str_segment[i].y -
                     pstr_drc_stft_gain_handle->str_segment[i - 2].y);
+
     r = MIN(width_e / (2.0f * cos(theta)), len / 2);
     x = pstr_drc_stft_gain_handle->str_segment[i - 2].x + r * cos(theta);
     y = pstr_drc_stft_gain_handle->str_segment[i - 2].y + r * sin(theta);
