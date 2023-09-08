@@ -65,7 +65,8 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
     WORD32 *num_out_bytes, ixheaace_aac_tables *pstr_aac_tabs, VOID *ptr_bit_stream_handle,
     VOID *ptr_bit_stream, FLAG flag_last_element, WORD32 *write_program_config_element,
     WORD32 i_num_coup_channels, WORD32 i_channels_mask, WORD32 ele_idx, WORD32 *total_fill_bits,
-    WORD32 total_channels, WORD32 aot, WORD32 adts_flag, WORD32 num_bs_elements) {
+    WORD32 total_channels, WORD32 aot, WORD32 adts_flag, WORD32 num_bs_elements,
+    WORD32 *is_quant_spec_zero) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   iexheaac_encoder_str *pstr_aac_encoder = pstr_aac_enc[ele_idx];
   ixheaace_element_info *pstr_element_info = &pstr_aac_encoder->element_info;
@@ -173,7 +174,7 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
       pstr_aac_encoder->qc_out.qc_channel[pstr_element_info->channel_index[0]],
       &pstr_aac_encoder->qc_out.qc_element, MIN(anc_data_bytes_left, anc_data_bytes),
       pstr_aac_tabs, adts_flag, aot, stat_bits_flag, flag_last_element, frame_len_long,
-      pstr_aac_encoder->pstr_aac_scratch->shared_buffer5);
+      pstr_aac_encoder->pstr_aac_scratch->shared_buffer5, is_quant_spec_zero);
 
   if (err_code != IA_NO_ERROR) {
     return err_code;

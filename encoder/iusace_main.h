@@ -111,7 +111,7 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
                                   WORD32 usac_independancy_flag, WORD32 num_chans,
                                   ia_usac_data_struct *ptr_usac_data,
                                   ia_usac_encoder_config_struct *ptr_usac_config, WORD32 chn,
-                                  WORD32 ele_id);
+                                  WORD32 ele_id, WORD32 *is_quant_spec_zero);
 
 IA_ERRORCODE iusace_grouping(ia_sfb_params_struct *pstr_sfb_prms, WORD32 num_chans,
                              ia_usac_data_struct *ptr_usac_data,

@@ -444,7 +444,7 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
                                   WORD32 usac_independancy_flag, WORD32 num_chans,
                                   ia_usac_data_struct *ptr_usac_data,
                                   ia_usac_encoder_config_struct *ptr_usac_config, WORD32 chn,
-                                  WORD32 ele_id) {
+                                  WORD32 ele_id, WORD32 *is_quant_spec_zero) {
   IA_ERRORCODE err_code;
   WORD32 i = 0, sfb;
   WORD32 j = 0;
@@ -605,7 +605,10 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
       }
       if (quant_spec_is_zero == 1) {
         constraints_fulfilled = 1;
+        /*Bit consuption is exceding bit reserviour, there is no scope left for bit consumption
+          reduction, as spectrum is zero. Hence breaking the quantization loop. */
         if (iterations > 0) {
+          *is_quant_spec_zero = 1;
           max_bits = max_ch_dyn_bits[idx];
         }
       }

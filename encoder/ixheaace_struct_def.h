@@ -104,6 +104,7 @@ typedef struct ixheaace_state_struct {
   ia_bit_buf_struct str_bit_buf;
   ixheaace_mps_212_memory_struct *mps_pers_mem;
   ixheaace_mps_515_memory_struct *mps_515_pers_mem;
+  WORD32 is_quant_spec_zero;
 } ixheaace_state_struct;
 
 typedef struct ixheaace_api_struct {

@@ -37,7 +37,8 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
     ixheaace_qc_out_channel pstr_qc_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
     ixheaace_qc_out_element *pstr_qc_out_element, WORD32 ancillary_data_bytes,
     ixheaace_aac_tables *pstr_aac_tables, WORD32 adts_flag, WORD32 aot, WORD32 stat_bits_flag,
-    WORD32 flag_last_element, WORD32 frame_len_long, WORD8 *ptr_scratch);
+    WORD32 flag_last_element, WORD32 frame_len_long, WORD8 *ptr_scratch,
+    WORD32 *is_quant_spec_zero);
 
 VOID ia_enhaacplus_enc_update_bit_reservoir(ixheaace_qc_state *pstr_qc_kernel,
                                             ixheaace_qc_out *pstr_qc_out);

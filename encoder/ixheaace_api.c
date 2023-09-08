@@ -2698,7 +2698,7 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
         &(pstr_api_struct->pstr_state->bit_stream), flag_last_element,
         write_program_config_element, i_num_coup_channels, i_channels_mask, ele_idx,
         total_fill_bits, total_channels, aot, pstr_api_struct->config->adts_flag,
-        num_bs_elements);
+        num_bs_elements, &pstr_api_struct->pstr_state->is_quant_spec_zero);
     if (error != IA_NO_ERROR) {
       return error;
     }
@@ -3244,7 +3244,8 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
       ixheaace_usac_encode(pstr_api_struct->pstr_state->ptr_in_buf, pstr_config,
                            &pstr_api_struct->pstr_state->str_usac_enc_data,
                            &pstr_api_struct->pstr_state->audio_specific_config, pstr_it_bit_buff,
-                           pstr_sbr_encoder, pstr_api_struct->pstr_state->pp_drc_in_buf);
+                           pstr_sbr_encoder, pstr_api_struct->pstr_state->pp_drc_in_buf,
+                           &pstr_api_struct->pstr_state->is_quant_spec_zero);
   if (error) return error;
 
   padding_bits = 8 - (pstr_it_bit_buff->cnt_bits & 7);
@@ -3283,6 +3284,7 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
               write_off_set * sizeof(ptr_input_buffer[0]));
     }
   }
+
   return IA_NO_ERROR;
 }
 IA_ERRORCODE ixheaace_get_lib_id_strings(pVOID pv_output) {
@@ -3547,6 +3549,7 @@ IA_ERRORCODE ixheaace_init(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_out
         pstr_api_struct->config[0].usac_config.native_sample_rate;
     pstr_output_config->audio_profile = AUDIO_PROFILE_USAC_L2;
   }
+
   pstr_api_struct->pstr_state->ui_init_done = 1;
   pstr_output_config->i_out_bytes = pstr_api_struct->pstr_state->i_out_bytes;
 
@@ -3572,16 +3575,21 @@ IA_ERRORCODE ixheaace_process(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_
   (VOID) pv_input;
   ixheaace_api_struct *pstr_api_struct = (ixheaace_api_struct *)pstr_obj_ixheaace;
   ixheaace_output_config *pstr_output_config = (ixheaace_output_config *)pv_output;
-
+  pstr_api_struct->pstr_state->is_quant_spec_zero = 0;
   if (!pstr_api_struct->usac_en) {
     for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
       error = ia_enhaacplus_enc_execute(pstr_api_struct, ele_idx);
     }
+    if ((error == IA_NO_ERROR) && (pstr_api_struct->pstr_state->is_quant_spec_zero)) {
+      error = IA_EXHEAACE_EXE_NONFATAL_QUANTIZATION_SPECTRUM_ZERO;
+    }
   } else {
     error = iusace_process(pstr_api_struct);
+    if ((error == IA_NO_ERROR) && (pstr_api_struct->pstr_state->is_quant_spec_zero)) {
+      error = IA_EXHEAACE_EXE_NONFATAL_USAC_QUANTIZATION_SPECTRUM_ZERO;
+    }
   }
   pstr_output_config->i_out_bytes = pstr_api_struct->pstr_state->i_out_bytes;
-
   return error;
 }
 

@@ -934,7 +934,8 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
                                   ia_usac_data_struct *pstr_state,
                                   ixheaace_audio_specific_config_struct *pstr_asc,
                                   ia_bit_buf_struct *pstr_it_bit_buff,
-                                  ixheaace_pstr_sbr_enc ptr_env_encoder, FLOAT32 **pp_drc_inp) {
+                                  ixheaace_pstr_sbr_enc ptr_env_encoder, FLOAT32 **pp_drc_inp,
+                                  WORD32 *is_quant_spec_zero) {
   IA_ERRORCODE err = IA_NO_ERROR;
   WORD32 i_ch, i, k;
   ia_usac_data_struct *ptr_usac_data = pstr_state;
@@ -1287,7 +1288,7 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
             : ((ptr_usac_data->core_mode[ch_offset] == CORE_MODE_FD))) {
       err = iusace_fd_encode(pstr_sfb_prms, usac_independency_flg, ptr_usac_data, ptr_usac_config,
                              pstr_it_bit_buff, nr_core_coder_channels, ch_offset, elem_idx,
-                             &bits_written);
+                             &bits_written, is_quant_spec_zero);
 
       if (err) {
         return err;
