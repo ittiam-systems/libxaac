@@ -1174,7 +1174,7 @@ static WORD16 iusace_improve_scf(FLOAT32 *ptr_spec, FLOAT32 *ptr_exp_spec, WORD1
 
     count = 0;
 
-    while ((sfb_dist > (1.25 * threshold)) && (count++ < 3)) {
+    while ((sfb_dist > (1.25 * threshold)) && (count++ < SCF_COUNT_LIMIT_THREE)) {
       scf++;
 
       sfb_dist =
@@ -1192,7 +1192,8 @@ static WORD16 iusace_improve_scf(FLOAT32 *ptr_spec, FLOAT32 *ptr_exp_spec, WORD1
     scf = estimated_scf;
     sfb_dist = best_sfb_dist;
 
-    while ((sfb_dist > (1.25 * threshold)) && (count++ < 1) && (scf > min_scf)) {
+    while ((sfb_dist > (1.25 * threshold)) && (count++ < SCF_COUNT_LIMIT_ONE) &&
+      (scf > min_scf)) {
       scf--;
 
       sfb_dist =
@@ -1212,7 +1213,7 @@ static WORD16 iusace_improve_scf(FLOAT32 *ptr_spec, FLOAT32 *ptr_exp_spec, WORD1
     FLOAT32 allowed_sfb_dist = MIN(sfb_dist * 1.25f, threshold);
     WORD32 count;
 
-    for (count = 0; count < 3; count++) {
+    for (count = 0; count < SCF_COUNT_LIMIT_THREE; count++) {
       scf++;
 
       sfb_dist =
@@ -1614,7 +1615,8 @@ VOID iusace_estimate_scfs_chan(ia_psy_mod_out_data_struct *pstr_psy_out,
         scf_int = (WORD16)floor(scf_float);
         min_sf_max_quant[i] = (WORD16)ceil(C1_SF + C2_SF * log(max_spec));
         scf_int = MAX(scf_int, min_sf_max_quant[i]);
-
+        scf_int = MAX(scf_int, MIN_GAIN_INDEX);
+        scf_int = MIN(scf_int, (MAX_GAIN_INDEX - SCF_COUNT_LIMIT_THREE));
         for (j = 0; j < ptr_psy_out->sfb_offsets[i + 1] - ptr_psy_out->sfb_offsets[i]; j++) {
           ptr_exp_spec[ptr_psy_out->sfb_offsets[i] + j] =
               (FLOAT32)(ptr_psy_out->ptr_spec_coeffs[ptr_psy_out->sfb_offsets[i] + j]);
