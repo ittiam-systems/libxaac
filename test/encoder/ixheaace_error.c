@@ -115,9 +115,14 @@ pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 /* Class 2: Execution Errors
 *****************************************************************************/
 /* Non Fatal Errors */
+pWORD8 ppb_ia_enhaacplus_enc_aac_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Quantization zero spectrum detected"};
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Encoding Failed", (pWORD8) "Invalid MPS data bands"};
+
+pWORD8 ppb_ia_enhaacplus_enc_usac_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "Quantization zero spectrum detected"};
 
 pWORD8 ppb_ia_enhaacplus_enc_esbr_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid bandwidth index encountered",
@@ -251,6 +256,10 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_mps_exe_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][3][2] =
       ppb_ia_enhaacplus_enc_usac_exe_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][0] =
+    ppb_ia_enhaacplus_enc_aac_exe_non_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][2] =
+    ppb_ia_enhaacplus_enc_usac_exe_non_fatal;
 }
 
 IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_context,
