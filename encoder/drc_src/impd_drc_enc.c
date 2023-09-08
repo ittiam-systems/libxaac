@@ -192,7 +192,7 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
 
         for (l = 0; l < pstr_gain_set_params->band_count; l++) {
           err_code = impd_drc_stft_drc_gain_calc_init(pstr_gain_enc, 0, j, l);
-          if (err_code & IA_FATAL_ERROR) {
+          if (err_code) {
             return err_code;
           }
           pstr_gain_enc->str_drc_stft_gain_handle[0][j][l].ch_idx = ch_idx;

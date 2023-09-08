@@ -557,20 +557,25 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
 
     err_code = impd_drc_enc_init(&usac_data->str_drc_state, pstr_state->str_scratch.drc_scratch,
                                  &ptr_usac_config->str_drc_cfg);
+    if (err_code == IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS) {
+      ptr_usac_config->use_drc_element = 0;
+    }
     if (err_code & IA_FATAL_ERROR) {
       return err_code;
     }
 
-    ia_usac_enc_element_config_struct *pstr_usac_elem_config =
+    if (ptr_usac_config->use_drc_element) {
+      ia_usac_enc_element_config_struct *pstr_usac_elem_config =
         &(pstr_asc_usac_config->str_usac_element_config[pstr_asc_usac_config->num_elements]);
-    pstr_asc_usac_config->usac_element_type[pstr_asc_usac_config->num_elements] = ID_USAC_EXT;
-    pstr_usac_elem_config->usac_ext_ele_type = ID_EXT_ELE_UNI_DRC;
-    pstr_usac_elem_config->usac_ext_ele_dflt_len_present = 0;
-    pstr_usac_elem_config->usac_ext_ele_payload_present = 0;
-    pstr_usac_elem_config->drc_config_data = usac_data->str_drc_state.bit_buf_base_cfg;
-    pstr_usac_elem_config->usac_ext_ele_cfg_len =
+      pstr_asc_usac_config->usac_element_type[pstr_asc_usac_config->num_elements] = ID_USAC_EXT;
+      pstr_usac_elem_config->usac_ext_ele_type = ID_EXT_ELE_UNI_DRC;
+      pstr_usac_elem_config->usac_ext_ele_dflt_len_present = 0;
+      pstr_usac_elem_config->usac_ext_ele_payload_present = 0;
+      pstr_usac_elem_config->drc_config_data = usac_data->str_drc_state.bit_buf_base_cfg;
+      pstr_usac_elem_config->usac_ext_ele_cfg_len =
         (usac_data->str_drc_state.drc_config_data_size_bit + 7) >> 3;
-    pstr_asc_usac_config->num_elements++;
+      pstr_asc_usac_config->num_elements++;
+    }
   }
   if (ptr_usac_config->use_drc_element)  // For Loudness
   {
