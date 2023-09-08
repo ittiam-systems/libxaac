@@ -52,7 +52,7 @@ static IA_ERRORCODE ixheaace_spectral_change(FLOAT32 *ptr_energies[16], FLOAT32 
   FLOAT32 pos_wt = (0.5f - (FLOAT32)len1 / (FLOAT32)(len1 + len2));
   pos_wt = 1.0f - 4.0f * pos_wt * pos_wt;
 
-  if ((is_ld_sbr) && (total_energy == 0.0f)) {
+  if (total_energy < SBR_EPS) {
     *ptr_delta = 0.0f;
     return IA_NO_ERROR;
   }
@@ -72,8 +72,14 @@ static IA_ERRORCODE ixheaace_spectral_change(FLOAT32 *ptr_energies[16], FLOAT32 
     for (i = border; i < stop; i++) {
       energy_2[j] += ptr_energies[i][j];
     }
-    delta = (float)fabs(log(energy_2[j] / energy_1[j] * len_ratio));
-    delta_sum += (float)(sqrt((energy_1[j] + energy_2[j]) / total_energy) * delta);
+    if (energy_1[j] <= EPS) {
+      energy_1[j] = (FLOAT32)len1;
+    }
+    if (energy_2[j] <= EPS) {
+      energy_2[j] = (FLOAT32)len2;
+    }
+    delta = (FLOAT32)fabs(log((energy_2[j] / energy_1[j]) * len_ratio));
+    delta_sum += (FLOAT32)(sqrt((energy_1[j] + energy_2[j]) / total_energy) * delta);
   }
 
   *ptr_delta = delta_sum * pos_wt;
