@@ -684,6 +684,9 @@ static VOID ixheaacd_ducker_apply_71(
       if (ixheaacd_mps_comp(temp3, temp_1, &qtemp, qtemp1)) {
         temp_2 = ixheaacd_mps_div_32(temp3, temp_1, &qtemp2);
         qtemp2 = qtemp2 + qtemp - qtemp1;
+        if (temp_1 == 0) {
+          qtemp2 = qtemp;
+        }
         temp3 = (qtemp2) > 28 ? MAX_32 : 4 << qtemp2;
 
         if (temp_2 > temp3) {
