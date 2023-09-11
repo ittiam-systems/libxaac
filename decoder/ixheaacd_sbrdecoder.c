@@ -615,6 +615,7 @@ IA_ERRORCODE ixheaacd_applysbr(
         if (stereo) {
           frame_status = ixheaacd_sbr_read_cpe(ptr_header_data[0], ptr_frame_data, it_bit_buff,
                                                self->pstr_sbr_tables, audio_object_type);
+          if (usac_flag && (frame_status == 0)) return -1;
           if (frame_status < 0) return frame_status;
         } else {
           if (ps_enable) {
@@ -630,6 +631,7 @@ IA_ERRORCODE ixheaacd_applysbr(
             frame_status = ixheaacd_sbr_read_sce(
                 ptr_header_data[k], ptr_frame_data[k], self->pstr_ps_stereo_dec, it_bit_buff,
                 self->pstr_sbr_tables, audio_object_type, ec_flag);
+            if (usac_flag && (frame_status == 0)) return -1;
             if (frame_status < 0) return frame_status;
             if (ec_flag && self->pstr_ps_stereo_dec != NULL) {
               ixheaacd_copy_prev_ps_params(self->pstr_ps_stereo_dec, &self->str_ps_config_prev,
@@ -644,7 +646,7 @@ IA_ERRORCODE ixheaacd_applysbr(
         }
         ptr_header_data[k]->enh_sbr_ps =
             ((self->enh_sbr_ps) | (ptr_header_data[0]->channel_mode == PS_STEREO));
-        if (audio_object_type != AOT_ER_AAC_ELD) {
+        if ((audio_object_type != AOT_ER_AAC_ELD) && (audio_object_type != AOT_USAC)) {
           WORD32 total_bits_read;
           total_bits_read = ixheaacd_no_bits_read(it_bit_buff);
           if (total_bits_read > (ptr_bit_str_ele->size_payload << 3) ||
