@@ -392,6 +392,9 @@ static IA_ERRORCODE ixheaacd_fd_imdct_short(ia_usac_data_struct *usac_data,
   ixheaacd_normalize(p_in_ibuffer, max_shift - 1, ixheaacd_drc_offset->n_long);
   shiftp += max_shift - 1;
 
+  if ((shiftp - shift_olap) > 31) {
+    shiftp = 31 + shift_olap;
+  }
   err_code = ixheaacd_calc_window(&window_short, ixheaacd_drc_offset->n_short,
                                   window_select, usac_data->ec_flag);
   if (err_code == -1) return err_code;
