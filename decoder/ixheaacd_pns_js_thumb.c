@@ -101,6 +101,9 @@ VOID ixheaacd_gen_rand_vec(WORD32 scale, WORD shift, WORD32 *ptr_spec_coef,
 
   spec = ptr_spec_coef;
 
+  if (shift < -31) {
+    shift = -31;
+  }
   for (sfb = 0; sfb <= sfb_width; sfb++) {
     *spec = ixheaac_shr32_dir_sat_limit(ixheaac_mult32_shl_sat(*spec, scale),
                                          shift);
