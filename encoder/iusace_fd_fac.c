@@ -173,7 +173,7 @@ IA_ERRORCODE iusace_fd_fac(WORD32 *sfb_offsets, WORD32 sfb_active, FLOAT64 *orig
   FLOAT32 *zir_sig = NULL;
   FLOAT32 *lpc_coeffs_q = NULL;
   WORD32 index;
-  WORD32 low_pass_line;
+  WORD32 low_pass_line = 0;
   WORD32 fac_len;
   FLOAT64 *left_fac_time_data = pstr_scratch->p_left_fac_time_data;
   FLOAT32 *left_fac_timedata_flt = pstr_scratch->p_left_fac_timedata_flt;
