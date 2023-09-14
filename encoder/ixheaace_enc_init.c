@@ -296,11 +296,14 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_enc_open(iexheaac_encoder_str **ppstr_exheaac
       break;
   }
 
-  error = (config.num_in_channels < 1 || config.num_out_channels > IXHEAACE_MAX_CH_IN_BS_ELE ||
-           config.num_out_channels < 1 || config.num_in_channels < config.num_out_channels ||
-           (config.bit_rate != 0 && (config.bit_rate / config.num_out_channels < 8000 ||
-                                     config.bit_rate / config.num_out_channels > 576000)));
-
+  if ((config.num_in_channels < 1) || (config.num_out_channels > IXHEAACE_MAX_CH_IN_BS_ELE) ||
+    (config.num_out_channels < 1) || (config.num_in_channels < config.num_out_channels)) {
+    return IA_EXHEAACE_INIT_FATAL_INVALID_NUM_CHANNELS_IN_ELE;
+  }
+  if ((config.bit_rate != 0) && ((config.bit_rate / config.num_out_channels < 8000) ||
+    (config.bit_rate / config.num_out_channels > 576000))) {
+    error = IA_EXHEAACE_INIT_FATAL_BITRATE_NOT_SUPPORTED;
+  }
   if (error != IA_NO_ERROR) {
     return error;
   }

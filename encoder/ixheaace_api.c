@@ -453,6 +453,30 @@ static WORD32 ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
   }
 }
 
+static VOID ixheaace_set_default_channel_mask(WORD32 *ch_mask, WORD32 num_ch) {
+  switch (num_ch) {
+  case 1:
+    *ch_mask = CH_MASK_CENTER_FRONT;
+    break;
+  case 2:
+    *ch_mask = CH_MASK_LEFT_RIGHT_FRONT;
+    break;
+  case 3:
+    *ch_mask = (CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT);
+    break;
+  case 4:
+    *ch_mask = (CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_REAR_CENTER);
+    break;
+  case 5:
+    *ch_mask = (CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_LEFT_RIGHT_BACK);
+    break;
+  case 6:
+    *ch_mask =
+      (CH_MASK_CENTER_FRONT | CH_MASK_LEFT_RIGHT_FRONT | CH_MASK_LEFT_RIGHT_BACK | CH_MASK_LFE);
+    break;
+  }
+}
+
 static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
                                         ixheaace_input_config *pstr_input_config) {
   ia_usac_encoder_config_struct *pstr_usac_config = &pstr_api_struct->config[0].usac_config;
@@ -1003,7 +1027,11 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       pstr_api_struct->config[0].aac_config.bit_rate = pstr_input_config->i_bitrate;
       pstr_api_struct->config[0].use_parametric_stereo = 0;
     }
-    if (pstr_input_config->i_channels_mask != 0) {
+    if (pstr_input_config->i_channels_mask == 0) {
+      ixheaace_set_default_channel_mask(&pstr_input_config->i_channels_mask,
+                                        pstr_input_config->i_channels);
+    }
+    if (pstr_api_struct->config[0].aac_config.dual_mono != 1) {
       if (pstr_input_config->aot != AOT_AAC_ELD || (pstr_input_config->i_use_mps != 1)) {
         WORD32 num_bs_elements, chan_config[MAXIMUM_BS_ELE], element_type[MAXIMUM_BS_ELE],
             element_slot[MAXIMUM_BS_ELE], element_instance_tag[MAXIMUM_BS_ELE],
@@ -1044,7 +1072,7 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
           }
         }
       }
-    } else if (pstr_api_struct->config[0].aac_config.dual_mono) {
+    } else {
       WORD32 num_bs_elements;
       WORD32 bitrate[MAXIMUM_BS_ELE];
 
