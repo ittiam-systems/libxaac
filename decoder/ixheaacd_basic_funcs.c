@@ -39,9 +39,15 @@ VOID ixheaacd_fix_mant_exp_add(WORD16 op1_mant, WORD16 op1_exp, WORD16 op2_mant,
   WORD32 new_exp;
   new_exp = op1_exp - op2_exp;
   if (new_exp < 0) {
+    if (new_exp < -31) {
+      new_exp = -31;
+    }
     op1_mant = op1_mant >> (-new_exp);
     new_exp = op2_exp;
   } else {
+    if (new_exp > 31) {
+      new_exp = 31;
+    }
     op2_mant = op2_mant >> new_exp;
     new_exp = op1_exp;
   }
