@@ -108,6 +108,10 @@ static IA_ERRORCODE ixheaacd_parse_extension_config(
           config->bs_residual_present[i] = ixheaacd_read_bits_buf(it_bit_buff, 1);
           if (config->bs_residual_present[i]) {
             config->bs_residual_bands[i] = ixheaacd_read_bits_buf(it_bit_buff, 5);
+            if (config->bs_residual_bands[i] > MAX_PARAMETER_BANDS)
+            {
+              return IA_FATAL_ERROR;
+            }
           }
         }
         break;

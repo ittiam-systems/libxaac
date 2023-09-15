@@ -97,6 +97,10 @@ static IA_ERRORCODE ixheaacd_ld_spatial_extension_config(
             if (config->bs_residual_present[j]) {
               config->bs_residual_bands_ld_mps[j] =
                   ixheaacd_read_bits_buf(it_bit_buff, 5);
+              if (config->bs_residual_bands_ld_mps[j] > MAX_PARAMETER_BANDS)
+              {
+                return IA_FATAL_ERROR;
+              }
             }
           }
           break;
