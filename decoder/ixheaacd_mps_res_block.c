@@ -123,6 +123,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1(
             sign_ret_val = *h;
           }
           bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+          bit_pos = min(bit_pos, 31);
           value = sign_ret_val & (0x07FF);
         }
         out1 = (value & 0x3E0) >> 5;
@@ -303,6 +304,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word1_lb(
         sign_ret_val = *h;
       }
       bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+      bit_pos = min(bit_pos, 31);
       value = sign_ret_val & (0x07FF);
     }
 
@@ -479,6 +481,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4(
           sign_ret_val = *h;
         }
         bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+        bit_pos = min(bit_pos, 31);
         value = sign_ret_val & (0x07FF);
 
         if (sign) {
@@ -559,6 +562,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_4_lb(
       sign_ret_val = *h;
     }
     bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+    bit_pos = min(bit_pos, 31);
 
     value = sign_ret_val & (0x07FF);
 
@@ -729,6 +733,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_2(
           sign_ret_val = *h;
         }
         bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+        bit_pos = min(bit_pos, 31);
         value = sign_ret_val & (0x07FF);
 
         if (sign) {
@@ -802,6 +807,7 @@ static PLATFORM_INLINE WORD ixheaacd_res_c_block_decode_huff_word2_2_lb(
         sign_ret_val = *h;
       }
       bit_pos += ((sign_ret_val & 0x7fff) >> 11);
+      bit_pos = min(bit_pos, 31);
 
       value = sign_ret_val & (0x07FF);
     }
