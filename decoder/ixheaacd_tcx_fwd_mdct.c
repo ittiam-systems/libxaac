@@ -165,7 +165,7 @@ VOID ixheaacd_lpc_to_td(FLOAT32 *coeff, WORD32 order, FLOAT32 *gains, WORD32 lg)
 
   for (i = 0; i < size_n / 2; i++) {
     gains[i] =
-        (FLOAT32)(1.0f / sqrt(data_r[i] * data_r[i] + data_i[i] * data_i[i]));
+        (FLOAT32)(1.0f / (sqrt(data_r[i] * data_r[i] + data_i[i] * data_i[i]) + FLT_EPSILON));
   }
 
   return;
