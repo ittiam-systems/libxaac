@@ -644,18 +644,29 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
           ui = freq_band_table[p_frame_info->freq_res[i]][j + 1];
           ui2 = frame_data->pstr_sbr_header->pstr_freq_band_data
                     ->freq_band_tbl_noise[o + 1];
-          for (flag = 0, k = li; k < ui; k++) {
-            for (nrg = 0, l = rate * p_frame_info->border_vec[i];
-                 l < rate * p_frame_info->border_vec[i + 1]; l++) {
-              nrg += (input_real[l][k] * input_real[l][k]) +
-                     (input_imag[l][k] * input_imag[l][k]);
+
+          if (p_frame_info->border_vec[i] == p_frame_info->border_vec[i + 1]) {
+            for (flag = 0, k = li; k < ui; k++) {
+              flag = (harmonics[c] &&
+                (i >= trans_env || (*harm_flag_prev)[c + sub_band_start]))
+                ? 1
+                : flag;
+              nrg_est[c++] = 0;
             }
-            flag = (harmonics[c] &&
-                    (i >= trans_env || (*harm_flag_prev)[c + sub_band_start]))
-                       ? 1
-                       : flag;
-            nrg_est[c++] = nrg / (rate * p_frame_info->border_vec[i + 1] -
-                                  rate * p_frame_info->border_vec[i]);
+          } else {
+            for (flag = 0, k = li; k < ui; k++) {
+              for (nrg = 0, l = rate * p_frame_info->border_vec[i];
+                l < rate * p_frame_info->border_vec[i + 1]; l++) {
+                nrg += (input_real[l][k] * input_real[l][k]) +
+                  (input_imag[l][k] * input_imag[l][k]);
+              }
+              flag = (harmonics[c] &&
+                (i >= trans_env || (*harm_flag_prev)[c + sub_band_start]))
+                ? 1
+                : flag;
+              nrg_est[c++] = nrg / (rate * p_frame_info->border_vec[i + 1] -
+                rate * p_frame_info->border_vec[i]);
+            }
           }
           if (!int_mode) {
             for (nrg = 0, k = c - (ui - li); k < c; k++) {
