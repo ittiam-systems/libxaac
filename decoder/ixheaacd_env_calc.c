@@ -462,10 +462,17 @@ VOID ixheaacd_conv_ergtoamplitude_dec(WORD32 bands, WORD16 noise_e,
     shift = (noise_e - noise_level_mant[2 * k + 1]);
 
     shift = (shift - 4);
-    if (shift > 0)
+    if (shift > 0) {
+      if (shift > 31) {
+        shift = 31;
+      }
       noise_level_mant[2 * k] = (noise_level_mant[2 * k] >> shift);
-    else
+    } else {
+      if (shift < -31) {
+        shift = -31;
+      }
       noise_level_mant[2 * k] = (noise_level_mant[2 * k] << -shift);
+    }
   }
 }
 

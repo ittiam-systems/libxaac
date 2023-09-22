@@ -1281,15 +1281,16 @@ WORD32 ixheaacd_sbr_dec(
 
   {
     WORD32 num = op_delay;
-    WORD32 *p_loc_qmf_real = ptr_sbr_dec->ptr_sbr_overlap_buf;
-    WORD32 *p_loc_qmf_real_1 = &p_arr_qmf_buf_real[no_bins][0];
+    if (audio_object_type != AOT_ER_AAC_ELD) {
+      WORD32 *p_loc_qmf_real = ptr_sbr_dec->ptr_sbr_overlap_buf;
+      WORD32 *p_loc_qmf_real_1 = &p_arr_qmf_buf_real[no_bins][0];
+      memcpy(p_loc_qmf_real, p_loc_qmf_real_1,
+             sizeof(WORD32) * NO_SYNTHESIS_CHANNELS * num);
+    }
 
     if (!low_pow_flag) {
       num = num << 1;
     }
-
-    memcpy(p_loc_qmf_real, p_loc_qmf_real_1,
-           sizeof(WORD32) * NO_SYNTHESIS_CHANNELS * num);
 
     if (ldmps_present == 1) {
       memmove(&ptr_sbr_dec->mps_qmf_buf_real[0][0],
