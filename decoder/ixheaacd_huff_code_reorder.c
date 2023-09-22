@@ -675,7 +675,7 @@ static PLATFORM_INLINE UWORD16 *ixheaacd_huff_dec_pair_hcr_pcw(
       ixheaacd_aac_read_byte_corr(&ptr_read_next, bit_pos, read_word,
                                   it_bit_buff->ptr_bit_buf_end);
     }
-
+    *bit_pos = max(0, *bit_pos);
     read_word1 = *read_word << *bit_pos;
     ixheaacd_huffman_decode(read_word1, &index, &length, code_book_tbl,
                             idx_table);
@@ -814,7 +814,7 @@ static PLATFORM_INLINE UWORD16 *ixheaacd_huff_dec_quad_hcr_pcw(
       ixheaacd_aac_read_byte_corr(&ptr_read_next, bit_pos, read_word,
                                   it_bit_buff->ptr_bit_buf_end);
     }
-
+    *bit_pos = max(0, *bit_pos);
     read_word1 = *read_word << *bit_pos;
     ixheaacd_huffman_decode(read_word1, &index, &length, code_book_tbl,
                             idx_table);
@@ -944,7 +944,7 @@ static UWORD16 *ixheaacd_huff_dec_word_hcr_pcw(
       ixheaacd_aac_read_byte_corr1(&ptr_read_next, bit_pos, read_word,
                                    it_bit_buff->ptr_bit_buf_end);
     }
-
+    *bit_pos = max(0, *bit_pos);
     read_word1 = *read_word << *bit_pos;
     ixheaacd_huff_sfb_table(read_word1, &index, &length, code_book_tbl,
                             idx_table);
