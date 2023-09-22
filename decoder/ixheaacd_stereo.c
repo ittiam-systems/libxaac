@@ -202,8 +202,14 @@ VOID ixheaacd_intensity_stereo_process(
             shift_val = shift_val + scf_exp;
 
             if (shift_val < 0) {
+              if (shift_val < -31) {
+                shift_val = -31;
+              }
               temp = ixheaac_shl32_sat(temp, -shift_val);
             } else {
+              if (shift_val > 31) {
+                shift_val = 31;
+              }
               temp = ixheaac_shr32(temp, shift_val);
             }
             *r_spec++ = temp;
