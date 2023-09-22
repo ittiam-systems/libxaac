@@ -845,6 +845,7 @@ IA_ERRORCODE Codec::setXAACDRCInfo(int32_t drcCut, int32_t drcBoost,
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   int status;
+  int num_proc_iterations = 0;
   if (size < 1) return 0;
   Codec* codec = new Codec();
   bool isADTS = false;
@@ -863,6 +864,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       data += bytesConsumed;
       status = codec->decodeXAACStream((uint8_t*)data, size, &bytesConsumed,
                                        &numOutBytes);
+      num_proc_iterations++;
+      /* Stop processing after 500 frames */
+      if (num_proc_iterations > 500)
+        break;
+
       /* If decoder doesn't consume any bytes, advance by 4 bytes */
       if (0 == bytesConsumed) bytesConsumed = 4;
     }
