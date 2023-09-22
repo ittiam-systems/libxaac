@@ -521,6 +521,9 @@ static IA_ERRORCODE ixheaacd_fd_imdct_long(ia_usac_data_struct *usac_data,
       ixheaacd_calc_max_spectralline(p_in_ibuffer, ixheaacd_drc_offset->n_long);
   ixheaacd_normalize(p_in_ibuffer, max_shift - 1, ixheaacd_drc_offset->n_long);
   shiftp += max_shift - 1;
+  if ((shiftp - shift_olap) > 31) {
+    shiftp = 31 + shift_olap;
+  }
 
   switch (window_sequence) {
     case ONLY_LONG_SEQUENCE:
@@ -556,10 +559,18 @@ static IA_ERRORCODE ixheaacd_fd_imdct_long(ia_usac_data_struct *usac_data,
   }
 
   for (i = 0; i < ixheaacd_drc_offset->n_long / 2; i++) {
-    p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 + i] =
+    if (shiftp > shift_olap) {
+      p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 + i] =
         ixheaac_negate32_sat(p_in_ibuffer[i]) >> (shiftp - shift_olap);
-    p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 - i - 1] =
+      p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 - i - 1] =
         ixheaac_negate32_sat(p_in_ibuffer[i]) >> (shiftp - shift_olap);
+    }
+    else {
+      p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 + i] =
+        ixheaac_negate32_sat(p_in_ibuffer[i]) >> (shift_olap - shiftp);
+      p_overlap_ibuffer[ixheaacd_drc_offset->n_long / 2 - i - 1] =
+        ixheaac_negate32_sat(p_in_ibuffer[i]) >> (shift_olap - shiftp);
+    }
   }
 
   ixheaacd_scale_down_adj(p_out_ibuffer, p_out_ibuffer,
