@@ -933,23 +933,25 @@ VOID ixheaacd_pre_processing(FLOAT32 ptr_src_buf_real[][64],
   FLOAT32 poly_coeff[4];
   FLOAT32 mean_enrg = 0;
   FLOAT32 low_env_slope[64];
-  FLOAT32 low_env[64];
+  FLOAT32 low_env[64] = {0};
   FLOAT32 a0;
   FLOAT32 a1;
   FLOAT32 a2;
   FLOAT32 a3;
 
-  for (k = 0; k < num_bands; k++) {
-    FLOAT32 temp = 0;
-    for (i = start_sample; i < end_sample; i++) {
-      temp += ptr_src_buf_real[i][k] * ptr_src_buf_real[i][k] +
-              ptr_src_buf_imag[i][k] * ptr_src_buf_imag[i][k];
+  if (num_bands != 0 && end_sample != start_sample) {
+    for (k = 0; k < num_bands; k++) {
+      FLOAT32 temp = 0;
+      for (i = start_sample; i < end_sample; i++) {
+        temp += ptr_src_buf_real[i][k] * ptr_src_buf_real[i][k] +
+                ptr_src_buf_imag[i][k] * ptr_src_buf_imag[i][k];
+      }
+      temp /= (end_sample - start_sample);
+      low_env[k] = (FLOAT32)(10 * log10(temp + 1));
+      mean_enrg = mean_enrg + low_env[k];
     }
-    temp /= (end_sample - start_sample);
-    low_env[k] = (FLOAT32)(10 * log10(temp + 1));
-    mean_enrg = mean_enrg + low_env[k];
+    mean_enrg /= num_bands;
   }
-  mean_enrg /= num_bands;
 
   ixheaacd_polyfit(num_bands, low_env, poly_coeff);
 
