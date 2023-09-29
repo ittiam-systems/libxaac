@@ -1666,6 +1666,9 @@ WORD32 ixheaacd_pvc_time_freq_grid_info(
   } else {
     tmp = ixheaacd_read_bits_buf(it_bit_buff, 2);
     ptr_frame_data->var_len = tmp + 1;
+    if (ptr_frame_data->var_len > 3) {
+      return -1;
+    }
   }
   var_len = ptr_frame_data->var_len;
 
@@ -1677,6 +1680,10 @@ WORD32 ixheaacd_pvc_time_freq_grid_info(
   if (time_border[0] < 0) return -1;
   pvc_time_border[0] = 0;
   bs_freq_res[0] = 0;
+
+  if (ptr_frame_data->prev_sbr_mode == 0) {
+    pvc_time_border[0] = time_border[0];
+  }
 
   if (bs_noise_pos == 0) {
     time_border[1] = 16 + var_len;
