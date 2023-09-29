@@ -102,6 +102,9 @@ static IA_ERRORCODE ixheaacd_parse_extension_config(
         config->bs_residual_coding = 1;
         temp = ixheaacd_read_bits_buf(it_bit_buff, 6);
         config->bs_residual_sampling_freq_index = (temp >> 2) & FOUR_BIT_MASK;
+        if (config->bs_residual_sampling_freq_index > MAX_RES_SAMP_FREQ_IDX) {
+          return IA_FATAL_ERROR;
+        }
         config->bs_residual_frames_per_spatial_frame = temp & TWO_BIT_MASK;
 
         for (i = 0; i < num_ott_boxes + num_ttt_boxes; i++) {
@@ -121,6 +124,9 @@ static IA_ERRORCODE ixheaacd_parse_extension_config(
 
         temp = ixheaacd_read_bits_buf(it_bit_buff, 11);
         config->bs_arbitrary_downmix_residual_sampling_freq_index = (temp >> 7) & FOUR_BIT_MASK;
+        if (config->bs_arbitrary_downmix_residual_sampling_freq_index > MAX_RES_SAMP_FREQ_IDX) {
+          return IA_FATAL_ERROR;
+        }
         config->bs_arbitrary_downmix_residual_frames_per_spatial_frame =
             (temp >> 5) & TWO_BIT_MASK;
         config->bs_arbitrary_downmix_residual_bands = temp & FIVE_BIT_MASK;
