@@ -85,6 +85,9 @@ static IA_ERRORCODE ixheaacd_ld_spatial_extension_config(
 
           config->bs_residual_sampling_freq_index =
               ixheaacd_read_bits_buf(it_bit_buff, 4);
+          if (config->bs_residual_sampling_freq_index > MAX_RES_SAMP_FREQ_IDX) {
+            return IA_FATAL_ERROR;
+          }
           config->bs_residual_frames_per_spatial_frame =
               ixheaacd_read_bits_buf(it_bit_buff, 2);
 
@@ -110,6 +113,9 @@ static IA_ERRORCODE ixheaacd_ld_spatial_extension_config(
 
           config->bs_arbitrary_downmix_residual_sampling_freq_index =
               ixheaacd_read_bits_buf(it_bit_buff, 4);
+          if (config->bs_arbitrary_downmix_residual_sampling_freq_index > MAX_RES_SAMP_FREQ_IDX) {
+            return IA_FATAL_ERROR;
+          }
           config->bs_arbitrary_downmix_residual_frames_per_spatial_frame =
               ixheaacd_read_bits_buf(it_bit_buff, 2);
           config->bs_arbitrary_downmix_residual_bands =
