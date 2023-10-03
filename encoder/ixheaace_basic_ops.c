@@ -18,6 +18,8 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <float.h>
+#include <math.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
@@ -32,4 +34,18 @@ WORD ia_enhaacplus_enc_norm32_arr(const WORD32 *word32_arr, LOOPINDEX n) {
     max_bits = max_bits | ixheaac_abs32_sat(*word32_arr++);
   }
   return (ixheaac_pnorm32(max_bits));
+}
+
+FLOAT32 ixheaace_div32(FLOAT32 num, FLOAT32 den) {
+  if (fabs(den) < FLT_EPSILON) {
+    if (den < 0.0f) {
+      return -num;
+    }
+    else {
+      return num;
+    }
+  }
+  else {
+    return num / den;
+  }
 }

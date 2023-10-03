@@ -18,6 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <math.h>
 #include <string.h>
 
 #include "ixheaac_type_def.h"
@@ -49,7 +50,7 @@
 #include "ixheaace_sbr.h"
 
 #include "ixheaace_sbr_misc.h"
-#include <math.h>
+#include "ixheaace_common_utils.h"
 
 static VOID ixheaace_calc_auto_corr_second_order(ixheaace_acorr_coeffs *pstr_ac,
                                                  FLOAT32 **ptr_real, FLOAT32 **ptr_imag,
@@ -178,11 +179,7 @@ VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_
       if (r00r) {
         FLOAT32 tmp =
             -(alphar[0] * r01r + alphai[0] * r01i + alphar[1] * r02r + alphai[1] * r02i) / (r00r);
-        FLOAT32 denum = 1.0f - tmp;
-        if (fabs(denum) < EPS) {
-          denum = (FLOAT32)EPS;
-        }
-        ptr_quota_mtx[time_index][r] = (FLOAT32)(tmp / denum);
+        ptr_quota_mtx[time_index][r] = (FLOAT32)ixheaace_div32(tmp, 1.0f - tmp);
       } else {
         ptr_quota_mtx[time_index][r] = 0;
       }
