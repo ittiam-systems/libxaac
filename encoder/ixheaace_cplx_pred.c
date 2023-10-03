@@ -51,6 +51,7 @@
 #include "ixheaace_asc_write.h"
 #include "iusace_main.h"
 #include "iusace_rom.h"
+#include "ixheaace_common_utils.h"
 
 static VOID iusace_compute_pred_coef(WORD32 num_lines, WORD32 complex_coef,
                                      FLOAT64 *ptr_spec_mdct_dmx, FLOAT64 *ptr_spec_mdst_dmx,
@@ -371,8 +372,7 @@ static IA_ERRORCODE iusace_cplx_pred_main(
   for (i = 0; i < pstr_usac_config->ccfl; i++) {
     nrg_res += (FLOAT32)(ptr_spec_mdct_res[i] * ptr_spec_mdct_res[i]);
   }
-  pred_gain =
-      10.f * log10f((*pred_dir == 0 ? nrg_side : nrg_mid) / (nrg_res + FLT_EPSILON));
+  pred_gain = 10.f * log10f(ixheaace_div32((*pred_dir == 0 ? nrg_side : nrg_mid), nrg_res));
       /* Prediction gain in dB */
 
   if (pred_gain > 20.f) /* Retain complex prediction */
