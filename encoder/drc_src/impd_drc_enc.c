@@ -205,7 +205,7 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
         pstr_gain_enc->str_drc_compand[0][j].initial_volume = 0.0f;
 
         err_code = impd_drc_td_drc_gain_calc_init(pstr_gain_enc, 0, j);
-        if (err_code & IA_FATAL_ERROR) {
+        if (err_code) {
           return err_code;
         }
         pstr_gain_enc->str_drc_compand[0][j].ch_idx = ch_idx;

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -44,6 +45,7 @@
 #include "ixheaace_sbr_header.h"
 #include "ixheaace_config.h"
 #include "iusace_config.h"
+#include "ixheaace_common_utils.h"
 
 static FLOAT32 impd_drc_limit_drc_gain(const WORD32 gain_coding_profile, const FLOAT32 gain) {
   FLOAT32 limited_drc_gain;
@@ -128,7 +130,7 @@ static VOID impd_drc_check_overshoot(const WORD32 t_gain_step, const FLOAT32 gai
   FLOAT32 k1, k2;
   FLOAT32 slope_norm = 1.0f / (FLOAT32)time_delta_min;
   FLOAT32 margin = 0.2f;
-  FLOAT32 step_inv_2 = 2.0f / t_gain_step;
+  FLOAT32 step_inv_2 = ixheaace_div32(2.0f, (FLOAT32)t_gain_step);
 
   *overshoot_left = FALSE;
   *overshoot_right = FALSE;
@@ -180,7 +182,7 @@ static VOID impd_drc_check_overshoot(const WORD32 t_gain_step, const FLOAT32 gai
   }
 
   if ((!*overshoot_left) && (!*overshoot_right)) {
-    t_gain_step_inv = 1.0f / (FLOAT32)t_gain_step;
+    t_gain_step_inv = ixheaace_div32(1.0f, (FLOAT32)t_gain_step);
     t_gain_step_inv_2 = t_gain_step_inv * t_gain_step_inv;
     k1 = (gain_right - gain_left) * t_gain_step_inv_2;
     k2 = norm_slope_1 + norm_slope_0;

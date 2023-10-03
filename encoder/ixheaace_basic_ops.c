@@ -49,3 +49,17 @@ FLOAT32 ixheaace_div32(FLOAT32 num, FLOAT32 den) {
     return num / den;
   }
 }
+
+FLOAT64 ixheaace_div64(FLOAT64 num, FLOAT64 den) {
+  if (fabs(den) < FLT_EPSILON) {
+    if (den < 0.0) {
+      return -num;
+    }
+    else {
+      return num;
+    }
+  }
+  else {
+    return num / den;
+  }
+}
