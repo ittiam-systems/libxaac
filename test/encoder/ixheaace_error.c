@@ -83,7 +83,7 @@ pWORD8 ppb_ia_enhaacplus_enc_drc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
 pWORD8 ppb_ia_enhaacplus_enc_mps_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {NULL};
 
 pWORD8 ppb_ia_enhaacplus_enc_drc_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Invalid DRC gain points" };
+    (pWORD8) "Invalid DRC gain points",  (pWORD8) "Invalid start subband index" };
 
 /* Fatal Errors */
 

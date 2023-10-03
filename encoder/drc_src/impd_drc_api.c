@@ -40,8 +40,9 @@
     var = MAX(var, lower_bound);                            \
   }
 
-static VOID impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config) {
+static IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config) {
   LOOPIDX i, j, k;
+  WORD32 curr_start_subband_idx, next_start_subband_idx;
   ia_drc_uni_drc_config_struct *pstr_uni_drc_config = &pstr_inp_config->str_uni_drc_config;
   ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set =
       &pstr_inp_config->str_enc_loudness_info_set;
@@ -126,6 +127,19 @@ static VOID impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config
                                  .start_sub_band_index,
                              0, STFT256_HOP_SIZE - 1);
       }
+      for (k = 0; k <
+        pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count
+        - 1; k++) {
+        curr_start_subband_idx = pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].
+          str_gain_set_params[j].gain_params[k].start_sub_band_index;
+        next_start_subband_idx = pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].
+          str_gain_set_params[j].gain_params[k + 1].start_sub_band_index;
+        /* It is assumed that the start index of a subband is greater than
+           the start index of its previous subbands for a multiband */
+        if (next_start_subband_idx <= curr_start_subband_idx) {
+          return IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_SUBBAND_INDEX;
+        }
+      }
     }
   }
   IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->downmix_instructions_count, 0,
@@ -198,6 +212,7 @@ static VOID impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config
                            0, MAX_RELIABILITY_TYPE);
     }
   }
+  return IA_NO_ERROR;
 }
 
 static IA_ERRORCODE impd_drc_validate_drc_instructions(
@@ -267,7 +282,10 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   pstr_drc_state_local->str_bit_buf_out.impd_drc_jmp_buf = &drc_enc_init_jmp_buf;
 #endif  // ENABLE_SET_JUMP
 
-  impd_drc_validate_config_params(pstr_inp_config);
+  err_code = impd_drc_validate_config_params(pstr_inp_config);
+  if (err_code) {
+    return err_code;
+  }
 
   err_code = impd_drc_gain_enc_init(
       &pstr_drc_state_local->str_gain_enc, &pstr_inp_config->str_uni_drc_config,
