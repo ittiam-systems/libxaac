@@ -18,6 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <float.h>
 #include <string.h>
 #include <math.h>
 #include "iusace_cnst.h"
@@ -37,6 +38,7 @@ static VOID iusace_noise_filling_limiter(FLOAT64 *energy, FLOAT64 *ptr_spec,
                                          FLOAT64 *ptr_highest_tone) {
   WORD32 n, i;
   FLOAT64 tone_energy;
+  FLOAT64 tot_tone_energy = 0.0;
 
   if (!n0_by_4) return;
   if (cntr <= n0_by_4) return;
@@ -59,7 +61,10 @@ static VOID iusace_noise_filling_limiter(FLOAT64 *energy, FLOAT64 *ptr_spec,
     }
   }
   /* remove the contribution of the highest_tone components */
-  for (n = 0; n < n0_by_4; n++) *energy -= ptr_highest_tone[n];
+  for (n = 0; n < n0_by_4; n++) tot_tone_energy += ptr_highest_tone[n];
+  *energy -= tot_tone_energy;
+  if (fabs(*energy) < DBL_EPSILON)
+    *energy = 0.0;
 
   /* add the average component energy */
   *energy += n0_by_4 * (*energy) / (cntr - n0_by_4);
@@ -119,7 +124,7 @@ VOID iusace_noise_filling(WORD32 *noise_level, WORD32 *noise_offset, FLOAT64 *pt
 
         /* Remove highest (tonal) contributions */
         iusace_noise_filling_limiter(&energy, &ptr_quant_spec[offset],
-                                     pstr_quant_info->quant_degroup, n0 / 4, ptr_sfb_offset, sfb,
+                                     &(pstr_quant_info->quant_degroup[offset]), n0 / 4, ptr_sfb_offset, sfb,
                                      n0, ptr_scratch_buf);
 
         if (band_quantized_to_zero == 0) {

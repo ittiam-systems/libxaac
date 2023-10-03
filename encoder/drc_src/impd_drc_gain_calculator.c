@@ -334,7 +334,7 @@ IA_ERRORCODE impd_drc_stft_drc_gain_calc_init(ia_drc_gain_enc_struct *pstr_drc_g
                                               WORD32 gain_set_idx, WORD32 band_idx) {
   ULOOPIDX i, j;
   UWORD32 num_points;
-  FLOAT32 width_e;
+  FLOAT32 width_e, tmp;
   FLOAT64 g1, g2;
   FLOAT64 x, y, cx, cy, r;
   FLOAT64 inp_1, inp_2, out_1, out_2, theta, len;
@@ -477,13 +477,23 @@ IA_ERRORCODE impd_drc_stft_drc_gain_calc_init(ia_drc_gain_enc_struct *pstr_drc_g
     pstr_drc_stft_gain_handle->yl_z1[i] = 0.0f;
   }
 
-  pstr_drc_stft_gain_handle->alpha_a =
-      expf(-1.0f / ((pstr_drc_stft_gain_handle->attack_ms / (FLOAT32)STFT256_HOP_SIZE) *
-                    (FLOAT32)pstr_drc_gain_enc->sample_rate * 0.001f));
+  tmp = (pstr_drc_stft_gain_handle->attack_ms / STFT256_HOP_SIZE) *
+      pstr_drc_gain_enc->sample_rate * 0.001f;
+  if ((fabs(tmp) < FLT_EPSILON) && (tmp >= 0.0f)) {
+    pstr_drc_stft_gain_handle->alpha_a = 0;
+  }
+  else {
+    pstr_drc_stft_gain_handle->alpha_a = expf(ixheaace_div32(-1.0f, tmp));
+  }
 
-  pstr_drc_stft_gain_handle->alpha_r =
-      expf(-1.0f / ((pstr_drc_stft_gain_handle->release_ms / (FLOAT32)STFT256_HOP_SIZE) *
-                    (FLOAT32)pstr_drc_gain_enc->sample_rate * 0.001f));
+  tmp = (pstr_drc_stft_gain_handle->release_ms / STFT256_HOP_SIZE) *
+      pstr_drc_gain_enc->sample_rate * 0.001f;
+  if ((fabs(tmp) < FLT_EPSILON) && (tmp >= 0.0f)) {
+    pstr_drc_stft_gain_handle->alpha_r = 0;
+  }
+  else {
+    pstr_drc_stft_gain_handle->alpha_r = expf(ixheaace_div32(-1.0f, tmp));
+  }
 
   return IA_NO_ERROR;
 }
