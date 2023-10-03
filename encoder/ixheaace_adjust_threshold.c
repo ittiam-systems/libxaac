@@ -284,8 +284,11 @@ static FLOAT32 iaace_bitres_calc_bitfac(const WORD32 bitres_bits, const WORD32 m
       (FLOAT32)1.0f - bit_save +
       ((bit_spend + bit_save) / (pstr_adj_the_elem->pe_max - pstr_adj_the_elem->pe_min)) *
           (pex - pstr_adj_the_elem->pe_min);
-  bitres_factor = MIN(bitres_factor,
-                      (FLOAT32)1.0f - (FLOAT32)0.3f + (FLOAT32)bitres_bits / (FLOAT32)avg_bits);
+  if (avg_bits)
+  {
+    bitres_factor = MIN(bitres_factor,
+      (FLOAT32)1.0f - (FLOAT32)0.3f + (FLOAT32)bitres_bits / (FLOAT32)avg_bits);
+  }
 
   bitres_factor = MIN(bitres_factor, max_bit_fac);
 
