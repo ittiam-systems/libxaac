@@ -60,7 +60,7 @@ VOID ixheaacd_lsf_weight_2st_flt(FLOAT32 *lsfq, FLOAT32 *w, WORD32 mode) {
   }
 
   for (i = 0; i < ORDER; i++) {
-    w[i] = (FLOAT32)(factor_table[mode] / (FREQ_DIV / sqrt(d[i] * d[i + 1])));
+    w[i] = (FLOAT32)((factor_table[mode] * sqrt(d[i] * d[i + 1])) / FREQ_DIV);
   }
 
   return;
