@@ -329,11 +329,13 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             c++;
           }
 
-          if (!int_mode) {
+          if (!int_mode && ui != li) {
             for (nrg = 0, k = c - (ui - li); k < c; k++) {
               nrg += nrg_est_pvc[k][t];
             }
             nrg /= (ui - li);
+          } else {
+            nrg = 0;
           }
           c -= (ui - li);
 
@@ -453,11 +455,13 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
             c++;
           }
 
-          if (!int_mode) {
+          if (!int_mode && ui != li) {
             for (nrg = 0, k = c - (ui - li); k < c; k++) {
               nrg += nrg_est_pvc[k][t];
             }
             nrg /= (ui - li);
+          } else {
+            nrg = 0;
           }
           c -= (ui - li);
 
@@ -669,11 +673,13 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
                 rate * p_frame_info->border_vec[i]);
             }
           }
-          if (!int_mode) {
+          if (!int_mode && ui != li) {
             for (nrg = 0, k = c - (ui - li); k < c; k++) {
               nrg += nrg_est[k];
             }
             nrg /= (ui - li);
+          } else {
+            nrg = 0;
           }
           c -= (ui - li);
 

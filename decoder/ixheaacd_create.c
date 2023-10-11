@@ -394,7 +394,9 @@ WORD32 ixheaacd_dec_data_init(VOID *handle,
       &usac_data->ccfl, &usac_data->output_samples,
       &pstr_frame_data->str_layer.sample_rate_layer,
       &layer_config->samp_frequency_index);
-
+  if (!pstr_frame_data->str_layer.sample_rate_layer) {
+    return -1;
+  }
   pstr_stream_config->sampling_frequency =
       pstr_frame_data->str_layer.sample_rate_layer;
   pstr_stream_config->samp_frequency_index = layer_config->samp_frequency_index;
