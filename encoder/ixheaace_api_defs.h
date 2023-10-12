@@ -44,4 +44,4 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
                                   ixheaace_audio_specific_config_struct *pstr_asc,
                                   ia_bit_buf_struct *pstr_it_bit_buff,
                                   ixheaace_pstr_sbr_enc ptr_env_encoder, FLOAT32 **ptr_drc_inp,
-                                  WORD32 *is_quant_spec_zero);
+                                  WORD32 *is_quant_spec_zero, WORD32 *is_gain_restricted);

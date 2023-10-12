@@ -56,6 +56,7 @@
 #include "iusace_block_switch_const.h"
 #include "iusace_rom.h"
 #include "ixheaace_cplx_pred.h"
+#include "ixheaace_aac_constants.h"
 
 static WORD32 iusace_window_shape[5] = {WIN_SEL_1, WIN_SEL_0, WIN_SEL_0, WIN_SEL_1, WIN_SEL_0};
 
@@ -444,7 +445,8 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
                                   WORD32 usac_independancy_flag, WORD32 num_chans,
                                   ia_usac_data_struct *ptr_usac_data,
                                   ia_usac_encoder_config_struct *ptr_usac_config, WORD32 chn,
-                                  WORD32 ele_id, WORD32 *is_quant_spec_zero) {
+                                  WORD32 ele_id, WORD32 *is_quant_spec_zero,
+                                  WORD32 *is_gain_limited) {
   IA_ERRORCODE err_code;
   WORD32 i = 0, sfb;
   WORD32 j = 0;
@@ -473,6 +475,7 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
   WORD32 *ptr_num_sfb = pstr_sfb_prms->num_sfb;
   WORD32 *ptr_num_window_groups = pstr_sfb_prms->num_window_groups;
   WORD32 bitres_bits, bitres_diff;
+  WORD32 gain;
 
   memset(num_scfs, 0, 2 * sizeof(num_scfs[0]));
 
@@ -531,7 +534,7 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
   idx = 0;
   for (ch = chn; ch < chn + num_chans; ch++) {
     iterations = 0;
-
+    gain = 0;
     for (kk = 0; kk < ptr_usac_config->ccfl; kk++) {
       ptr_exp_spec[kk] = (FLOAT32)pstr_psy_out[ch].ptr_spec_coeffs[kk];
       ptr_mdct_spec_float[kk] = (FLOAT32)pstr_psy_out[ch].ptr_spec_coeffs[kk];
@@ -544,6 +547,7 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
              sfb_offs += pstr_psy_out[ch].sfb_per_group) {
           for (sfb = 0; sfb < pstr_psy_out[ch].max_sfb_per_grp; sfb++) {
             WORD32 scalefactor = pstr_qc_out->str_qc_out_chan[idx].scalefactor[sfb + sfb_offs];
+            gain = MAX(gain, pstr_qc_out->str_qc_out_chan[idx].global_gain - scalefactor);
             iusace_quantize_lines(
                 pstr_qc_out->str_qc_out_chan[idx].global_gain - scalefactor,
                 pstr_psy_out[ch].sfb_offsets[sfb_offs + sfb + 1] -
@@ -600,17 +604,25 @@ IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,
       if (max_bits > max_ch_dyn_bits[idx]) {
         constraints_fulfilled = 0;
       }
-      if (!constraints_fulfilled) {
-        pstr_qc_out->str_qc_out_chan[idx].global_gain++;
-      }
       if (quant_spec_is_zero == 1) {
         constraints_fulfilled = 1;
-        /*Bit consuption is exceding bit reserviour, there is no scope left for bit consumption
+        /*Bit consuption is exceding bit reservoir, there is no scope left for bit consumption
           reduction, as spectrum is zero. Hence breaking the quantization loop. */
         if (iterations > 0) {
           *is_quant_spec_zero = 1;
           max_bits = max_ch_dyn_bits[idx];
         }
+      }
+      if ((gain == MAX_GAIN_INDEX) && (constraints_fulfilled == 0)) {
+        /* Bit consuption is exceding bit reservoir, there is no scope left for bit consumption
+           reduction, as gain has reached the maximum value. Hence breaking the quantization
+           loop. */
+        constraints_fulfilled = 1;
+        *is_gain_limited = 1;
+        max_bits = max_ch_dyn_bits[idx];
+      }
+      if (!constraints_fulfilled) {
+        pstr_qc_out->str_qc_out_chan[idx].global_gain++;
       }
       iterations++;
     } while (!constraints_fulfilled);
