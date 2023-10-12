@@ -111,9 +111,9 @@ static WORD32 ia_enhaacplus_enc_frame_padding(WORD32 bit_rate, WORD32 sample_rat
   return padding_on;
 }
 
-WORD32 ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
-                                    WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
-                                    WORD32 long_frame_len)
+IA_ERRORCODE ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
+                                          WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
+                                          WORD32 long_frame_len)
 
 {
   WORD32 i;
@@ -140,18 +140,20 @@ WORD32 ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_cha
            sizeof(*pstr_qc_out->qc_channel[i]->scalefactor) * MAXIMUM_GROUPED_SCALE_FACTOR_BAND);
   }
 
-  return (pstr_qc_out == NULL);
+  if (pstr_qc_out == NULL) {
+    return IA_EXHEAACE_INIT_FATAL_AAC_INIT_FAILED;
+  }
+  return IA_NO_ERROR;
 }
 
-WORD32 ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state, WORD32 *ptr_shared_buffer_2,
-                                WORD32 long_frame_len
-
+IA_ERRORCODE ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state,
+                                      WORD32 *ptr_shared_buffer_2, WORD32 long_frame_len
 ) {
   memset(pstr_qc_state, 0, sizeof(ixheaace_qc_state));
   pstr_qc_state->qc_scr.shared_buffer_2 =
       (ptr_shared_buffer_2 + long_frame_len * IXHEAACE_MAX_CH_IN_BS_ELE + 16);
 
-  return (0);
+  return IA_NO_ERROR;
 }
 
 IA_ERRORCODE ia_enhaacplus_enc_qc_init(ixheaace_qc_state *pstr_qc_state, WORD32 aot,

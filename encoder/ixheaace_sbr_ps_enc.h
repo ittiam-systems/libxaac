@@ -90,7 +90,7 @@ typedef struct ixheaace_ps_enc *ixheaace_pstr_ps_enc;
 
 WORD32 ixheaace_get_ps_mode(WORD32 bit_rate);
 
-WORD32
+IA_ERRORCODE
 ixheaace_create_ps_enc(ixheaace_pstr_ps_enc pstr_ps_enc, WORD32 ps_mode,
                        FLOAT32 *ptr_common_buffer, FLOAT32 *ptr_common_buffer2,
                        FLOAT32 *ptr_ps_buf3);

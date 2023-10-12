@@ -98,13 +98,16 @@ pWORD8 ppb_ia_enhaacplus_enc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid element type",
     (pWORD8) "Number of channels not supported",
     (pWORD8) "Invalid number of channels in element",
-    (pWORD8) "Scale factor band initalization failed"};
+    (pWORD8) "Scale factor band initalization failed",
+    (pWORD8) "TNS configuration initalization failed" };
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "MPS Initialization failed"};
 
 pWORD8 ppb_ia_enhaacplus_enc_usac_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Resampler initialization failed", (pWORD8) "Insufficient bit-reservoir size"};
+    (pWORD8) "Resampler initialization failed", (pWORD8) "Insufficient bit-reservoir size",
+    (pWORD8) "Invalid core sample rate", (pWORD8) "Invalid element type",
+    (pWORD8) "Bitbuffer initialization failed", (pWORD8) "Invalid codec mode"};
 
 pWORD8 ppb_ia_enhaacplus_enc_drc_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid channel index"};
@@ -113,6 +116,9 @@ pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid number of channels",     (pWORD8) "Invalid sample rate mode",
     (pWORD8) "Invalid frequency coefficients", (pWORD8) "Invalid number of bands",
     (pWORD8) "Invalid buffer length",          (pWORD8) "SBR noise band not supported"};
+
+pWORD8 ppb_ia_enhaacplus_enc_ps_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
+    (pWORD8) "PS Initialization failed" };
 
 /*****************************************************************************/
 /* Class 2: Execution Errors
@@ -180,6 +186,9 @@ pWORD8 ppb_ia_enhaacplus_enc_usac_exe_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid number of channels",
     (pWORD8) "Invalid bit reservoir level",
     (pWORD8) "Invalid mapping",
+    (pWORD8) "Invalid window type",
+    (pWORD8) "Invalid window length",
+    (pWORD8) "Invalid window shape",
 };
 
 /*****************************************************************************/
@@ -231,7 +240,7 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_config_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][1][1] =
       ppb_ia_enhaacplus_enc_mps_config_non_fatal;
-  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][1][2] =
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][1][3] =
       ppb_ia_enhaacplus_enc_drc_config_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][1][0] =
       ppb_ia_enhaacplus_enc_config_fatal;
@@ -251,6 +260,8 @@ VOID ia_enhaacplus_enc_error_handler_init() {
       ppb_ia_enhaacplus_enc_drc_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][4] =
       ppb_ia_enhaacplus_enc_sbr_init_fatal;
+  ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[1][2][5] =
+    ppb_ia_enhaacplus_enc_ps_init_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][1] =
       ppb_ia_enhaacplus_enc_mps_exe_non_fatal;
   ia_enhaacplus_enc_error_info.ppppb_error_msg_pointers[0][3][4] =
@@ -307,6 +318,9 @@ IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_co
           break;
         case 4:
           printf("SBR/eSBR ");
+          break;
+        case 5:
+          printf("Parametric Stereo ");
           break;
         default:
           break;

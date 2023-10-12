@@ -43,5 +43,3 @@ ixheaace_find_start_and_stop_band(const WORD32 sampling_freq, const WORD32 num_c
                                   ixheaace_sbr_codec_type sbr_codec);
 
 WORD32 ixheaace_get_sbr_start_freq_raw(WORD32 start_freq, WORD32 qmf_bands, WORD32 fs);
-
-WORD32 ixheaace_get_sbr_stop_freq_raw(WORD32 stop_freq, WORD32 qmf_bands, WORD32 fs);

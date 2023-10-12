@@ -507,7 +507,7 @@ WORD32 iusace_limitbitrate(WORD32 core_sample_rate, WORD32 frame_len, WORD32 num
 IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
                              ixheaace_audio_specific_config_struct *pstr_asc,
                              ia_usac_data_struct *pstr_state) {
-  WORD32 err_code = 0;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   WORD32 i, j, k, idx, i_ch;
   UWORD32 elem_idx = 0;
   ia_usac_data_struct *usac_data = (pstr_state);
@@ -625,7 +625,7 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
         case ID_USAC_EXT:
           break;
         default:
-          return -1;
+          return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_ELEMENT_TYPE;
       }
     }
 
@@ -645,7 +645,7 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
         case ID_USAC_EXT:
           break;
         default:
-          return -1;
+          return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_ELEMENT_TYPE;
       }
 
       usac_data->str_qc_main.str_qc_data[ch_idx].num_ch = 1;
@@ -774,12 +774,14 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
         usac_data->pstr_tns_info[i_ch]->max_sfb_long =
             usac_data->str_psy_mod.str_psy_long_config[ch_idx].sfb_count;
 
-        if (iusace_tns_init(ptr_usac_config->core_sample_rate,
+        err_code = iusace_tns_init(ptr_usac_config->core_sample_rate,
                             usac_data->str_qc_main.str_qc_data[ch_idx].ch_bitrate /
                                 usac_data->str_qc_main.str_qc_data[ch_idx].num_ch,
                             usac_data->pstr_tns_info[i_ch],
-                            usac_data->str_qc_main.str_qc_data[ch_idx].num_ch))
-          return -1;
+                            usac_data->str_qc_main.str_qc_data[ch_idx].num_ch);
+        if (err_code) {
+          return err_code;
+        }
       }
     }
   }
@@ -1032,7 +1034,7 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
           ptr_usac_data->core_mode_next[i_ch] = CORE_MODE_TD;
           break;
         default:
-          return (-1);
+          return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_CODEC_MODE;
       }
       if (ptr_usac_data->core_mode[i_ch] == CORE_MODE_TD) {
         for (i = 0; i < ptr_usac_config->ccfl; i++) {
@@ -1340,5 +1342,5 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
     ptr_usac_data->available_bitreservoir_bits = ptr_usac_data->max_bitreservoir_bits;
   }
 
-  return 0;
+  return err;
 }

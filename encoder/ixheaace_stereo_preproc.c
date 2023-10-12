@@ -43,11 +43,11 @@
 #include "ixheaace_adjust_threshold_data.h"
 #include "ixheaace_dynamic_bits.h"
 #include "ixheaace_qc_data.h"
-
+#include "ixheaac_error_standards.h"
 #include "ixheaace_stereo_preproc.h"
 #include "ixheaace_common_utils.h"
 
-WORD32 iaace_init_stereo_pre_processing(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
+IA_ERRORCODE iaace_init_stereo_pre_processing(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
                                         WORD32 no_channels, WORD32 bit_rate, WORD32 sample_rate,
                                         FLOAT32 used_scf_ratio) {
   FLOAT32 bpf = bit_rate * 1024.0f / sample_rate;
@@ -96,7 +96,7 @@ WORD32 iaace_init_stereo_pre_processing(ixheaace_stereo_pre_pro_pstr pstr_stereo
         tmp * (pstr_stereo_pre_pro)->stereo_attenuation_max;
   }
 
-  return 0;
+  return IA_NO_ERROR;
 }
 
 VOID iaace_apply_stereo_preproc(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,

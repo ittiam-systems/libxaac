@@ -396,7 +396,7 @@ IA_ERRORCODE iusace_grouping(ia_sfb_params_struct *pstr_sfb_prms, WORD32 num_cha
       }
       pstr_sfb_prms->grouped_sfb_offset[ch][i] = k;
     } else {
-      return -1;
+      return IA_EXHEAACE_EXE_FATAL_USAC_INVALID_WINDOW_TYPE;
     }
   }
 
@@ -438,7 +438,7 @@ IA_ERRORCODE iusace_grouping(ia_sfb_params_struct *pstr_sfb_prms, WORD32 num_cha
       }
     }
   }
-  return 0;
+  return IA_NO_ERROR;
 }
 
 IA_ERRORCODE iusace_quantize_spec(ia_sfb_params_struct *pstr_sfb_prms,

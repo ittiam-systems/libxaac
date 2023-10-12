@@ -30,6 +30,8 @@
 #include "ixheaac_basic_ops32.h"
 #include "ixheaac_basic_ops40.h"
 #include "ixheaac_basic_ops.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaace_error_codes.h"
 
 static const WORD32 iusace_tns_supported_sampling_rates[13] = {
     96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 0};
@@ -92,6 +94,7 @@ static VOID iusace_calc_gauss_win(FLOAT64 *ptr_win, const WORD32 length, const W
 
 IA_ERRORCODE iusace_tns_init(WORD32 sampling_rate, WORD32 bit_rate, ia_tns_info *tns_info,
                              WORD32 num_channels) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   WORD32 fs_index = 0;
   WORD32 lpc_stop_freq = 16000;
   WORD32 lpc_start_freq_long = 2500, lpc_start_freq_short = 3750;
@@ -127,7 +130,7 @@ IA_ERRORCODE iusace_tns_init(WORD32 sampling_rate, WORD32 bit_rate, ia_tns_info 
    */
   while (sampling_rate != iusace_tns_supported_sampling_rates[fs_index]) {
     if (!iusace_tns_supported_sampling_rates[fs_index]) {
-      return -1;
+      return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_CORE_SAMPLE_RATE;
     }
     fs_index++;
   }
@@ -159,7 +162,7 @@ IA_ERRORCODE iusace_tns_init(WORD32 sampling_rate, WORD32 bit_rate, ia_tns_info 
 
   iusace_calc_gauss_win(tns_info->win_short, tns_info->tns_max_order_short + 1, sampling_rate,
                         EIGHT_SHORT_SEQUENCE, tns_info->tns_time_res_short);
-  return 0;
+  return err_code;
 }
 
 VOID iusace_tns_filter(WORD32 length, FLOAT64 *spec, ia_tns_filter_data *filter,

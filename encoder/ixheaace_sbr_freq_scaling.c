@@ -292,21 +292,7 @@ ixheaace_get_sbr_start_freq_raw(WORD32 start_freq, WORD32 qmf_bands, WORD32 fs) 
 
   result = (result * fs / qmf_bands + 1) >> 1;
 
-  return (result);
-}
-
-WORD32 ixheaace_get_sbr_stop_freq_raw(WORD32 stop_freq, WORD32 qmf_bands, WORD32 fs) {
-  WORD32 result;
-
-  if ((stop_freq < 0) || (stop_freq > 13)) {
-    return -1;
-  }
-
-  result = ixheaace_get_stop_freq(fs, stop_freq);
-
-  result = (result * fs / qmf_bands + 1) >> 1;
-
-  return (result);
+  return result;
 }
 
 static WORD32 ixheaace_number_of_bands(WORD32 b_p_o, WORD32 start, WORD32 stop,

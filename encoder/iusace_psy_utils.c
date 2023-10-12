@@ -45,6 +45,8 @@
 #include "iusace_psy_utils.h"
 #include "iusace_fd_qc_util.h"
 #include "iusace_fd_qc_adjthr.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaace_error_codes.h"
 
 extern ia_sfb_info_struct iusace_sfb_info_1024[12];
 extern ia_sfb_info_struct iusace_sfb_info_768[12];
@@ -508,12 +510,12 @@ IA_ERRORCODE iusace_sfb_params_init(WORD32 sample_rate, WORD32 frame_len, WORD32
   } else if (sample_rate >= 92017) {
     sampling_rate_mapped = 96000;
   } else {
-    return -1;
+    return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_CORE_SAMPLE_RATE;
   }
 
   while (ptr_sr_info->sample_rate != sampling_rate_mapped) {
     if (ptr_sr_info->sample_rate == -1) {
-      return -1;
+      return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_CORE_SAMPLE_RATE;
     }
     ptr_sr_info++;
   }
@@ -546,5 +548,5 @@ IA_ERRORCODE iusace_sfb_params_init(WORD32 sample_rate, WORD32 frame_len, WORD32
       break;
   }
 
-  return 0;
+  return IA_NO_ERROR;
 }

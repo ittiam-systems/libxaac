@@ -43,7 +43,9 @@ ia_enhaacplus_enc_get_tns_param(
     const ixheaace_temporal_noise_shaping_info_tab *pstr_tns_info_tab, WORD32 size) {
   UWORD32 i;
 
-  if (pstr_tns_config_tab == NULL) return 1;
+  if (pstr_tns_config_tab == NULL) {
+    return IA_EXHEAACE_INIT_FATAL_TNS_CONFIG_INIT_FAILED;
+  }
 
   pstr_tns_config_tab->thresh_on = -1;
 

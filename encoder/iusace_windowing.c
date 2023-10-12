@@ -19,11 +19,12 @@
  */
 
 #include <string.h>
-
+#include "ixheaac_error_standards.h"
 #include "ixheaac_type_def.h"
 #include "iusace_cnst.h"
 #include "iusace_block_switch_const.h"
 #include "iusace_rom.h"
+#include "ixheaace_error_codes.h"
 
 IA_ERRORCODE iusace_calc_window(FLOAT64 **win, WORD32 win_sz, WORD32 win_sel) {
   switch (win_sel) {
@@ -48,7 +49,7 @@ IA_ERRORCODE iusace_calc_window(FLOAT64 **win, WORD32 win_sz, WORD32 win_sel) {
           *win = (FLOAT64 *)iusace_sine_win_1024;
           break;
         default:
-          return -1;
+          return IA_EXHEAACE_EXE_FATAL_USAC_INVALID_WINDOW_LENGTH;
           break;
       }
       break;
@@ -73,16 +74,16 @@ IA_ERRORCODE iusace_calc_window(FLOAT64 **win, WORD32 win_sz, WORD32 win_sel) {
           *win = (FLOAT64 *)iusace_kbd_win1024;
           break;
         default:
-          return -1;
+          return IA_EXHEAACE_EXE_FATAL_USAC_INVALID_WINDOW_LENGTH;
           break;
       }
       break;
 
     default:
-      return -1;
+      return IA_EXHEAACE_EXE_FATAL_USAC_INVALID_WINDOW_SHAPE;
       break;
   }
-  return 0;
+  return IA_NO_ERROR;
 }
 
 VOID iusace_windowing_long(FLOAT64 *ptr_overlap, FLOAT64 *ptr_win_long, FLOAT64 *ptr_win_buf,

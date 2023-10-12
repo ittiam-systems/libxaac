@@ -185,7 +185,7 @@ static WORD32 ia_enhaacplus_enc_encode_section_data(
   return (ia_enhaacplus_enc_get_bits_available(pstr_bit_stream_handle) - dbg_val);
 }
 
-static WORD32 ia_enhaacplus_enc_code_scale_factor_delta_lav(WORD32 delta,
+static VOID ia_enhaacplus_enc_code_scale_factor_delta_lav(WORD32 delta,
                                                             ixheaace_bit_buf_handle ptr_bitstream,
                                                             const UWORD16 *ptr_pltabscf,
                                                             const UWORD32 *ptr_pctabscf) {
@@ -195,8 +195,6 @@ static WORD32 ia_enhaacplus_enc_code_scale_factor_delta_lav(WORD32 delta,
   code_length = ptr_pltabscf[delta];
 
   ixheaace_write_bits(ptr_bitstream, code_word, (UWORD8)code_length);
-
-  return 0;
 }
 static WORD32 ia_enhaacplus_enc_encode_scalefactor_data(
     UWORD16 *ptr_max_val_in_sfb, ixheaace_section_data *pstr_section_data, WORD16 *ptr_scalefac,
@@ -220,10 +218,8 @@ static WORD32 ia_enhaacplus_enc_encode_scalefactor_data(
 
           last_val_scf = ptr_scalefac[j];
         }
-        if (ia_enhaacplus_enc_code_scale_factor_delta_lav(delta_scf, pstr_bit_stream_handle,
-                                                          ptr_pltabscf, ptr_pctabscf)) {
-          return 1;
-        }
+        ia_enhaacplus_enc_code_scale_factor_delta_lav(delta_scf, pstr_bit_stream_handle,
+                                                          ptr_pltabscf, ptr_pctabscf);
       }
     }
   }
@@ -767,7 +763,7 @@ IA_ERRORCODE ia_enhaacplus_enc_write_bitstream(
       } break;
 
       default:
-        return 1;
+        return IA_EXHEAACE_INIT_FATAL_INVALID_ELEMENT_TYPE;
 
     } /* switch */
 

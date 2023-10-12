@@ -291,7 +291,7 @@ static VOID ia_enhaacplus_enc_index_to_parcor(
   }
 }
 
-WORD32 ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr_tns_info,
+VOID ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr_tns_info,
                                     ixheaace_temporal_noise_shaping_data *pstr_tns_data,
                                     WORD32 num_sfb,
                                     ixheaace_temporal_noise_shaping_config tns_config,
@@ -304,7 +304,7 @@ WORD32 ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr
   if (block_type != SHORT_WINDOW) {
     if (pstr_tns_data->data_raw.tns_data_long.sub_block_info.tns_active == 0) {
       pstr_tns_info->tns_active[sub_blk_num] = 0;
-      return 0;
+      return;
     } else {
       ia_enhaacplus_enc_parcor_to_index(
           pstr_tns_data->data_raw.tns_data_long.sub_block_info.parcor, &pstr_tns_info->coef[0],
@@ -347,7 +347,7 @@ WORD32 ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr
     if (pstr_tns_data->data_raw.tns_data_short.sub_block_info[sub_blk_num].tns_active == 0) {
       pstr_tns_info->tns_active[sub_blk_num] = 0;
 
-      return 0;
+      return;
     } else {
       ia_enhaacplus_enc_parcor_to_index(
           pstr_tns_data->data_raw.tns_data_short.sub_block_info[sub_blk_num].parcor,
@@ -384,7 +384,7 @@ WORD32 ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr
     }
   }
 
-  return 0;
+  return;
 }
 
 VOID ia_enhaacplus_enc_apply_tns_mult_table_to_ratios(WORD32 start_cb, WORD32 stop_cb,

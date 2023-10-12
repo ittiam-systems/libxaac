@@ -248,14 +248,6 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   WORD32 bit_count = 0;
   ia_drc_enc_state *pstr_drc_state_local = pstr_drc_state;
 
-#ifdef ENABLE_SET_JUMP
-  jmp_buf drc_enc_init_jmp_buf;
-  err_code = setjmp(drc_enc_init_jmp_buf);
-  if (err_code != IA_NO_ERROR) {
-    return IA_EXHEAACE_INIT_FATAL_DRC_INSUFFICIENT_WRITE_BUFFER_SIZE;
-  }
-#endif  // ENABLE_SET_JUMP
-
   pstr_drc_state_local->drc_scratch_mem = ptr_drc_scratch;
   pstr_drc_state_local->drc_scratch_used = 0;
 
@@ -274,13 +266,6 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   iusace_create_bit_buffer(&pstr_drc_state_local->str_bit_buf_out,
                            pstr_drc_state_local->bit_buf_base_out,
                            sizeof(pstr_drc_state_local->bit_buf_base_out), 1);
-
-#ifdef ENABLE_SET_JUMP
-  pstr_drc_state_local->str_bit_buf_cfg.impd_drc_jmp_buf = &drc_enc_init_jmp_buf;
-  pstr_drc_state_local->str_bit_buf_cfg_ext.impd_drc_jmp_buf = &drc_enc_init_jmp_buf;
-  pstr_drc_state_local->str_bit_buf_cfg_tmp.impd_drc_jmp_buf = &drc_enc_init_jmp_buf;
-  pstr_drc_state_local->str_bit_buf_out.impd_drc_jmp_buf = &drc_enc_init_jmp_buf;
-#endif  // ENABLE_SET_JUMP
 
   err_code = impd_drc_validate_config_params(pstr_inp_config);
   if (err_code) {

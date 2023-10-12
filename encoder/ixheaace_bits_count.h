@@ -93,9 +93,9 @@ VOID ia_enhaacplus_enc_code_values(WORD16 *ptr_values, WORD32 width, WORD32 code
                                    ixheaace_bit_buf_handle pstr_bitstream,
                                    ixheaace_huffman_tables *pstr_huffman_tbl);
 
-WORD32 ia_enhaacplus_enc_code_scale_factor_delta(WORD32 scalefactor,
-                                                 ixheaace_bit_buf_handle h_bitstream,
-                                                 ixheaace_huffman_tables *pstr_huffman_tbl);
+VOID ia_enhaacplus_enc_code_scale_factor_delta(WORD32 scalefactor,
+                                               ixheaace_bit_buf_handle h_bitstream,
+                                               ixheaace_huffman_tables *pstr_huffman_tbl);
 
 VOID ia_enhaacplus_enc_count1_2_3_4_5_6_7_8_9_10_11(const WORD16 *values, const WORD32 width,
                                                     WORD32 *bitcnt,
