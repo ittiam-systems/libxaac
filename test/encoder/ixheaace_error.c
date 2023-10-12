@@ -119,13 +119,15 @@ pWORD8 ppb_ia_enhaacplus_enc_sbr_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
 *****************************************************************************/
 /* Non Fatal Errors */
 pWORD8 ppb_ia_enhaacplus_enc_aac_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Quantization zero spectrum detected"};
+    (pWORD8) "Quantization zero spectrum detected",
+    (pWORD8) "Insufficient bit reservoir for non zero spectrum"};
 
 pWORD8 ppb_ia_enhaacplus_enc_mps_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Encoding Failed", (pWORD8) "Invalid MPS data bands"};
 
 pWORD8 ppb_ia_enhaacplus_enc_usac_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Quantization zero spectrum detected"};
+    (pWORD8) "Quantization zero spectrum detected",
+    (pWORD8) "Insufficient bit reservoir for non zero spectrum"};
 
 pWORD8 ppb_ia_enhaacplus_enc_esbr_exe_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid bandwidth index encountered",

@@ -119,3 +119,4 @@ typedef struct {
 /*-------------------------- defines --------------------------------------*/
 
 #define BUFFERSIZE 1024 /* anc data */
+#define MAX_GAIN_INDEX (128)

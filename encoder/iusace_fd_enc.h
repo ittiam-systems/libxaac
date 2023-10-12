@@ -24,4 +24,4 @@ IA_ERRORCODE iusace_fd_encode(ia_sfb_params_struct *pstr_sfb_prms, WORD32 usac_i
                               ia_usac_encoder_config_struct *pstr_usac_config,
                               ia_bit_buf_struct *pstr_it_bit_buff, WORD32 nr_core_coder_ch,
                               WORD32 chn, WORD32 ele_id, WORD32 *bit_written,
-                              WORD32 *is_quant_spec_zero);
+                              WORD32 *is_quant_spec_zero, WORD32* is_gain_limited);

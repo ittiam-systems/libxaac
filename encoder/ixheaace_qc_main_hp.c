@@ -75,7 +75,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
     ixheaace_qc_out_element *pstr_qc_out_element, WORD32 ancillary_data_bytes,
     ixheaace_aac_tables *pstr_aac_tables, WORD32 adts_flag, WORD32 aot, WORD32 stat_bits_flag,
     WORD32 flag_last_element, WORD32 frame_len_long, WORD8 *ptr_scratch,
-    WORD32 *is_quant_spec_zero) {
+    WORD32 *is_quant_spec_zero, WORD32 *is_gain_limited) {
   IA_ERRORCODE err_code;
   WORD32 ch;
   WORD32 i = 0;
@@ -90,6 +90,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
   ptr_scratch += sizeof(ixheaace_qc_stack);
 
   ia_adj_thr_elem_struct *pstr_adj_thr_elem = &pstr_qc_state->str_adj_thr.str_adj_thr_ele;
+  WORD32 gain;
 
   if (pstr_el_bits->bit_res_level < 0) {
     return IA_EXHEAACE_EXE_FATAL_INVALID_BIT_RES_LEVEL;
@@ -143,6 +144,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
        are fulfilled */
     WORD32 spec_idx, sfb_offs, sfb;
     iterations = 0;
+    gain = 0;
     for (spec_idx = 0; spec_idx < frame_len_long; spec_idx++) {
       ptr_stack->exp_spec[spec_idx] = (FLOAT32)psy_out_ch[ch].ptr_spec_coeffs[spec_idx];
       ptr_stack->mdct_spec_float[spec_idx] = (FLOAT32)psy_out_ch[ch].ptr_spec_coeffs[spec_idx];
@@ -156,6 +158,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
              sfb_offs += psy_out_ch[ch].sfb_per_group) {
           for (sfb = 0; sfb < psy_out_ch[ch].max_sfb_per_grp; sfb++) {
             WORD32 scalefactor = pstr_qc_out_ch[ch].scalefactor[sfb + sfb_offs];
+            gain = MAX(gain, pstr_qc_out_ch[ch].global_gain - scalefactor);
             iaace_quantize_lines(
                 pstr_qc_out_ch[ch].global_gain - scalefactor,
                 psy_out_ch[ch].sfb_offsets[sfb_offs + sfb + 1] -
@@ -204,18 +207,25 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
         constraints_fulfilled = 0;
       }
 
-      if (!constraints_fulfilled) {
-        pstr_qc_out_ch[ch].global_gain++;
-      }
-
       if (quant_spec_is_zero == 1) {
         constraints_fulfilled = 1;
-        /*Bit consuption is exceding bit reserviour, there is no scope left for bit consumption
+        /*Bit consuption is exceding bit reservoir, there is no scope left for bit consumption
           reduction, as spectrum is zero. Hence breaking the quantization loop. */
         if (iterations > 0) {
           *is_quant_spec_zero = 1;
           ch_dyn_bits = max_ch_dyn_bits[ch];
         }
+      }
+      if ((gain == MAX_GAIN_INDEX) && (constraints_fulfilled == 0)) {
+        /* Bit consuption is exceding bit reservoir, there is no scope left for bit consumption
+           reduction, as gain has reached the maximum value. Hence breaking the quantization
+           loop. */
+        constraints_fulfilled = 1;
+        *is_gain_limited = 1;
+        ch_dyn_bits = max_ch_dyn_bits[ch];
+      }
+      if (!constraints_fulfilled) {
+        pstr_qc_out_ch[ch].global_gain++;
       }
       iterations++;
 

@@ -109,7 +109,7 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
     VOID *ptr_bit_stream, FLAG flag_last_element, WORD32 *write_program_config_element,
     WORD32 i_num_coup_channels, WORD32 i_channels_mask, WORD32 ele_idx, WORD32 *total_fill_bits,
     WORD32 total_channels, WORD32 aot, WORD32 adts_flag, WORD32 num_bs_elements,
-    WORD32 *is_quant_spec_zero);
+    WORD32 *is_quant_spec_zero, WORD32 *is_gain_limited);
 
 VOID ia_enhaacplus_enc_set_shared_bufs(iaace_scratch *scr, WORD32 **shared_buf1,
                                        WORD32 **shared_buf2, WORD32 **shared_buf3,
