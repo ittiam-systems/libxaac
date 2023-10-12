@@ -54,6 +54,7 @@
 #include "iusace_lpd_rom.h"
 #include "iusace_lpd.h"
 #include "iusace_func_prototypes.h"
+#include "ixheaac_error_standards.h"
 
 VOID iusace_init_td_data(ia_usac_td_encoder_struct *st, WORD32 len_frame) {
   WORD32 len_window;
@@ -809,5 +810,5 @@ IA_ERRORCODE iusace_lpd_frm_enc(ia_usac_data_struct *usac_data, WORD32 *mod_out,
   td_encoder->prev_mode = (WORD16)mode[3];
 
   memcpy(mod_out, mode, 4 * sizeof(WORD32));
-  return 0;
+  return IA_NO_ERROR;
 }

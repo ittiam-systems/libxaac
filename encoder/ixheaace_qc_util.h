@@ -20,12 +20,12 @@
 
 #pragma once
 
-WORD32 ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
-                                    WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
-                                    WORD32 frame_len_long);
+IA_ERRORCODE ia_enhaacplus_enc_qc_out_new(ixheaace_qc_out *pstr_qc_out, WORD32 num_channels,
+                                          WORD32 *ptr_shared_buffer1, WORD32 *ptr_shared_buffer3,
+                                          WORD32 frame_len_long);
 
-WORD32 ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state, WORD32 *ptr_shared_buffer_2,
-                                WORD32 frame_len_long);
+IA_ERRORCODE ia_enhaacplus_enc_qc_new(ixheaace_qc_state *pstr_qc_state,
+                                      WORD32 *ptr_shared_buffer_2, WORD32 frame_len_long);
 
 IA_ERRORCODE ia_enhaacplus_enc_qc_init(ixheaace_qc_state *pstr_qc_state, WORD32 aot,
                                        ixheaace_qc_init *pstr_init, FLAG flag_framelength_small);

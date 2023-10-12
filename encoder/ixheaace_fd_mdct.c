@@ -52,6 +52,7 @@
 #include "ixheaace_asc_write.h"
 #include "iusace_main.h"
 #include "iusace_windowing.h"
+#include "ixheaac_error_standards.h"
 
 static IA_ERRORCODE iusace_fd_mdct_short(ia_usac_data_struct *pstr_usac_data,
                                          ia_usac_encoder_config_struct *pstr_usac_config,
@@ -196,7 +197,7 @@ static IA_ERRORCODE iusace_fd_mdct_long(ia_usac_data_struct *pstr_usac_data,
     return err_code_2;
   }
 
-  return 0;
+  return IA_NO_ERROR;
 }
 
 WORD32 iusace_fd_mdct(ia_usac_data_struct *pstr_usac_data,

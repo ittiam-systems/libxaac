@@ -936,19 +936,13 @@ VOID ia_enhaacplus_enc_code_values(WORD16 *ptr_values, WORD32 width, WORD32 code
   }
 }
 
-WORD32 ia_enhaacplus_enc_code_scale_factor_delta(WORD32 delta,
-                                                 ixheaace_bit_buf_handle h_bitstream,
-                                                 ixheaace_huffman_tables *pstr_huffman_tbl) {
+VOID ia_enhaacplus_enc_code_scale_factor_delta(WORD32 delta,
+                                               ixheaace_bit_buf_handle h_bitstream,
+                                               ixheaace_huffman_tables *pstr_huffman_tbl) {
   WORD32 code_word, code_length;
-
-  if (abs32(delta) > CODE_BCK_SCF_LAV) {
-    return (1);
-  }
 
   code_word = pstr_huffman_tbl->huff_ctabscf[delta + CODE_BCK_SCF_LAV];
   code_length = pstr_huffman_tbl->huff_ltabscf[delta + CODE_BCK_SCF_LAV];
 
   ixheaace_write_bits(h_bitstream, code_word, (UWORD8)code_length);
-
-  return (0);
 }

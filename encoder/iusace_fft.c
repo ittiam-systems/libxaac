@@ -45,6 +45,8 @@
 #include "ixheaace_aac_constants.h"
 #include "ixheaac_basic_ops32.h"
 #include "ixheaace_common_utils.h"
+#include "ixheaac_error_standards.h"
+#include "ixheaace_error_codes.h"
 
 #define DIG_REV(i, m, j)                                    \
   do {                                                      \
@@ -909,7 +911,7 @@ IA_ERRORCODE iusace_fft_based_mdct(FLOAT64 *ptr_in, FLOAT64 *ptr_out, WORD32 npo
       sin_ptr = iusace_pre_post_twid_sin_2048;
       break;
     default:
-      return -1;
+      return IA_EXHEAACE_EXE_FATAL_USAC_INVALID_WINDOW_LENGTH;
   }
 
   /* pre-twiddle */
@@ -921,7 +923,7 @@ IA_ERRORCODE iusace_fft_based_mdct(FLOAT64 *ptr_in, FLOAT64 *ptr_out, WORD32 npo
   /* post-twiddle */
   iusace_calc_post_twid_enc(ptr_out, ptr_scratch1, npoints << 1, cos_ptr, sin_ptr, tx_flag);
 
-  return 0;
+  return IA_NO_ERROR;
 }
 
 VOID iusace_complex_fft_2048(FLOAT32 *ptr_x, FLOAT32 *scratch_fft) {

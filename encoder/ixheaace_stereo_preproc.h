@@ -50,7 +50,7 @@ typedef struct {
 
 typedef ixheaace_stereo_pre_pro_struct *ixheaace_stereo_pre_pro_pstr;
 
-WORD32 iaace_init_stereo_pre_processing(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
+IA_ERRORCODE iaace_init_stereo_pre_processing(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
                                         WORD32 no_channels, WORD32 bit_rate, WORD32 sample_rate,
                                         FLOAT32 used_scf_ratio);
 

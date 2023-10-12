@@ -418,8 +418,8 @@ static VOID ia_enhaacplus_enc_allocate_bitrate_between_channels(
   }
 }
 
-static WORD32 ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
-  if (0 == ch_mask) return 0;
+static IA_ERRORCODE ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   // If ch_mask not supported, return error
   WORD32 temp_mask;
   switch (num_ch) {
@@ -446,11 +446,10 @@ static WORD32 ixheaace_validate_channel_mask(WORD32 ch_mask, WORD32 num_ch) {
       temp_mask = 0;
       break;
   }
-  if (ch_mask == temp_mask) {
-    return 0;
-  } else {
-    return -1;
+  if (ch_mask != temp_mask) {
+    err_code =  IA_EXHEAACE_CONFIG_FATAL_CHANNELS_MASK;
   }
+  return err_code;
 }
 
 static VOID ixheaace_set_default_channel_mask(WORD32 *ch_mask, WORD32 num_ch) {
@@ -1953,9 +1952,6 @@ static IA_ERRORCODE ia_usac_enc_init(ixheaace_api_struct *pstr_api_struct, WORD3
   pstr_ia_asc_bit_buf = iusace_create_bit_buffer(
       &(pstr_api_struct->pstr_state->str_bit_buf), pstr_api_struct->pp_mem[IA_MEMTYPE_OUTPUT],
       pstr_api_struct->pstr_mem_info[IA_MEMTYPE_OUTPUT].ui_size, 1);
-#ifdef ENABLE_SET_JUMP
-  pstr_ia_asc_bit_buf->iusace_jmp_buf = &api_init_jmp_buf;
-#endif
   if (pstr_usac_config->sbr_enable) {
     pstr_api_struct->pstr_state->audio_specific_config.str_usac_config.str_usac_element_config
         ->stereo_config_index = (pstr_api_struct->pstr_state->mps_enable == 1) ? 2 : 0;
@@ -2767,14 +2763,6 @@ static IA_ERRORCODE ia_enhaacplus_enc_execute(ixheaace_api_struct *pstr_api_stru
 static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
   IA_ERRORCODE error = IA_NO_ERROR;
   WORD32 idx;
-#ifdef ENABLE_SET_JUMP
-  jmp_buf api_execute_jmp_buf;
-  error = setjmp(api_execute_jmp_buf);
-  if (error != IA_NO_ERROR) {
-    return IA_EXHEAACE_EXE_NONFATAL_USAC_INSUFFICIENT_WRITE_BUFFER_SIZE;
-  }
-#endif  // ENABLE_SET_JUMP
-
   WORD32 write_off_set = 0;
   WORD32 core_coder_frame_length;
   WORD32 usac_independency_flg;
@@ -3264,11 +3252,8 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
       iusace_create_bit_buffer(pstr_it_bit_buff, pstr_api_struct->pp_mem[IA_MEMTYPE_OUTPUT],
                                pstr_api_struct->pstr_mem_info[IA_MEMTYPE_OUTPUT].ui_size, 1);
   if (pstr_it_bit_buff == NULL) {
-    return -1;
+    return IA_EXHEAACE_INIT_FATAL_USAC_BITBUFFER_INIT_FAILED;
   }
-#ifdef ENABLE_SET_JUMP
-  pstr_it_bit_buff->iusace_jmp_buf = &api_execute_jmp_buf;
-#endif
   error =
       ixheaace_usac_encode(pstr_api_struct->pstr_state->ptr_in_buf, pstr_config,
                            &pstr_api_struct->pstr_state->str_usac_enc_data,

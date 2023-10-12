@@ -19,7 +19,7 @@
  */
 
 #include <string.h>
-
+#include "ixheaac_error_standards.h"
 #include "ixheaac_type_def.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_resampler.h"
@@ -30,7 +30,7 @@
 #include "ixheaace_sbr_ps_enc.h"
 #include "ixheaac_constants.h"
 #include "ixheaace_aac_constants.h"
-
+#include "ixheaace_error_codes.h"
 #include "ixheaace_bitbuffer.h"
 
 WORD32 ixheaace_get_ps_mode(WORD32 bitrate) {
@@ -43,23 +43,22 @@ WORD32 ixheaace_get_ps_mode(WORD32 bitrate) {
   return ps_mode;
 }
 
-WORD32
+IA_ERRORCODE
 ixheaace_create_ps_enc(ixheaace_pstr_ps_enc pstr_ps_enc, WORD32 ps_mode,
                        FLOAT32 *ptr_common_buffer, FLOAT32 *ptr_common_buffer2,
                        FLOAT32 *ptr_ps_buf3) {
   WORD32 i;
-  WORD32 err;
+  IA_ERRORCODE err = IA_NO_ERROR;
 
   FLOAT32 *ptr1, *ptr2, *ptr3, *ptr4;
 
+  if (pstr_ps_enc == NULL) {
+    return IA_EXHEAACE_INIT_FATAL_PS_INIT_FAILED;
+  }
   ptr1 = &ptr_common_buffer2[IXHEAACE_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS];
   ptr2 = pstr_ps_enc->ps_buf2;
   ptr3 = ptr_ps_buf3;
   ptr4 = &ptr_common_buffer[5 * NO_OF_ESTIMATES * MAXIMUM_FREQ_COEFFS];
-
-  if (pstr_ps_enc == NULL) {
-    return 1;
-  }
 
   pstr_ps_enc->ps_mode = ps_mode;
   pstr_ps_enc->b_prev_zero_iid = 0;
@@ -93,14 +92,14 @@ ixheaace_create_ps_enc(ixheaace_pstr_ps_enc pstr_ps_enc, WORD32 ps_mode,
 
   err = ixheaace_create_hybrid_filter_bank(pstr_ps_enc->ptr_hybrid_left, &ptr4);
 
-  if (err != 0) {
-    return 1;
+  if (err) {
+    return err;
   }
 
   err = ixheaace_create_hybrid_filter_bank(pstr_ps_enc->ptr_hybrid_right, &ptr4);
 
-  if (err != 0) {
-    return 1;
+  if (err) {
+    return err;
   }
 
   for (i = 0; i < NUMBER_OF_SUBSAMPLES; i++) {
@@ -189,7 +188,7 @@ ixheaace_create_ps_enc(ixheaace_pstr_ps_enc pstr_ps_enc, WORD32 ps_mode,
 
   if ((pstr_ps_enc->hist_qmf_left_real == NULL) || (pstr_ps_enc->hist_qmf_left_imag == NULL) ||
       (pstr_ps_enc->hist_qmf_right_real == NULL) || (pstr_ps_enc->hist_qmf_right_imag == NULL)) {
-    return 1;
+    return IA_EXHEAACE_INIT_FATAL_PS_INIT_FAILED;
   }
 
   for (i = 0; i < pstr_ps_enc->iid_icc_bins; i++) {
@@ -207,5 +206,5 @@ ixheaace_create_ps_enc(ixheaace_pstr_ps_enc pstr_ps_enc, WORD32 ps_mode,
   pstr_ps_enc->ps_bit_buf.ptr_write_next =
       pstr_ps_enc->ps_bit_buf.ptr_bit_buf_base + pstr_ps_enc->bit_buf_write_offset;
 
-  return 0;
+  return err;
 }

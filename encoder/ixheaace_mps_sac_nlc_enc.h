@@ -19,7 +19,7 @@
  */
 
 #pragma once
-WORD32 ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle strm,
+VOID ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle strm,
                                          WORD32 aa_in_data[][MAXBANDS],
                                          WORD32 a_history[MAXBANDS], WORD32 data_type,
                                          WORD32 set_idx, WORD32 start_band, WORD32 data_bands,

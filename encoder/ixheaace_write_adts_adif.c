@@ -35,7 +35,7 @@
 #include "ixheaac_basic_ops.h"
 #include "ixheaace_common_utils.h"
 
-static WORD32 ia_enhaacplus_enc_putbit(ixheaace_bitstream_params *pstr_bitstream, UWORD32 data,
+static VOID ia_enhaacplus_enc_putbit(ixheaace_bitstream_params *pstr_bitstream, UWORD32 data,
                                        WORD32 num_bit) {
   WORD32 num, max_num, curr_num;
   WORD32 num_used, idx;
@@ -43,7 +43,7 @@ static WORD32 ia_enhaacplus_enc_putbit(ixheaace_bitstream_params *pstr_bitstream
   WORD32 current_bitstream_bit;
   UWORD8 *bitstream_data;
 
-  if (num_bit == 0) return 0;
+  if (num_bit == 0) return;
 
   current_bitstream_bit = pstr_bitstream->current_bit;
   bitstream_data = pstr_bitstream->data;
@@ -99,8 +99,6 @@ static WORD32 ia_enhaacplus_enc_putbit(ixheaace_bitstream_params *pstr_bitstream
 
   pstr_bitstream->current_bit = current_bitstream_bit;
   pstr_bitstream->num_bit = current_bitstream_bit;
-
-  return 0;
 }
 
 static WORD16 ia_enhaacplus_enc_get_sample_rate_index(WORD32 sample_rate) {

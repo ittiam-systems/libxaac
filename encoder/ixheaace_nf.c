@@ -62,9 +62,17 @@ static VOID iusace_noise_filling_limiter(FLOAT64 *energy, FLOAT64 *ptr_spec,
   }
   /* remove the contribution of the highest_tone components */
   for (n = 0; n < n0_by_4; n++) tot_tone_energy += ptr_highest_tone[n];
-  *energy -= tot_tone_energy;
-  if (fabs(*energy) < DBL_EPSILON)
+
+  FLOAT64 diff = *energy - tot_tone_energy;
+  //If the difference is within 1% of total energy, no need to send any energy
+  if (diff < 0.01*(*energy))
+  {
     *energy = 0.0;
+  }
+  else
+  {
+    *energy = diff;
+  }
 
   /* add the average component energy */
   *energy += n0_by_4 * (*energy) / (cntr - n0_by_4);
@@ -124,8 +132,8 @@ VOID iusace_noise_filling(WORD32 *noise_level, WORD32 *noise_offset, FLOAT64 *pt
 
         /* Remove highest (tonal) contributions */
         iusace_noise_filling_limiter(&energy, &ptr_quant_spec[offset],
-                                     &(pstr_quant_info->quant_degroup[offset]), n0 / 4, ptr_sfb_offset, sfb,
-                                     n0, ptr_scratch_buf);
+                                     &pstr_quant_info->quant_degroup[offset], n0 / 4,
+                                     ptr_sfb_offset, sfb, n0, ptr_scratch_buf);
 
         if (band_quantized_to_zero == 0) {
           e_sfb_on += energy;

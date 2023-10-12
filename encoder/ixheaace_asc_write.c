@@ -45,6 +45,7 @@
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_common_rom.h"
+#include "ixheaace_error_codes.h"
 
 static WORD32 ixheaace_spatial_specific_config(ia_bit_buf_struct *pstr_it_bit_buff,
                                                ia_aace_config_struct *pstr_eld_config) {
@@ -232,8 +233,7 @@ static WORD32 iusace_encoder_config(ia_bit_buf_struct *pstr_it_bit_buff,
         bit_cnt += iusace_ext_element_config(pstr_it_bit_buff, pstr_usac_enc_conf);
         break;
       default:
-        return -1;
-        ;
+        return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_ELEMENT_TYPE;
         break;
     }
   }

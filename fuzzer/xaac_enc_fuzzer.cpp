@@ -406,7 +406,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   while (fuzzed_data.remaining_bytes()) {
     if (fuzzed_data.ConsumeBool()) {
       std::vector<WORD8> inputVec = fuzzed_data.ConsumeBytes<WORD8>(input_size);
-      if(inputVec.size()) {
+      if (inputVec.size()) {
         memcpy(pb_inp_buf, inputVec.data(), inputVec.size());
       }
     } else {

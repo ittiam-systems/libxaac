@@ -1581,13 +1581,13 @@ IA_ERRORCODE ixheaace_mps_212_ec_data_single_enc(
   return IA_NO_ERROR;
 }
 
-WORD32 ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle pstr_bit_buf,
+VOID ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle pstr_bit_buf,
                                          WORD32 pp_in_data[][MAXBANDS],
                                          WORD32 p_in_data[MAXBANDS], WORD32 data_type,
                                          WORD32 set_idx, WORD32 start_band, WORD32 data_bands,
                                          WORD32 pair_flag, WORD32 coarse_flag,
                                          WORD32 independency_flag) {
-  WORD32 dummy = 0, reset = 0;
+  WORD32 dummy = 0;
   WORD32 quant_levels = 0, quant_offset = 0, num_pcm_val = 0;
 
   WORD32 split_lsb_flag = 0;
@@ -1666,7 +1666,7 @@ WORD32 ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle pstr_bit_buf,
       break;
 
     default:
-      return 0;
+      return;
   }
 
   memcpy(a_data_hist, p_in_data + start_band, sizeof(WORD32) * data_bands);
@@ -1910,5 +1910,5 @@ WORD32 ixheaace_mps_515_ec_data_pair_enc(ixheaace_bit_buf_handle pstr_bit_buf,
     }
   }
 
-  return reset;
+  return;
 }

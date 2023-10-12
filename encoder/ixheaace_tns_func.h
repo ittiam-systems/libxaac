@@ -45,7 +45,7 @@ VOID ia_enhaacplus_enc_tns_sync(ixheaace_temporal_noise_shaping_data *pstr_tns_d
                                 const ixheaace_temporal_noise_shaping_config tns_config,
                                 const WORD32 sub_blk_num, const WORD32 block_type);
 
-WORD32 ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr_tns_info,
+VOID ia_enhaacplus_enc_tns_encode(ixheaace_temporal_noise_shaping_params *pstr_tns_info,
                                     ixheaace_temporal_noise_shaping_data *pstr_tns_data,
                                     WORD32 num_sfb,
                                     ixheaace_temporal_noise_shaping_config tns_config,

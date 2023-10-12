@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "ixheaac_type_def.h"
-
+#include "ixheaac_error_standards.h"
 #include "ixheaace_common_rom.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_resampler.h"
@@ -61,5 +61,5 @@ ixheaace_create_hybrid_filter_bank(ixheaace_pstr_hybrid pstr_hybrid, FLOAT32 **p
   }
 
   *pptr_flt = ptr_flt;
-  return 0;
+  return IA_NO_ERROR;
 }
