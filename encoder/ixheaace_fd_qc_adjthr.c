@@ -798,7 +798,7 @@ static IA_ERRORCODE iusace_adapt_thr_to_pe(ia_psy_mod_out_data_struct *pstr_psy_
   FLOAT32 const_part, const_part_no_ah;
   FLOAT32 nactive_lines, nactive_lines_no_ah;
   FLOAT32 desired_pe_no_ah;
-  FLOAT32 avg_thr_exp, redval;
+  FLOAT32 redval = 0.0f;
   WORD32 *ah_flag[2];
   WORD32 iteration;
   for (WORD32 i = 0; i < 2; i++) {
@@ -818,12 +818,14 @@ static IA_ERRORCODE iusace_adapt_thr_to_pe(ia_psy_mod_out_data_struct *pstr_psy_
   no_red_pe = pstr_qs_pe_data->pe;
   const_part = pstr_qs_pe_data->const_part;
   nactive_lines = pstr_qs_pe_data->num_active_lines;
-  avg_thr_exp = (FLOAT32)pow(2.0f, (const_part - no_red_pe) / (INV_RED_EXP_VAL * nactive_lines));
-  redval = (FLOAT32)pow(2.0f, (const_part - desired_pe) / (INV_RED_EXP_VAL * nactive_lines)) -
-           avg_thr_exp;
-  redval = MAX(0.0f, redval);
-
-  iusace_reduce_thr(pstr_psy_out, ah_flag, thr_exp, redval, num_channels, chn);
+  if (nactive_lines > FLT_EPSILON) {
+    FLOAT32 avg_thr_exp = (FLOAT32)pow(2.0f, (const_part - no_red_pe) /
+                  (INV_RED_EXP_VAL * nactive_lines));
+    redval = (FLOAT32)pow(2.0f, (const_part - desired_pe) / (INV_RED_EXP_VAL * nactive_lines)) -
+             avg_thr_exp;
+    redval = MAX(0.0f, redval);
+    iusace_reduce_thr(pstr_psy_out, ah_flag, thr_exp, redval, num_channels, chn);
+  }
 
   iusace_calc_sfb_pe_data(pstr_qs_pe_data, pstr_psy_out, num_channels, chn);
   red_pe = pstr_qs_pe_data->pe;
@@ -834,8 +836,8 @@ static IA_ERRORCODE iusace_adapt_thr_to_pe(ia_psy_mod_out_data_struct *pstr_psy_
                                    pstr_qs_pe_data, ah_flag, pstr_psy_out, num_channels, chn);
 
     desired_pe_no_ah = MAX(desired_pe - (red_pe - red_pe_no_ah), 0);
-    if (nactive_lines_no_ah > 0) {
-      avg_thr_exp = (FLOAT32)pow(
+    if (nactive_lines_no_ah > FLT_EPSILON) {
+      FLOAT32 avg_thr_exp = (FLOAT32)pow(
           2.0f, (const_part_no_ah - red_pe_no_ah) / (INV_RED_EXP_VAL * nactive_lines_no_ah));
       redval += (FLOAT32)pow(2.0f, (const_part_no_ah - desired_pe_no_ah) /
                                        (INV_RED_EXP_VAL * nactive_lines_no_ah)) -
