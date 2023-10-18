@@ -61,7 +61,6 @@ cc_test {
         "encoder/impd_drc_user_config.c",
         "encoder/ixheaace_error.c",
         "encoder/ixheaace_testbench.c",
-        "encoder/ixheaace_wav_reader.c",
     ],
 
     static_libs: ["libxaacenc"],
