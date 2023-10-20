@@ -365,12 +365,13 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
                              (frame_data->qmapped_pvc[c][t] + guard))
                       : nrg_tone_pvc[c][t]);
 
-              nrg_tone_pvc[c][t] = (FLOAT32)(
-                  ((*harm_flag_varlen)[c] &&
-                   (t >= frame_data->sin_start_for_cur_top ||
-                    (*harm_flag_varlen_prev)[c + sub_band_start]))
-                      ? sqrt(nrg_ref_pvc[c][t] * tmp / prev_env_noise_level[o])
-                      : nrg_tone_pvc[c][t]);
+              nrg_tone_pvc[c][t] =
+                  (FLOAT32)(((*harm_flag_varlen)[c] &&
+                             (t >= frame_data->sin_start_for_cur_top ||
+                              (*harm_flag_varlen_prev)[c + sub_band_start]))
+                                ? sqrt(nrg_ref_pvc[c][t] * tmp /
+                                       (prev_env_noise_level[o] + guard))
+                                : nrg_tone_pvc[c][t]);
 
             } else {
               if (noise_absc_flag) {
@@ -522,7 +523,8 @@ WORD32 ixheaacd_sbr_env_calc(ia_sbr_frame_info_data_struct *frame_data, FLOAT32 
                k < (*lim_table)[limiter_band][c + 1]; k++) {
             if (g_max <= nrg_gain_pvc[k][t]) {
               noise_level_pvc[k][t] =
-                  noise_level_pvc[k][t] * (g_max / nrg_gain_pvc[k][t]);
+                  (FLOAT32)(noise_level_pvc[k][t] *
+                            (g_max / (nrg_gain_pvc[k][t] + guard)));
               nrg_gain_pvc[k][t] = g_max;
             }
 
