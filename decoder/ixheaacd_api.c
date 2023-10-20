@@ -3042,9 +3042,14 @@ IA_ERRORCODE ixheaacd_dec_execute(
          p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_ELD &&
          p_state_enhaacplus_dec->audio_object_type != AOT_ER_AAC_LC)) {
       jmp_buf local;
-      ret_val = setjmp(local);
+
+      if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal == 1) {
+        ret_val = setjmp(local);
+      }
       if (ret_val == 0) {
-        p_obj_exhaacplus_dec->p_state_aac->ptr_bit_stream->xaac_jmp_buf = &local;
+        if (p_obj_exhaacplus_dec->aac_config.ui_err_conceal == 1) {
+          p_obj_exhaacplus_dec->p_state_aac->ptr_bit_stream->xaac_jmp_buf = &local;
+        }
         error_code = ixheaacd_get_element_index_tag(
             p_obj_exhaacplus_dec, ch_idx1, &ch_idx, &channel,
             p_obj_exhaacplus_dec->aac_config.element_instance_order, total_elements, element_used,
