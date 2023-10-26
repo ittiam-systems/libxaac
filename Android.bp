@@ -338,6 +338,19 @@ cc_library_static {
                 "decoder/x86_64/ixheaacd_function_selector_x86_64.c",
             ],
         },
+
+        riscv64: {
+            cflags: [
+            ],
+
+            local_include_dirs: [
+            ],
+
+            srcs: [
+                "decoder/generic/ixheaacd_qmf_dec_generic.c",
+                "decoder/generic/ixheaacd_function_selector_generic.c",
+            ],
+        },
     },
 }
 

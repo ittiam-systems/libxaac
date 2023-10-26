@@ -77,6 +77,10 @@ VOID(*ixheaacd_covariance_matrix_calc_960)
 (WORD32 *, ia_lpp_trans_cov_matrix *,
  WORD32, WORD32) = &ixheaacd_covariance_matrix_calc_dec_960;
 
+VOID(*ixheaacd_aac_ld_dec_rearrange_960)
+(WORD32 *ip, WORD32 *op, WORD32 mdct_len_2,
+ WORD16 *re_arr_tab) = &ixheaacd_dec_rearrange_short;
+
 VOID(*ixheaacd_covariance_matrix_calc_2)
 (ia_lpp_trans_cov_matrix *, WORD32 *, WORD32,
  WORD16) = &ixheaacd_covariance_matrix_calc_2_dec;
