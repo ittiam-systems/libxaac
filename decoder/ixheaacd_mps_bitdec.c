@@ -47,6 +47,8 @@
 #include "ixheaacd_mps_mdct_2_qmf.h"
 #include "ixheaac_sbr_const.h"
 
+static const WORD32 ixheaacd_freq_res_table[] = {0, 28, 20, 14, 10, 7, 5, 4};
+
 static WORD32 ixheaacd_bound_check(WORD32 var, WORD32 lower_bound, WORD32 upper_bound) {
   var = min(var, upper_bound);
   var = max(var, lower_bound);
@@ -130,6 +132,10 @@ static IA_ERRORCODE ixheaacd_parse_extension_config(
         config->bs_arbitrary_downmix_residual_frames_per_spatial_frame =
             (temp >> 5) & TWO_BIT_MASK;
         config->bs_arbitrary_downmix_residual_bands = temp & FIVE_BIT_MASK;
+        if (config->bs_arbitrary_downmix_residual_bands >=
+            ixheaacd_freq_res_table[config->bs_freq_res]) {
+          return IA_FATAL_ERROR;
+        }
 
         break;
 
