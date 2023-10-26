@@ -146,7 +146,7 @@ typedef struct {
 
   UINT32 bs_arbitrary_downmix_residual_sampling_freq_index;
   UINT32 bs_arbitrary_downmix_residual_frames_per_spatial_frame;
-  UINT32 bs_arbitrary_downmix_residual_bands;
+  WORD32 bs_arbitrary_downmix_residual_bands;
 
   UINT32 num_out_chan_AT;
   UINT32 num_ott_boxes_AT;

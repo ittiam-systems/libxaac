@@ -120,6 +120,10 @@ static IA_ERRORCODE ixheaacd_ld_spatial_extension_config(
               ixheaacd_read_bits_buf(it_bit_buff, 2);
           config->bs_arbitrary_downmix_residual_bands =
               ixheaacd_read_bits_buf(it_bit_buff, 5);
+          if (config->bs_arbitrary_downmix_residual_bands >=
+              ixheaacd_freq_res_table[config->bs_freq_res]) {
+            return IA_FATAL_ERROR;
+          }
 
           break;
 
