@@ -34,8 +34,10 @@ extern "C" {
 #include "ixheaace_api.h"
 }
 
-static constexpr WORD32 kSampleRates[] = {7350,  8000,  11025, 12000, 16000, 22050, 24000,
+static constexpr WORD32 k_sample_rates[] = {7350,  8000,  11025, 12000, 16000, 22050, 24000,
                                           32000, 44100, 48000, 64000, 88200, 96000};
+static constexpr WORD16 k_frame_length[] = {480,  512,  768, 960, 1024};
+
 pVOID malloc_global(UWORD32 size, UWORD32 alignment) {
   pVOID ptr = NULL;
   if (posix_memalign((VOID **)&ptr, alignment, size)) {
@@ -315,11 +317,15 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
   pstr_in_cfg->ui_pcm_wd_sz = fuzzed_data->ConsumeIntegral<WORD8>();
   pstr_in_cfg->i_channels = fuzzed_data->ConsumeIntegral<WORD8>();
   if (fuzzed_data->ConsumeBool()) {
-    pstr_in_cfg->i_samp_freq = fuzzed_data->PickValueInArray(kSampleRates);
+    pstr_in_cfg->i_samp_freq = fuzzed_data->PickValueInArray(k_sample_rates);
   } else {
     pstr_in_cfg->i_samp_freq = fuzzed_data->ConsumeIntegral<WORD32>();
   }
-  pstr_in_cfg->frame_length = fuzzed_data->ConsumeIntegral<WORD8>();
+  if (fuzzed_data->ConsumeBool()) {
+    pstr_in_cfg->frame_length = fuzzed_data->PickValueInArray(k_frame_length);
+  } else {
+    pstr_in_cfg->frame_length = fuzzed_data->ConsumeIntegral<WORD16>();
+  }
   pstr_in_cfg->aot = fuzzed_data->ConsumeIntegral<WORD8>();
   pstr_in_cfg->esbr_flag = fuzzed_data->ConsumeBool();
   pstr_in_cfg->aac_config.full_bandwidth = fuzzed_data->ConsumeBool();
