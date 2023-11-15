@@ -3601,6 +3601,9 @@ IA_ERRORCODE ixheaace_process(pVOID pstr_obj_ixheaace, pVOID pv_input, pVOID pv_
   if (!pstr_api_struct->usac_en) {
     for (ele_idx = 0; ele_idx < pstr_api_struct->config[0].num_bs_elements; ele_idx++) {
       error = ia_enhaacplus_enc_execute(pstr_api_struct, ele_idx);
+      if (error != IA_NO_ERROR) {
+        return error;
+      }
     }
     if ((error == IA_NO_ERROR) && (pstr_api_struct->pstr_state->is_quant_spec_zero)) {
       error = IA_EXHEAACE_EXE_NONFATAL_QUANTIZATION_SPECTRUM_ZERO;
