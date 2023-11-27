@@ -62,7 +62,8 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
                                      FLOAT32 **ptr_ana_r, FLOAT32 **ptr_ana_i,
                                      ixheaace_pstr_sbr_qmf_filter_bank pstr_qmf_bank,
                                      ixheaace_str_qmf_tabs *pstr_qmf_tab, WORD32 num_qmf_subsamp,
-                                     WORD32 is_ld_sbr, FLOAT32 *ptr_sbr_scratch);
+                                     WORD32 is_ld_sbr, FLOAT32 *ptr_sbr_scratch,
+                                     WORD32 is_ps_960);
 
 VOID ixheaace_create_qmf_bank(ixheaace_pstr_sbr_qmf_filter_bank pstr_sbr_qmf_handle,
                               ixheaace_str_sbr_tabs *pstr_sbr_tab, WORD32 is_ld_sbr);

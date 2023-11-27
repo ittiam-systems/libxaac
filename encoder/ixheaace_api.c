@@ -785,6 +785,10 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
         pstr_input_config->frame_length = LEN_SUPERFRAME;
       }
     }
+    if ((pstr_input_config->frame_length == FRAME_LEN_960) &&
+        (pstr_input_config->esbr_flag == 1)) {
+      pstr_input_config->esbr_flag = 0;
+    }
   }
 }
 
