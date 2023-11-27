@@ -1120,8 +1120,10 @@ WORD32 ixheaacd_extension_payload(ia_bit_buf_struct *it_bit_buff, WORD32 *cnt,
       ixheaacd_read_bits_buf(it_bit_buff, 2);/*anc_type*/
       ixheaacd_read_bits_buf(it_bit_buff, 2);/*anc_start_stop*/
 
-      err = ixheaacd_ld_mps_frame_parsing(self, it_bit_buff);
-      if (err) return err;
+      if (self->ldmps_config.ldmps_present_flag == 1) {
+        err = ixheaacd_ld_mps_frame_parsing(self, it_bit_buff);
+        if (err) return err;
+      }
 
       *cnt = it_bit_buff->cnt_bits;
       break;
