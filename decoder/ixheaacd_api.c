@@ -2452,11 +2452,8 @@ IA_ERRORCODE ixheaacd_dec_init(
              (p_obj_exhaacplus_dec->p_state_aac->audio_object_type ==
               AOT_ER_AAC_ELD)))
           p_obj_exhaacplus_dec->aac_config.flag_to_stereo = 1;
-        if (p_state_enhaacplus_dec->mps_dec_handle.ldmps_config
-                .ldmps_present_flag == 1) {
-          copy_qmf_to_ldmps(&p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle,
-                            p_state_enhaacplus_dec->sbr_persistent_mem_v);
-        }
+        copy_qmf_to_ldmps(&p_obj_exhaacplus_dec->p_state_aac->mps_dec_handle,
+                          p_state_enhaacplus_dec->sbr_persistent_mem_v);
         if (p_state_enhaacplus_dec->audio_object_type == AOT_AAC_LC &&
             p_state_enhaacplus_dec->ui_mps_out_bytes != 0) {
           p_state_enhaacplus_dec->heaac_mps_handle.heaac_mps_present = 1;
