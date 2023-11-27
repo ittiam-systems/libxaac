@@ -801,7 +801,8 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
                                      FLOAT32 **ptr_ana_r, FLOAT32 **ptr_ana_i,
                                      ixheaace_pstr_sbr_qmf_filter_bank pstr_qmf_bank,
                                      ixheaace_str_qmf_tabs *pstr_qmf_tab, WORD32 num_qmf_subsamp,
-                                     WORD32 is_ld_sbr, FLOAT32 *ptr_sbr_scratch) {
+                                     WORD32 is_ld_sbr, FLOAT32 *ptr_sbr_scratch,
+                                     WORD32 is_ps_960) {
   WORD32 i, k;
   const FLOAT32 *ptr_pf_l, *ptr_pf_r;
   FLOAT32 *ptr_fp1, *ptr_fp2, *ptr_tmp;
@@ -938,6 +939,12 @@ VOID ixheaace_sbr_analysis_filtering(const FLOAT32 *ptr_time_in, WORD32 time_sn_
     pstr_qmf_bank->offset_l = ptr_start_coeff_l - pstr_qmf_bank->ptr_ref_coeff_l;
     pstr_qmf_bank->offset_r = pstr_qmf_bank->ptr_ref_coeff_r - ptr_start_coeff_r;
     pstr_qmf_bank->flag = flag;
+  }
+  if (is_ps_960 == 1) {
+    memset(&ptr_ana_r[num_qmf_subsamp][0], 0, sizeof(ptr_ana_r[num_qmf_subsamp][0]) *
+           IXHEAACE_QMF_CHANNELS * (IXHEAACE_QMF_TIME_SLOTS - num_qmf_subsamp));
+    memset(&ptr_ana_i[num_qmf_subsamp][0], 0, sizeof(ptr_ana_i[num_qmf_subsamp][0]) *
+           IXHEAACE_QMF_CHANNELS * (IXHEAACE_QMF_TIME_SLOTS - num_qmf_subsamp));
   }
 }
 

@@ -1918,115 +1918,108 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
   while (ch < n_in_channels) {
     ixheaace_str_sbr_extr_env *pstr_sbr_extract_env = &(pstr_env_ch[ch]->str_sbr_extract_env);
 
-    if (pstr_ps_enc) {
-      ixheaace_sbr_analysis_filtering(
-          ptr_in_time ? ptr_in_time + ch : NULL, IXHEAACE_MAX_CH_IN_BS_ELE,
-          pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
-          &pstr_env_ch[ch]->str_sbr_qmf, ptr_sbr_tab->ptr_qmf_tab,
-          pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
-          pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch);
-    } else {
-      ixheaace_sbr_analysis_filtering(
-          ptr_in_time ? ptr_in_time + ch : NULL, time_sn_stride,
-          pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
-          &pstr_env_ch[ch]->str_sbr_qmf, ptr_sbr_tab->ptr_qmf_tab,
-          pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
-          pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch);
-      if ((1 == n_in_channels) && (USAC_SBR == pstr_sbr_cfg->sbr_codec) &&
-          (pstr_sbr_hdr->sbr_pvc_active)) {
-        ixheaace_pvc_scratch *pstr_pvc_scr = (ixheaace_pvc_scratch *)ptr_sbr_scratch;
-        WORD32 ts, bd;
-        FLOAT32 nrg_0, nrg_1;
-        FLOAT32 *ptr_r_0, *ptr_r_1, *ptr_i_0, *ptr_i_1;
-        FLOAT32 *ptr_r_2, *ptr_r_3, *ptr_i_2, *ptr_i_3, nrg_2, nrg_3;
-        WORD32 pvc_rate = pstr_env_enc->pstr_pvc_enc->pvc_param.pvc_rate;
+    ixheaace_sbr_analysis_filtering(
+        ptr_in_time ? ptr_in_time + ch : NULL, time_sn_stride,
+        pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
+        &pstr_env_ch[ch]->str_sbr_qmf, ptr_sbr_tab->ptr_qmf_tab,
+        pstr_env_ch[ch]->str_sbr_qmf.num_time_slots * pstr_env_ch[ch]->str_sbr_qmf.rate,
+        pstr_sbr_cfg->is_ld_sbr, (FLOAT32 *)ptr_sbr_scratch,
+        (pstr_ps_enc != NULL && flag_framelength_small));
 
-        // update header_active to send SBR header when previous PVC mode is different from
-        // current frame's
-        if (pstr_env_enc->str_sbr_hdr.sbr_pvc_mode !=
-            pstr_env_enc->pstr_pvc_enc->pvc_param.pvc_mode) {
-          pstr_sbr_bs->header_active = 1;
-        }
+    if ((1 == n_in_channels) && (USAC_SBR == pstr_sbr_cfg->sbr_codec) &&
+        (pstr_sbr_hdr->sbr_pvc_active)) {
+      ixheaace_pvc_scratch *pstr_pvc_scr = (ixheaace_pvc_scratch *)ptr_sbr_scratch;
+      WORD32 ts, bd;
+      FLOAT32 nrg_0, nrg_1;
+      FLOAT32 *ptr_r_0, *ptr_r_1, *ptr_i_0, *ptr_i_1;
+      FLOAT32 *ptr_r_2, *ptr_r_3, *ptr_i_2, *ptr_i_3, nrg_2, nrg_3;
+      WORD32 pvc_rate = pstr_env_enc->pstr_pvc_enc->pvc_param.pvc_rate;
 
-        switch (pvc_rate) {
-          case 2: {
-            for (ts = 0; ts < IXHEAACE_ESBR_PVC_NUM_TS; ts++) {
-              ptr_r_0 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts];
-              ptr_r_1 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 1];
-              ptr_i_0 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts];
-              ptr_i_1 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 1];
-
-              for (bd = 0; bd < MAX_QMF_TIME_SLOTS; bd++) {
-                nrg_0 = ptr_r_0[bd] * ptr_r_0[bd] + ptr_i_0[bd] * ptr_i_0[bd];
-                nrg_1 = ptr_r_1[bd] * ptr_r_1[bd] + ptr_i_1[bd] * ptr_i_1[bd];
-                pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd] =
-                    (nrg_0 + nrg_1) / 2.0f;
-              }
-              WORD32 num_low_bands = MAX_QMF_TIME_SLOTS >> 1;
-              for (bd = 0; bd < num_low_bands; bd++) {
-                pstr_pvc_scr->pvc_qmf_low[ts * num_low_bands + bd] =
-                    pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd];
-              }
-            }
-            break;
-          }
-          case 4: {
-            for (ts = 0; ts < IXHEAACE_ESBR_PVC_NUM_TS; ts++) {
-              ptr_r_0 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts];
-              ptr_r_1 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 1];
-              ptr_r_2 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 2];
-              ptr_r_3 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 3];
-              ptr_i_0 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts];
-              ptr_i_1 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 1];
-              ptr_i_2 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 2];
-              ptr_i_3 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 3];
-
-              for (bd = 0; bd < MAX_QMF_TIME_SLOTS; bd++) {
-                nrg_0 = ptr_r_0[bd] * ptr_r_0[bd] + ptr_i_0[bd] * ptr_i_0[bd];
-                nrg_1 = ptr_r_1[bd] * ptr_r_1[bd] + ptr_i_1[bd] * ptr_i_1[bd];
-                nrg_2 = ptr_r_2[bd] * ptr_r_2[bd] + ptr_i_2[bd] * ptr_i_2[bd];
-                nrg_3 = ptr_r_3[bd] * ptr_r_3[bd] + ptr_i_3[bd] * ptr_i_3[bd];
-                pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd] =
-                    (nrg_0 + nrg_1 + nrg_2 + nrg_3) / 4.0f;
-              }
-              WORD32 num_low_bands = (MAX_QMF_TIME_SLOTS >> 2);
-              for (bd = 0; bd < num_low_bands; bd++) {
-                pstr_pvc_scr->pvc_qmf_low[ts * num_low_bands + bd] =
-                    pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd];
-              }
-            }
-            break;
-          }
-        }
-        pstr_env_enc->pstr_pvc_enc->pvc_param.usac_indep_flag = pstr_sbr_bs->usac_indep_flag;
-        err_code = ixheaace_pvc_encode_frame(
-            pstr_env_enc->pstr_pvc_enc, (UWORD8)pstr_env_enc->str_sbr_hdr.sbr_pvc_mode,
-            pstr_pvc_scr->pvc_qmf_low, pstr_pvc_scr->pvc_qmf_high,
-            pstr_sbr_cfg->ptr_v_k_master[0],
-            pstr_sbr_cfg->ptr_v_k_master[pstr_sbr_cfg->num_master] - 1);
-        if (err_code) {
-          return err_code;
-        }
-
-        memcpy(&pstr_env_ch[ch]->enc_env_data.pvc_info, &pstr_env_enc->pstr_pvc_enc->pvc_bs_info,
-               sizeof(ixheaace_pvc_bs_info));
+      // update header_active to send SBR header when previous PVC mode is different from
+      // current frame's
+      if (pstr_env_enc->str_sbr_hdr.sbr_pvc_mode !=
+          pstr_env_enc->pstr_pvc_enc->pvc_param.pvc_mode) {
+        pstr_sbr_bs->header_active = 1;
       }
 
-      // COPY generated spectrum for inter-TES encoder
-      if ((USAC_SBR == pstr_sbr_cfg->sbr_codec) && (1 == pstr_sbr_hdr->sbr_inter_tes_active)) {
-        WORD32 ts, num_ts, delay;
-        num_ts = pstr_env_ch[ch]->str_sbr_qmf.num_time_slots;
+      switch (pvc_rate) {
+        case 2: {
+          for (ts = 0; ts < IXHEAACE_ESBR_PVC_NUM_TS; ts++) {
+            ptr_r_0 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts];
+            ptr_r_1 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 1];
+            ptr_i_0 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts];
+            ptr_i_1 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 1];
 
-        ixheaace_str_inter_tes_params *pstr_tes_enc = &pstr_env_ch[ch]->str_inter_tes_enc;
-        delay = pstr_tes_enc->op_delay + pstr_tes_enc->codec_delay + IXHEAACE_SBR_HF_ADJ_OFFSET;
-        ts = 0;
-        while (ts < num_ts) {
-          memcpy(pstr_tes_enc->qmf_buf_real[delay + ts], pstr_sbr_extract_env->ptr_r_buffer[ts],
-                 IXHEAACE_QMF_CHANNELS * sizeof(pstr_tes_enc->qmf_buf_real[0][0]));
-          memcpy(pstr_tes_enc->qmf_buf_imag[delay + ts], pstr_sbr_extract_env->ptr_i_buffer[ts],
-                 IXHEAACE_QMF_CHANNELS * sizeof(pstr_tes_enc->qmf_buf_imag[0][0]));
-          ts++;
+            for (bd = 0; bd < MAX_QMF_TIME_SLOTS; bd++) {
+              nrg_0 = ptr_r_0[bd] * ptr_r_0[bd] + ptr_i_0[bd] * ptr_i_0[bd];
+              nrg_1 = ptr_r_1[bd] * ptr_r_1[bd] + ptr_i_1[bd] * ptr_i_1[bd];
+              pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd] =
+                  (nrg_0 + nrg_1) / 2.0f;
+            }
+            WORD32 num_low_bands = MAX_QMF_TIME_SLOTS >> 1;
+            for (bd = 0; bd < num_low_bands; bd++) {
+              pstr_pvc_scr->pvc_qmf_low[ts * num_low_bands + bd] =
+                  pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd];
+            }
+          }
+          break;
         }
+        case 4: {
+          for (ts = 0; ts < IXHEAACE_ESBR_PVC_NUM_TS; ts++) {
+            ptr_r_0 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts];
+            ptr_r_1 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 1];
+            ptr_r_2 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 2];
+            ptr_r_3 = pstr_sbr_extract_env->ptr_r_buffer[pvc_rate * ts + 3];
+            ptr_i_0 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts];
+            ptr_i_1 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 1];
+            ptr_i_2 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 2];
+            ptr_i_3 = pstr_sbr_extract_env->ptr_i_buffer[pvc_rate * ts + 3];
+
+            for (bd = 0; bd < MAX_QMF_TIME_SLOTS; bd++) {
+              nrg_0 = ptr_r_0[bd] * ptr_r_0[bd] + ptr_i_0[bd] * ptr_i_0[bd];
+              nrg_1 = ptr_r_1[bd] * ptr_r_1[bd] + ptr_i_1[bd] * ptr_i_1[bd];
+              nrg_2 = ptr_r_2[bd] * ptr_r_2[bd] + ptr_i_2[bd] * ptr_i_2[bd];
+              nrg_3 = ptr_r_3[bd] * ptr_r_3[bd] + ptr_i_3[bd] * ptr_i_3[bd];
+              pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd] =
+                  (nrg_0 + nrg_1 + nrg_2 + nrg_3) / 4.0f;
+            }
+            WORD32 num_low_bands = (MAX_QMF_TIME_SLOTS >> 2);
+            for (bd = 0; bd < num_low_bands; bd++) {
+              pstr_pvc_scr->pvc_qmf_low[ts * num_low_bands + bd] =
+                  pstr_pvc_scr->pvc_qmf_high[ts * IXHEAACE_ESBR_PVC_NUM_QMF_BANDS + bd];
+            }
+          }
+          break;
+        }
+      }
+      pstr_env_enc->pstr_pvc_enc->pvc_param.usac_indep_flag = pstr_sbr_bs->usac_indep_flag;
+      err_code = ixheaace_pvc_encode_frame(
+          pstr_env_enc->pstr_pvc_enc, (UWORD8)pstr_env_enc->str_sbr_hdr.sbr_pvc_mode,
+          pstr_pvc_scr->pvc_qmf_low, pstr_pvc_scr->pvc_qmf_high,
+          pstr_sbr_cfg->ptr_v_k_master[0],
+          pstr_sbr_cfg->ptr_v_k_master[pstr_sbr_cfg->num_master] - 1);
+      if (err_code) {
+        return err_code;
+      }
+
+      memcpy(&pstr_env_ch[ch]->enc_env_data.pvc_info, &pstr_env_enc->pstr_pvc_enc->pvc_bs_info,
+             sizeof(ixheaace_pvc_bs_info));
+    }
+
+    // COPY generated spectrum for inter-TES encoder
+    if ((USAC_SBR == pstr_sbr_cfg->sbr_codec) && (1 == pstr_sbr_hdr->sbr_inter_tes_active)) {
+      WORD32 ts, num_ts, delay;
+      num_ts = pstr_env_ch[ch]->str_sbr_qmf.num_time_slots;
+
+      ixheaace_str_inter_tes_params *pstr_tes_enc = &pstr_env_ch[ch]->str_inter_tes_enc;
+      delay = pstr_tes_enc->op_delay + pstr_tes_enc->codec_delay + IXHEAACE_SBR_HF_ADJ_OFFSET;
+      ts = 0;
+      while (ts < num_ts) {
+        memcpy(pstr_tes_enc->qmf_buf_real[delay + ts], pstr_sbr_extract_env->ptr_r_buffer[ts],
+               IXHEAACE_QMF_CHANNELS * sizeof(pstr_tes_enc->qmf_buf_real[0][0]));
+        memcpy(pstr_tes_enc->qmf_buf_imag[delay + ts], pstr_sbr_extract_env->ptr_i_buffer[ts],
+               IXHEAACE_QMF_CHANNELS * sizeof(pstr_tes_enc->qmf_buf_imag[0][0]));
+        ts++;
       }
     }
 

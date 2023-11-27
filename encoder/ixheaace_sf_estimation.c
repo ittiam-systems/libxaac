@@ -684,7 +684,7 @@ VOID iaace_estimate_scfs_chan(
         min_sf_max_quant[i] = (WORD16)floor(C1_SF + C2_SF * log(max_spec));
         scf_int = MAX(scf_int, min_sf_max_quant[i]);
         scf_int = MAX(scf_int, MIN_GAIN_INDEX_AAC);
-        scf_int = MIN(scf_int, (MAX_GAIN_INDEX_AAC - SCF_COUNT_LIMIT_AAC));
+        scf_int = MIN(scf_int, (MAX_GAIN_INDEX_AAC - SCF_COUNT_LIMIT_AAC - 1));
         for (j = 0; j < pstr_psy_out_chan->sfb_offsets[i + 1] - pstr_psy_out_chan->sfb_offsets[i];
              j++) {
           ptr_exp_spec[pstr_psy_out_chan->sfb_offsets[i] + j] = (FLOAT32)(
