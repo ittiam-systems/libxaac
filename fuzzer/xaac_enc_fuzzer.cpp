@@ -319,7 +319,7 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
   if (fuzzed_data->ConsumeBool()) {
     pstr_in_cfg->i_samp_freq = fuzzed_data->PickValueInArray(k_sample_rates);
   } else {
-    pstr_in_cfg->i_samp_freq = fuzzed_data->ConsumeIntegral<WORD32>();
+    pstr_in_cfg->i_samp_freq = fuzzed_data->ConsumeIntegral<UWORD32>();
   }
   if (fuzzed_data->ConsumeBool()) {
     pstr_in_cfg->frame_length = fuzzed_data->PickValueInArray(k_frame_length);
