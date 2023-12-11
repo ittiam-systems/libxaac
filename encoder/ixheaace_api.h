@@ -87,7 +87,7 @@ typedef struct {
   WORD32 i_mps_tree_config;
   WORD32 esbr_flag;
   WORD32 i_channels;
-  WORD32 i_samp_freq;
+  UWORD32 i_samp_freq;
   WORD32 i_native_samp_freq;
   WORD32 i_channels_mask;
   WORD32 i_num_coupling_chan;
