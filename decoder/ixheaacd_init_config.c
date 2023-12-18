@@ -644,6 +644,9 @@ WORD32 ixheaacd_config(ia_bit_buf_struct *it_bit_buff, ia_usac_config_struct *ps
     if (BS_MAX_NUM_OUT_CHANNELS < pstr_usac_conf->num_out_channels) {
       return IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX;
     }
+    if (pstr_usac_conf->num_out_channels < 1) {
+      return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
+    }
     for (i = 0; i < pstr_usac_conf->num_out_channels; i++)
       pstr_usac_conf->output_channel_pos[i] =
           ixheaacd_read_bits_buf(it_bit_buff, 5);

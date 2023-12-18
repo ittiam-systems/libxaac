@@ -535,6 +535,11 @@ WORD32 ixheaacd_ga_hdr_dec(ia_aac_dec_state_struct *aac_state_struct,
 
   aac_state_struct->ch_config = ixheaacd_read_bits_buf(it_bit_buff, 4);
 
+  if (aac_state_struct->audio_object_type == AOT_USAC &&
+      ((aac_state_struct->ch_config >= 3) && (aac_state_struct->ch_config != 8))) {
+    return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
+  }
+
   pstr_audio_specific_config->channel_configuration =
       aac_state_struct->ch_config;
 
