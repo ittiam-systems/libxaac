@@ -1304,7 +1304,8 @@ IA_ERRORCODE ixheaacd_mps_frame_decode(ia_mps_dec_state_struct *self) {
       (WORD32)floor(self->inv_param_slot_diff[0] * 1073741824 + 0.5);
   for (i = 1; i < self->num_parameter_sets; i++) {
     self->param_slot_diff[i] = self->param_slots[i] - self->param_slots[i - 1];
-    if (MAX_TIME_SLOTS < (self->param_slot_diff[0] + self->param_slot_diff[i])) {
+    if ((MAX_TIME_SLOTS < (self->param_slot_diff[0] + self->param_slot_diff[i])) ||
+        (self->param_slot_diff[i] == 0)) {
       if (self->ec_flag == 0) {
         return -1;
       } else {
