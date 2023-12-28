@@ -1218,6 +1218,7 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
         return err;
       }
       num_bits += num_bits_ext_elem;
+      ptr_usac_data->num_drc_bits = num_bits_ext_elem;
 #ifdef DRC_BITRATE_CONSIDERATION
       ptr_usac_data->drc_data_bit_cnt = num_bits_ext_elem;
 #endif

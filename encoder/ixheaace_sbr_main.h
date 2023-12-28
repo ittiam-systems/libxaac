@@ -84,6 +84,7 @@ typedef struct ixheaace_str_sbr_cfg {
   WORD32 sbr_harmonic;
   WORD32 hq_esbr;
   ixheaace_sbr_codec_type sbr_codec;
+  WORD32 use_low_freq_res;
 } ixheaace_str_sbr_cfg, *ixheaace_pstr_sbr_cfg;
 
 typedef struct ixheaace_str_sbr_enc *ixheaace_pstr_sbr_enc;

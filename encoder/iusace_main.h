@@ -95,6 +95,7 @@ typedef struct {
   UWORD32 ext_elem_config_len[MAX_EXTENSION_PAYLOADS];
   iusace_scratch_mem str_scratch;
   WORD32 min_bits_needed;
+  WORD32 num_drc_bits;
 } ia_usac_data_struct;
 
 typedef struct {

@@ -84,13 +84,15 @@ typedef struct {
   WORD32 length_v_freq_follow;
   ixheaace_str_sbr_grid sbr_grid;
   ixheaace_str_frame_info_sbr sbr_frame_info;
+  WORD32 use_low_freq_res;
 } ixheaace_str_sbr_env_frame;
 
 typedef ixheaace_str_sbr_env_frame *ixheaace_pstr_sbr_env_frame;
 
 VOID ixheaace_create_frame_info_generator(ixheaace_pstr_sbr_env_frame sbr_env_frame_handle,
                                           WORD32 allow_spread, WORD32 num_env_static,
-                                          WORD32 static_framing, ixheaace_freq_res freq_res_fix);
+                                          WORD32 static_framing, ixheaace_freq_res freq_res_fix,
+                                          WORD32 use_low_freq_res);
 
 IA_ERRORCODE
 ixheaace_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,

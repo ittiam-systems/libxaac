@@ -39,11 +39,11 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main_init(ixheaace_psy_kernel *pstr_h_psy, WO
 IA_ERRORCODE ia_enhaacplus_enc_psy_main(
     WORD32 time_sn_stride, /* total number of channels */
     ixheaace_element_info *pstr_elem_info, const FLOAT32 *ptr_time_signal, WORD32 aot,
-    ixheaace_psy_data psy_data[IXHEAACE_MAX_CH_IN_BS_ELE],
-    ixheaace_temporal_noise_shaping_data tns_data[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_data **psy_data,
+    ixheaace_temporal_noise_shaping_data **tns_data,
     ixheaace_psy_configuration_long *pstr_psy_conf_long,
     ixheaace_psy_configuration_short *pstr_psy_conf_short,
-    ixheaace_psy_out_channel psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **psy_out_ch,
     ixheaace_psy_out_element *pstr_psy_out_element, FLOAT32 *ptr_scratch_tns,
     FLOAT32 *ptr_shared_buffer1, WORD8 *ptr_shared_buffer5, ixheaace_aac_tables *pstr_aac_tables,
     WORD32 frame_len_long);

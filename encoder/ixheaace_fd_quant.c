@@ -170,7 +170,7 @@ static WORD32 iusace_count_static_bits(ia_usac_data_struct *ptr_usac_data,
     stat_bits += ptr_usac_data->str_scratch.ptr_num_fac_bits[i];
   }
 
-  stat_bits += ptr_usac_data->num_sbr_bits;
+  stat_bits += (ptr_usac_data->num_sbr_bits + ptr_usac_data->num_drc_bits);
 
   return stat_bits;
 }

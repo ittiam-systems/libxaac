@@ -129,6 +129,7 @@
 #define MAX_METHOD_DEFINITION_TYPE (9)
 #define MIN_METHOD_VALUE (-116.0f)
 #define MAX_METHOD_VALUE (121.0f)
+#define MAX_FLT_VAL_DB (770.6367883810890080451095799195f)
 
 typedef struct {
   WORD32 level_estim_k_weighting_type;
