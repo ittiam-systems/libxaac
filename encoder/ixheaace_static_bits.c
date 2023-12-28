@@ -132,7 +132,7 @@ static WORD32 ia_enhaacplus_enc_count_tns_bits(
 }
 
 WORD32 ia_enhaacplus_enc_count_static_bitdemand(
-    ixheaace_psy_out_channel psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **psy_out_ch,
     ixheaace_psy_out_element *pstr_psy_out_element, WORD32 channels, WORD32 aot, WORD32 adts_flag,
     WORD32 stat_bits_flag, WORD32 flag_last_element) {
   WORD32 static_bits = 0;
@@ -143,9 +143,9 @@ WORD32 ia_enhaacplus_enc_count_static_bitdemand(
 
       static_bits += SI_ID_BITS + SI_SCE_BITS + SI_ICS_BITS;
 
-      static_bits += ia_enhaacplus_enc_count_tns_bits(&(psy_out_ch[0].tns_info),
-                                                      psy_out_ch[0].window_sequence);
-      switch (psy_out_ch[0].window_sequence) {
+      static_bits += ia_enhaacplus_enc_count_tns_bits(&(psy_out_ch[0]->tns_info),
+                                                      psy_out_ch[0]->window_sequence);
+      switch (psy_out_ch[0]->window_sequence) {
         case LONG_WINDOW:
         case START_WINDOW:
         case STOP_WINDOW:
@@ -166,10 +166,10 @@ WORD32 ia_enhaacplus_enc_count_static_bitdemand(
       static_bits += SI_CPE_MS_MASK_BITS;
 
       static_bits += ia_enhaacplus_enc_count_ms_mask_bits(
-          psy_out_ch[0].sfb_count, psy_out_ch[0].sfb_per_group, psy_out_ch[0].max_sfb_per_grp,
+          psy_out_ch[0]->sfb_count, psy_out_ch[0]->sfb_per_group, psy_out_ch[0]->max_sfb_per_grp,
           &pstr_psy_out_element->tools_info);
 
-      switch (psy_out_ch[0].window_sequence) {
+      switch (psy_out_ch[0]->window_sequence) {
         case LONG_WINDOW:
         case START_WINDOW:
         case STOP_WINDOW:
@@ -184,8 +184,8 @@ WORD32 ia_enhaacplus_enc_count_static_bitdemand(
       }
 
       for (ch = 0; ch < 2; ch++) {
-        static_bits += ia_enhaacplus_enc_count_tns_bits(&(psy_out_ch[ch].tns_info),
-                                                        psy_out_ch[ch].window_sequence);
+        static_bits += ia_enhaacplus_enc_count_tns_bits(&(psy_out_ch[ch]->tns_info),
+                                                        psy_out_ch[ch]->window_sequence);
       }
 
       break;

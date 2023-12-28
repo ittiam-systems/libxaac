@@ -45,19 +45,19 @@
 #include "ixheaace_ms_stereo.h"
 #include "ixheaace_common_utils.h"
 
-VOID iaace_ms_apply(ixheaace_psy_data *ptr_psy_data, FLOAT32 *ptr_spec_left,
+VOID iaace_ms_apply(ixheaace_psy_data **ptr_psy_data, FLOAT32 *ptr_spec_left,
                     FLOAT32 *ptr_spec_right, WORD32 *ptr_ms_select, WORD32 *ptr_ms_used,
                     const WORD32 sfb_count, const WORD32 sfb_per_group,
                     const WORD32 max_sfb_per_grp, const WORD32 *ptr_sfb_offset,
                     FLOAT32 *ptr_weight_ms_lr_pe_ratio) {
-  FLOAT32 *ptr_sfb_enegry_left = ptr_psy_data[0].sfb_energy.long_nrg;
-  FLOAT32 *ptr_sfb_energy_right = ptr_psy_data[1].sfb_energy.long_nrg;
-  const FLOAT32 *ptr_sfb_energy_mid = ptr_psy_data[0].sfb_energy_ms.long_nrg;
-  const FLOAT32 *ptr_sfb_energy_side = ptr_psy_data[1].sfb_energy_ms.long_nrg;
-  FLOAT32 *ptr_sfb_thr_left = ptr_psy_data[0].sfb_threshold.long_nrg;
-  FLOAT32 *ptr_sfb_thr_right = ptr_psy_data[1].sfb_threshold.long_nrg;
-  FLOAT32 *ptr_sfb_spread_energy_left = ptr_psy_data[0].sfb_sreaded_energy.long_nrg;
-  FLOAT32 *ptr_sfb_spread_energy_right = ptr_psy_data[1].sfb_sreaded_energy.long_nrg;
+  FLOAT32 *ptr_sfb_enegry_left = ptr_psy_data[0]->sfb_energy.long_nrg;
+  FLOAT32 *ptr_sfb_energy_right = ptr_psy_data[1]->sfb_energy.long_nrg;
+  const FLOAT32 *ptr_sfb_energy_mid = ptr_psy_data[0]->sfb_energy_ms.long_nrg;
+  const FLOAT32 *ptr_sfb_energy_side = ptr_psy_data[1]->sfb_energy_ms.long_nrg;
+  FLOAT32 *ptr_sfb_thr_left = ptr_psy_data[0]->sfb_threshold.long_nrg;
+  FLOAT32 *ptr_sfb_thr_right = ptr_psy_data[1]->sfb_threshold.long_nrg;
+  FLOAT32 *ptr_sfb_spread_energy_left = ptr_psy_data[0]->sfb_sreaded_energy.long_nrg;
+  FLOAT32 *ptr_sfb_spread_energy_right = ptr_psy_data[1]->sfb_sreaded_energy.long_nrg;
   WORD32 sfb, sfb_offsets, j;
   WORD32 grp = 0;
   WORD32 ms_counter = 0;

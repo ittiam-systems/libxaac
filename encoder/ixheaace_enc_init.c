@@ -155,18 +155,23 @@ static VOID ixheaace_determine_bandwidth(const WORD32 proposed_bandwidth, const 
 
 WORD32 ia_enhaacplus_enc_aac_enc_pers_size(WORD32 num_aac_chan, WORD32 aot) {
   WORD32 num_bytes;
-  num_bytes = sizeof(iexheaac_encoder_str);
-  num_bytes += num_aac_chan * sizeof(ixheaace_psy_out_channel);
-  num_bytes += num_aac_chan * sizeof(ixheaace_psy_data);
-  num_bytes += num_aac_chan * sizeof(ixheaace_temporal_noise_shaping_data);
+  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(sizeof(iexheaac_encoder_str), BYTE_ALIGN_8);
+  num_bytes += (num_aac_chan *
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_psy_out_channel), BYTE_ALIGN_8));
+  num_bytes += (num_aac_chan *
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_psy_data), BYTE_ALIGN_8));
+  num_bytes += (num_aac_chan *
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_temporal_noise_shaping_data), BYTE_ALIGN_8));
   if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
-    num_bytes += num_aac_chan * BLK_SWITCH_OFFSET_LC_128 * sizeof(FLOAT32);
+    num_bytes += (num_aac_chan *
+      IXHEAACE_GET_SIZE_ALIGNED(BLK_SWITCH_OFFSET_LC_128 * sizeof(FLOAT32), BYTE_ALIGN_8));
   } else if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
-    num_bytes += num_aac_chan * BLK_SWITCH_OFFSET_LD * sizeof(FLOAT32);
+    num_bytes += (num_aac_chan *
+      IXHEAACE_GET_SIZE_ALIGNED(BLK_SWITCH_OFFSET_LD * sizeof(FLOAT32), BYTE_ALIGN_8));
   }
 
-  num_bytes += num_aac_chan * sizeof(ixheaace_qc_out_channel);
-  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(num_bytes, BYTE_ALIGN_8);
+  num_bytes += (num_aac_chan *
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_qc_out_channel), BYTE_ALIGN_8));
   return num_bytes;
 }
 
@@ -219,25 +224,29 @@ VOID ia_enhaacplus_enc_init_aac_tabs(ixheaace_aac_tables *pstr_aac_tabs) {
 
 static VOID ia_enhaacplus_enc_aac_set_persist_buf(WORD8 *ptr_base, WORD32 num_chan, WORD32 aot) {
   iexheaac_encoder_str *pstr_exheaac_encoder;
-  WORD8 *ptr_curr_mem = (WORD8 *)((WORD8 *)ptr_base + sizeof(iexheaac_encoder_str));
+  WORD8 *ptr_curr_mem = ptr_base +
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(iexheaac_encoder_str), BYTE_ALIGN_8);
   WORD32 i;
 
   pstr_exheaac_encoder = (iexheaac_encoder_str *)ptr_base;
 
   for (i = 0; i < num_chan; i++) {
     pstr_exheaac_encoder->psy_out.psy_out_ch[i] = (ixheaace_psy_out_channel *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_psy_out_channel);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_psy_out_channel), BYTE_ALIGN_8);
   }
 
   for (i = 0; i < num_chan; i++) {
     pstr_exheaac_encoder->psy_kernel.psy_data[i] = (ixheaace_psy_data *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_psy_data);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_psy_data), BYTE_ALIGN_8);
   }
 
   for (i = 0; i < num_chan; i++) {
     pstr_exheaac_encoder->psy_kernel.temporal_noise_shaping_data[i] =
         (ixheaace_temporal_noise_shaping_data *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_temporal_noise_shaping_data);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_temporal_noise_shaping_data), BYTE_ALIGN_8);
   }
 
   for (i = 0; i < num_chan; i++) {
@@ -247,21 +256,24 @@ static VOID ia_enhaacplus_enc_aac_set_persist_buf(WORD8 *ptr_base, WORD32 num_ch
       case AOT_PS:
         pstr_exheaac_encoder->psy_kernel.psy_data[i]->ptr_mdct_delay_buf =
             (FLOAT32 *)(ptr_curr_mem);
-        ptr_curr_mem = ptr_curr_mem + sizeof(FLOAT32) * BLK_SWITCH_OFFSET_LC_128;
+        ptr_curr_mem = ptr_curr_mem +
+          IXHEAACE_GET_SIZE_ALIGNED(sizeof(FLOAT32) * BLK_SWITCH_OFFSET_LC_128, BYTE_ALIGN_8);
         break;
 
       case AOT_AAC_LD:
       case AOT_AAC_ELD:
         pstr_exheaac_encoder->psy_kernel.psy_data[i]->ptr_mdct_delay_buf =
             (FLOAT32 *)(ptr_curr_mem);
-        ptr_curr_mem = ptr_curr_mem + sizeof(FLOAT32) * BLK_SWITCH_OFFSET_LD;
+        ptr_curr_mem = ptr_curr_mem +
+          IXHEAACE_GET_SIZE_ALIGNED(sizeof(FLOAT32) * BLK_SWITCH_OFFSET_LD, BYTE_ALIGN_8);
         break;
     }
   }
 
   for (i = 0; i < num_chan; i++) {
     pstr_exheaac_encoder->qc_out.qc_channel[i] = (ixheaace_qc_out_channel *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_qc_out_channel);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_qc_out_channel), BYTE_ALIGN_8);
   }
 }
 

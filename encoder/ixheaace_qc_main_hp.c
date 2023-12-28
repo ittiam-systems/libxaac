@@ -66,12 +66,11 @@
 #include "ixheaace_qc_util.h"
 #include "ixheaace_common_utils.h"
 
-#define OPT_QC_STACK
 IA_ERRORCODE ia_enhaacplus_enc_qc_main(
     ixheaace_qc_state *pstr_qc_state, WORD32 num_channels, ixheaace_element_bits *pstr_el_bits,
-    ixheaace_psy_out_channel psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **psy_out_ch,
     ixheaace_psy_out_element *pstr_psy_out_element,
-    ixheaace_qc_out_channel pstr_qc_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_qc_out_channel **pstr_qc_out_ch,
     ixheaace_qc_out_element *pstr_qc_out_element, WORD32 ancillary_data_bytes,
     ixheaace_aac_tables *pstr_aac_tables, WORD32 adts_flag, WORD32 aot, WORD32 stat_bits_flag,
     WORD32 flag_last_element, WORD32 frame_len_long, WORD8 *ptr_scratch,
@@ -112,7 +111,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
 
   for (ch = 0; ch < num_channels; ch++) {
     iaace_calc_form_fac_per_chan(ptr_stack->sfb_form_fac[ch],
-                                 ptr_stack->sfb_num_relevant_lines[ch], &psy_out_ch[ch],
+                                 ptr_stack->sfb_num_relevant_lines[ch], psy_out_ch[ch],
                                  ptr_stack->sfb_ld_energy[ch]);
   }
 
@@ -146,44 +145,46 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
     iterations = 0;
     gain = 0;
     for (spec_idx = 0; spec_idx < frame_len_long; spec_idx++) {
-      ptr_stack->exp_spec[spec_idx] = (FLOAT32)psy_out_ch[ch].ptr_spec_coeffs[spec_idx];
-      ptr_stack->mdct_spec_float[spec_idx] = (FLOAT32)psy_out_ch[ch].ptr_spec_coeffs[spec_idx];
+      ptr_stack->exp_spec[spec_idx] = (FLOAT32)psy_out_ch[ch]->ptr_spec_coeffs[spec_idx];
+      ptr_stack->mdct_spec_float[spec_idx] = (FLOAT32)psy_out_ch[ch]->ptr_spec_coeffs[spec_idx];
     }
     do {
       WORD32 max_val;
       constraints_fulfilled = 1;
       WORD32 quant_spec_is_zero = 1;
       if (iterations > 0) {
-        for (sfb_offs = 0; sfb_offs < psy_out_ch[ch].sfb_count;
-             sfb_offs += psy_out_ch[ch].sfb_per_group) {
-          for (sfb = 0; sfb < psy_out_ch[ch].max_sfb_per_grp; sfb++) {
-            WORD32 scalefactor = pstr_qc_out_ch[ch].scalefactor[sfb + sfb_offs];
-            gain = MAX(gain, pstr_qc_out_ch[ch].global_gain - scalefactor);
+        for (sfb_offs = 0; sfb_offs < psy_out_ch[ch]->sfb_count;
+             sfb_offs += psy_out_ch[ch]->sfb_per_group) {
+          for (sfb = 0; sfb < psy_out_ch[ch]->max_sfb_per_grp; sfb++) {
+            WORD32 scalefactor = pstr_qc_out_ch[ch]->scalefactor[sfb + sfb_offs];
+            gain = MAX(gain, pstr_qc_out_ch[ch]->global_gain - scalefactor);
             iaace_quantize_lines(
-                pstr_qc_out_ch[ch].global_gain - scalefactor,
-                psy_out_ch[ch].sfb_offsets[sfb_offs + sfb + 1] -
-                    psy_out_ch[ch].sfb_offsets[sfb_offs + sfb],
-                ptr_stack->exp_spec + psy_out_ch[ch].sfb_offsets[sfb_offs + sfb],
-                pstr_qc_out_ch[ch].quant_spec + psy_out_ch[ch].sfb_offsets[sfb_offs + sfb],
-                ptr_stack->mdct_spec_float + psy_out_ch[ch].sfb_offsets[sfb_offs + sfb]);
+                pstr_qc_out_ch[ch]->global_gain - scalefactor,
+                psy_out_ch[ch]->sfb_offsets[sfb_offs + sfb + 1] -
+                    psy_out_ch[ch]->sfb_offsets[sfb_offs + sfb],
+                ptr_stack->exp_spec + psy_out_ch[ch]->sfb_offsets[sfb_offs + sfb],
+                pstr_qc_out_ch[ch]->quant_spec + psy_out_ch[ch]->sfb_offsets[sfb_offs + sfb],
+                ptr_stack->mdct_spec_float + psy_out_ch[ch]->sfb_offsets[sfb_offs + sfb]);
           }
         }
       }
 
       max_val = iaace_calc_max_val_in_sfb(
-          psy_out_ch[ch].sfb_count, psy_out_ch[ch].max_sfb_per_grp, psy_out_ch[ch].sfb_per_group,
-          psy_out_ch[ch].sfb_offsets, pstr_qc_out_ch[ch].quant_spec,
-          pstr_qc_out_ch[ch].max_val_in_sfb);
+          psy_out_ch[ch]->sfb_count, psy_out_ch[ch]->max_sfb_per_grp,
+          psy_out_ch[ch]->sfb_per_group,
+          psy_out_ch[ch]->sfb_offsets, pstr_qc_out_ch[ch]->quant_spec,
+          pstr_qc_out_ch[ch]->max_val_in_sfb);
 
       if (max_val > MAXIMUM_QUANT) {
         constraints_fulfilled = 0;
       }
 
-      for (k = 0; ((k < psy_out_ch[ch].sfb_count) && (quant_spec_is_zero));
-           k += psy_out_ch[ch].sfb_per_group) {
-        for (i = 0; ((i < psy_out_ch[ch].max_sfb_per_grp) && (quant_spec_is_zero)); i++) {
-          for (j = psy_out_ch[ch].sfb_offsets[i+k]; j < psy_out_ch[ch].sfb_offsets[i+k+1]; j++) {
-            if (pstr_qc_out_ch[ch].quant_spec[j] != 0) {
+      for (k = 0; ((k < psy_out_ch[ch]->sfb_count) && (quant_spec_is_zero));
+           k += psy_out_ch[ch]->sfb_per_group) {
+        for (i = 0; ((i < psy_out_ch[ch]->max_sfb_per_grp) && (quant_spec_is_zero)); i++) {
+          for (j = psy_out_ch[ch]->sfb_offsets[i+k]; j < psy_out_ch[ch]->sfb_offsets[i+k+1]; j++)
+          {
+            if (pstr_qc_out_ch[ch]->quant_spec[j] != 0) {
               quant_spec_is_zero = 0;
               break;
             }
@@ -191,10 +192,11 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
         }
       }
       err_code = ia_enhaacplus_enc_dyn_bitcount(
-          pstr_qc_out_ch[ch].quant_spec, pstr_qc_out_ch[ch].max_val_in_sfb,
-          pstr_qc_out_ch[ch].scalefactor, psy_out_ch[ch].window_sequence,
-          psy_out_ch[ch].sfb_count, psy_out_ch[ch].max_sfb_per_grp, psy_out_ch[ch].sfb_per_group,
-          psy_out_ch[ch].sfb_offsets, &pstr_qc_out_ch[ch].section_data,
+          pstr_qc_out_ch[ch]->quant_spec, pstr_qc_out_ch[ch]->max_val_in_sfb,
+          pstr_qc_out_ch[ch]->scalefactor, psy_out_ch[ch]->window_sequence,
+          psy_out_ch[ch]->sfb_count, psy_out_ch[ch]->max_sfb_per_grp,
+          psy_out_ch[ch]->sfb_per_group,
+          psy_out_ch[ch]->sfb_offsets, &pstr_qc_out_ch[ch]->section_data,
           pstr_qc_state->side_info_tab_long, pstr_qc_state->side_info_tab_short,
           pstr_aac_tables->pstr_huff_tab, pstr_qc_state->qc_scr.shared_buffer_2, aot,
           &ch_dyn_bits);
@@ -225,7 +227,7 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
         ch_dyn_bits = max_ch_dyn_bits[ch];
       }
       if (!constraints_fulfilled) {
-        pstr_qc_out_ch[ch].global_gain++;
+        pstr_qc_out_ch[ch]->global_gain++;
       }
       iterations++;
 
@@ -233,8 +235,8 @@ IA_ERRORCODE ia_enhaacplus_enc_qc_main(
 
     pstr_qc_out_element->dyn_bits_used += ch_dyn_bits;
 
-    pstr_qc_out_ch[ch].grouping_mask = psy_out_ch[ch].grouping_mask;
-    pstr_qc_out_ch[ch].win_shape = psy_out_ch[ch].window_shape;
+    pstr_qc_out_ch[ch]->grouping_mask = psy_out_ch[ch]->grouping_mask;
+    pstr_qc_out_ch[ch]->win_shape = psy_out_ch[ch]->window_shape;
   }
 
   pstr_adj_thr_elem->dyn_bits_last = pstr_qc_out_element->dyn_bits_used;

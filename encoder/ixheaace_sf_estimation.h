@@ -28,8 +28,8 @@ VOID iaace_calc_form_fac_per_chan(FLOAT32 *ptr_sfb_form_factor,
                                   FLOAT32 *ptr_sfb_ld_energy);
 
 VOID iaace_estimate_scfs_chan(
-    ixheaace_psy_out_channel pstr_psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
-    ixheaace_qc_out_channel pstr_qc_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **pstr_psy_out_ch,
+    ixheaace_qc_out_channel **pstr_qc_out_ch,
     FLOAT32 sfb_form_factor_ch[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     FLOAT32 sfb_num_relevant_lines_ch[][MAXIMUM_GROUPED_SCALE_FACTOR_BAND], WORD32 num_channels,
     WORD32 chn, WORD32 frame_len_long);

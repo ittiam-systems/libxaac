@@ -20,7 +20,7 @@
 
 #pragma once
 
-VOID iaace_ms_apply(ixheaace_psy_data *ptr_psy_data, FLOAT32 *ptr_spec_left,
+VOID iaace_ms_apply(ixheaace_psy_data **ptr_psy_data, FLOAT32 *ptr_spec_left,
                     FLOAT32 *ptr_spec_right, WORD32 *ptr_ms_select, WORD32 *ptr_ms_used,
                     const WORD32 sfb_count,
 

@@ -237,17 +237,17 @@ VOID iaace_apply_stereo_preproc(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro
       pstr_stereo_pre_pro->average_freq_energy_l + pstr_stereo_pre_pro->average_freq_energy_r;
 }
 
-VOID iaace_update_stereo_pre_process(ixheaace_psy_out_channel *pstr_psy_out,
+VOID iaace_update_stereo_pre_process(ixheaace_psy_out_channel **pstr_psy_out,
                                      ixheaace_qc_out_element *pstr_qc_out,
                                      ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
                                      FLOAT32 weight_pe_fac) {
   if (pstr_stereo_pre_pro->stereo_attenuation_flag) {
     FLOAT32 delta = 0.1f;
 
-    pstr_stereo_pre_pro->average_freq_energy_l = pstr_psy_out[0].sfb_sum_lr_energy;
-    pstr_stereo_pre_pro->average_freq_energy_r = pstr_psy_out[1].sfb_sum_lr_energy;
-    pstr_stereo_pre_pro->average_freq_energy_m = pstr_psy_out[0].sfb_sum_ms_energy;
-    pstr_stereo_pre_pro->average_freq_energy_s = pstr_psy_out[1].sfb_sum_ms_energy;
+    pstr_stereo_pre_pro->average_freq_energy_l = pstr_psy_out[0]->sfb_sum_lr_energy;
+    pstr_stereo_pre_pro->average_freq_energy_r = pstr_psy_out[1]->sfb_sum_lr_energy;
+    pstr_stereo_pre_pro->average_freq_energy_m = pstr_psy_out[0]->sfb_sum_ms_energy;
+    pstr_stereo_pre_pro->average_freq_energy_s = pstr_psy_out[1]->sfb_sum_ms_energy;
 
     pstr_stereo_pre_pro->smoothed_pe_sum_sum =
         delta * pstr_qc_out->pe * weight_pe_fac +

@@ -174,17 +174,17 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main_init(ixheaace_psy_kernel *pstr_h_psy, WO
 }
 
 static VOID ia_enhaacplus_enc_advance_psy_long_ms(
-    ixheaace_psy_data psy_data[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_data **psy_data,
     ixheaace_psy_configuration_long *pstr_psy_conf_long) {
   ia_enhaacplus_enc_calc_band_energy_ms(
-      psy_data[0].ptr_spec_coeffs, psy_data[1].ptr_spec_coeffs, pstr_psy_conf_long->sfb_offsets,
+      psy_data[0]->ptr_spec_coeffs, psy_data[1]->ptr_spec_coeffs, pstr_psy_conf_long->sfb_offsets,
       pstr_psy_conf_long->sfb_active, pstr_psy_conf_long->sfb_cnt,
-      psy_data[0].sfb_energy_ms.long_nrg, &psy_data[0].sfb_energy_sum_ms.long_nrg,
-      psy_data[1].sfb_energy_ms.long_nrg, &psy_data[1].sfb_energy_sum_ms.long_nrg);
+      psy_data[0]->sfb_energy_ms.long_nrg, &psy_data[0]->sfb_energy_sum_ms.long_nrg,
+      psy_data[1]->sfb_energy_ms.long_nrg, &psy_data[1]->sfb_energy_sum_ms.long_nrg);
 }
 
 static VOID ia_enhaacplus_enc_advance_psy_short_ms(
-    ixheaace_psy_data psy_data[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_data **psy_data,
     ixheaace_psy_configuration_short *pstr_psy_conf_short, WORD32 ccfl) {
   WORD32 w;
   WORD32 frame_len_short = FRAME_LEN_SHORT_128;
@@ -196,11 +196,11 @@ static VOID ia_enhaacplus_enc_advance_psy_short_ms(
     WORD32 w_offset = w * frame_len_short;
 
     ia_enhaacplus_enc_calc_band_energy_ms(
-        psy_data[0].ptr_spec_coeffs + w_offset, psy_data[1].ptr_spec_coeffs + w_offset,
+        psy_data[0]->ptr_spec_coeffs + w_offset, psy_data[1]->ptr_spec_coeffs + w_offset,
         pstr_psy_conf_short->sfb_offsets, pstr_psy_conf_short->sfb_active,
-        pstr_psy_conf_short->sfb_cnt, psy_data[0].sfb_energy_ms.short_nrg[w],
-        &psy_data[0].sfb_energy_sum_ms.short_nrg[w], psy_data[1].sfb_energy_ms.short_nrg[w],
-        &psy_data[1].sfb_energy_sum_ms.short_nrg[w]);
+        pstr_psy_conf_short->sfb_cnt, psy_data[0]->sfb_energy_ms.short_nrg[w],
+        &psy_data[0]->sfb_energy_sum_ms.short_nrg[w], psy_data[1]->sfb_energy_ms.short_nrg[w],
+        &psy_data[1]->sfb_energy_sum_ms.short_nrg[w]);
   }
 }
 
@@ -461,11 +461,11 @@ static IA_ERRORCODE ia_enhaacplus_enc_advance_psy_long(
 
 IA_ERRORCODE ia_enhaacplus_enc_psy_main(
     WORD32 time_sn_stride, ixheaace_element_info *pstr_elem_info, const FLOAT32 *ptr_time_signal,
-    WORD32 aot, ixheaace_psy_data psy_data[IXHEAACE_MAX_CH_IN_BS_ELE],
-    ixheaace_temporal_noise_shaping_data tns_data[IXHEAACE_MAX_CH_IN_BS_ELE],
+    WORD32 aot, ixheaace_psy_data **psy_data,
+    ixheaace_temporal_noise_shaping_data **tns_data,
     ixheaace_psy_configuration_long *pstr_psy_conf_long,
     ixheaace_psy_configuration_short *pstr_psy_conf_short,
-    ixheaace_psy_out_channel psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **psy_out_ch,
     ixheaace_psy_out_element *pstr_psy_out_element, FLOAT32 *ptr_scratch_tns,
     FLOAT32 *ptr_shared_buffer1, WORD8 *ptr_shared_buffer5, ixheaace_aac_tables *pstr_aac_tables,
     WORD32 frame_len_long)
@@ -482,66 +482,71 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
   if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
     if (pstr_elem_info->el_type != ID_LFE) {
       for (ch = 0; ch < num_channels; ch++) {
-        iaace_block_switching(&psy_data[ch].blk_switch_cntrl,
+        iaace_block_switching(&psy_data[ch]->blk_switch_cntrl,
                               ptr_time_signal + pstr_elem_info->channel_index[ch], frame_len_long,
                               num_channels);
       }
     } else {
-      psy_data[0].blk_switch_cntrl.win_seq = psy_data[1].blk_switch_cntrl.win_seq = LONG_WINDOW;
+      for (ch = 0; ch < num_channels; ch++) {
+        psy_data[ch]->blk_switch_cntrl.win_seq = LONG_WINDOW;
+      }
     }
 
     /* synch left and right block type */
-    iaace_sync_block_switching(&psy_data[0].blk_switch_cntrl, &psy_data[1].blk_switch_cntrl,
-                               num_channels);
+    if (num_channels == NUM_CHANS_MONO) {
+      iaace_sync_block_switching(&psy_data[0]->blk_switch_cntrl, NULL, num_channels);
+    }
+    else {
+      iaace_sync_block_switching(&psy_data[0]->blk_switch_cntrl, &psy_data[1]->blk_switch_cntrl,
+                                 num_channels);
+    }
   } else if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
-    { psy_data[0].blk_switch_cntrl.win_seq = psy_data[1].blk_switch_cntrl.win_seq = LONG_WINDOW; }
-
     for (ch = 0; ch < num_channels; ch++) {
-      psy_data[ch].blk_switch_cntrl.win_seq_ld = LONG_WINDOW;
-      psy_data[ch].blk_switch_cntrl.next_win_seq_ld = LONG_WINDOW;
-      psy_data[ch].blk_switch_cntrl.win_seq = LONG_WINDOW;
-      psy_data[ch].blk_switch_cntrl.nxt_win_seq = LONG_WINDOW;
-      psy_data[ch].blk_switch_cntrl.total_groups_cnt = 1;
+      psy_data[ch]->blk_switch_cntrl.win_seq_ld = LONG_WINDOW;
+      psy_data[ch]->blk_switch_cntrl.next_win_seq_ld = LONG_WINDOW;
+      psy_data[ch]->blk_switch_cntrl.win_seq = LONG_WINDOW;
+      psy_data[ch]->blk_switch_cntrl.nxt_win_seq = LONG_WINDOW;
+      psy_data[ch]->blk_switch_cntrl.total_groups_cnt = 1;
     }
   }
   /* transform */
   for (ch = 0; ch < num_channels; ch++) {
     if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
       ixheaace_transform_real_lc_ld(
-          psy_data[ch].ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
-          time_sn_stride, psy_data[ch].ptr_spec_coeffs, psy_data[ch].blk_switch_cntrl.win_seq,
+          psy_data[ch]->ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
+          time_sn_stride, psy_data[ch]->ptr_spec_coeffs, psy_data[ch]->blk_switch_cntrl.win_seq,
           frame_len_long, ptr_shared_buffer5);
     } else if (aot == AOT_AAC_LD) {
       if (frame_len_long == FRAME_LEN_480) {
         ia_enhaacplus_enc_transform_real(
-            psy_data[ch].ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
-            time_sn_stride, psy_data[ch].ptr_spec_coeffs, pstr_aac_tables->pstr_mdct_tab,
+            psy_data[ch]->ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
+            time_sn_stride, psy_data[ch]->ptr_spec_coeffs, pstr_aac_tables->pstr_mdct_tab,
             ptr_scratch_tns, ptr_shared_buffer5, frame_len_long);
       } else {
         ixheaace_transform_real_lc_ld(
-            psy_data[ch].ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
-            time_sn_stride, psy_data[ch].ptr_spec_coeffs, psy_data[ch].blk_switch_cntrl.win_seq,
+            psy_data[ch]->ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
+            time_sn_stride, psy_data[ch]->ptr_spec_coeffs, psy_data[ch]->blk_switch_cntrl.win_seq,
             frame_len_long, ptr_shared_buffer5);
       }
     } else if (aot == AOT_AAC_ELD) {
       if (frame_len_long == FRAME_LEN_480) {
         ia_enhaacplus_enc_transform_real(
-            psy_data[ch].ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
-            time_sn_stride, psy_data[ch].ptr_spec_coeffs, pstr_aac_tables->pstr_mdct_tab,
+            psy_data[ch]->ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
+            time_sn_stride, psy_data[ch]->ptr_spec_coeffs, pstr_aac_tables->pstr_mdct_tab,
             ptr_scratch_tns, ptr_shared_buffer5, frame_len_long);
       } else {
         ia_enhaacplus_enc_transform_real_eld(
-            psy_data[ch].ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
-            time_sn_stride, psy_data[ch].ptr_spec_coeffs, ptr_shared_buffer5, frame_len_long);
+            psy_data[ch]->ptr_mdct_delay_buf, ptr_time_signal + pstr_elem_info->channel_index[ch],
+            time_sn_stride, psy_data[ch]->ptr_spec_coeffs, ptr_shared_buffer5, frame_len_long);
       }
     }
   }
 
   for (ch = 0; ch < num_channels; ch++) {
-    if (psy_data[ch].blk_switch_cntrl.win_seq != SHORT_WINDOW) {
+    if (psy_data[ch]->blk_switch_cntrl.win_seq != SHORT_WINDOW) {
       error_code = ia_enhaacplus_enc_advance_psy_long(
-          &psy_data[ch], &tns_data[ch], pstr_psy_conf_long, &psy_out_ch[ch], ptr_scratch_tns,
-          &tns_data[1 - ch], ch, aot, ptr_shared_buffer1, pstr_aac_tables, frame_len_long);
+          psy_data[ch], tns_data[ch], pstr_psy_conf_long, psy_out_ch[ch], ptr_scratch_tns,
+          tns_data[1 - ch], ch, aot, ptr_shared_buffer1, pstr_aac_tables, frame_len_long);
 
       if (error_code != IA_NO_ERROR) {
         return error_code;
@@ -550,7 +555,7 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
       for (sfb = pstr_psy_conf_long->sfb_cnt - 1; sfb >= 0; sfb--) {
         for (line = pstr_psy_conf_long->sfb_offsets[sfb + 1] - 1;
              line >= pstr_psy_conf_long->sfb_offsets[sfb]; line--) {
-          if (psy_data[ch].ptr_spec_coeffs[line] != 0) {
+          if (psy_data[ch]->ptr_spec_coeffs[line] != 0) {
             break;
           }
         }
@@ -567,8 +572,8 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
       }
     } else {
       error_code = ia_enhaacplus_enc_advance_psy_short(
-          &psy_data[ch], &tns_data[ch], pstr_psy_conf_short, &psy_out_ch[ch], ptr_scratch_tns,
-          &tns_data[1 - ch], ch, aot, ptr_shared_buffer1, pstr_aac_tables, frame_len_long / 8);
+          psy_data[ch], tns_data[ch], pstr_psy_conf_short, psy_out_ch[ch], ptr_scratch_tns,
+          tns_data[1 - ch], ch, aot, ptr_shared_buffer1, pstr_aac_tables, frame_len_long / 8);
 
       if (error_code != IA_NO_ERROR) {
         return error_code;
@@ -584,15 +589,15 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
   /* Group short data (max_sfb for short blocks is determined here) */
   if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
     for (ch = 0; ch < num_channels; ch++) {
-      if (psy_data[ch].blk_switch_cntrl.win_seq == SHORT_WINDOW) {
-        iaace_group_short_data(psy_data[ch].ptr_spec_coeffs, ptr_scratch_tns,
-                               &psy_data[ch].sfb_threshold, &psy_data[ch].sfb_energy,
-                               &psy_data[ch].sfb_energy_ms, &psy_data[ch].sfb_sreaded_energy,
+      if (psy_data[ch]->blk_switch_cntrl.win_seq == SHORT_WINDOW) {
+        iaace_group_short_data(psy_data[ch]->ptr_spec_coeffs, ptr_scratch_tns,
+                               &psy_data[ch]->sfb_threshold, &psy_data[ch]->sfb_energy,
+                               &psy_data[ch]->sfb_energy_ms, &psy_data[ch]->sfb_sreaded_energy,
                                pstr_psy_conf_short->sfb_cnt, pstr_psy_conf_short->sfb_offsets,
                                pstr_psy_conf_short->sfb_min_snr, grouped_sfb_offset[ch],
                                &max_sfb_per_grp[ch], grouped_sfb_min_snr[ch],
-                               psy_data[ch].blk_switch_cntrl.total_groups_cnt,
-                               psy_data[ch].blk_switch_cntrl.group_len, frame_len_long);
+                               psy_data[ch]->blk_switch_cntrl.total_groups_cnt,
+                               psy_data[ch]->blk_switch_cntrl.group_len, frame_len_long);
       }
     }
   }
@@ -604,17 +609,18 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
 
     max_sfb_per_grp[0] = max_sfb_per_grp[1] = MAX(max_sfb_per_grp[0], max_sfb_per_grp[1]);
 
-    if (psy_data[0].blk_switch_cntrl.win_seq != SHORT_WINDOW) {
+    if (psy_data[0]->blk_switch_cntrl.win_seq != SHORT_WINDOW) {
       iaace_ms_apply(
-          psy_data, psy_data[0].ptr_spec_coeffs, psy_data[1].ptr_spec_coeffs,
+          psy_data, psy_data[0]->ptr_spec_coeffs, psy_data[1]->ptr_spec_coeffs,
           &pstr_psy_out_element->tools_info.ms_digest, pstr_psy_out_element->tools_info.ms_mask,
           pstr_psy_conf_long->sfb_cnt, pstr_psy_conf_long->sfb_cnt, max_sfb_per_grp[0],
           pstr_psy_conf_long->sfb_offsets, &pstr_psy_out_element->weight_ms_lr_pe_ratio);
     } else {
-      iaace_ms_apply(psy_data, psy_data[0].ptr_spec_coeffs, psy_data[1].ptr_spec_coeffs,
+      iaace_ms_apply(psy_data, psy_data[0]->ptr_spec_coeffs, psy_data[1]->ptr_spec_coeffs,
                      &pstr_psy_out_element->tools_info.ms_digest,
                      pstr_psy_out_element->tools_info.ms_mask,
-                     psy_data[0].blk_switch_cntrl.total_groups_cnt * pstr_psy_conf_short->sfb_cnt,
+                     psy_data[0]->blk_switch_cntrl.total_groups_cnt *
+                     pstr_psy_conf_short->sfb_cnt,
                      pstr_psy_conf_short->sfb_cnt, max_sfb_per_grp[0], grouped_sfb_offset[0],
                      &pstr_psy_out_element->weight_ms_lr_pe_ratio);
     }
@@ -624,39 +630,41 @@ IA_ERRORCODE ia_enhaacplus_enc_psy_main(
   /* Build output */
   if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
     for (ch = 0; ch < num_channels; ch++) {
-      if (psy_data[ch].blk_switch_cntrl.win_seq != SHORT_WINDOW) {
+      if (psy_data[ch]->blk_switch_cntrl.win_seq != SHORT_WINDOW) {
         ia_enhaacplus_enc_build_interface(
-            psy_data[ch].ptr_spec_coeffs, &psy_data[ch].sfb_threshold, &psy_data[ch].sfb_energy,
-            &psy_data[ch].sfb_sreaded_energy, psy_data[ch].sfb_energy_sum,
-            psy_data[ch].sfb_energy_sum_ms, psy_data[ch].blk_switch_cntrl.win_seq,
+            psy_data[ch]->ptr_spec_coeffs, &psy_data[ch]->sfb_threshold,
+            &psy_data[ch]->sfb_energy,
+            &psy_data[ch]->sfb_sreaded_energy, psy_data[ch]->sfb_energy_sum,
+            psy_data[ch]->sfb_energy_sum_ms, psy_data[ch]->blk_switch_cntrl.win_seq,
             ia_enhaacplus_enc_block_type_to_window_shape_lc[psy_data[ch]
-                                                                .blk_switch_cntrl.win_seq],
+                                                                ->blk_switch_cntrl.win_seq],
             pstr_psy_conf_long->sfb_cnt, pstr_psy_conf_long->sfb_offsets, max_sfb_per_grp[ch],
-            pstr_psy_conf_long->sfb_min_snr, psy_data[ch].blk_switch_cntrl.total_groups_cnt,
-            psy_data[ch].blk_switch_cntrl.group_len, &psy_out_ch[ch]);
+            pstr_psy_conf_long->sfb_min_snr, psy_data[ch]->blk_switch_cntrl.total_groups_cnt,
+            psy_data[ch]->blk_switch_cntrl.group_len, psy_out_ch[ch]);
       } else {
         ia_enhaacplus_enc_build_interface(
-            psy_data[ch].ptr_spec_coeffs, &psy_data[ch].sfb_threshold, &psy_data[ch].sfb_energy,
-            &psy_data[ch].sfb_sreaded_energy, psy_data[ch].sfb_energy_sum,
-            psy_data[ch].sfb_energy_sum_ms, SHORT_WINDOW, SINE_WINDOW,
-            psy_data[ch].blk_switch_cntrl.total_groups_cnt * pstr_psy_conf_short->sfb_cnt,
+            psy_data[ch]->ptr_spec_coeffs, &psy_data[ch]->sfb_threshold,
+            &psy_data[ch]->sfb_energy,
+            &psy_data[ch]->sfb_sreaded_energy, psy_data[ch]->sfb_energy_sum,
+            psy_data[ch]->sfb_energy_sum_ms, SHORT_WINDOW, SINE_WINDOW,
+            psy_data[ch]->blk_switch_cntrl.total_groups_cnt * pstr_psy_conf_short->sfb_cnt,
             grouped_sfb_offset[ch], max_sfb_per_grp[ch], grouped_sfb_min_snr[ch],
-            psy_data[ch].blk_switch_cntrl.total_groups_cnt,
-            psy_data[ch].blk_switch_cntrl.group_len, &psy_out_ch[ch]);
+            psy_data[ch]->blk_switch_cntrl.total_groups_cnt,
+            psy_data[ch]->blk_switch_cntrl.group_len, psy_out_ch[ch]);
       }
     }
   } else if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
     for (ch = 0; ch < num_channels; ch++) {
       ia_enhaacplus_enc_build_interface(
-          psy_data[ch].ptr_spec_coeffs, &psy_data[ch].sfb_threshold, &psy_data[ch].sfb_energy,
-          &psy_data[ch].sfb_sreaded_energy, psy_data[ch].sfb_energy_sum,
-          psy_data[ch].sfb_energy_sum_ms, LONG_WINDOW,
+          psy_data[ch]->ptr_spec_coeffs, &psy_data[ch]->sfb_threshold, &psy_data[ch]->sfb_energy,
+          &psy_data[ch]->sfb_sreaded_energy, psy_data[ch]->sfb_energy_sum,
+          psy_data[ch]->sfb_energy_sum_ms, LONG_WINDOW,
           ia_enhaacplus_enc_block_type_to_window_shape_ld[psy_data[ch]
-                                                              .blk_switch_cntrl.win_seq_ld],
+                                                              ->blk_switch_cntrl.win_seq_ld],
           ((aot == AOT_AAC_ELD) ? pstr_psy_conf_long->sfb_active : pstr_psy_conf_long->sfb_cnt),
           pstr_psy_conf_long->sfb_offsets, max_sfb_per_grp[ch], pstr_psy_conf_long->sfb_min_snr,
-          psy_data[ch].blk_switch_cntrl.total_groups_cnt, psy_data[ch].blk_switch_cntrl.group_len,
-          &psy_out_ch[ch]);
+          psy_data[ch]->blk_switch_cntrl.total_groups_cnt,
+          psy_data[ch]->blk_switch_cntrl.group_len, psy_out_ch[ch]);
     }
   }
   return error_code;

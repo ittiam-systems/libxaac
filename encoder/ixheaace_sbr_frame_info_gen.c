@@ -945,6 +945,9 @@ ixheaace_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,
   ixheaace_freq_res *ptr_tuning_freq = (ixheaace_freq_res *)(ptr_v_tuning + 3);
 
   ixheaace_freq_res freq_res_fix = pstr_sbr_env_frame->freq_res_fix;
+  if (pstr_sbr_env_frame->use_low_freq_res == 1) {
+    freq_res_fix = FREQ_RES_LOW;
+  }
   if (is_ld_sbr) {
     if ((!tran_flag && ptr_v_pre_transient_info[1]) &&
         (num_time_slots - ptr_v_pre_transient_info[0] < 4)) {
@@ -1108,7 +1111,8 @@ ixheaace_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,
         case IXHEAACE_LD_TRAN: {
           ixheaace_create_ld_transient_frame_info(&pstr_sbr_env_frame->sbr_frame_info,
                                                   &pstr_sbr_env_frame->sbr_grid, tran_pos,
-                                                  num_time_slots, 0);
+                                                  num_time_slots,
+                                                  pstr_sbr_env_frame->use_low_freq_res);
         } break;
         default:
           break;
@@ -1122,7 +1126,8 @@ ixheaace_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,
 
 VOID ixheaace_create_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,
                                           WORD32 allow_spread, WORD32 num_env_static,
-                                          WORD32 static_framing, ixheaace_freq_res freq_res_fix) {
+                                          WORD32 static_framing, ixheaace_freq_res freq_res_fix,
+                                          WORD32 use_low_freq_res) {
   memset(pstr_sbr_env_frame, 0, sizeof(ixheaace_str_sbr_env_frame));
 
   pstr_sbr_env_frame->frame_type_old = IXHEAACE_FIXFIX;
@@ -1132,6 +1137,7 @@ VOID ixheaace_create_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_e
   pstr_sbr_env_frame->num_env_static = num_env_static;
   pstr_sbr_env_frame->static_framing = static_framing;
   pstr_sbr_env_frame->freq_res_fix = freq_res_fix;
+  pstr_sbr_env_frame->use_low_freq_res = use_low_freq_res;
 
   pstr_sbr_env_frame->length_v_bord = 0;
   pstr_sbr_env_frame->length_v_bord_follow = 0;

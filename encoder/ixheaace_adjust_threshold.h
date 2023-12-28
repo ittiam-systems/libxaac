@@ -45,7 +45,7 @@ VOID iaace_adj_thr_init(ia_adj_thr_state_struct *pstr_adj_thr_state, const FLOAT
 
 VOID iaace_adjust_threshold(ia_adj_thr_state_struct *pstr_adj_thr_state,
                             ia_adj_thr_elem_struct *pstr_adj_thr_elem,
-                            ixheaace_psy_out_channel pstr_psy_out[IXHEAACE_MAX_CH_IN_BS_ELE],
+                            ixheaace_psy_out_channel **pstr_psy_out,
                             FLOAT32 *ptr_ch_bit_dist, ixheaace_qc_out_element *pstr_qc_out_el,
                             const WORD32 avg_bits, const WORD32 bitres_bits,
                             const WORD32 max_bitres_bits, const WORD32 side_info_bits,

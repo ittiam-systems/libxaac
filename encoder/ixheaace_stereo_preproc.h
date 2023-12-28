@@ -58,7 +58,7 @@ VOID iaace_apply_stereo_preproc(ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro
                                 WORD32 num_channels, ixheaace_element_info *pstr_elem_info,
                                 FLOAT32 *ptr_time_data, WORD32 granule_len);
 
-VOID iaace_update_stereo_pre_process(ixheaace_psy_out_channel *pstr_psy_out,
+VOID iaace_update_stereo_pre_process(ixheaace_psy_out_channel **pstr_psy_out,
                                      ixheaace_qc_out_element *pstr_qc_out,
                                      ixheaace_stereo_pre_pro_pstr pstr_stereo_pre_pro,
                                      FLOAT32 weight_pe_fac);

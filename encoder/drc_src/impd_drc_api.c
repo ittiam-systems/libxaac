@@ -126,6 +126,18 @@ static IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_in
                                  .gain_params[k]
                                  .start_sub_band_index,
                              0, STFT256_HOP_SIZE - 1);
+        IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                                 .str_gain_set_params[j].gain_params[k].width,
+                             -MAX_FLT_VAL_DB, MAX_FLT_VAL_DB);
+        for (WORD32 m = 0; m < pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+          .str_gain_set_params[j].gain_params[k].nb_points; m++) {
+          IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                                   .str_gain_set_params[j].gain_params[k].gain_points[m].x,
+                               -MAX_FLT_VAL_DB, MAX_FLT_VAL_DB);
+          IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                                   .str_gain_set_params[j].gain_params[k].gain_points[m].y,
+                               -MAX_FLT_VAL_DB, MAX_FLT_VAL_DB);
+        }
       }
       for (k = 0; k <
         pstr_uni_drc_config->str_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count

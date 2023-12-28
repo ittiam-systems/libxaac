@@ -136,11 +136,10 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
 
   err_code = ia_enhaacplus_enc_psy_main(
       time_sn_stride, pstr_element_info, ptr_time_signal, aot,
-      pstr_aac_encoder->psy_kernel.psy_data[pstr_element_info->channel_index[0]],
-      pstr_aac_encoder->psy_kernel
-          .temporal_noise_shaping_data[pstr_element_info->channel_index[0]],
+      pstr_aac_encoder->psy_kernel.psy_data,
+      pstr_aac_encoder->psy_kernel.temporal_noise_shaping_data,
       &pstr_aac_encoder->psy_kernel.psy_conf_long, &pstr_aac_encoder->psy_kernel.psy_conf_short,
-      pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]],
+      pstr_aac_encoder->psy_out.psy_out_ch,
       &pstr_aac_encoder->psy_out.psy_out_element,
       pstr_aac_encoder->psy_kernel.p_scratch_tns_float,
       (FLOAT32 *)pstr_aac_encoder->pstr_aac_scratch->shared_buffer1,
@@ -155,23 +154,22 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
       pstr_aac_encoder->config.core_sample_rate, flag_last_element, frame_len_long);
 
   for (ch = 0; ch < pstr_element_info->n_channels_in_el; ch++) {
-    pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]][ch].ms_digest =
+    pstr_aac_encoder->psy_out.psy_out_ch[ch]->ms_digest =
         pstr_aac_encoder->psy_out.psy_out_element.tools_info.ms_digest;
 
     memcpy(
-        &pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]][ch].ms_used[0],
+        &pstr_aac_encoder->psy_out.psy_out_ch[ch]->ms_used[0],
         &pstr_aac_encoder->psy_out.psy_out_element.tools_info.ms_mask[0],
         MAXIMUM_GROUPED_SCALE_FACTOR_BAND *
-            sizeof(pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]][ch]
-                       .ms_used[0]));
+            sizeof(pstr_aac_encoder->psy_out.psy_out_ch[ch]->ms_used[0]));
   }
 
   err_code = ia_enhaacplus_enc_qc_main(
       &pstr_aac_encoder->qc_kernel, pstr_element_info->n_channels_in_el,
       &pstr_aac_encoder->qc_kernel.element_bits,
-      pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]],
+      pstr_aac_encoder->psy_out.psy_out_ch,
       &pstr_aac_encoder->psy_out.psy_out_element,
-      pstr_aac_encoder->qc_out.qc_channel[pstr_element_info->channel_index[0]],
+      pstr_aac_encoder->qc_out.qc_channel,
       &pstr_aac_encoder->qc_out.qc_element, MIN(anc_data_bytes_left, anc_data_bytes),
       pstr_aac_tabs, adts_flag, aot, stat_bits_flag, flag_last_element, frame_len_long,
       pstr_aac_encoder->pstr_aac_scratch->shared_buffer5, is_quant_spec_zero,
@@ -184,7 +182,7 @@ IA_ERRORCODE ia_enhaacplus_enc_aac_core_encode(
   if (pstr_element_info->el_type == ID_CPE) {
     if (!pstr_aac_encoder->config.num_stereo_preprocessing) {
       iaace_update_stereo_pre_process(
-          pstr_aac_encoder->psy_out.psy_out_ch[pstr_element_info->channel_index[0]],
+          pstr_aac_encoder->psy_out.psy_out_ch,
           &pstr_aac_encoder->qc_out.qc_element, &pstr_aac_encoder->str_stereo_pre_pro,
           pstr_aac_encoder->psy_out.psy_out_element.weight_ms_lr_pe_ratio);
     }

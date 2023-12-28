@@ -129,7 +129,7 @@ VOID iaace_adj_thr_init(ia_adj_thr_state_struct *pstr_adj_thr_state, const FLOAT
 }
 FLOAT32 iaace_bits_to_pe(const FLOAT32 bits) { return (bits * 1.18f); }
 static VOID iaace_calc_sfb_pe_data(ia_qc_pe_data_struct *pstr_qc_pe_data,
-                                   ixheaace_psy_out_channel *pstr_psy_out, WORD32 num_channels,
+                                   ixheaace_psy_out_channel **pstr_psy_out, WORD32 num_channels,
                                    WORD32 chn) {
   WORD32 ch;
   WORD32 scf_band_grp;
@@ -148,11 +148,11 @@ static VOID iaace_calc_sfb_pe_data(ia_qc_pe_data_struct *pstr_qc_pe_data,
   pstr_qc_pe_data->num_active_lines = 0.0f;
 
   for (ch = chn; ch < chn + num_channels; ch++) {
-    sfb_count = pstr_psy_out[ch].sfb_count;
-    scf_band_per_grp = pstr_psy_out[ch].sfb_per_group;
-    max_sfb_per_grp = pstr_psy_out[ch].max_sfb_per_grp;
-    ptr_sfb_energy = pstr_psy_out[ch].ptr_sfb_energy;
-    ptr_sfb_thr = pstr_psy_out[ch].ptr_sfb_thr;
+    sfb_count = pstr_psy_out[ch]->sfb_count;
+    scf_band_per_grp = pstr_psy_out[ch]->sfb_per_group;
+    max_sfb_per_grp = pstr_psy_out[ch]->max_sfb_per_grp;
+    ptr_sfb_energy = pstr_psy_out[ch]->ptr_sfb_energy;
+    ptr_sfb_thr = pstr_psy_out[ch]->ptr_sfb_thr;
     pstr_qc_pe_chan_data = &pstr_qc_pe_data->pe_ch_data[ch];
     pstr_qc_pe_chan_data->pe = 0;
     pstr_qc_pe_chan_data->num_active_lines = 0;
@@ -190,7 +190,7 @@ static VOID iaace_calc_sfb_pe_data(ia_qc_pe_data_struct *pstr_qc_pe_data,
     pstr_qc_pe_data->pe += pstr_qc_pe_chan_data->pe;
     pstr_qc_pe_data->const_part += pstr_qc_pe_chan_data->const_part;
     pstr_qc_pe_data->num_active_lines += pstr_qc_pe_chan_data->num_active_lines;
-    pstr_psy_out[ch].pe = pstr_qc_pe_data->pe;
+    pstr_psy_out[ch]->pe = pstr_qc_pe_data->pe;
   }
 }
 static FLOAT32 iaace_calc_bit_save(ia_bitres_param_struct *pstr_bitres_params, FLOAT32 fill_lvl) {
@@ -334,13 +334,13 @@ static VOID iaace_calc_pe_correction(FLOAT32 *ptr_correction_fac, const FLOAT32 
 
 static VOID iaace_calc_thr_exp(
     FLOAT32 thr_exp[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
-    ixheaace_psy_out_channel *pstr_psy_out, WORD32 num_chans, WORD32 chn) {
+    ixheaace_psy_out_channel **pstr_psy_out, WORD32 num_chans, WORD32 chn) {
   WORD32 sfb, ch, scf_band_grp;
   ixheaace_psy_out_channel *pstr_psy_chan_out;
   FLOAT32 *ptr_scf_band_thr;
   FLOAT32 *ptr_thr_exp;
   for (ch = chn; ch < chn + num_chans; ch++) {
-    pstr_psy_chan_out = &pstr_psy_out[ch];
+    pstr_psy_chan_out = pstr_psy_out[ch];
     ptr_thr_exp = thr_exp[ch];
     for (scf_band_grp = 0; scf_band_grp < pstr_psy_chan_out->sfb_count;
          scf_band_grp += pstr_psy_chan_out->sfb_per_group) {
@@ -353,7 +353,7 @@ static VOID iaace_calc_thr_exp(
   }
 }
 
-static VOID iaace_adapt_min_snr(ixheaace_psy_out_channel *pstr_psy_out,
+static VOID iaace_adapt_min_snr(ixheaace_psy_out_channel **pstr_psy_out,
                                 ia_min_snr_adapt_param_struct *pstr_min_snr_params,
                                 WORD32 num_chans, WORD32 chn) {
   WORD32 num_scf_band = 0, ch, scf_band_cnt, scf_band_offs, sfb;
@@ -361,7 +361,7 @@ static VOID iaace_adapt_min_snr(ixheaace_psy_out_channel *pstr_psy_out,
   WORD32 i;
 
   for (ch = chn; ch < chn + num_chans; ch++) {
-    ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+    ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
     num_scf_band = 0;
     avg_energy = 0;
     scf_band_cnt = pstr_psy_chan_out->max_sfb_per_grp;
@@ -392,8 +392,9 @@ static VOID iaace_adapt_min_snr(ixheaace_psy_out_channel *pstr_psy_out,
               pstr_min_snr_params->red_offs + pstr_min_snr_params->red_ratio_fac * db_ratio;
           min_snr_red = MAX(min_snr_red, pstr_min_snr_params->max_red);
           pstr_psy_chan_out->sfb_min_snr[i] =
-              (FLOAT32)pow(pstr_psy_out[ch].sfb_min_snr[i], min_snr_red);
-          pstr_psy_chan_out->sfb_min_snr[i] = MIN(MIN_SNR_LIMIT, pstr_psy_out[ch].sfb_min_snr[i]);
+              (FLOAT32)pow(pstr_psy_out[ch]->sfb_min_snr[i], min_snr_red);
+          pstr_psy_chan_out->sfb_min_snr[i] =
+              MIN(MIN_SNR_LIMIT, pstr_psy_out[ch]->sfb_min_snr[i]);
         }
       }
     }
@@ -402,7 +403,7 @@ static VOID iaace_adapt_min_snr(ixheaace_psy_out_channel *pstr_psy_out,
 
 static VOID iaace_init_avoid_hole_flag(
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
-    ixheaace_psy_out_channel *pstr_psy_out, ia_ah_param_struct *pstr_ah_param, WORD32 num_chans,
+    ixheaace_psy_out_channel **pstr_psy_out, ia_ah_param_struct *pstr_ah_param, WORD32 num_chans,
     WORD32 chn, WORD32 aot) {
   WORD32 ch;
   FLOAT32 sfb_energy;
@@ -410,7 +411,7 @@ static VOID iaace_init_avoid_hole_flag(
   WORD32 scf_band_grp, scf_band_cnt, scf_band;
   FLOAT32 *ptr_scf_band_spread_energy, *ptr_scf_band_energy, *ptr_scf_band_min_snr;
   for (ch = chn; ch < chn + num_chans; ch++) {
-    ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+    ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
 
     if (pstr_psy_chan_out->window_sequence != SHORT_WINDOW) {
       switch (aot) {
@@ -442,7 +443,7 @@ static VOID iaace_init_avoid_hole_flag(
 
   if (pstr_ah_param->modify_min_snr) {
     for (ch = chn; ch < chn + num_chans; ch++) {
-      ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+      ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
       ptr_scf_band_energy = pstr_psy_chan_out->ptr_sfb_energy;
 
       ptr_scf_band_min_snr = pstr_psy_chan_out->sfb_min_snr;
@@ -509,12 +510,12 @@ static VOID iaace_init_avoid_hole_flag(
   }
 
   if (num_chans == 2) {
-    ixheaace_psy_out_channel *pstr_psy_out_mid = &pstr_psy_out[chn];
-    ixheaace_psy_out_channel *pstr_psy_out_side = &pstr_psy_out[chn + 1];
+    ixheaace_psy_out_channel *pstr_psy_out_mid = pstr_psy_out[chn];
+    ixheaace_psy_out_channel *pstr_psy_out_side = pstr_psy_out[chn + 1];
     WORD32 sfb;
 
     for (sfb = 0; sfb < pstr_psy_out_mid->sfb_count; sfb++) {
-      if (pstr_psy_out[chn].ms_used[sfb]) {
+      if (pstr_psy_out[chn]->ms_used[sfb]) {
         FLOAT32 sfb_en_mid = pstr_psy_out_mid->ptr_sfb_energy[sfb];
         FLOAT32 sfb_en_side = pstr_psy_out_side->ptr_sfb_energy[sfb];
         FLOAT32 max_sfb_en = MAX(sfb_en_mid, sfb_en_side);
@@ -541,7 +542,7 @@ static VOID iaace_init_avoid_hole_flag(
   }
 
   for (ch = chn; ch < chn + num_chans; ch++) {
-    ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+    ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
     for (scf_band_grp = 0; scf_band_grp < pstr_psy_chan_out->sfb_count;
          scf_band_grp += pstr_psy_chan_out->sfb_per_group) {
       for (scf_band = 0; scf_band < pstr_psy_chan_out->max_sfb_per_grp; scf_band++) {
@@ -563,7 +564,7 @@ static VOID iaace_init_avoid_hole_flag(
 }
 
 static VOID iaace_reduce_thr(
-    ixheaace_psy_out_channel *pstr_psy_out,
+    ixheaace_psy_out_channel **pstr_psy_out,
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     FLOAT32 thr_exp[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     const FLOAT32 red_value, WORD32 num_channels, WORD32 chn) {
@@ -572,7 +573,7 @@ static VOID iaace_reduce_thr(
   FLOAT32 *ptr_sfb_energy_fix, *ptr_sfb_threshold_fix, *ptr_sfb_min_snr_fix, *ptr_thr_exp_fix;
 
   for (ch = chn; ch < chn + num_channels; ch++) {
-    ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+    ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
     ptr_sfb_energy_fix = pstr_psy_chan_out->ptr_sfb_energy;
     ptr_sfb_threshold_fix = pstr_psy_chan_out->ptr_sfb_thr;
     ptr_sfb_min_snr_fix = pstr_psy_chan_out->sfb_min_snr;
@@ -603,14 +604,14 @@ static VOID iaace_calc_pe_no_active_holes(
     FLOAT32 *ptr_pe, FLOAT32 *ptr_const_part, FLOAT32 *ptr_num_active_lines,
     ia_qc_pe_data_struct *pstr_qs_pe_data,
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
-    ixheaace_psy_out_channel *pstr_psy_out, WORD32 num_channels, WORD32 chn) {
+    ixheaace_psy_out_channel **pstr_psy_out, WORD32 num_channels, WORD32 chn) {
   WORD32 ch, sfb_group, sfb;
   *ptr_pe = 0.0f;
   *ptr_const_part = 0.0f;
   *ptr_num_active_lines = 0;
 
   for (ch = chn; ch < chn + num_channels; ch++) {
-    ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+    ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
     ia_qc_pe_chan_data_struct *ptr_pe_chan_data = &pstr_qs_pe_data->pe_ch_data[ch];
 
     for (sfb_group = 0; sfb_group < pstr_psy_chan_out->sfb_count;
@@ -627,7 +628,7 @@ static VOID iaace_calc_pe_no_active_holes(
 }
 
 static VOID iaace_correct_thr(
-    ixheaace_psy_out_channel *pstr_psy_out,
+    ixheaace_psy_out_channel **pstr_psy_out,
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     ia_qc_pe_data_struct *pstr_qs_pe_data,
     FLOAT32 thr_exp[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
@@ -644,7 +645,7 @@ static VOID iaace_correct_thr(
   ia_qc_pe_chan_data_struct *pstr_pe_chan_data = NULL;
 
   for (ch = chn; ch < chn + num_channels; ch++) {
-    pstr_psy_chan_out = &pstr_psy_out[ch];
+    pstr_psy_chan_out = pstr_psy_out[ch];
     pstr_pe_chan_data = &pstr_qs_pe_data->pe_ch_data[ch];
     norm_factor[ch] = MIN_FLT_VAL;
     ptr_thr_exp = thr_exp[ch];
@@ -669,7 +670,7 @@ static VOID iaace_correct_thr(
   norm_factor[chn] = 1.0f / norm_factor[chn];
 
   for (ch = chn; ch < chn + num_channels; ch++) {
-    pstr_psy_chan_out = &pstr_psy_out[ch];
+    pstr_psy_chan_out = pstr_psy_out[ch];
     pstr_pe_chan_data = &pstr_qs_pe_data->pe_ch_data[ch];
     ptr_sfb_energy = pstr_psy_chan_out->ptr_sfb_energy;
     ptr_sfb_thr = pstr_psy_chan_out->ptr_sfb_thr;
@@ -700,23 +701,23 @@ static VOID iaace_correct_thr(
 }
 
 static VOID iaace_reduce_min_snr(
-    ixheaace_psy_out_channel *pstr_psy_out, ia_qc_pe_data_struct *pstr_qs_pe_data,
+    ixheaace_psy_out_channel **pstr_psy_out, ia_qc_pe_data_struct *pstr_qs_pe_data,
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     const FLOAT32 desired_pe, WORD32 num_channels, WORD32 chn) {
   WORD32 sfb, sfb_sub_win, ch;
   FLOAT32 delta_pe;
 
-  sfb_sub_win = pstr_psy_out[chn].max_sfb_per_grp;
+  sfb_sub_win = pstr_psy_out[chn]->max_sfb_per_grp;
 
   while (pstr_qs_pe_data->pe > desired_pe && sfb_sub_win > 0) {
     sfb_sub_win--;
-    for (sfb = sfb_sub_win; sfb < pstr_psy_out[chn].sfb_count;
-         sfb += pstr_psy_out[chn].sfb_per_group) {
+    for (sfb = sfb_sub_win; sfb < pstr_psy_out[chn]->sfb_count;
+         sfb += pstr_psy_out[chn]->sfb_per_group) {
       for (ch = chn; ch < chn + num_channels; ch++) {
-        if (ah_flag[ch][sfb] != NO_AH && pstr_psy_out[ch].sfb_min_snr[sfb] < MIN_SNR_LIMIT) {
-          pstr_psy_out[ch].sfb_min_snr[sfb] = MIN_SNR_LIMIT;
-          pstr_psy_out[ch].ptr_sfb_thr[sfb] =
-              pstr_psy_out[ch].ptr_sfb_energy[sfb] * pstr_psy_out[ch].sfb_min_snr[sfb];
+        if (ah_flag[ch][sfb] != NO_AH && pstr_psy_out[ch]->sfb_min_snr[sfb] < MIN_SNR_LIMIT) {
+          pstr_psy_out[ch]->sfb_min_snr[sfb] = MIN_SNR_LIMIT;
+          pstr_psy_out[ch]->ptr_sfb_thr[sfb] =
+              pstr_psy_out[ch]->ptr_sfb_energy[sfb] * pstr_psy_out[ch]->sfb_min_snr[sfb];
           delta_pe = pstr_qs_pe_data->pe_ch_data[ch].sfb_lines[sfb] * 1.5f -
                      pstr_qs_pe_data->pe_ch_data[ch].sfb_pe[sfb];
           pstr_qs_pe_data->pe += delta_pe;
@@ -731,7 +732,7 @@ static VOID iaace_reduce_min_snr(
 }
 
 static VOID iaace_allow_more_holes(
-    ixheaace_psy_out_channel *pstr_psy_out, ia_qc_pe_data_struct *pstr_qs_pe_data,
+    ixheaace_psy_out_channel **pstr_psy_out, ia_qc_pe_data_struct *pstr_qs_pe_data,
     WORD32 ah_flag[IXHEAACE_MAX_CH_IN_BS_ELE][MAXIMUM_GROUPED_SCALE_FACTOR_BAND],
     const ia_ah_param_struct *pstr_str_ah_param, const FLOAT32 desired_pe, WORD32 num_channels,
     WORD32 chn) {
@@ -739,12 +740,12 @@ static VOID iaace_allow_more_holes(
   FLOAT32 act_pe = pstr_qs_pe_data->pe;
 
   if (num_channels == 2 &&
-      pstr_psy_out[chn].window_sequence == pstr_psy_out[chn + 1].window_sequence) {
-    ixheaace_psy_out_channel *pstr_psy_out_left = &pstr_psy_out[chn];
-    ixheaace_psy_out_channel *pstr_psy_out_right = &pstr_psy_out[chn + 1];
+      pstr_psy_out[chn]->window_sequence == pstr_psy_out[chn + 1]->window_sequence) {
+    ixheaace_psy_out_channel *pstr_psy_out_left = pstr_psy_out[chn];
+    ixheaace_psy_out_channel *pstr_psy_out_right = pstr_psy_out[chn + 1];
 
     for (sfb = 0; sfb < pstr_psy_out_left->sfb_count; sfb++) {
-      if (pstr_psy_out[chn].ms_used[sfb]) {
+      if (pstr_psy_out[chn]->ms_used[sfb]) {
         if (ah_flag[chn + 1][sfb] != NO_AH &&
             0.4f * pstr_psy_out_left->sfb_min_snr[sfb] * pstr_psy_out_left->ptr_sfb_energy[sfb] >
                 pstr_psy_out_right->ptr_sfb_energy[sfb]) {
@@ -780,7 +781,7 @@ static VOID iaace_allow_more_holes(
     WORD32 done;
 
     for (ch = chn; ch < chn + num_channels; ch++) {
-      if (pstr_psy_out[ch].window_sequence != SHORT_WINDOW) {
+      if (pstr_psy_out[ch]->window_sequence != SHORT_WINDOW) {
         start_sfb[ch] = pstr_str_ah_param->start_sfb_long;
       } else {
         start_sfb[ch] = pstr_str_ah_param->start_sfb_short;
@@ -791,7 +792,7 @@ static VOID iaace_allow_more_holes(
     min_energy = MAX_FLT_VAL;
     ah_cnt = 0;
     for (ch = chn; ch < chn + num_channels; ch++) {
-      ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+      ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
       for (sfb = start_sfb[ch]; sfb < pstr_psy_chan_out->sfb_count; sfb++) {
         if ((ah_flag[ch][sfb] != NO_AH) &&
             (pstr_psy_chan_out->ptr_sfb_energy[sfb] > pstr_psy_chan_out->ptr_sfb_thr[sfb])) {
@@ -808,11 +809,11 @@ static VOID iaace_allow_more_holes(
       energy[en_idx] = min_energy * (FLOAT32)pow(average_energy / (min_energy + MIN_FLT_VAL),
                                                  (2 * en_idx + 1) / 7.0f);
     }
-    max_sfb = pstr_psy_out[chn].sfb_count - 1;
+    max_sfb = pstr_psy_out[chn]->sfb_count - 1;
     min_sfb = start_sfb[chn];
 
     if (num_channels == 2) {
-      max_sfb = MAX(max_sfb, pstr_psy_out[chn + 1].sfb_count - 1);
+      max_sfb = MAX(max_sfb, pstr_psy_out[chn + 1]->sfb_count - 1);
 
       min_sfb = MIN(min_sfb, start_sfb[chn + 1]);
     }
@@ -822,7 +823,7 @@ static VOID iaace_allow_more_holes(
     done = 0;
     while (!done) {
       for (ch = chn; ch < chn + num_channels; ch++) {
-        ixheaace_psy_out_channel *pstr_psy_chan_out = &pstr_psy_out[ch];
+        ixheaace_psy_out_channel *pstr_psy_chan_out = pstr_psy_out[ch];
         if (sfb >= start_sfb[ch] && sfb < pstr_psy_chan_out->sfb_count) {
           if (ah_flag[ch][sfb] != NO_AH &&
               pstr_psy_chan_out->ptr_sfb_energy[sfb] < energy[en_idx]) {
@@ -850,7 +851,7 @@ static VOID iaace_allow_more_holes(
 }
 
 static VOID iaace_adapt_thr_to_pe(
-    ixheaace_psy_out_channel pstr_psy_out[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **pstr_psy_out,
     ia_qc_pe_data_struct *pstr_qs_pe_data, const FLOAT32 desired_pe,
     ia_ah_param_struct *pstr_ah_param, ia_min_snr_adapt_param_struct *pstr_msa_param,
     WORD32 num_channels, WORD32 chn, WORD32 aot) {
@@ -918,7 +919,7 @@ static VOID iaace_adapt_thr_to_pe(
 
 VOID iaace_adjust_threshold(ia_adj_thr_state_struct *pstr_adj_thr_state,
                             ia_adj_thr_elem_struct *pstr_adj_thr_elem,
-                            ixheaace_psy_out_channel pstr_psy_out[IXHEAACE_MAX_CH_IN_BS_ELE],
+                            ixheaace_psy_out_channel **pstr_psy_out,
                             FLOAT32 *ptr_ch_bit_dist, ixheaace_qc_out_element *pstr_qc_out_el,
                             const WORD32 avg_bits, const WORD32 bitres_bits,
                             const WORD32 max_bitres_bits, const WORD32 side_info_bits,
@@ -945,12 +946,12 @@ VOID iaace_adjust_threshold(ia_adj_thr_state_struct *pstr_adj_thr_state,
 
   curr_win_sequence = LONG_WINDOW;
   if (num_channels == 2) {
-    if ((pstr_psy_out[chn].window_sequence == SHORT_WINDOW) ||
-        (pstr_psy_out[chn + 1].window_sequence == SHORT_WINDOW)) {
+    if ((pstr_psy_out[chn]->window_sequence == SHORT_WINDOW) ||
+        (pstr_psy_out[chn + 1]->window_sequence == SHORT_WINDOW)) {
       curr_win_sequence = SHORT_WINDOW;
     }
   } else {
-    curr_win_sequence = pstr_psy_out[chn].window_sequence;
+    curr_win_sequence = pstr_psy_out[chn]->window_sequence;
   }
 
   bit_factor = iaace_bitres_calc_bitfac(

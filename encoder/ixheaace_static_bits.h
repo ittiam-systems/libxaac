@@ -21,6 +21,6 @@
 #pragma once
 
 WORD32 ia_enhaacplus_enc_count_static_bitdemand(
-    ixheaace_psy_out_channel psy_out_ch[IXHEAACE_MAX_CH_IN_BS_ELE],
+    ixheaace_psy_out_channel **psy_out_ch,
     ixheaace_psy_out_element *pstr_psy_out_element, WORD32 channels, WORD32 aot, WORD32 adts_flag,
     WORD32 stat_bits_flag, WORD32 flag_last_element);

@@ -276,7 +276,8 @@ static IA_ERRORCODE ixheaace_create_env_channel(
   }
 
   ixheaace_create_frame_info_generator(&pstr_env->str_sbr_env_frame, params->spread, e,
-                                       params->stat, pstr_env->enc_env_data.freq_res_fix);
+                                       params->stat, pstr_env->enc_env_data.freq_res_fix,
+                                       params->use_low_freq_res);
 
   ixheaace_create_sbr_transient_detector(
       &pstr_env->str_sbr_trans_detector, pstr_sbr_cfg->sample_freq,
@@ -502,8 +503,23 @@ VOID ixheaace_adjust_sbr_settings(const ixheaace_pstr_sbr_cfg pstr_config, UWORD
         break;
       }
     }
+    pstr_config->use_low_freq_res = 0;
     if (pstr_config->sbr_codec == ELD_SBR) {
       pstr_config->send_header_data_time = -1;
+      if ((num_ch == NUM_CHANS_MONO) && (bit_rate <= 22000)) {
+        pstr_config->use_low_freq_res = 1;
+      }
+      if ((num_ch == NUM_CHANS_STEREO) && (bit_rate <= 48000)) {
+        pstr_config->use_low_freq_res = 1;
+      }
+    }
+    else {
+      if ((num_ch == NUM_CHANS_MONO) && (bit_rate <= 18000)) {
+        pstr_config->use_low_freq_res = 1;
+      }
+      if ((num_ch == NUM_CHANS_STEREO) && (bit_rate <= 28000)) {
+        pstr_config->use_low_freq_res = 1;
+      }
     }
     if (bit_rate <= 20000) {
       pstr_config->parametric_coding = 0;
@@ -739,107 +755,120 @@ VOID ixheaace_sbr_set_scratch_ptr(ixheaace_pstr_sbr_enc pstr_env_enc, VOID *ptr_
 
 WORD32 ixheaace_sbr_enc_pers_size(WORD32 num_ch, WORD32 use_ps, WORD32 harmonic_sbr) {
   WORD32 num_bytes;
-  num_bytes = sizeof(struct ixheaace_str_sbr_enc);
-  num_bytes += sizeof(struct ixheaace_str_enc_channel) * num_ch;
-  num_bytes += sizeof(ixheaace_pvc_enc);
-  num_bytes += 2 * sizeof(FLOAT32) * num_ch * QMF_FILTER_LENGTH;
+  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_sbr_enc), BYTE_ALIGN_8);
+  num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_enc_channel), BYTE_ALIGN_8) *
+                num_ch);
+  num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_pvc_enc), BYTE_ALIGN_8);
+  num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(2 * sizeof(FLOAT32) * QMF_FILTER_LENGTH, BYTE_ALIGN_8) *
+               num_ch);
   if (1 == harmonic_sbr) {
-    num_bytes += sizeof(ixheaace_str_hbe_enc) * num_ch;
-    num_bytes += sizeof(ixheaace_str_esbr_hbe_txposer) * num_ch;
-    num_bytes += IXHEAACE_MAX_HBE_PERSISTENT_SIZE * num_ch;
-    num_bytes += ESBR_RESAMP_SAMPLES * sizeof(FLOAT32);
+    num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_hbe_enc), BYTE_ALIGN_8) * num_ch);
+    num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_esbr_hbe_txposer), BYTE_ALIGN_8) *
+                  num_ch);
+    num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(IXHEAACE_MAX_HBE_PERSISTENT_SIZE, BYTE_ALIGN_8) *
+                  num_ch);
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(ESBR_RESAMP_SAMPLES * sizeof(FLOAT32), BYTE_ALIGN_8);
   }
-  num_bytes += sizeof(FLOAT32) * num_ch * 5 * NO_OF_ESTIMATES * MAXIMUM_FREQ_COEFFS;
+  num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(FLOAT32) * 5 * NO_OF_ESTIMATES *
+                MAXIMUM_FREQ_COEFFS, BYTE_ALIGN_8) * num_ch);
 
-  num_bytes += sizeof(FLOAT32) * num_ch * MAX_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS;
+  num_bytes += (IXHEAACE_GET_SIZE_ALIGNED(sizeof(FLOAT32) * MAX_QMF_TIME_SLOTS *
+                IXHEAACE_QMF_CHANNELS, BYTE_ALIGN_8) * num_ch);
 
   if (use_ps) {
-    num_bytes += sizeof(struct ixheaace_str_enc_channel);
-    num_bytes += sizeof(struct ixheaace_ps_enc);
-    num_bytes += sizeof(FLOAT32) * QMF_FILTER_LENGTH;
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_enc_channel), BYTE_ALIGN_8);
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_ps_enc), BYTE_ALIGN_8);
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(FLOAT32) * QMF_FILTER_LENGTH, BYTE_ALIGN_8);
 
-    num_bytes += sizeof(WORD32) * 5 * NO_OF_ESTIMATES * MAXIMUM_FREQ_COEFFS;
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(WORD32) * 5 * NO_OF_ESTIMATES *
+                 MAXIMUM_FREQ_COEFFS, BYTE_ALIGN_8);
 
     /*shared between spectral_band_replication_envYBuffer_fix and IIC IDD PS data buffers*/
-    num_bytes += sizeof(WORD32) * IXHEAACE_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS;
+    num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(WORD32) * IXHEAACE_QMF_TIME_SLOTS *
+                 IXHEAACE_QMF_CHANNELS, BYTE_ALIGN_8);
   }
-  num_bytes += sizeof(ixheaace_str_sbr_qmf_filter_bank);
-  num_bytes = IXHEAACE_GET_SIZE_ALIGNED(num_bytes, BYTE_ALIGN_8);
+  num_bytes += IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_sbr_qmf_filter_bank), BYTE_ALIGN_8);
   return num_bytes;
 }
 
 VOID ia_enhaacplus_enc_sbr_set_persist_buf(WORD8 *ptr_base, WORD32 num_ch, WORD32 use_ps,
                                            WORD32 harmonic_sbr) {
   struct ixheaace_str_sbr_enc *pstr_env_enc;
-  WORD8 *ptr_curr_mem = (WORD8 *)((WORD8 *)ptr_base + sizeof(struct ixheaace_str_sbr_enc));
+  WORD8 *ptr_curr_mem = ptr_base +
+    IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_sbr_enc), BYTE_ALIGN_8);
   WORD32 i;
 
   pstr_env_enc = (struct ixheaace_str_sbr_enc *)ptr_base;
 
   for (i = 0; i < num_ch; i++) {
     pstr_env_enc->pstr_env_channel[i] = (struct ixheaace_str_enc_channel *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(struct ixheaace_str_enc_channel);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_enc_channel), BYTE_ALIGN_8);
   }
 
   for (i = 0; i < num_ch; i++) {
     pstr_env_enc->pstr_env_channel[i]->str_sbr_qmf.ptr_sbr_qmf_states_ana =
         (FLOAT32 *)ptr_curr_mem;
-    ptr_curr_mem +=
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(
         sizeof(pstr_env_enc->pstr_env_channel[i]->str_sbr_qmf.ptr_sbr_qmf_states_ana[0]) *
-        QMF_FILTER_LENGTH;
+        QMF_FILTER_LENGTH, BYTE_ALIGN_8);
   }
   if (!use_ps) {
     pstr_env_enc->ptr_common_buffer1 = (WORD32 *)ptr_curr_mem;
-    ptr_curr_mem += sizeof(pstr_env_enc->ptr_common_buffer1[0]) * num_ch * 5 * NO_OF_ESTIMATES *
-                    MAXIMUM_FREQ_COEFFS;
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(sizeof(pstr_env_enc->ptr_common_buffer1[0]) *
+                    num_ch * 5 * NO_OF_ESTIMATES * MAXIMUM_FREQ_COEFFS, BYTE_ALIGN_8);
 
     pstr_env_enc->ptr_common_buffer2 = (WORD32 *)ptr_curr_mem;
-    ptr_curr_mem += sizeof(pstr_env_enc->ptr_common_buffer2[0]) * num_ch * MAX_QMF_TIME_SLOTS *
-                    IXHEAACE_QMF_CHANNELS;
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(sizeof(pstr_env_enc->ptr_common_buffer2[0]) *
+                    num_ch * MAX_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS, BYTE_ALIGN_8);
   } else {
     pstr_env_enc->ptr_common_buffer1 = (WORD32 *)ptr_curr_mem;
-    ptr_curr_mem += 2 * sizeof(pstr_env_enc->ptr_common_buffer1[0]) * 5 * NO_OF_ESTIMATES *
-                    MAXIMUM_FREQ_COEFFS;
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(2 * sizeof(pstr_env_enc->ptr_common_buffer1[0]) *
+                    5 * NO_OF_ESTIMATES * MAXIMUM_FREQ_COEFFS, BYTE_ALIGN_8);
 
     pstr_env_enc->ptr_common_buffer2 = (WORD32 *)ptr_curr_mem;
-    ptr_curr_mem += 2 * sizeof(pstr_env_enc->ptr_common_buffer2[0]) * IXHEAACE_QMF_TIME_SLOTS *
-                    IXHEAACE_QMF_CHANNELS;
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(2 * sizeof(pstr_env_enc->ptr_common_buffer2[0]) *
+                    IXHEAACE_QMF_TIME_SLOTS * IXHEAACE_QMF_CHANNELS, BYTE_ALIGN_8);
   }
   // PVC encoder
   pstr_env_enc->pstr_pvc_enc = (ixheaace_pvc_enc *)ptr_curr_mem;
-  ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_pvc_enc);
+  ptr_curr_mem = ptr_curr_mem + IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_pvc_enc), BYTE_ALIGN_8);
   // Harmonic SBR
   if (1 == harmonic_sbr) {
     for (i = 0; i < num_ch; i++) {
       pstr_env_enc->pstr_env_channel[i]->pstr_hbe_enc = (ixheaace_str_hbe_enc *)ptr_curr_mem;
-      ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_str_hbe_enc);
+      ptr_curr_mem = ptr_curr_mem +
+        IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_hbe_enc), BYTE_ALIGN_8);
       pstr_env_enc->pstr_env_channel[i]->pstr_hbe_enc->pstr_hbe_txposer =
           (ixheaace_str_esbr_hbe_txposer *)ptr_curr_mem;
-      ptr_curr_mem = ptr_curr_mem + sizeof(ixheaace_str_esbr_hbe_txposer);
+      ptr_curr_mem = ptr_curr_mem +
+        IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_str_esbr_hbe_txposer), BYTE_ALIGN_8);
       pstr_env_enc->pstr_env_channel[i]->pstr_hbe_enc->ptr_hbe_txposer_buffers =
           (VOID *)ptr_curr_mem;
       ptr_curr_mem = ptr_curr_mem + IXHEAACE_MAX_HBE_PERSISTENT_SIZE;
     }
     pstr_env_enc->ptr_hbe_resample_buf = (FLOAT32 *)ptr_curr_mem;
-    ptr_curr_mem =
-        ptr_curr_mem + (ESBR_RESAMP_SAMPLES * sizeof(pstr_env_enc->ptr_hbe_resample_buf[0]));
+    ptr_curr_mem = ptr_curr_mem + IXHEAACE_GET_SIZE_ALIGNED(
+      (ESBR_RESAMP_SAMPLES * sizeof(pstr_env_enc->ptr_hbe_resample_buf[0])), BYTE_ALIGN_8);
   }
   if (use_ps) {
     pstr_env_enc->pstr_env_channel[1] = (struct ixheaace_str_enc_channel *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(struct ixheaace_str_enc_channel);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_str_enc_channel), BYTE_ALIGN_8);
     memset(pstr_env_enc->pstr_env_channel[1], 0, sizeof(struct ixheaace_str_enc_channel));
 
     pstr_env_enc->pstr_env_channel[1]->str_sbr_qmf.ptr_sbr_qmf_states_ana =
         (FLOAT32 *)ptr_curr_mem;
-    ptr_curr_mem +=
-        sizeof(pstr_env_enc->pstr_env_channel[1]->str_sbr_qmf.ptr_sbr_qmf_states_ana[0]) *
-        QMF_FILTER_LENGTH;
+    ptr_curr_mem += IXHEAACE_GET_SIZE_ALIGNED(
+      sizeof(pstr_env_enc->pstr_env_channel[1]->str_sbr_qmf.ptr_sbr_qmf_states_ana[0]) *
+        QMF_FILTER_LENGTH, BYTE_ALIGN_8);
     memset(pstr_env_enc->pstr_env_channel[1]->str_sbr_qmf.ptr_sbr_qmf_states_ana, 0,
            sizeof(pstr_env_enc->pstr_env_channel[1]->str_sbr_qmf.ptr_sbr_qmf_states_ana[0]) *
                QMF_FILTER_LENGTH);
 
     pstr_env_enc->pstr_ps_enc = (struct ixheaace_ps_enc *)(ptr_curr_mem);
-    ptr_curr_mem = ptr_curr_mem + sizeof(struct ixheaace_ps_enc);
+    ptr_curr_mem = ptr_curr_mem +
+      IXHEAACE_GET_SIZE_ALIGNED(sizeof(struct ixheaace_ps_enc), BYTE_ALIGN_8);
     memset(pstr_env_enc->pstr_ps_enc, 0, sizeof(struct ixheaace_ps_enc));
   }
   pstr_env_enc->pstr_synthesis_qmf_bank = (ixheaace_str_sbr_qmf_filter_bank *)(ptr_curr_mem);
