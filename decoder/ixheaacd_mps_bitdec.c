@@ -511,6 +511,26 @@ static IA_ERRORCODE ixheaacd_ec_data_dec(ia_heaac_mps_state_struct *pstr_mps_sta
         (!frame->bs_independency_flag || (set_idx > 0)), 0, 1, pstr_mps_state->ec_flag);
     if (error_code != IA_NO_ERROR) return error_code;
 
+    if (datatype == CLD) {
+      WORD32 band;
+      for (i = 0; i < pstr_mps_state->num_parameter_sets; i++) {
+        for (band = start_band; band < stop_band; band++) {
+          if (data[box_idx][i][band] > 15 || data[box_idx][i][band] < -15) {
+            return IA_FATAL_ERROR;
+          }
+        }
+      }
+    } else if (datatype == ICC) {
+      WORD32 band;
+      for (i = 0; i < pstr_mps_state->num_parameter_sets; i++) {
+        for (band = start_band; band < stop_band; band++) {
+          if (data[box_idx][i][band] > 7 || data[box_idx][i][band] < 0) {
+            return IA_FATAL_ERROR;
+          }
+        }
+      }
+    }
+
     for (pb = 0; pb < data_bands; pb++) {
       for (i = a_strides[pb]; i < a_strides[pb + 1]; i++) {
         lastdata[box_idx][i] = data[box_idx][set_idx + bs_data_pair][start_band + pb];
