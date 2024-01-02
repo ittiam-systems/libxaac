@@ -503,7 +503,7 @@ VOID ixheaace_adjust_sbr_settings(const ixheaace_pstr_sbr_cfg pstr_config, UWORD
         break;
       }
     }
-    pstr_config->use_low_freq_res = 0;
+
     if (pstr_config->sbr_codec == ELD_SBR) {
       pstr_config->send_header_data_time = -1;
       if ((num_ch == NUM_CHANS_MONO) && (bit_rate <= 22000)) {
@@ -581,6 +581,7 @@ VOID ixheaace_initialize_sbr_defaults(ixheaace_pstr_sbr_cfg pstr_config) {
   pstr_config->sbr_pvc_active = 0;
   pstr_config->sbr_harmonic = 0;
   pstr_config->sbr_ratio_idx = 0;  // NO_SBR
+  pstr_config->use_low_freq_res = 0;
 }
 
 static IA_ERRORCODE ia_enhaacplus_enc_update_freq_band_tab(
