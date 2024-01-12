@@ -43,3 +43,5 @@ VOID iusace_pre_echo_control(FLOAT32 *ptr_thr_nm1, WORD32 sfb_count, FLOAT32 max
 
 IA_ERRORCODE iusace_sfb_params_init(WORD32 sample_rate, WORD32 frame_len, WORD32 *ptr_sfb_width,
                                     WORD32 *num_sfb, WORD32 win_seq);
+
+WORD32 iusace_map_sample_rate(WORD32 sample_rate);

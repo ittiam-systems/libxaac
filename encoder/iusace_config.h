@@ -271,6 +271,7 @@ typedef struct {
   FLAG use_drc_element;
   WORD32 drc_frame_size;
   ia_drc_input_config str_drc_cfg;
+  WORD32 use_acelp_only;
 } ia_usac_encoder_config_struct;
 
 typedef struct {

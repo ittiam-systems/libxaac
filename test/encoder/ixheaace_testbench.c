@@ -814,16 +814,23 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
               "%d",
               pstr_input_config->ccfl_idx);
         }
-        if (pstr_input_config_user->ccfl_idx == NO_SBR_CCFL_1024 &&
+        else if (pstr_input_config_user->ccfl_idx == NO_SBR_CCFL_1024 &&
             pstr_input_config->ccfl_idx == SBR_2_1) {
           printf(
               "\nCore-coder framelength index (Unsupported configuration, enabling 2:1 eSBR) : "
               "%d",
               pstr_input_config->ccfl_idx);
         }
+        else if (pstr_input_config_user->ccfl_idx != pstr_input_config->ccfl_idx)
+        {
+          printf(
+            "\nCore-coder framelength index changed from %d to %d ",
+            pstr_input_config_user->ccfl_idx, pstr_input_config->ccfl_idx);
+        }
       } else {
-        printf("\nCore-coder framelength index (Invalid config value, setting to default) : %d",
-               pstr_input_config->ccfl_idx);
+          printf(
+            "\nCore-coder framelength index (Invalid input config value, setting to default): %d"
+            , pstr_input_config->ccfl_idx);
       }
     }
   }

@@ -96,6 +96,7 @@ typedef struct {
   iusace_scratch_mem str_scratch;
   WORD32 min_bits_needed;
   WORD32 num_drc_bits;
+  WORD32 use_acelp_only;
 } ia_usac_data_struct;
 
 typedef struct {

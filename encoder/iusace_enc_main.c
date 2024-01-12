@@ -504,6 +504,76 @@ WORD32 iusace_limitbitrate(WORD32 core_sample_rate, WORD32 frame_len, WORD32 num
   return bit_rate;
 }
 
+WORD32 iusace_map_sample_rate(WORD32 sample_rate)
+{
+  WORD32 mapped_sample_rate = sample_rate;
+
+  if ((mapped_sample_rate >= 0) && (mapped_sample_rate < 9391))
+  {
+    mapped_sample_rate = 8000;
+  }
+  else if ((mapped_sample_rate >= 9391) && (mapped_sample_rate < 11502))
+  {
+    mapped_sample_rate = 11025;
+  }
+  else if ((mapped_sample_rate >= 11502) && (mapped_sample_rate < 13856))
+  {
+    mapped_sample_rate = 12000;
+  }
+  else if ((mapped_sample_rate >= 13856) && (mapped_sample_rate < 18783))
+  {
+    mapped_sample_rate = 16000;
+  }
+  else if ((mapped_sample_rate >= 18783) && (mapped_sample_rate < 23004))
+  {
+    mapped_sample_rate = 22050;
+  }
+  else if ((mapped_sample_rate >= 23004) && (mapped_sample_rate < 27713))
+  {
+    mapped_sample_rate = 24000;
+  }
+  else if ((mapped_sample_rate >= 27713) && (mapped_sample_rate < 37566))
+  {
+    mapped_sample_rate = 32000;
+  }
+  else if ((mapped_sample_rate >= 37566) && (mapped_sample_rate < 46009))
+  {
+    mapped_sample_rate = 44100;
+  }
+  else if ((mapped_sample_rate >= 46009) && (mapped_sample_rate < 55426))
+  {
+    mapped_sample_rate = 48000;
+  }
+  else if ((mapped_sample_rate >= 55426) && (mapped_sample_rate < 75132))
+  {
+    mapped_sample_rate = 64000;
+  }
+  else if ((mapped_sample_rate >= 75132) && (mapped_sample_rate < 92017))
+  {
+    mapped_sample_rate = 88200;
+  }
+  else if (mapped_sample_rate >= 92017)
+  {
+    mapped_sample_rate = 96000;
+  }
+  else
+  {
+    mapped_sample_rate = 48000;
+  }
+  return mapped_sample_rate;
+}
+
+/**
+ *  iusace_enc_init
+ *
+ *  \brief Enocder initialization
+ *
+ *  \param [in] ptr_usac_config  Pointer to encoder config structure
+ *  \param [in] ptr_asc          Pointer to audio specific config strcuture
+ *  \param [in] pstr_state       Poniter to encoder handle structure
+ *
+ *  \return IA_ERRORCODE         Error code
+ */
 IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
                              ixheaace_audio_specific_config_struct *pstr_asc,
                              ia_usac_data_struct *pstr_state) {
@@ -516,6 +586,7 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
   WORD32 nbuff = 2048;
   usac_data->usac_independency_flag_count = 0;
   usac_data->usac_independency_flag_interval = 25;
+  usac_data->use_acelp_only = ptr_usac_config->use_acelp_only;
   for (j = 0; j < MAX_TIME_CHANNELS; j++) {
     memset(usac_data->overlap_buf[j], 0, nbuff * sizeof(FLOAT64 *));
 
@@ -696,7 +767,10 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
        ch_idx < pstr_asc_usac_config->num_elements - ptr_usac_config->num_ext_elements;
        ch_idx++) {
     iusace_psy_mod_init(
-        &usac_data->str_psy_mod, (ptr_usac_config->core_sample_rate),
+        &usac_data->str_psy_mod,
+        ((LEN_SUPERFRAME_768 == ptr_usac_config->ccfl) && (0 == ptr_usac_config->sbr_enable)) ?
+        (iusace_map_sample_rate((ptr_usac_config->core_sample_rate * 4) / 3)) :
+        (ptr_usac_config->core_sample_rate),
         usac_data->str_qc_main.str_qc_data[ch_idx].ch_bitrate, ptr_usac_config->bw_limit[ch_idx],
         usac_data->str_qc_main.str_qc_data[ch_idx].num_ch, i_ch, ch_idx, ptr_usac_config->ccfl);
     i_ch += usac_data->str_qc_main.str_qc_data[ch_idx].num_ch;
@@ -807,6 +881,9 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
                                     usac_data->td_bitrate[i_ch]);
 
       usac_data->acelp_core_mode[i_ch] = (usac_data->td_encoder[i_ch])->acelp_core_mode;
+      if (ptr_usac_config->core_sample_rate == 8000) {
+        usac_data->use_acelp_only = 1;
+      }
     }
   } else {
     usac_data->acelp_core_mode[0] = 0;
@@ -1071,8 +1148,11 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
         new_win_seq[i_ch] = ptr_usac_data->block_switch_ctrl[i_ch].next_win_seq;
       }
 
-      err = iusace_sfb_params_init(ptr_usac_config->core_sample_rate, ptr_usac_config->ccfl,
-                                   pstr_sfb_prms->sfb_width_table[i_ch],
+      err = iusace_sfb_params_init(((LEN_SUPERFRAME_768 == ptr_usac_config->ccfl) &&
+                                  (0 == ptr_usac_config->sbr_enable)) ?
+                                  (iusace_map_sample_rate((ptr_usac_config->core_sample_rate
+                                   * 4) / 3)) :(ptr_usac_config->core_sample_rate),
+                                   ptr_usac_config->ccfl, pstr_sfb_prms->sfb_width_table[i_ch],
                                    &pstr_sfb_prms->num_sfb[i_ch],
                                    pstr_sfb_prms->window_sequence[i_ch]);
 

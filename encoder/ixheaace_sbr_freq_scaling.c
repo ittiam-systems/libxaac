@@ -280,6 +280,64 @@ static WORD32 ixheaace_get_stop_freq(WORD32 fs, WORD32 stop_freq) {
   return result;
 }
 
+static WORD32 ixheaace_get_usac_stop_freq(WORD32 fs, WORD32 stop_freq)
+{
+  WORD32 result, i;
+  WORD32 *v_stop_freq = 0;
+  WORD32 k1_min;
+  WORD32 v_dstop[13];
+
+  switch (fs)
+  {
+  case 16000:
+    k1_min = ixheaace_usac_stop_freq_16k[0];
+    v_stop_freq = (WORD32 *)&ixheaace_usac_stop_freq_16k[0];
+    break;
+  case 22050:
+    k1_min = ixheaace_usac_stop_freq_22k[0];
+    v_stop_freq = (WORD32 *)&ixheaace_usac_stop_freq_22k[0];
+    break;
+  case 24000:
+    k1_min = ixheaace_usac_stop_freq_24k[0];
+    v_stop_freq = (WORD32 *)&ixheaace_usac_stop_freq_24k[0];
+    break;
+  case 32000:
+    k1_min = 32;
+    v_stop_freq = (WORD32 *)vector_stop_freq_32;
+    break;
+
+  case 44100:
+    k1_min = 23;
+    v_stop_freq = (WORD32 *)vector_stop_freq_44;
+    break;
+
+  case 48000:
+    k1_min = 21;
+    v_stop_freq = (WORD32 *)vector_stop_freq_48;
+    break;
+
+  default:
+    v_stop_freq = (WORD32 *)vector_stop_freq_32;
+    k1_min = 21; /* illegal fs  */
+  }
+
+  for (i = 0; i <= 12; i++)
+  {
+    v_dstop[i] = v_stop_freq[i + 1] - v_stop_freq[i];
+  }
+
+  ixheaace_shellsort_int(v_dstop, 13);
+
+  result = k1_min;
+
+  for (i = 0; i < stop_freq; i++)
+  {
+    result = result + v_dstop[i];
+  }
+
+  return result;
+}
+
 WORD32
 ixheaace_get_sbr_start_freq_raw(WORD32 start_freq, WORD32 qmf_bands, WORD32 fs) {
   WORD32 result;
@@ -370,7 +428,7 @@ ixheaace_find_start_and_stop_band(const WORD32 sampling_freq, const WORD32 num_c
         if (USAC_SBR_RATIO_INDEX_4_1 == sbr_ratio_idx) {
           *ptr_k2 = ixheaace_get_stop_freq_4_1(sampling_freq, stop_freq);
         } else {
-          *ptr_k2 = ixheaace_get_stop_freq(sampling_freq, stop_freq);
+          *ptr_k2 = ixheaace_get_usac_stop_freq(sampling_freq, stop_freq);
         }
         break;
       }
