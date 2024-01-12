@@ -1186,6 +1186,16 @@ const WORD32 ixheaace_stop_freq_44k_4_1[SBR_STOP_FREQ_OFFSET_TBL_LEN] = {
 
 const WORD32 ixheaace_stop_freq_48k_4_1[14] = {11, 13, 14, 17, 19, 22, 25,
                                                28, 33, 37, 43, 49, 56, 64};
+
+const WORD32 ixheaace_usac_stop_freq_16k[14] = {48, 49, 50, 51, 52, 54, 55, 56,
+                                                57, 59, 60, 61, 63, 64 };
+
+const WORD32 ixheaace_usac_stop_freq_22k[14] = {35, 37, 38, 40, 42, 44, 46,
+                                                48, 51, 53, 56, 58, 61, 64 };
+
+const WORD32 ixheaace_usac_stop_freq_24k[14] = {32, 34, 36, 38, 40, 42, 44,
+                                                46, 49, 52, 55, 58, 61, 64 };
+
 const WORD32 ixheaace_stop_freq_16k[14] = {64, 64, 64, 64, 64, 64, 64,
                                            64, 64, 64, 64, 64, 64, 64};
 

@@ -206,6 +206,10 @@ extern const WORD32 ixheaace_stop_freq_32k_4_1[SBR_STOP_FREQ_OFFSET_TBL_LEN];
 extern const WORD32 ixheaace_stop_freq_44k_4_1[SBR_STOP_FREQ_OFFSET_TBL_LEN];
 extern const WORD32 ixheaace_stop_freq_48k_4_1[SBR_STOP_FREQ_OFFSET_TBL_LEN];
 
+extern const WORD32 ixheaace_usac_stop_freq_16k[14];
+extern const WORD32 ixheaace_usac_stop_freq_22k[14];
+extern const WORD32 ixheaace_usac_stop_freq_24k[14];
+
 extern const WORD32 ixheaace_stop_freq_16k[14];
 extern const WORD32 ixheaace_stop_freq_22k[14];
 extern const WORD32 ixheaace_stop_freq_24k[14];

@@ -136,6 +136,7 @@
 #include "ixheaace_api_defs.h"
 
 #include "ixheaace_write_adts_adif.h"
+#include "iusace_psy_utils.h"
 
 static WORD32 iusace_scratch_size(VOID) {
   WORD32 scr_size;
@@ -525,6 +526,7 @@ static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
     pstr_usac_config->cmplx_pred_flag = USAC_COMPLEX_PREDECTION_DEFAULT_VALUE;
     pstr_usac_config->tns_select = USAC_TNS_DEFAULT_VALUE;
     pstr_usac_config->flag_noiseFilling = USAC_FLAG_NOISE_FILLING_DEFAULT_VALUE;
+    pstr_usac_config->use_acelp_only = USAC_DEFAULT_ACELP_FLAG_VALUE;
   }
   /* Initialize table pointers */
   ia_enhaacplus_enc_init_aac_tabs(&(pstr_api_struct->pstr_aac_tabs));
@@ -540,41 +542,7 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     pstr_input_config->aot = AOT_AAC_LC;
   }
   pstr_input_config->i_native_samp_freq = pstr_input_config->i_samp_freq;
-  if (pstr_input_config->i_samp_freq < 9391) {
-    pstr_input_config->i_samp_freq = 8000;
-  } else if ((pstr_input_config->i_samp_freq >= 9391) &&
-             (pstr_input_config->i_samp_freq < 11502)) {
-    pstr_input_config->i_samp_freq = 11025;
-  } else if ((pstr_input_config->i_samp_freq >= 11502) &&
-             (pstr_input_config->i_samp_freq < 13856)) {
-    pstr_input_config->i_samp_freq = 12000;
-  } else if ((pstr_input_config->i_samp_freq >= 13856) &&
-             (pstr_input_config->i_samp_freq < 18783)) {
-    pstr_input_config->i_samp_freq = 16000;
-  } else if ((pstr_input_config->i_samp_freq >= 18783) &&
-             (pstr_input_config->i_samp_freq < 23004)) {
-    pstr_input_config->i_samp_freq = 22050;
-  } else if ((pstr_input_config->i_samp_freq >= 23004) &&
-             (pstr_input_config->i_samp_freq < 27713)) {
-    pstr_input_config->i_samp_freq = 24000;
-  } else if ((pstr_input_config->i_samp_freq >= 27713) &&
-             (pstr_input_config->i_samp_freq < 37566)) {
-    pstr_input_config->i_samp_freq = 32000;
-  } else if ((pstr_input_config->i_samp_freq >= 37566) &&
-             (pstr_input_config->i_samp_freq < 46009)) {
-    pstr_input_config->i_samp_freq = 44100;
-  } else if ((pstr_input_config->i_samp_freq >= 46009) &&
-             (pstr_input_config->i_samp_freq < 55426)) {
-    pstr_input_config->i_samp_freq = 48000;
-  } else if ((pstr_input_config->i_samp_freq >= 55426) &&
-             (pstr_input_config->i_samp_freq < 75132)) {
-    pstr_input_config->i_samp_freq = 64000;
-  } else if ((pstr_input_config->i_samp_freq >= 75132) &&
-             (pstr_input_config->i_samp_freq < 92017)) {
-    pstr_input_config->i_samp_freq = 88200;
-  } else if (pstr_input_config->i_samp_freq >= 92017) {
-    pstr_input_config->i_samp_freq = 96000;
-  }
+  pstr_input_config->i_samp_freq = iusace_map_sample_rate(pstr_input_config->i_samp_freq);
 
   if ((pstr_input_config->i_channels < MIN_NUM_CORE_CODER_CHANNELS) ||
       (pstr_input_config->i_channels > MAX_NUM_CORE_CODER_CHANNELS)) {
@@ -638,6 +606,17 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
     }
     if (pstr_input_config->ccfl_idx < NO_SBR_CCFL_768 || pstr_input_config->ccfl_idx > SBR_4_1) {
       pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;  // default value
+    }
+    if ((pstr_input_config->ccfl_idx == SBR_4_1) && (pstr_input_config->i_samp_freq < 32000))
+    {
+      if (pstr_input_config->i_samp_freq >= 16000)
+      {
+        pstr_input_config->ccfl_idx = SBR_2_1;
+      }
+      else
+      {
+        pstr_input_config->ccfl_idx = NO_SBR_CCFL_1024;
+      }
     }
     if (pstr_input_config->cplx_pred != 1 && pstr_input_config->cplx_pred != 0) {
       pstr_input_config->cplx_pred = 0;

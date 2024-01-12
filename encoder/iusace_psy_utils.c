@@ -112,39 +112,12 @@ static VOID iusace_sfb_init(WORD32 sample_rate, WORD32 block_type, WORD32 *ptr_s
   const WORD16 *ptr_sfb_params = 0;
   WORD32 start_offset, block_len = 0;
   const ia_sfb_info_struct *pstr_sfb_info_tbls = &iusace_sfb_info_1024[0];
-  WORD32 sampling_rate_mapped = sample_rate;
+  WORD32 sampling_rate_mapped = iusace_map_sample_rate(sample_rate);
   WORD16 prev_val = 0;
   if (ccfl == LEN_SUPERFRAME_768) {
     pstr_sfb_info_tbls = &iusace_sfb_info_768[0];
   }
 
-  if ((sample_rate >= 0) && (sample_rate < 9391)) {
-    sampling_rate_mapped = 8000;
-  } else if ((sample_rate >= 9391) && (sample_rate < 11502)) {
-    sampling_rate_mapped = 11025;
-  } else if ((sample_rate >= 11502) && (sample_rate < 13856)) {
-    sampling_rate_mapped = 12000;
-  } else if ((sample_rate >= 13856) && (sample_rate < 18783)) {
-    sampling_rate_mapped = 16000;
-  } else if ((sample_rate >= 18783) && (sample_rate < 23004)) {
-    sampling_rate_mapped = 22050;
-  } else if ((sample_rate >= 23004) && (sample_rate < 27713)) {
-    sampling_rate_mapped = 24000;
-  } else if ((sample_rate >= 27713) && (sample_rate < 37566)) {
-    sampling_rate_mapped = 32000;
-  } else if ((sample_rate >= 37566) && (sample_rate < 46009)) {
-    sampling_rate_mapped = 44100;
-  } else if ((sample_rate >= 46009) && (sample_rate < 55426)) {
-    sampling_rate_mapped = 48000;
-  } else if ((sample_rate >= 55426) && (sample_rate < 75132)) {
-    sampling_rate_mapped = 64000;
-  } else if ((sample_rate >= 75132) && (sample_rate < 92017)) {
-    sampling_rate_mapped = 88200;
-  } else if (sample_rate >= 92017) {
-    sampling_rate_mapped = 96000;
-  } else {
-    sampling_rate_mapped = 48000;
-  }
 
   if (block_type == ONLY_LONG_SEQUENCE) {
     block_len = ccfl;
@@ -485,33 +458,12 @@ IA_ERRORCODE iusace_sfb_params_init(WORD32 sample_rate, WORD32 frame_len, WORD32
     ptr_sr_info = &iusace_sfb_info_768[0];
   }
 
-  if ((sample_rate >= 0) && (sample_rate < 9391)) {
-    sampling_rate_mapped = 8000;
-  } else if ((sample_rate >= 9391) && (sample_rate < 11502)) {
-    sampling_rate_mapped = 11025;
-  } else if ((sample_rate >= 11502) && (sample_rate < 13856)) {
-    sampling_rate_mapped = 12000;
-  } else if ((sample_rate >= 13856) && (sample_rate < 18783)) {
-    sampling_rate_mapped = 16000;
-  } else if ((sample_rate >= 18783) && (sample_rate < 23004)) {
-    sampling_rate_mapped = 22050;
-  } else if ((sample_rate >= 23004) && (sample_rate < 27713)) {
-    sampling_rate_mapped = 24000;
-  } else if ((sample_rate >= 27713) && (sample_rate < 37566)) {
-    sampling_rate_mapped = 32000;
-  } else if ((sample_rate >= 37566) && (sample_rate < 46009)) {
-    sampling_rate_mapped = 44100;
-  } else if ((sample_rate >= 46009) && (sample_rate < 55426)) {
-    sampling_rate_mapped = 48000;
-  } else if ((sample_rate >= 55426) && (sample_rate < 75132)) {
-    sampling_rate_mapped = 64000;
-  } else if ((sample_rate >= 75132) && (sample_rate < 92017)) {
-    sampling_rate_mapped = 88200;
-  } else if (sample_rate >= 92017) {
-    sampling_rate_mapped = 96000;
-  } else {
+  if (sample_rate < 0)
+  {
     return IA_EXHEAACE_INIT_FATAL_USAC_INVALID_CORE_SAMPLE_RATE;
   }
+
+  sampling_rate_mapped = iusace_map_sample_rate(sample_rate);
 
   while (ptr_sr_info->sample_rate != sampling_rate_mapped) {
     if (ptr_sr_info->sample_rate == -1) {

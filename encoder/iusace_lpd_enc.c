@@ -566,7 +566,41 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
   memcpy(lpd_state[0], &st->lpd_state, sizeof(*lpd_state[0]));
 
   ssnr_1024 = 0;
+  if (usac_data->use_acelp_only) {
+    for (i1 = 0; i1 < 2; i1++) {
+      for (i2 = 0; i2 < 2; i2++) {
+        k = (i1 * 2) + i2;
+        p_params = acelp_tcx_params + (k * MAX_NUM_TCX_PRM_PER_DIV);
 
+        iusace_interpolation_lsp_params(&isp_curr_q[k * ORDER], &isp_curr_q[(k + 1) * ORDER],
+          lp_filter_coeff_q, st->num_subfrm);
+
+        memcpy(lpd_state[k + 1], lpd_state[k], sizeof(*lpd_state[0]));
+
+        iusace_acelp_encode(
+          &lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)], lp_filter_coeff_q,
+          &speech[k * st->len_subfrm], &pstr_scratch->p_wsig_buf[k * st->len_subfrm],
+          &pstr_scratch->p_synth_buf[k * st->len_subfrm],
+          &pstr_scratch->p_wsyn_buf[k * st->len_subfrm], *codec_mode, lpd_state[k + 1],
+          st->len_subfrm, norm_corr[k * 2], norm_corr[(k * 2) + 1], ol_pitch_lag[k * 2],
+          ol_pitch_lag[(k * 2) + 1], pit_adj, p_params, pstr_scratch);
+
+        mem_wsyn = lpd_state[k]->mem_wsyn;
+
+        iusace_find_weighted_speech(&lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) *
+          (ORDER + 1)], &pstr_scratch->p_synth_buf[k * LEN_FRAME],
+          pstr_scratch->p_temp_wsyn_buf, &mem_wsyn, LEN_FRAME);
+
+        lpd_state[k + 1]->mem_wsyn = mem_wsyn;
+        mode[k] = 0;
+        num_tcx_param[k] = 0;
+      }
+    }
+    memcpy(&st->lpd_state, lpd_state[4], sizeof(*lpd_state[4]));
+    memcpy(st->weighted_sig, pstr_scratch->p_wsig_buf + (st->len_frame), 128 * sizeof(FLOAT32));
+    memcpy(st->prev_wsp, wsp_prev_buf, (len * sizeof(FLOAT32)));
+    return;
+  }
   for (i1 = 0; i1 < 2; i1++) {
     ssnr_512 = 0;
     for (i2 = 0; i2 < 2; i2++) {
