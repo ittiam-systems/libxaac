@@ -105,9 +105,8 @@ VOID ixheaacd_allocate_mem_persistent(
   *sbr_persistent_start = *persistent_used_total;
 
   p_state_enhaacplus_dec->sbr_persistent_mem_v =
-      (pVOID)((SIZE_T)((pWORD8)p_state_enhaacplus_dec->aac_persistent_mem_v +
-                       persistent_used + sizeof(SIZE_T) - 1) &
-              (SIZE_T)(~(sizeof(SIZE_T) - 1)));
+      (pVOID)((pWORD8)p_state_enhaacplus_dec->aac_persistent_mem_v +
+              IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8));
 
   persistent_used = ixheaacd_getsize_sbr_persistent();
 

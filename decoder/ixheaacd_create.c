@@ -503,7 +503,7 @@ WORD32 ixheaacd_frm_data_init(ia_audio_specific_config_struct *pstr_audio_conf,
   WORD32 stream_count = 1;
   WORD32 max_layer = -1;
 
-  memset(pstr_dec_data, 0, sizeof(ia_dec_data_struct));
+  memset(pstr_dec_data, 0, IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8));
   memset(&(pstr_dec_data->str_frame_data), 0,
          sizeof(pstr_dec_data->str_frame_data));
 

@@ -63,15 +63,12 @@ extern "C" {
 #define NUM_GAIN_DEC_INSTANCES 2
 
 #define MAX_DRC_FRAME_SIZE AUDIO_CODEC_FRAME_SIZE_MAX
-#define ANALY_BUF_SIZE                                                \
-  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * \
-   NUM_ELE_IN_CPLX_NUM)
-#define SYNTH_BUF_SIZE                                                \
-  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * \
-   NUM_ELE_IN_CPLX_NUM)
-#define PEAK_LIM_BUF_SIZE                                             \
-  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * \
-   NUM_ELE_IN_CPLX_NUM)
+#define ANALY_BUF_SIZE \
+  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM)
+#define SYNTH_BUF_SIZE \
+  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM)
+#define PEAK_LIM_BUF_SIZE \
+  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM)
 
 /*7 bits read from the bitstream*/
 #define MAX_PARAM_DRC_LOOK_AHEAD_VAL 127

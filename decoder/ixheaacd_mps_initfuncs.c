@@ -67,7 +67,9 @@
 
 #define ALIGN_SIZE32(x) ((((x) + 3) >> 2) << 2)
 
-WORD32 ixheaacd_getsize_mps_persistent() { return (ALIGN_SIZE64(sizeof(ia_mps_persistent_mem))); }
+WORD32 ixheaacd_getsize_mps_persistent() {
+  return (IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_persistent_mem), BYTE_ALIGN_8));
+}
 
 static WORD32 ixheaacd_calc_decorr_size() {
   WORD32 matrix_alloc_size, decorr_filter_size, num_den_size;
@@ -75,25 +77,31 @@ static WORD32 ixheaacd_calc_decorr_size() {
   WORD32 state_alloc_size, alloc_size, dec_type = 0;
 
   matrix_alloc_size =
-      2 * (MAX_HYBRID_BANDS * (MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY) * sizeof(WORD32) +
-           MAX_HYBRID_BANDS * sizeof(VOID *)) *
-      MAX_NO_DECORR_CHANNELS;
-  decorr_filter_size = MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS *
-                       sizeof(ia_mps_dec_decorr_filter_instance_struct);
-  num_den_size =
-      (MAX_NUM_DEN_LENGTH) * sizeof(WORD32) * MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS;
+      MAX_NO_DECORR_CHANNELS * 2 *
+      (MAX_HYBRID_BANDS *
+           IXHEAAC_GET_SIZE_ALIGNED((MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY) * sizeof(WORD32),
+                                    BYTE_ALIGN_8) +
+       IXHEAAC_GET_SIZE_ALIGNED(MAX_HYBRID_BANDS * sizeof(WORD32 *), BYTE_ALIGN_8));
+  decorr_filter_size =
+      MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS *
+      IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_decorr_filter_instance_struct), BYTE_ALIGN_8);
+  num_den_size = MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS *
+                 IXHEAAC_GET_SIZE_ALIGNED(MAX_NUM_DEN_LENGTH * sizeof(WORD32), BYTE_ALIGN_8);
 
   if (dec_type == 1)
     fraction_alloc_size = 4 * num_den_size;
   else
     fraction_alloc_size = 2 * num_den_size;
 
-  state_alloc_size =
-      2 * (MAX_NUM_DEN_LENGTH) * sizeof(WORD32) * MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS;
+  state_alloc_size = MAX_NO_DECORR_CHANNELS * MAX_HYBRID_BANDS * 2 *
+                     IXHEAAC_GET_SIZE_ALIGNED(MAX_NUM_DEN_LENGTH * sizeof(WORD32), BYTE_ALIGN_8);
 
-  ducker_create_size = MAX_NO_DECORR_CHANNELS * (sizeof(ia_mps_dec_ducker_interface) +
-                                                 sizeof(ia_mps_dec_duck_instance_struct));
-  decor_dec_size = sizeof(ia_mps_dec_decorr_dec_struct) * MAX_NO_DECORR_CHANNELS;
+  ducker_create_size =
+      MAX_NO_DECORR_CHANNELS *
+      (IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_ducker_interface), BYTE_ALIGN_8) +
+       IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_duck_instance_struct), BYTE_ALIGN_8));
+  decor_dec_size = MAX_NO_DECORR_CHANNELS *
+                   IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_decorr_dec_struct), BYTE_ALIGN_8);
 
   alloc_size = matrix_alloc_size + decorr_filter_size + fraction_alloc_size + ducker_create_size +
                decor_dec_size + state_alloc_size;
@@ -104,49 +112,50 @@ static WORD32 ixheaacd_calc_decorr_size() {
 WORD32 ixheaacd_mps_persistent_buffer_sizes() {
   WORD32 buffer_size;
 
-  buffer_size = sizeof(ia_heaac_mps_state_struct);
+  buffer_size = ixheaacd_getsize_mps_persistent();
 
-  buffer_size += PREV_GAINAT;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(PREV_GAINAT, BYTE_ALIGN_8);
 
-  buffer_size += ARBDMX_ALPHA;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(ARBDMX_ALPHA, BYTE_ALIGN_8);
 
-  buffer_size += M1_PREV;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8);
 
-  buffer_size += M1_PREV;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8);
 
-  buffer_size += M2_PREV_DECOR;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8);
 
-  buffer_size += M2_PREV_DECOR;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8);
 
-  buffer_size += M2_PREV_RESID;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8);
 
-  buffer_size += M2_PREV_RESID;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8);
 
-  buffer_size += QMF_DELAY_INPUT;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8);
 
-  buffer_size += QMF_DELAY_INPUT;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8);
 
-  buffer_size += ANA_BUF_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(ANA_BUF_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += SYN_BUF_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(SYN_BUF_SIZE, BYTE_ALIGN_8);
 
   buffer_size += ixheaacd_calc_decorr_size();
 
-  buffer_size += HYB_FILTER_STATE_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(HYB_FILTER_STATE_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += TONALITY_STATE_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(TONALITY_STATE_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += SMOOTHING_STATE_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(SMOOTHING_STATE_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += RESHAPE_STATE_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(RESHAPE_STATE_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += SUBBAND_TP_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(SUBBAND_TP_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += BLIND_DECODER_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(BLIND_DECODER_SIZE, BYTE_ALIGN_8);
 
-  buffer_size += sizeof(ia_mps_dec_spatial_bs_frame_struct);
+  buffer_size +=
+      IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_spatial_bs_frame_struct), BYTE_ALIGN_8);
 
-  buffer_size += ARRAY_STRUCT_SIZE;
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8);
 
   return buffer_size;
 }
@@ -164,57 +173,69 @@ VOID ixheaacd_set_mps_persistent_buffers(ia_heaac_mps_state_struct *pstr_mps_sta
 
   mps_persistent_mem->prev_gain_at = (WORD32 *)((WORD8 *)persistent_mem);
 
-  memset(mps_persistent_mem->prev_gain_at, 0, PREV_GAINAT);
+  memset(mps_persistent_mem->prev_gain_at, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(PREV_GAINAT, BYTE_ALIGN_8));
 
-  used_persistent += PREV_GAINAT;
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(PREV_GAINAT, BYTE_ALIGN_8);
 
   mps_persistent_mem->arbdmx_alpha_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->arbdmx_alpha_prev, 0, ARBDMX_ALPHA);
-  used_persistent += ARBDMX_ALPHA;
+  memset(mps_persistent_mem->arbdmx_alpha_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(ARBDMX_ALPHA, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(ARBDMX_ALPHA, BYTE_ALIGN_8);
 
   mps_persistent_mem->m1_param_real_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m1_param_real_prev, 0, M1_PREV);
-  used_persistent += M1_PREV;
+  memset(mps_persistent_mem->m1_param_real_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8);
 
   mps_persistent_mem->m1_param_imag_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m1_param_imag_prev, 0, M1_PREV);
-  used_persistent += M1_PREV;
+  memset(mps_persistent_mem->m1_param_imag_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M1_PREV, BYTE_ALIGN_8);
 
   mps_persistent_mem->m2_decor_real_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m2_decor_real_prev, 0, M2_PREV_DECOR);
-  used_persistent += M2_PREV_DECOR;
+  memset(mps_persistent_mem->m2_decor_real_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8);
 
   mps_persistent_mem->m2_decor_imag_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m2_decor_imag_prev, 0, M2_PREV_DECOR);
-  used_persistent += M2_PREV_DECOR;
+  memset(mps_persistent_mem->m2_decor_imag_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_DECOR, BYTE_ALIGN_8);
 
   mps_persistent_mem->m2_resid_real_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m2_resid_real_prev, 0, M2_PREV_RESID);
-  used_persistent += M2_PREV_RESID;
+  memset(mps_persistent_mem->m2_resid_real_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8);
 
   mps_persistent_mem->m2_resid_imag_prev = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->m2_resid_imag_prev, 0, M2_PREV_RESID);
-  used_persistent += M2_PREV_RESID;
+  memset(mps_persistent_mem->m2_resid_imag_prev, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(M2_PREV_RESID, BYTE_ALIGN_8);
 
   mps_persistent_mem->qmf_input_delay_real =
       (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->qmf_input_delay_real, 0, QMF_DELAY_INPUT);
-  used_persistent += QMF_DELAY_INPUT;
+  memset(mps_persistent_mem->qmf_input_delay_real, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8);
 
   mps_persistent_mem->qmf_input_delay_imag =
       (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->qmf_input_delay_imag, 0, QMF_DELAY_INPUT);
-  used_persistent += QMF_DELAY_INPUT;
+  memset(mps_persistent_mem->qmf_input_delay_imag, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_DELAY_INPUT, BYTE_ALIGN_8);
 
   mps_persistent_mem->syn_qmf_states_buffer =
       (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->syn_qmf_states_buffer, 0, SYN_BUF_SIZE);
-  used_persistent += SYN_BUF_SIZE;
+  memset(mps_persistent_mem->syn_qmf_states_buffer, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(SYN_BUF_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(SYN_BUF_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->ana_qmf_states_buffer =
       (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->ana_qmf_states_buffer, 0, ANA_BUF_SIZE);
-  used_persistent += ANA_BUF_SIZE;
+  memset(mps_persistent_mem->ana_qmf_states_buffer, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(ANA_BUF_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(ANA_BUF_SIZE, BYTE_ALIGN_8);
 
   decorr_size = ixheaacd_calc_decorr_size();
 
@@ -224,43 +245,52 @@ VOID ixheaacd_set_mps_persistent_buffers(ia_heaac_mps_state_struct *pstr_mps_sta
 
   mps_persistent_mem->hyb_filter_state =
       (ia_mps_dec_thyb_filter_state_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->hyb_filter_state, 0, HYB_FILTER_STATE_SIZE);
-  used_persistent += HYB_FILTER_STATE_SIZE;
+  memset(mps_persistent_mem->hyb_filter_state, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(HYB_FILTER_STATE_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(HYB_FILTER_STATE_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->ton_state =
       (ia_mps_dec_tonality_state_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->ton_state, 0, TONALITY_STATE_SIZE);
-  used_persistent += TONALITY_STATE_SIZE;
+  memset(mps_persistent_mem->ton_state, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(TONALITY_STATE_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(TONALITY_STATE_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->smooth_state =
       (ia_mps_dec_smoothing_state_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->smooth_state, 0, SMOOTHING_STATE_SIZE);
-  used_persistent += SMOOTHING_STATE_SIZE;
+  memset(mps_persistent_mem->smooth_state, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(SMOOTHING_STATE_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(SMOOTHING_STATE_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->reshape_bb_env_state =
       (ia_mps_dec_reshape_bb_env_state_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->reshape_bb_env_state, 0, RESHAPE_STATE_SIZE);
-  used_persistent += RESHAPE_STATE_SIZE;
+  memset(mps_persistent_mem->reshape_bb_env_state, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(RESHAPE_STATE_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(RESHAPE_STATE_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->sub_band_params =
       (ia_mps_dec_subband_tp_params_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->sub_band_params, 0, SUBBAND_TP_SIZE);
-  used_persistent += SUBBAND_TP_SIZE;
+  memset(mps_persistent_mem->sub_band_params, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(SUBBAND_TP_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(SUBBAND_TP_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->blind_decoder =
       (ia_mps_dec_blind_decoder_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->blind_decoder, 0, BLIND_DECODER_SIZE);
-  used_persistent += BLIND_DECODER_SIZE;
+  memset(mps_persistent_mem->blind_decoder, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(BLIND_DECODER_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(BLIND_DECODER_SIZE, BYTE_ALIGN_8);
 
   mps_persistent_mem->p_bs_frame =
       (ia_mps_dec_spatial_bs_frame_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(mps_persistent_mem->p_bs_frame, 0, sizeof(ia_mps_dec_spatial_bs_frame_struct));
-  used_persistent += sizeof(ia_mps_dec_spatial_bs_frame_struct);
+  memset(mps_persistent_mem->p_bs_frame, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_spatial_bs_frame_struct), BYTE_ALIGN_8));
+  used_persistent +=
+      IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_spatial_bs_frame_struct), BYTE_ALIGN_8);
 
   pstr_mps_state->array_struct =
       (ia_mps_dec_reuse_array_struct *)((WORD8 *)persistent_mem + used_persistent);
-  memset(pstr_mps_state->array_struct, 0, ARRAY_STRUCT_SIZE);
-  used_persistent += ARRAY_STRUCT_SIZE;
+  memset(pstr_mps_state->array_struct, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8));
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8);
 
   *persistent_used = used_persistent;
 }
@@ -733,19 +763,24 @@ VOID ixheaacd_decorr_init(ia_heaac_mps_state_struct *pstr_mps_state) {
 
   for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
     pstr_mps_state->ap_decor[k] = decorr_persistent;
-    decorr_persistent = (WORD8 *)decorr_persistent + sizeof(ia_mps_dec_decorr_dec_struct);
+    decorr_persistent =
+        (WORD8 *)decorr_persistent +
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_decorr_dec_struct), BYTE_ALIGN_8);
   }
   for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
     pstr_mps_state->ap_decor[k]->ducker = decorr_persistent;
-    decorr_persistent = (WORD8 *)decorr_persistent + sizeof(ia_mps_dec_ducker_interface) +
-                        sizeof(ia_mps_dec_duck_instance_struct);
+    decorr_persistent =
+        (WORD8 *)decorr_persistent +
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_ducker_interface), BYTE_ALIGN_8) +
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_duck_instance_struct), BYTE_ALIGN_8);
   }
 
   for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
     for (i = 0; i < hybrid_bands; i++) {
       pstr_mps_state->ap_decor[k]->filter[i] = decorr_persistent;
-      decorr_persistent =
-          (WORD8 *)decorr_persistent + sizeof(ia_mps_dec_decorr_filter_instance_struct);
+      decorr_persistent = (WORD8 *)decorr_persistent +
+                          IXHEAAC_GET_SIZE_ALIGNED(
+                              sizeof(ia_mps_dec_decorr_filter_instance_struct), BYTE_ALIGN_8);
     }
   }
 
@@ -753,22 +788,52 @@ VOID ixheaacd_decorr_init(ia_heaac_mps_state_struct *pstr_mps_state) {
     for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
       for (i = 0; i < hybrid_bands; i++) {
         pstr_mps_state->ap_decor[k]->filter[i]->numerator_real = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->numerator_real[0]),
+                BYTE_ALIGN_8);
         pstr_mps_state->ap_decor[k]->filter[i]->denominator_real = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->denominator_real[0]),
+                BYTE_ALIGN_8);
         pstr_mps_state->ap_decor[k]->filter[i]->numerator_imag = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->numerator_imag[0]),
+                BYTE_ALIGN_8);
         pstr_mps_state->ap_decor[k]->filter[i]->denominator_imag = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->denominator_imag[0]),
+                BYTE_ALIGN_8);
       }
     }
   } else {
     for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
       for (i = 0; i < hybrid_bands; i++) {
         pstr_mps_state->ap_decor[k]->filter[i]->numerator_real = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->numerator_real[0]),
+                BYTE_ALIGN_8);
         pstr_mps_state->ap_decor[k]->filter[i]->denominator_real = decorr_persistent;
-        decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+        decorr_persistent =
+            (WORD8 *)decorr_persistent +
+            IXHEAAC_GET_SIZE_ALIGNED(
+                MAX_NUM_DEN_LENGTH *
+                    sizeof(pstr_mps_state->ap_decor[k]->filter[i]->denominator_real[0]),
+                BYTE_ALIGN_8);
       }
     }
   }
@@ -776,34 +841,54 @@ VOID ixheaacd_decorr_init(ia_heaac_mps_state_struct *pstr_mps_state) {
   for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
     for (i = 0; i < hybrid_bands; i++) {
       pstr_mps_state->ap_decor[k]->filter[i]->state_real = decorr_persistent;
-      decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+      decorr_persistent =
+          (WORD8 *)decorr_persistent +
+          IXHEAAC_GET_SIZE_ALIGNED(
+              MAX_NUM_DEN_LENGTH * sizeof(pstr_mps_state->ap_decor[k]->filter[i]->state_real[0]),
+              BYTE_ALIGN_8);
       pstr_mps_state->ap_decor[k]->filter[i]->state_imag = decorr_persistent;
-      decorr_persistent = (WORD8 *)decorr_persistent + sizeof(WORD32) * MAX_NUM_DEN_LENGTH;
+      decorr_persistent =
+          (WORD8 *)decorr_persistent +
+          IXHEAAC_GET_SIZE_ALIGNED(
+              MAX_NUM_DEN_LENGTH * sizeof(pstr_mps_state->ap_decor[k]->filter[i]->state_imag[0]),
+              BYTE_ALIGN_8);
     }
   }
 
   for (k = 0; k < MAX_NO_DECORR_CHANNELS; k++) {
-    pstr_mps_state->ap_decor[k]->delay_buffer_real =
-        (WORD32 **)ALIGN_SIZE64((SIZE_T)(decorr_persistent));
-    decorr_persistent = (WORD8 *)decorr_persistent + 8 * hybrid_bands;
+    pstr_mps_state->ap_decor[k]->delay_buffer_real = (WORD32 **)decorr_persistent;
+    decorr_persistent =
+        (WORD8 *)decorr_persistent +
+        IXHEAAC_GET_SIZE_ALIGNED(
+            hybrid_bands * sizeof(pstr_mps_state->ap_decor[k]->delay_buffer_real[0]),
+            BYTE_ALIGN_8);
     for (i = 0; i < hybrid_bands; i++) {
-      pstr_mps_state->ap_decor[k]->delay_buffer_real[i] =
-          (WORD32 *)ALIGN_SIZE64((SIZE_T)(decorr_persistent));
+      pstr_mps_state->ap_decor[k]->delay_buffer_real[i] = (WORD32 *)decorr_persistent;
 
-      decorr_persistent =
-          (WORD8 *)decorr_persistent + 4 * (MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY);
+      decorr_persistent = (WORD8 *)decorr_persistent +
+                          IXHEAAC_GET_SIZE_ALIGNED(
+                              (MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY) *
+                                  sizeof(pstr_mps_state->ap_decor[k]->delay_buffer_real[i][0]),
+                              BYTE_ALIGN_8);
     }
 
     pstr_mps_state->ap_decor[k]->delay_buffer_imag =
         (WORD32 **)ALIGN_SIZE64((SIZE_T)(decorr_persistent));
-    decorr_persistent = (WORD8 *)decorr_persistent + 8 * hybrid_bands;
+    decorr_persistent =
+        (WORD8 *)decorr_persistent +
+        IXHEAAC_GET_SIZE_ALIGNED(
+            hybrid_bands * sizeof(pstr_mps_state->ap_decor[k]->delay_buffer_imag[0]),
+            BYTE_ALIGN_8);
 
     for (i = 0; i < hybrid_bands; i++) {
       pstr_mps_state->ap_decor[k]->delay_buffer_imag[i] =
           (WORD32 *)ALIGN_SIZE64((SIZE_T)(decorr_persistent));
 
-      decorr_persistent =
-          (WORD8 *)decorr_persistent + 4 * (MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY);
+      decorr_persistent = (WORD8 *)decorr_persistent +
+                          IXHEAAC_GET_SIZE_ALIGNED(
+                              (MAX_TIME_SLOTS + MAX_NO_TIME_SLOTS_DELAY) *
+                                  sizeof(pstr_mps_state->ap_decor[k]->delay_buffer_imag[i][0]),
+                              BYTE_ALIGN_8);
     }
   }
 }

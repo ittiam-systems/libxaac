@@ -23,6 +23,7 @@
 #include <string.h>
 #include "impd_type_def.h"
 #include "impd_drc_extr_delta_coded_info.h"
+#include "ixheaac_constants.h"
 #include "impd_drc_common.h"
 #include "impd_drc_struct.h"
 #include "impd_parametric_drc_dec.h"
@@ -262,8 +263,10 @@ VOID impd_init_parametric_drc_lim(
 
   pstr_parametric_lim_type_drc_params->max_buf = (FLOAT32*)(*mem_ptr);
   *mem_ptr = (pVOID)((SIZE_T)(*mem_ptr) +
-                     pstr_parametric_lim_type_drc_params->num_max_buf_sec *
-                         sec_len * sizeof(FLOAT32));
+                     IXHEAAC_GET_SIZE_ALIGNED(
+                         pstr_parametric_lim_type_drc_params->num_max_buf_sec * sec_len *
+                             sizeof(pstr_parametric_lim_type_drc_params->max_buf[0]),
+                         BYTE_ALIGN_8));
 
   pstr_parametric_lim_type_drc_params->attack_ms =
       (FLOAT32)hParametricDrcTypeLimBs->parametric_lim_attack;
