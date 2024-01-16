@@ -26,6 +26,7 @@
 
 #include "impd_drc_bitbuffer.h"
 #include "impd_drc_extr_delta_coded_info.h"
+#include "ixheaac_constants.h"
 #include "impd_drc_common.h"
 #include "impd_drc_struct.h"
 #include "impd_drc_interface.h"
@@ -61,41 +62,7 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_drc_set_struct_pointer(ia_drc_api_struct *p_obj_drc);
 IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc);
 
-#define SUBBAND_BUF_SIZE                                             \
-  NUM_ELE_IN_CPLX_NUM *MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +       \
-      (MAX_SUBBAND_DELAY + MAX_DRC_FRAME_SIZE) * MAX_CHANNEL_COUNT * \
-          sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM
-
 #define NUM_DRC_TABLES 4
-#define SCRATCH_MEM_SIZE                                              \
-  (AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * \
-   NUM_ELE_IN_CPLX_NUM)
-
-#define PERSIST_MEM_SIZE                                                     \
-  (sizeof(ia_drc_state_struct) + sizeof(ia_drc_bits_dec_struct) +            \
-   sizeof(ia_drc_gain_dec_struct) * 2 +                                      \
-   sizeof(ia_drc_loudness_info_set_struct) + sizeof(ia_drc_gain_struct) +    \
-   sizeof(ia_drc_interface_struct) + sizeof(ia_drc_config) +                 \
-   sizeof(ia_drc_sel_pro_struct) + sizeof(ia_drc_sel_proc_params_struct) +   \
-   sizeof(ia_drc_sel_proc_output_struct) +                                   \
-   sizeof(ia_drc_peak_limiter_struct) + sizeof(ia_drc_peak_limiter_struct) + \
-   sizeof(ia_drc_qmf_filt_struct) + ANALY_BUF_SIZE + SYNTH_BUF_SIZE +        \
-   PEAK_LIM_BUF_SIZE + MAX_DRC_BS_BUF_SIZE +                                 \
-   MAX_DRC_CONFG_BUF_SIZE + /*DRC Config Bitstream*/                         \
-   MAX_LOUD_INFO_BUF_SIZE + /*DRC loudness info Bitstream*/                  \
-   MAX_INTERFACE_BUF_SIZE + /*DRC interface Bitstream*/                      \
-   NUM_GAIN_DEC_INSTANCES *                                                  \
-       (SEL_DRC_COUNT * sizeof(ia_interp_buf_struct) * MAX_GAIN_ELE_COUNT +  \
-        sizeof(ia_eq_set_struct) + /*non_interleaved_audio*/                 \
-        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +                              \
-        MAX_DRC_FRAME_SIZE * sizeof(FLOAT32) *                               \
-            MAX_CHANNEL_COUNT +                 /*audio_in_out_buf ptr*/     \
-        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) + /*audio_io_buffer_delayed*/  \
-        MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +                              \
-        MAX_DRC_FRAME_SIZE * sizeof(FLOAT32) *                               \
-            MAX_CHANNEL_COUNT + /*subband band buffer ptr*/                  \
-        NUM_ELE_IN_CPLX_NUM * MAX_CHANNEL_COUNT * sizeof(FLOAT32 *) +        \
-        SUBBAND_BUF_SIZE + (PARAM_DRC_MAX_BUF_SZ * MAX_CHANNEL_COUNT)))
 
 IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
                             pVOID pv_value) {
@@ -152,7 +119,7 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
         case IA_CMD_TYPE_INIT_SET_BUFF_PTR: {
           p_obj_drc->p_state->persistent_ptr =
               (UWORD8 *)p_obj_drc->pp_mem[IA_DRC_PERSIST_IDX] +
-              sizeof(ia_drc_state_struct);
+              IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_state_struct), BYTE_ALIGN_8);
           error_code = impd_drc_set_struct_pointer(p_obj_drc);
           if (error_code) return error_code;
 
@@ -507,12 +474,92 @@ IA_ERRORCODE impd_drc_mem_api(ia_drc_api_struct *p_obj_drc, WORD32 i_cmd,
   return IA_NO_ERROR;
 }
 
+static WORD32 impd_calc_scratch_size() {
+  return IXHEAAC_GET_SIZE_ALIGNED(
+      AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * NUM_ELE_IN_CPLX_NUM * sizeof(FLOAT32),
+      BYTE_ALIGN_8);
+}
+
+static WORD32 impd_calc_pers_size() {
+  WORD32 size = 0;
+
+  WORD32 analysis_buf_size = IXHEAAC_GET_SIZE_ALIGNED(
+      AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM,
+      BYTE_ALIGN_8);
+  WORD32 synth_buf_size = IXHEAAC_GET_SIZE_ALIGNED(
+      AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM,
+      BYTE_ALIGN_8);
+  WORD32 peak_lim_buf_size = IXHEAAC_GET_SIZE_ALIGNED(
+      AUDIO_CODEC_FRAME_SIZE_MAX * MAX_CHANNEL_COUNT * sizeof(FLOAT32) * NUM_ELE_IN_CPLX_NUM,
+      BYTE_ALIGN_8);
+  WORD32 subband_buf_size =
+      NUM_ELE_IN_CPLX_NUM *
+          IXHEAAC_GET_SIZE_ALIGNED(MAX_CHANNEL_COUNT * sizeof(FLOAT32 *), BYTE_ALIGN_8) +
+      NUM_ELE_IN_CPLX_NUM * MAX_CHANNEL_COUNT *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_SUBBAND_DELAY + MAX_DRC_FRAME_SIZE) * sizeof(FLOAT32),
+                                   BYTE_ALIGN_8);
+
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_state_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_bits_dec_struct), BYTE_ALIGN_8);
+  size += 2 * IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_gain_dec_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_loudness_info_set_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_gain_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_interface_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_config), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_sel_pro_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_sel_proc_params_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_sel_proc_output_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_peak_limiter_struct), BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_drc_qmf_filt_struct), BYTE_ALIGN_8);
+  size += analysis_buf_size;
+  size += synth_buf_size;
+  size += peak_lim_buf_size;
+
+  size += IXHEAAC_GET_SIZE_ALIGNED(MAX_DRC_BS_BUF_SIZE, BYTE_ALIGN_8);
+  size += IXHEAAC_GET_SIZE_ALIGNED(MAX_DRC_CONFG_BUF_SIZE, BYTE_ALIGN_8); /*DRC Config Bitstream*/
+  size += IXHEAAC_GET_SIZE_ALIGNED(MAX_LOUD_INFO_BUF_SIZE,
+                                   BYTE_ALIGN_8); /*DRC loudness info Bitstream*/
+  size +=
+      IXHEAAC_GET_SIZE_ALIGNED(MAX_INTERFACE_BUF_SIZE, BYTE_ALIGN_8); /*DRC interface Bitstream*/
+
+  size += NUM_GAIN_DEC_INSTANCES * SEL_DRC_COUNT *
+          IXHEAAC_GET_SIZE_ALIGNED((sizeof(ia_interp_buf_struct) * MAX_GAIN_ELE_COUNT),
+                                   BYTE_ALIGN_8); /*ia_interp_buf_struct*/
+  size += NUM_GAIN_DEC_INSTANCES *
+          IXHEAAC_GET_SIZE_ALIGNED((sizeof(ia_eq_set_struct)), BYTE_ALIGN_8); /*ia_eq_set_struct*/
+
+  /*non_interleaved_audio*/
+  size += NUM_GAIN_DEC_INSTANCES *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_CHANNEL_COUNT * sizeof(FLOAT32 *)), BYTE_ALIGN_8);
+  size += NUM_GAIN_DEC_INSTANCES * MAX_CHANNEL_COUNT *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_DRC_FRAME_SIZE * sizeof(FLOAT32)), BYTE_ALIGN_8);
+
+  /*audio_in_out_buf ptr*/
+  size += NUM_GAIN_DEC_INSTANCES *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_CHANNEL_COUNT * sizeof(FLOAT32 *)), BYTE_ALIGN_8);
+  /*audio_io_buffer_delayed*/
+  size += NUM_GAIN_DEC_INSTANCES *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_CHANNEL_COUNT * sizeof(FLOAT32 *)), BYTE_ALIGN_8);
+  size += NUM_GAIN_DEC_INSTANCES * MAX_CHANNEL_COUNT *
+          IXHEAAC_GET_SIZE_ALIGNED((MAX_DRC_FRAME_SIZE * sizeof(FLOAT32)), BYTE_ALIGN_8);
+
+  /*subband band buffer ptr*/
+  size += NUM_GAIN_DEC_INSTANCES * NUM_ELE_IN_CPLX_NUM *
+          IXHEAAC_GET_SIZE_ALIGNED(MAX_CHANNEL_COUNT * sizeof(FLOAT32 *), BYTE_ALIGN_8);
+  size += NUM_GAIN_DEC_INSTANCES * subband_buf_size;
+
+  size += NUM_GAIN_DEC_INSTANCES * MAX_CHANNEL_COUNT *
+          IXHEAAC_GET_SIZE_ALIGNED((PARAM_DRC_MAX_BUF_SZ * sizeof(FLOAT32)), BYTE_ALIGN_8);
+
+  return size;
+}
+
 IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   ia_mem_info_struct *p_mem_info;
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_PERSIST_IDX];
     memset(p_mem_info, 0, sizeof(*p_mem_info));
-    p_mem_info->ui_size = PERSIST_MEM_SIZE;
+    p_mem_info->ui_size = impd_calc_pers_size();
     p_mem_info->ui_alignment = 8;
     p_mem_info->ui_type = IA_MEMTYPE_PERSIST;
     p_mem_info->ui_placement[0] = 0;
@@ -552,7 +599,7 @@ IA_ERRORCODE impd_drc_fill_mem_tables(ia_drc_api_struct *p_obj_drc) {
   {
     p_mem_info = &p_obj_drc->p_mem_info[IA_DRC_SCRATCH_IDX];
     memset(p_mem_info, 0, sizeof(*p_mem_info));
-    p_mem_info->ui_size = SCRATCH_MEM_SIZE;
+    p_mem_info->ui_size = impd_calc_scratch_size();
     p_mem_info->ui_alignment = 8;
     p_mem_info->ui_type = IA_MEMTYPE_SCRATCH;
     p_mem_info->ui_placement[0] = 0;

@@ -153,17 +153,18 @@ IA_ERRORCODE ixheaacd_dec_mem_api(ia_exhaacplus_dec_api_struct *p_obj_exhaacplus
           (UWORD32 *)p_obj_exhaacplus_dec->p_mem_info_aac + i_idx;
       UWORD32 pers_size = meminfo[0];
       p_temp = p_temp + pers_size -
-               (sizeof(ia_dec_data_struct) +
-                sizeof(ia_audio_specific_config_struct) + (8300));
+               (IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8) +
+                IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_audio_specific_config_struct), BYTE_ALIGN_8) +
+                IXHEAAC_GET_SIZE_ALIGNED(MAX_HEADER_BUF_SIZE, BYTE_ALIGN_8));
       p_obj_exhaacplus_dec->p_state_aac = pv_value;
       memset(p_obj_exhaacplus_dec->p_state_aac, 0,
-             sizeof(ia_aac_dec_state_struct));
+             IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_state_struct), BYTE_ALIGN_8));
       p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data = p_temp;
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
-          p_temp + sizeof(ia_dec_data_struct);
+          p_temp + IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8);
       p_obj_exhaacplus_dec->p_state_aac->header_ptr =
-          p_temp + sizeof(ia_dec_data_struct) +
-          sizeof(ia_audio_specific_config_struct);
+          p_temp + IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8) +
+          IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_audio_specific_config_struct), BYTE_ALIGN_8);
     }
 
   } else {
@@ -1117,21 +1118,22 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(ia_exhaacplus_dec_api_struct *p_obj_exha
     header_temp_ptr = p_obj_exhaacplus_dec->p_state_aac->header_ptr;
     header_length = p_obj_exhaacplus_dec->p_state_aac->header_length;
     memset(p_obj_exhaacplus_dec->p_state_aac, 0,
-           sizeof(ia_aac_dec_state_struct));
+           IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_state_struct), BYTE_ALIGN_8));
     {
       pUWORD8 p_temp = (pUWORD8)p_obj_exhaacplus_dec->p_state_aac;
       UWORD32 *meminfo = (UWORD32 *)p_obj_exhaacplus_dec->p_mem_info_aac;
       UWORD32 pers_size = meminfo[0];
       p_temp = p_temp + pers_size -
-               (sizeof(ia_dec_data_struct) +
-                sizeof(ia_audio_specific_config_struct) + (8300));
+               (IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8) +
+                IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_audio_specific_config_struct), BYTE_ALIGN_8) +
+                IXHEAAC_GET_SIZE_ALIGNED(MAX_HEADER_BUF_SIZE, BYTE_ALIGN_8));
 
       p_obj_exhaacplus_dec->p_state_aac->pstr_dec_data = p_temp;
       p_obj_exhaacplus_dec->p_state_aac->ia_audio_specific_config =
-          p_temp + sizeof(ia_dec_data_struct);
+          p_temp + IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8);
       p_obj_exhaacplus_dec->p_state_aac->header_ptr =
-          p_temp + sizeof(ia_dec_data_struct) +
-          sizeof(ia_audio_specific_config_struct);
+          p_temp + IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8) +
+          IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_audio_specific_config_struct), BYTE_ALIGN_8);
     }
     memset(&(p_obj_exhaacplus_dec->aac_config), 0,
            sizeof(ia_aac_dec_config_struct));
@@ -1207,74 +1209,90 @@ ixheaacd_persistent_buffer_sizes(WORD32 num_channel) {
   WORD32 temp;
   WORD32 max_channels;
 
-  size_buffers += 4 * 512 * num_channel * sizeof(WORD32);
+  size_buffers += IXHEAAC_GET_SIZE_ALIGNED(4 * 512 * num_channel * sizeof(WORD32), BYTE_ALIGN_8);
 
-  size_buffers += (ltp_buffer_size * num_channel * sizeof(WORD16));
+  size_buffers +=
+      num_channel * IXHEAAC_GET_SIZE_ALIGNED(ltp_buffer_size * sizeof(WORD16), BYTE_ALIGN_8);
 
-  size_buffers += num_channel * sizeof(ia_aac_dec_channel_info);
+  size_buffers +=
+      num_channel * IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_channel_info), BYTE_ALIGN_8);
 
   if (num_channel > 2) {
     max_channels = MAX_BS_ELEMENT;
   } else {
     max_channels = 2;
   }
-  size_buffers +=
-      (max_channels) * 2 * ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct));
-
-  size_buffers += ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8);
-
-  size_buffers += ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8);
-
-  size_buffers += 2 * num_channel *
-                  (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) *
-                  sizeof(WORD16);
-
-  size_buffers += 2 * num_channel *
-                  (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) *
-                  sizeof(WORD32);
-
-  size_buffers += 2 * num_channel *
-                  (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) *
-                  sizeof(WORD16);
-
-  size_buffers += 2 * num_channel *
-                  (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) *
-                  sizeof(WORD32);
+  size_buffers += (max_channels)*2 *
+                  IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_sbr_bitstream_struct), BYTE_ALIGN_8);
 
   size_buffers +=
-      num_channel * 2 * MAX_OV_COLS * NO_SYNTHESIS_CHANNELS * sizeof(WORD32);
+      num_channel * IXHEAAC_GET_SIZE_ALIGNED(MAXSBRBYTES * sizeof(WORD8), BYTE_ALIGN_8);
 
   size_buffers +=
-      2 * LPC_ORDER * num_channel * NO_ANALYSIS_CHANNELS * sizeof(WORD32);
-
-  size_buffers += LPC_ORDER * 2 * sizeof(WORD32 *);
+      num_channel * IXHEAAC_GET_SIZE_ALIGNED(MAXSBRBYTES * sizeof(WORD8), BYTE_ALIGN_8);
 
   size_buffers +=
-      2 * LPC_ORDER * num_channel * NO_ANALYSIS_CHANNELS * sizeof(WORD32);
+      2 * num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(
+          (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) * sizeof(WORD16), BYTE_ALIGN_8);
 
-  size_buffers += num_channel * 3 * 2 * MAX_FREQ_COEFFS * sizeof(WORD16);
+  size_buffers +=
+      2 * num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(
+          (QMF_FILTER_STATE_ANA_SIZE + 2 * NO_ANALYSIS_CHANNELS) * sizeof(WORD32), BYTE_ALIGN_8);
 
-  temp = sizeof(ia_freq_band_data_struct) +
-         sizeof(ia_sbr_prev_frame_data_struct) + sizeof(ia_sbr_channel_struct) +
-         sizeof(ia_sbr_header_data_struct);
-  size_buffers += 2 * num_channel * ALIGN_SIZE64(temp);
+  size_buffers +=
+      2 * num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(
+          (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) * sizeof(WORD16), BYTE_ALIGN_8);
 
-  size_buffers += MAX_BS_ELEMENT * sizeof(ixheaac_drc_bs_data_struct *);
+  size_buffers +=
+      2 * num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(
+          (QMF_FILTER_STATE_SYN_SIZE + 2 * NO_SYNTHESIS_CHANNELS) * sizeof(WORD32), BYTE_ALIGN_8);
 
-  size_buffers += num_channel * sizeof(ia_ps_dec_struct);
+  size_buffers += num_channel * 2 *
+                  IXHEAAC_GET_SIZE_ALIGNED(MAX_OV_COLS * NO_SYNTHESIS_CHANNELS * sizeof(WORD32),
+                                           BYTE_ALIGN_8);
+
+  size_buffers += 2 * LPC_ORDER * num_channel *
+                  IXHEAAC_GET_SIZE_ALIGNED(NO_ANALYSIS_CHANNELS * sizeof(WORD32), BYTE_ALIGN_8);
+
+  size_buffers += 2 * IXHEAAC_GET_SIZE_ALIGNED(LPC_ORDER * sizeof(WORD32 *), BYTE_ALIGN_8);
+
+  size_buffers += 2 * LPC_ORDER * num_channel *
+                  IXHEAAC_GET_SIZE_ALIGNED(NO_ANALYSIS_CHANNELS * sizeof(WORD32), BYTE_ALIGN_8);
+
+  size_buffers += 2 * num_channel * 3 *
+                  IXHEAAC_GET_SIZE_ALIGNED(MAX_FREQ_COEFFS * sizeof(WORD16), BYTE_ALIGN_8);
+
+  temp = IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_freq_band_data_struct), BYTE_ALIGN_8) +
+         IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_sbr_prev_frame_data_struct), BYTE_ALIGN_8) +
+         IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_sbr_channel_struct), BYTE_ALIGN_8) +
+         IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_sbr_header_data_struct), BYTE_ALIGN_8);
+  size_buffers += 2 * num_channel * temp;
+
+  size_buffers += MAX_BS_ELEMENT *
+                  IXHEAAC_GET_SIZE_ALIGNED(sizeof(ixheaac_drc_bs_data_struct *), BYTE_ALIGN_8);
+
+  size_buffers += num_channel * IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_ps_dec_struct), BYTE_ALIGN_8);
 
   {
     WORD32 temp_size = 0;
-    size_buffers +=
-    (num_channel * (sizeof(ia_sbr_frame_info_data_struct) +
-                            MAX_FREQ_COEFFS * sizeof(WORD32) * 2 + 8) * 2);
-    temp_size += sizeof(ia_pvc_data_struct);
-    temp_size += sizeof(ia_esbr_hbe_txposer_struct) * 2;
-    temp_size += (MAX_HBE_PERSISTENT_SIZE * 2);
-    temp_size += (MAX_QMF_BUF_LEN * 2 * 2 * sizeof(FLOAT32 *));
-    temp_size += (MAX_QMF_BUF_LEN * MAX_QMF_BUF_LEN * 2 * 2 * sizeof(FLOAT32));
-    temp_size += (MAX_ENV_COLS * MAX_QMF_BUF_LEN * 2 * 2 * sizeof(WORD32));
-    size_buffers += temp_size * num_channel;
+    size_buffers += (num_channel * 2 *
+                     IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_sbr_frame_info_data_struct) +
+                                                  MAX_FREQ_COEFFS * sizeof(WORD32) * 2 + 8,
+                                              BYTE_ALIGN_8));
+    temp_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_pvc_data_struct), BYTE_ALIGN_8);
+    temp_size += 2 * IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_esbr_hbe_txposer_struct), BYTE_ALIGN_8);
+    temp_size += 2 * IXHEAAC_GET_SIZE_ALIGNED(MAX_HBE_PERSISTENT_SIZE, BYTE_ALIGN_8);
+    temp_size +=
+        2 * 2 * IXHEAAC_GET_SIZE_ALIGNED(MAX_QMF_BUF_LEN * sizeof(FLOAT32 *), BYTE_ALIGN_8);
+    temp_size += 2 * 2 * MAX_QMF_BUF_LEN *
+                 IXHEAAC_GET_SIZE_ALIGNED(MAX_QMF_BUF_LEN * sizeof(FLOAT32), BYTE_ALIGN_8);
+    temp_size += 2 * 2 * MAX_ENV_COLS *
+                 IXHEAAC_GET_SIZE_ALIGNED(MAX_QMF_BUF_LEN * sizeof(WORD32), BYTE_ALIGN_8);
+    size_buffers += num_channel * temp_size;
   }
 
   return (size_buffers);
@@ -1303,13 +1321,15 @@ VOID ixheaacd_fill_aac_mem_tables(
     p_mem_info_aac =
         &p_obj_exhaacplus_dec->p_mem_info_aac[IA_ENHAACPLUS_DEC_PERSIST_IDX];
     p_mem_info_aac->ui_size =
-        sizeof(ia_aac_dec_state_struct) +
-        channels * sizeof(struct ia_aac_persistent_struct) +
-        buffer_size + channels * ixheaacd_getsize_sbr_persistent() +
-        channels * 16 + ixheaacd_mps_persistent_buffer_sizes();
-    p_mem_info_aac->ui_size += sizeof(ia_dec_data_struct);
-    p_mem_info_aac->ui_size += sizeof(ia_audio_specific_config_struct);
-    p_mem_info_aac->ui_size += 8300;
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_state_struct), BYTE_ALIGN_8) +
+        channels *
+            IXHEAAC_GET_SIZE_ALIGNED(sizeof(struct ia_aac_persistent_struct), BYTE_ALIGN_8) +
+        buffer_size + channels * ixheaacd_getsize_sbr_persistent() + channels * 16 +
+        ixheaacd_mps_persistent_buffer_sizes();
+    p_mem_info_aac->ui_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_dec_data_struct), BYTE_ALIGN_8);
+    p_mem_info_aac->ui_size +=
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_audio_specific_config_struct), BYTE_ALIGN_8);
+    p_mem_info_aac->ui_size += IXHEAAC_GET_SIZE_ALIGNED(MAX_HEADER_BUF_SIZE, BYTE_ALIGN_8);
     p_mem_info_aac->ui_alignment = 16;
     p_mem_info_aac->ui_type = IA_MEMTYPE_PERSIST;
   }
@@ -1572,30 +1592,34 @@ IA_ERRORCODE ixheaacd_dec_init(
   }
   if (p_obj_exhaacplus_dec->aac_config.header_dec_done == 0) {
     WORD32 channels;
+    UWORD32 total_persistent_used = 0;
 
     p_obj_exhaacplus_dec->p_state_aac->p_config =
         &p_obj_exhaacplus_dec->aac_config;
 
     p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr =
-        (pVOID)((SIZE_T)((pWORD8)p_obj_exhaacplus_dec->p_state_aac +
-                         sizeof(ia_aac_dec_state_struct) + sizeof(SIZE_T) - 1) &
-                (SIZE_T)(~(sizeof(SIZE_T) - 1)));
+        (pVOID)((pWORD8)p_obj_exhaacplus_dec->p_state_aac +
+                IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_state_struct), BYTE_ALIGN_8));
     if (p_obj_exhaacplus_dec->aac_config.ui_max_channels > 2) {
       p_state_enhaacplus_dec->aac_persistent_mem_v =
           (pVOID)((pWORD8)p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr +
                   (MAX_BS_ELEMENT)*2 *
-                      ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct)));
+                      IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_sbr_bitstream_struct),
+                                               BYTE_ALIGN_8));
 
       memset(p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr, 0,
              (MAX_BS_ELEMENT)*2 *
-                 ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct)));
+                 IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_sbr_bitstream_struct), BYTE_ALIGN_8));
     } else {
-      p_state_enhaacplus_dec->aac_persistent_mem_v = (pVOID)(
-          (pWORD8)p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr +
-          (2) * 2 * ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct)));
+      p_state_enhaacplus_dec->aac_persistent_mem_v =
+          (pVOID)((pWORD8)p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr +
+                  (2) * 2 *
+                      IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_sbr_bitstream_struct),
+                                               BYTE_ALIGN_8));
 
       memset(p_obj_exhaacplus_dec->p_state_aac->pstr_stream_sbr, 0,
-             (2) * 2 * ALIGN_SIZE64(sizeof(ia_aac_dec_sbr_bitstream_struct)));
+             (2) * 2 *
+                 IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_sbr_bitstream_struct), BYTE_ALIGN_8));
     }
     if (1 == p_obj_exhaacplus_dec->aac_config.ui_max_channels)
       channels = 1;
@@ -1606,9 +1630,9 @@ IA_ERRORCODE ixheaacd_dec_init(
         p_state_enhaacplus_dec->aac_persistent_mem_v, channels);
 
     p_state_enhaacplus_dec->sbr_persistent_mem_v =
-        (pVOID)((SIZE_T)((pWORD8)p_state_enhaacplus_dec->aac_persistent_mem_v +
-                         persistent_used + sizeof(SIZE_T) - 1) &
-                (SIZE_T)(~(sizeof(SIZE_T) - 1)));
+        (pVOID)((pWORD8)p_state_enhaacplus_dec->aac_persistent_mem_v +
+                IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8));
+    total_persistent_used += IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8);
 
     persistent_used = ixheaacd_getsize_sbr_persistent();
     ixheaacd_set_sbr_persistent_buffers(
@@ -1616,15 +1640,21 @@ IA_ERRORCODE ixheaacd_dec_init(
         channels, 1);
 
     p_state_enhaacplus_dec->heaac_mps_handle.mps_persistent_mem_v =
-        (pVOID)((SIZE_T)((pWORD8)p_state_enhaacplus_dec->sbr_persistent_mem_v +
-                         persistent_used + sizeof(SIZE_T) - 1) &
-                (SIZE_T)(~(sizeof(SIZE_T) - 1)));
+        (pVOID)((pWORD8)p_state_enhaacplus_dec->sbr_persistent_mem_v +
+                IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8));
+    total_persistent_used += IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8);
 
     persistent_used = ixheaacd_getsize_mps_persistent();
 
     ixheaacd_set_mps_persistent_buffers(
         &p_state_enhaacplus_dec->heaac_mps_handle, &persistent_used, channels,
         p_state_enhaacplus_dec->heaac_mps_handle.mps_persistent_mem_v);
+    total_persistent_used += IXHEAAC_GET_SIZE_ALIGNED(persistent_used, BYTE_ALIGN_8);
+
+    if (total_persistent_used >
+        p_obj_exhaacplus_dec->p_mem_info_aac[IA_ENHAACPLUS_DEC_PERSIST_IDX].ui_size) {
+      return IA_XHEAAC_DEC_INIT_FATAL_DEC_INIT_FAIL;
+    }
 
     aac_persistent_mem = (struct ia_aac_persistent_struct *)
                              p_state_enhaacplus_dec->aac_persistent_mem_v;

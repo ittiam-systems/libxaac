@@ -119,4 +119,6 @@
 
 #define SFB_PER_PRED_BAND 2
 
+#define MAX_HEADER_BUF_SIZE 8300
+
 #endif /* IXHEAACD_CNST_H */

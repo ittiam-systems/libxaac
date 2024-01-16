@@ -98,34 +98,47 @@ WORD32 ixheaacd_set_aac_persistent_buffers(VOID *aac_persistent_mem_v,
   struct ia_aac_persistent_struct *aac_persistent_mem =
       (struct ia_aac_persistent_struct *)aac_persistent_mem_v;
 
-  persistent_used = sizeof(struct ia_aac_persistent_struct);
+  persistent_used =
+      IXHEAAC_GET_SIZE_ALIGNED(sizeof(struct ia_aac_persistent_struct), BYTE_ALIGN_8);
 
-  memset(aac_persistent_mem, 0, sizeof(struct ia_aac_persistent_struct));
+  memset(aac_persistent_mem, 0,
+         IXHEAAC_GET_SIZE_ALIGNED(sizeof(struct ia_aac_persistent_struct), BYTE_ALIGN_8));
   aac_persistent_mem->overlap_buffer =
       (WORD32 *)((WORD8 *)aac_persistent_mem_v + persistent_used);
 
-  memset((WORD32 *)((WORD8 *)aac_persistent_mem_v + persistent_used), 0,
-         4 * 512 * num_channel * sizeof(WORD32));
+  memset(
+      (WORD32 *)((WORD8 *)aac_persistent_mem_v + persistent_used), 0,
+      IXHEAAC_GET_SIZE_ALIGNED(
+          4 * 512 * num_channel * sizeof(aac_persistent_mem->overlap_buffer[0]), BYTE_ALIGN_8));
 
-  persistent_used += 4 * 512 * num_channel * sizeof(WORD32);
+  persistent_used += IXHEAAC_GET_SIZE_ALIGNED(
+      4 * 512 * num_channel * sizeof(aac_persistent_mem->overlap_buffer[0]), BYTE_ALIGN_8);
 
   aac_persistent_mem->sbr_payload_buffer =
       (WORD8 *)((WORD8 *)aac_persistent_mem_v + persistent_used);
 
   memset((WORD16 *)((WORD8 *)aac_persistent_mem_v + persistent_used), 0,
-         ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8));
+         num_channel *
+             IXHEAAC_GET_SIZE_ALIGNED(
+                 MAXSBRBYTES * sizeof(aac_persistent_mem->sbr_payload_buffer[0]), BYTE_ALIGN_8));
 
-  persistent_used += ALIGN_SIZE64(MAXSBRBYTES) * num_channel * sizeof(WORD8);
+  persistent_used +=
+      num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(MAXSBRBYTES * sizeof(aac_persistent_mem->sbr_payload_buffer[0]),
+                               BYTE_ALIGN_8);
 
   aac_persistent_mem->prev_sbr_payload_buffer =
       (WORD8 *)((WORD8 *)aac_persistent_mem_v + persistent_used);
 
   memset((WORD8 *)aac_persistent_mem->prev_sbr_payload_buffer, 0,
-         ALIGN_SIZE64(MAXSBRBYTES) * num_channel *
-         sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer)));
+         num_channel * IXHEAAC_GET_SIZE_ALIGNED(
+                           MAXSBRBYTES * sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer)),
+                           BYTE_ALIGN_8));
 
-  persistent_used += ALIGN_SIZE64(MAXSBRBYTES) * num_channel *
-         sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer));
+  persistent_used +=
+      num_channel *
+      IXHEAAC_GET_SIZE_ALIGNED(
+          MAXSBRBYTES * sizeof(*(aac_persistent_mem->prev_sbr_payload_buffer)), BYTE_ALIGN_8);
 
   {
     WORD32 i;
@@ -135,14 +148,15 @@ WORD32 ixheaacd_set_aac_persistent_buffers(VOID *aac_persistent_mem_v,
           (WORD16 *)((WORD8 *)aac_persistent_mem_v + persistent_used);
 
       memset((WORD16 *)((WORD8 *)aac_persistent_mem_v + persistent_used), 0,
-             ltp_buffer_size * sizeof(WORD16));
+             IXHEAAC_GET_SIZE_ALIGNED(ltp_buffer_size * sizeof(aac_persistent_mem->ltp_buf[i][0]),
+                                      BYTE_ALIGN_8));
 
-      persistent_used += (ltp_buffer_size * sizeof(WORD16));
+      persistent_used += IXHEAAC_GET_SIZE_ALIGNED(
+          ltp_buffer_size * sizeof(aac_persistent_mem->ltp_buf[i][0]), BYTE_ALIGN_8);
 
       aac_persistent_mem->ptr_aac_dec_static_channel_info[i] =
-          (ia_aac_dec_channel_info *)((WORD8 *)aac_persistent_mem_v +
-                                      persistent_used);
-      persistent_used += sizeof(ia_aac_dec_channel_info);
+          (ia_aac_dec_channel_info *)((WORD8 *)aac_persistent_mem_v + persistent_used);
+      persistent_used += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_aac_dec_channel_info), BYTE_ALIGN_8);
 
       aac_persistent_mem->ptr_aac_dec_static_channel_info[i]
           ->overlap_add_data.win_shape = 0;
@@ -407,7 +421,8 @@ ia_aac_decoder_struct *ixheaacd_aac_decoder_init(
     {
       WORD32 *ptr_overlap_buf =
           aac_dec_handle->pstr_aac_dec_overlap_info[ch]->ptr_overlap_buf;
-      memset(ptr_overlap_buf, 0, sizeof(WORD32) * 4 * 512);
+      memset(ptr_overlap_buf, 0,
+             IXHEAAC_GET_SIZE_ALIGNED(sizeof(ptr_overlap_buf[0]) * 4 * 512, BYTE_ALIGN_8));
     }
     aac_persistent_mem->str_aac_decoder.ptr_aac_dec_static_channel_info[ch] =
         aac_persistent_mem->ptr_aac_dec_static_channel_info[ch];
