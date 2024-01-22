@@ -21,7 +21,6 @@
 #include <string.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_constants.h"
-#include "ixheaace_aac_constants.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_resampler.h"
 #include "iusace_cnst.h"
@@ -138,7 +137,7 @@ VOID ixheaace_get_input_scratch_buf(VOID *ptr_scr, FLOAT32 **ptr_scratch_buf_inp
 }
 
 WORD32 ixheaace_resampler_scr_size(VOID) {
-  return IXHEAACE_GET_SIZE_ALIGNED(sizeof(ixheaace_resampler_scratch), BYTE_ALIGN_8);
+  return IXHEAAC_GET_SIZE_ALIGNED(sizeof(ixheaace_resampler_scratch), BYTE_ALIGN_8);
 }
 
 static VOID ia_enhaacplus_enc_iir_sos_filter(ixheaace_iir_sos_resampler *pstr_down_sampler,
