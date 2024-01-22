@@ -33,7 +33,6 @@
 #include "ixheaace_mps_defines.h"
 #include "ixheaace_mps_common_define.h"
 #include "ixheaac_constants.h"
-#include "ixheaace_aac_constants.h"
 #include "ixheaace_bitbuffer.h"
 #include "ixheaace_sbr_def.h"
 #include "ixheaace_mps_buf.h"
@@ -1048,7 +1047,7 @@ WORD32 ixheaace_mps_515_scratch_size(VOID) {
            sizeof(FLOAT32));
   size += (INPUT_LEN_DOWNSAMPLE * IXHEAACE_MAX_CH_IN_BS_ELE * UPSAMPLE_FAC * sizeof(FLOAT32));
   size += (INPUT_LEN_DOWNSAMPLE * IXHEAACE_MAX_CH_IN_BS_ELE * UPSAMPLE_FAC * sizeof(FLOAT32));
-  size = IXHEAACE_GET_SIZE_ALIGNED(size, BYTE_ALIGN_8);
+  size = IXHEAAC_GET_SIZE_ALIGNED(size, BYTE_ALIGN_8);
   return size;
 }
 

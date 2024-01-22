@@ -80,9 +80,7 @@ typedef struct {
 
 /* bits in byte (char) */
 #define BYTE_NUMBIT 8
-#define BYTE_ALIGN_8 (8)
 #define EIGHT_BYTE_SIZE (8)
-#define IXHEAACE_GET_SIZE_ALIGNED(size, alignment) ((size + (alignment - 1)) & ~(alignment - 1))
 
 /* here we distinguish between stereo and the mono only encoder */
 #define IXHEAACE_MAX_CH_IN_BS_ELE (2)
