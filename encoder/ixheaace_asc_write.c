@@ -89,6 +89,10 @@ static WORD32 iusace_config_extension(ia_bit_buf_struct *pstr_it_bit_buff,
                                            pstr_usac_config->usac_config_ext_buf[j][i], 8);
         }
         break;
+      case ID_CONFIG_EXT_STREAM_ID:
+        bit_cnt +=
+            iusace_write_bits_buf(pstr_it_bit_buff, pstr_usac_config->stream_identifier, 16);
+        break;
       default:
         for (i = 0; i < pstr_usac_config->usac_config_ext_len[j]; i++) {
           bit_cnt += iusace_write_bits_buf(
@@ -607,6 +611,91 @@ WORD32 ixheaace_get_audiospecific_config_bytes(
     }
     default:
       break;
+  }
+  return bit_cnt;
+}
+
+WORD32 ixheaace_get_usac_config_bytes(
+    ia_bit_buf_struct *pstr_it_bit_buff,
+    ixheaace_audio_specific_config_struct *pstr_audio_specific_config, WORD32 ccfl_idx) {
+  WORD32 sbr_ratio_idx;
+  ia_usac_config_struct *pstr_usac_config = &(pstr_audio_specific_config->str_usac_config);
+  WORD32 ia_ccfl_tbl[5] = {768, 1024, 768, 1024, 1024};
+  WORD32 i, tmp, bit_cnt = 0;
+  pstr_audio_specific_config->core_sbr_framelength_index =
+      ccfl_idx;  // 768 core coder frame length without SBR
+  pstr_usac_config->ccfl = ia_ccfl_tbl[pstr_audio_specific_config->core_sbr_framelength_index];
+  tmp = 0x1f;
+  for (i = 0; i < sizeof(ia_usac_sampl_freq_table) / sizeof(ia_usac_sampl_freq_table[0]); i++) {
+    if (ia_usac_sampl_freq_table[i] == pstr_audio_specific_config->sampling_frequency) {
+      tmp = i;
+      break;
+    }
+  }
+  pstr_audio_specific_config->samp_freq_index = (UWORD32)tmp;
+
+  if (pstr_audio_specific_config->samp_freq_index == 0x1f) {
+    bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, 0x1f, 5);
+    bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                     (pstr_audio_specific_config->sampling_frequency), 24);
+  } else {
+    bit_cnt +=
+        iusace_write_bits_buf(pstr_it_bit_buff, (pstr_audio_specific_config->samp_freq_index), 5);
+  }
+
+  bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                   (pstr_audio_specific_config->core_sbr_framelength_index), 3);
+
+  bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                   (pstr_audio_specific_config->channel_configuration), 5);
+
+  if (pstr_audio_specific_config->channel_configuration == 0) {
+    bit_cnt += iusace_write_escape_value(
+        pstr_it_bit_buff, pstr_audio_specific_config->num_audio_channels, 5, 8, 16);
+
+    for (i = 0; i < pstr_audio_specific_config->num_audio_channels; i++) {
+      tmp = pstr_audio_specific_config->output_channel_pos[i];
+      bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, tmp, 5);
+    }
+  }
+
+  sbr_ratio_idx = ixheaace_sbr_ratio(pstr_audio_specific_config->core_sbr_framelength_index);
+
+  bit_cnt += iusace_encoder_config(pstr_it_bit_buff, pstr_usac_config, sbr_ratio_idx,
+                                   &pstr_audio_specific_config->str_aac_config);
+
+  bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff, pstr_usac_config->usac_cfg_ext_present, 1);
+  if (pstr_usac_config->usac_cfg_ext_present) {
+    bit_cnt += iusace_config_extension(pstr_it_bit_buff, pstr_usac_config);
+  }
+
+  if (sbr_ratio_idx)
+    pstr_audio_specific_config->sbr_present_flag = 1;
+  else
+    pstr_audio_specific_config->sbr_present_flag = 0;
+
+  pstr_audio_specific_config->ext_audio_object_type = 0;
+
+  if (pstr_audio_specific_config->ext_audio_object_type == AOT_SBR) {
+    pstr_audio_specific_config->ext_sync_word = 0x2b7;
+    bit_cnt +=
+        iusace_write_bits_buf(pstr_it_bit_buff, (pstr_audio_specific_config->ext_sync_word), 11);
+
+    bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                     (pstr_audio_specific_config->ext_audio_object_type), 5);
+
+    bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                     (pstr_audio_specific_config->sbr_present_flag), 1);
+
+    if (pstr_audio_specific_config->sbr_present_flag == 1) {
+      bit_cnt += iusace_write_bits_buf(pstr_it_bit_buff,
+                                       (pstr_audio_specific_config->ext_samp_freq_index), 4);
+
+      if (pstr_audio_specific_config->ext_samp_freq_index == 0xf) {
+        bit_cnt += iusace_write_bits_buf(
+            pstr_it_bit_buff, (pstr_audio_specific_config->ext_sampling_frequency), 24);
+      }
+    }
   }
   return bit_cnt;
 }

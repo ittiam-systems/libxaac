@@ -618,7 +618,14 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
       p_audio_specific_config->channel_configuration = ptr_usac_config->channels;
     }
   }
-
+  ia_usac_enc_element_config_struct *pstr_usac_elem_config =
+      &(pstr_asc_usac_config->str_usac_element_config[pstr_asc_usac_config->num_elements]);
+  pstr_asc_usac_config->usac_element_type[pstr_asc_usac_config->num_elements] = ID_USAC_EXT;
+  pstr_usac_elem_config->usac_ext_ele_type = ID_EXT_ELE_AUDIOPREROLL;
+  pstr_usac_elem_config->usac_ext_ele_dflt_len_present = 0;
+  pstr_usac_elem_config->usac_ext_ele_payload_present = 0;
+  pstr_usac_elem_config->usac_ext_ele_cfg_len = 0;
+  pstr_asc_usac_config->num_elements++;
   // DRC Config
   if (ptr_usac_config->use_drc_element) {
     ptr_usac_config->str_drc_cfg.str_uni_drc_config.str_channel_layout.base_ch_count =
@@ -637,26 +644,40 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
 
     if (ptr_usac_config->use_drc_element) {
       ia_usac_enc_element_config_struct *pstr_usac_elem_config =
-        &(pstr_asc_usac_config->str_usac_element_config[pstr_asc_usac_config->num_elements]);
+          &(pstr_asc_usac_config->str_usac_element_config[pstr_asc_usac_config->num_elements]);
       pstr_asc_usac_config->usac_element_type[pstr_asc_usac_config->num_elements] = ID_USAC_EXT;
       pstr_usac_elem_config->usac_ext_ele_type = ID_EXT_ELE_UNI_DRC;
       pstr_usac_elem_config->usac_ext_ele_dflt_len_present = 0;
       pstr_usac_elem_config->usac_ext_ele_payload_present = 0;
       pstr_usac_elem_config->drc_config_data = usac_data->str_drc_state.bit_buf_base_cfg;
       pstr_usac_elem_config->usac_ext_ele_cfg_len =
-        (usac_data->str_drc_state.drc_config_data_size_bit + 7) >> 3;
+          (usac_data->str_drc_state.drc_config_data_size_bit + 7) >> 3;
       pstr_asc_usac_config->num_elements++;
     }
+  } else {
+    err_code =
+        impd_loudness_info_init(&usac_data->str_drc_state, &ptr_usac_config->str_drc_cfg);
+    if (err_code) {
+      return err_code;
+    }
   }
-  if (ptr_usac_config->use_drc_element)  // For Loudness
-  {
-    pstr_asc_usac_config->usac_config_ext_type[pstr_asc_usac_config->num_config_extensions] =
-        ID_CONFIG_EXT_LOUDNESS_INFO;
-    pstr_asc_usac_config->usac_config_ext_len[pstr_asc_usac_config->num_config_extensions] =
-        (usac_data->str_drc_state.drc_config_ext_data_size_bit + 7) >> 3;
-    pstr_asc_usac_config->usac_config_ext_buf[pstr_asc_usac_config->num_config_extensions] =
-        usac_data->str_drc_state.bit_buf_base_cfg_ext;
-    pstr_asc_usac_config->num_config_extensions++;
+
+  pstr_asc_usac_config->usac_config_ext_type[pstr_asc_usac_config->num_config_extensions] =
+      ID_CONFIG_EXT_STREAM_ID;
+  pstr_asc_usac_config->usac_config_ext_len[pstr_asc_usac_config->num_config_extensions] =
+      CONFIG_EXT_LEN_STREAM_ID;
+  pstr_asc_usac_config->num_config_extensions++;
+  pstr_asc_usac_config->stream_identifier = ptr_usac_config->stream_id;
+
+  pstr_asc_usac_config->usac_config_ext_type[pstr_asc_usac_config->num_config_extensions] =
+      ID_CONFIG_EXT_LOUDNESS_INFO;
+  pstr_asc_usac_config->usac_config_ext_len[pstr_asc_usac_config->num_config_extensions] =
+      (usac_data->str_drc_state.drc_config_ext_data_size_bit + 7) >> 3;
+  pstr_asc_usac_config->usac_config_ext_buf[pstr_asc_usac_config->num_config_extensions] =
+      usac_data->str_drc_state.bit_buf_base_cfg_ext;
+  pstr_asc_usac_config->num_config_extensions++;
+
+  if (pstr_asc_usac_config->num_config_extensions) {
     pstr_asc_usac_config->usac_cfg_ext_present = 1;
   }
 
@@ -778,7 +799,7 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
 
   for (; elem_idx < pstr_asc_usac_config->num_elements; elem_idx++) {
     idx = elem_idx - pstr_asc_usac_config->num_ext_elements;
-    pstr_asc_usac_config->str_usac_element_config[idx].noise_filling =
+    pstr_asc_usac_config->str_usac_element_config[elem_idx].noise_filling =
         usac_data->noise_filling[idx];
     usac_data->channel_elem_type[idx] = pstr_asc_usac_config->usac_element_type[elem_idx];
   }
@@ -792,6 +813,8 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
     pstr_usac_elem_config->usac_ext_ele_dflt_len_present = 0;
     pstr_usac_elem_config->usac_ext_ele_payload_present = 0;
     pstr_asc_usac_config->num_elements++;
+    ptr_usac_config->num_ext_elements++;
+    ptr_usac_config->num_elements++;
   }
 
   if (ptr_usac_config->codec_mode == USAC_SWITCHED) {
@@ -1045,7 +1068,7 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
   WORD32 len_next_high_rate;
   WORD8 elem_idx, nr_core_coder_channels = 0, chn = 0;
   WORD32 ch_offset = 0;
-  WORD32 elem_idx_max = ptr_usac_config->num_elements;
+  WORD32 elem_idx_max = ptr_usac_config->num_elements - ptr_usac_config->num_ext_elements;
   WORD32 td_buffer_offset = (TD_BUFFER_OFFSET * ptr_usac_config->ccfl) / FRAME_LEN_LONG;
   usac_independency_flg = ptr_usac_data->usac_independency_flag;
 
@@ -1063,15 +1086,16 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
     ptr_usac_data->min_bits_needed = 0;
   }
 
-  if (ptr_usac_config->use_drc_element == 1) {
-    elem_idx_max -= 1;
-  }
-
   num_bits = 0;
-
-  iusace_write_bits_buf(pstr_it_bit_buff, usac_independency_flg, 1);
-  num_bits++;
-
+  if (ptr_usac_config->preroll_flag) {
+    if (ptr_usac_config->iframes_interval != ptr_usac_config->num_preroll_frames) {
+      iusace_write_bits_buf(pstr_it_bit_buff, usac_independency_flg, 1);
+      num_bits++;
+    }
+  } else {
+    iusace_write_bits_buf(pstr_it_bit_buff, usac_independency_flg, 1);
+    num_bits++;
+  }
   for (elem_idx = 0; elem_idx < elem_idx_max; elem_idx++) {
     switch (ptr_usac_data->channel_elem_type[elem_idx]) {
       case USAC_ELEMENT_TYPE_SCE:
@@ -1289,7 +1313,12 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
         }
       }
     }
-
+    if (ptr_usac_config->preroll_flag) {
+      if (ptr_usac_config->iframes_interval != ptr_usac_config->num_preroll_frames) {
+        iusace_write_bits_buf(pstr_it_bit_buff, 0, 1);  // extension element present
+        num_bits++;
+      }
+    }
     if (ptr_usac_config->use_drc_element) {
       WORD32 num_bits_ext_elem = 0;
       err = iusace_enc_ext_elemts(ID_EXT_ELE_UNI_DRC, ptr_usac_config, pstr_state, pstr_asc,

@@ -430,6 +430,7 @@ cc_library_static {
         "encoder/ixheaace_hybrid.c",
         "encoder/ixheaace_hybrid_init.c",
         "encoder/ixheaace_interface.c",
+        "encoder/ixheaace_loudness_measurement.c",
         "encoder/ixheaace_mdct_480.c",
         "encoder/ixheaace_mps_bitstream.c",
         "encoder/ixheaace_mps_dct.c",

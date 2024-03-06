@@ -686,7 +686,7 @@ IA_ERRORCODE ixheaace_mps_212_write_spatial_frame(
     ixheaace_mps_212_write_smg_data(pstr_bit_buf, &pstr_spatial_frame->smg_data, num_param_sets,
                                     pstr_specific_config->num_bands);
   }
-  ixheaace_byte_align_buffer(pstr_bit_buf);
+
   *ptr_output_bits = ia_enhaacplus_enc_get_bits_available(pstr_bit_buf);
   if ((*ptr_output_bits) > (output_buffer_size * 8)) {
     return IA_EXHEAACE_CONFIG_NONFATAL_MPS_INVALID_CONFIG;

@@ -160,6 +160,9 @@ static VOID iusace_sfb_init(WORD32 sample_rate, WORD32 block_type, WORD32 *ptr_s
       case 8000:
         ptr_sfb_params = pstr_sfb_info_tbls[0].cb_offset_long;
         break;
+      default:
+        ptr_sfb_params = pstr_sfb_info_tbls[8].cb_offset_long;
+        break;
     }
   } else {
     block_len = ccfl >> 3;
@@ -201,6 +204,9 @@ static VOID iusace_sfb_init(WORD32 sample_rate, WORD32 block_type, WORD32 *ptr_s
         break;
       case 8000:
         ptr_sfb_params = pstr_sfb_info_tbls[0].cb_offset_short;
+        break;
+      default:
+        ptr_sfb_params = pstr_sfb_info_tbls[8].cb_offset_short;
         break;
     }
   }

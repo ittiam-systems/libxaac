@@ -32,6 +32,7 @@ extern "C" {
 #include "impd_drc_uni_drc.h"
 #include "impd_drc_api.h"
 #include "ixheaace_api.h"
+#include "ixheaace_loudness_measurement.h"
 }
 
 static constexpr WORD32 k_sample_rates[] = {7350,  8000,  11025, 12000, 16000, 22050, 24000,
@@ -341,7 +342,11 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
   pstr_in_cfg->use_drc_element = fuzzed_data->ConsumeBool();
   pstr_in_cfg->inter_tes_active = fuzzed_data->ConsumeBool();
   pstr_in_cfg->codec_mode = fuzzed_data->ConsumeIntegral<WORD8>();
-
+  pstr_in_cfg->random_access_interval = fuzzed_data->ConsumeIntegral<WORD32>();
+  pstr_in_cfg->method_def = fuzzed_data->ConsumeIntegral<WORD32>();
+  pstr_in_cfg->measurement_system = fuzzed_data->ConsumeIntegral<WORD32>();
+  pstr_in_cfg->measured_loudness = fuzzed_data->ConsumeIntegral<WORD32>();
+  pstr_in_cfg->stream_id = fuzzed_data->ConsumeIntegral<UWORD16>();
   /* DRC */
   if (pstr_in_cfg->use_drc_element == 1) {
     ixheaace_read_drc_config_params(&pstr_drc_cfg->str_enc_params,
@@ -351,8 +356,107 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
   }
 }
 
+IA_ERRORCODE ia_enhaacplus_enc_pcm_data_read(std::vector<WORD8> input_vec, UWORD32 num_samples,
+  WORD32 num_channels, WORD16 **data)
+{
+  UWORD32 count = 0;
+  UWORD8 channel_no;
+  UWORD32 sample_no = 0;
+  UWORD32 i = 0;
+  while (count < num_samples)
+  {
+    sample_no = (count / num_channels);
+    channel_no = (UWORD8)(count%num_channels);
+    data[channel_no][sample_no] = *input_vec.data();
+    i++;
+    count++;
+  }
+  return 0;
+}
+
+static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *pstr_in_cfg,
+  ixheaace_output_config *pstr_out_cfg, FuzzedDataProvider *fuzzed_data)
+{
+  WORD32 input_size;
+  WORD32 count = 0;
+  IA_ERRORCODE err_code = 0;
+  VOID *loudness_handle = malloc_global(ixheaace_loudness_info_get_handle_size(),
+    DEFAULT_MEM_ALIGN_8);
+  if (loudness_handle == NULL) {
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    return -1;
+  }
+
+  err_code = ixheaace_loudness_init_params(loudness_handle, pstr_in_cfg, pstr_out_cfg);
+  
+  if (err_code) {
+    free_global(loudness_handle);
+    return -1;
+  }
+  input_size = (pstr_out_cfg->samp_freq / 10)*(pstr_in_cfg->i_channels);
+  WORD16 **samples = 0;
+  samples = (WORD16 **)malloc_global(pstr_in_cfg->i_channels * sizeof(*samples),
+    DEFAULT_MEM_ALIGN_8);
+  if (samples == NULL)
+  {
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    free_global(loudness_handle);
+    return -1;
+  }
+  for (count = 0; count < pstr_in_cfg->i_channels; count++)
+  {
+    samples[count] =
+      (WORD16 *)malloc_global((pstr_out_cfg->samp_freq / 10) * sizeof(samples),
+        DEFAULT_MEM_ALIGN_8);
+    if (samples[count] == NULL)
+    {
+      printf("fatal error: libxaac encoder: Memory allocation failed");
+      while (count)
+      {
+        count--;
+        free_global(samples[count]);
+      }
+      free_global(samples);
+      free_global(loudness_handle);
+      return -1;
+    }
+  }
+  count = 0;
+  while (count <= fuzzed_data->remaining_bytes())
+  {
+    std::vector<WORD8> input_vec = fuzzed_data->ConsumeBytes<WORD8>(input_size);
+    err_code = ia_enhaacplus_enc_pcm_data_read(input_vec, input_size,
+      pstr_in_cfg->i_channels, samples);
+    if (input_size > input_vec.size()) {
+       memset((*samples + input_vec.size()), 0, (input_size - input_vec.size()));
+    }
+    if (err_code) {
+      for (count = 0; count < pstr_in_cfg->i_channels; count++)
+      {
+        free_global(samples[count]);
+      }
+      free_global(samples);
+      free_global(loudness_handle);
+      return -1;
+    }
+    pstr_in_cfg->measured_loudness = ixheaace_measure_loudness(loudness_handle, samples);
+    count += input_size;
+  }
+  if (pstr_in_cfg->method_def == METHOD_DEFINITION_PROGRAM_LOUDNESS) {
+    pstr_in_cfg->measured_loudness = ixheaace_measure_integrated_loudness(loudness_handle);
+  }
+  for (count = 0; count < pstr_in_cfg->i_channels; count++)
+  {
+    free_global(samples[count]);
+  }
+  free_global(samples);
+  free_global(loudness_handle);
+  return err_code;
+}
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   FuzzedDataProvider fuzzed_data(data, size);
+  FuzzedDataProvider fuzzed_data_loudness(data, size);
 
   /* Error code */
   IA_ERRORCODE err_code = 0;
@@ -362,6 +466,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   pWORD8 pb_inp_buf = NULL;
   WORD32 input_size = 0;
+  WORD32 read_inp_data = 1;
   WORD32 num_proc_iterations = 0;
 
   /* ******************************************************************/
@@ -383,7 +488,26 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   /* Parse input configuration parameters                             */
   /* ******************************************************************/
   ixheaace_fuzzer_flag(pstr_in_cfg, pstr_drc_cfg, &fuzzed_data);
-
+  
+    /*1st pass -> Loudness Measurement */
+  if (pstr_in_cfg->aot == AOT_USAC)
+  {
+    err_code = ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg,
+      &fuzzed_data_loudness);
+    if (err_code) {
+      if (pstr_drc_cfg) {
+        free(pstr_drc_cfg);
+        pstr_drc_cfg = NULL;
+      }
+      /* Fatal error code */
+      if (err_code & 0x80000000) {
+        ixheaace_delete((pVOID)pstr_out_cfg);
+        return 0;
+      }
+      return -1;
+    }
+  }
+  
   err_code = ixheaace_create((pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
   if (err_code) {
     if (pstr_drc_cfg) {
@@ -410,17 +534,23 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   memset(pb_inp_buf, 0, input_size);
 
   while (fuzzed_data.remaining_bytes()) {
-    if (fuzzed_data.ConsumeBool()) {
-      std::vector<WORD8> inputVec = fuzzed_data.ConsumeBytes<WORD8>(input_size);
-      if (inputVec.size()) {
-        memcpy(pb_inp_buf, inputVec.data(), inputVec.size());
+    if (read_inp_data) {
+      if (fuzzed_data.ConsumeBool()) {
+        std::vector<WORD8> input_vec = fuzzed_data.ConsumeBytes<WORD8>(input_size);
+        if (input_vec.size()) {
+          memcpy(pb_inp_buf, input_vec.data(), input_vec.size());
+        }
+      } else {
+        memset(pb_inp_buf, fuzzed_data.ConsumeIntegral<WORD8>(), input_size);
       }
-    } else {
-      memset(pb_inp_buf, fuzzed_data.ConsumeIntegral<WORD8>(), input_size);
     }
     ixheaace_process(pv_ia_process_api_obj, (pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
     num_proc_iterations++;
-
+    if (pstr_out_cfg->i_out_bytes == 0) {
+      read_inp_data = 0;
+    } else {
+      read_inp_data = 1;
+    }
     /* Stop processing after 500 frames */
     if (num_proc_iterations > 500)
       break;

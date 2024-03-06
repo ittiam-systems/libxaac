@@ -106,6 +106,8 @@ typedef struct ixheaace_state_struct {
   ixheaace_mps_515_memory_struct *mps_515_pers_mem;
   WORD32 is_quant_spec_zero;
   WORD32 is_gain_limited;
+  WORD32 i_out_bits;
+  VOID *loudness_handle;
 } ixheaace_state_struct;
 
 typedef struct ixheaace_api_struct {

@@ -42,3 +42,7 @@ WORD32 ixheaace_get_audiospecific_config_bytes(
     ia_bit_buf_struct *pstr_it_bit_buff,
     ixheaace_audio_specific_config_struct *pstr_audio_specific_config, WORD32 aot,
     WORD32 ccfl_idx);
+
+WORD32 ixheaace_get_usac_config_bytes(
+    ia_bit_buf_struct *pstr_it_bit_buff,
+    ixheaace_audio_specific_config_struct *pstr_audio_specific_config, WORD32 ccfl_idx);

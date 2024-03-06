@@ -18,6 +18,7 @@
  * Originally developed and contributed by Ittiam Systems Pvt. Ltd, Bangalore
  */
 
+#include <string.h>
 #include "ixheaac_type_def.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_codes.h"
@@ -308,6 +309,22 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
 
   pstr_drc_state_local->drc_config_data_size_bit = bit_count;
 
+  return err_code;
+}
+
+IA_ERRORCODE impd_loudness_info_init(VOID *pstr_drc_state, ia_drc_input_config *pstr_inp_config) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
+  ia_drc_enc_state *pstr_drc_state_local = pstr_drc_state;
+
+  iusace_create_bit_buffer(&pstr_drc_state_local->str_bit_buf_cfg_ext,
+    pstr_drc_state_local->bit_buf_base_cfg_ext,
+    sizeof(pstr_drc_state_local->bit_buf_base_cfg_ext), 1);
+
+  memcpy(&pstr_drc_state_local->str_gain_enc.str_loudness_info_set,
+    &pstr_inp_config->str_enc_loudness_info_set,
+    sizeof(ia_drc_loudness_info_set_struct));
+
+  err_code = impd_drc_write_measured_loudness_info(pstr_drc_state_local);
   return err_code;
 }
 

@@ -33,6 +33,7 @@
 #include "ixheaace_api.h"
 #include "ixheaac_error_standards.h"
 #include "ixheaace_error_handler.h"
+#include "ixheaace_loudness_measurement.h"
 
 VOID ia_enhaacplus_enc_error_handler_init();
 VOID ia_testbench_error_handler_init();
@@ -68,6 +69,31 @@ typedef struct {
 
 int ia_enhaacplus_enc_fread(void *buf, int size, int bytes, FILE *fp) {
   return (int)fread(buf, size, bytes, fp);
+}
+
+IA_ERRORCODE ia_enhaacplus_enc_pcm_data_read(FILE *in_file, UWORD32 num_samples,
+                                             WORD32 num_channels, WORD16 **data) {
+  UWORD32 count = 0;
+  WORD16 temp;
+  WORD16 *buf = &temp;
+  UWORD8 channel_no;
+  UWORD32 sample_no = 0;
+
+  while (count < num_samples) {
+    sample_no = count / num_channels;
+    channel_no = (UWORD8)(count % num_channels);
+    if (fread(buf, sizeof(WORD16), 1, in_file) != 1) {
+      if (feof(in_file)) {
+        printf("End of file reached.\n");
+      } else {
+        printf("Error reading a file.\n");
+        return -1;
+      }
+    }
+    data[channel_no][sample_no] = temp;
+    count++;
+  }
+  return IA_NO_ERROR;
 }
 
 int ia_enhaacplus_enc_fwrite(void *pb_buf, FILE *pf_out, WORD32 i_out_bytes) {
@@ -201,6 +227,8 @@ void ia_enhaacplus_enc_print_usage() {
   printf("\n[-esbr_hq:<esbr_hq_flag>]");
   printf("\n[-drc:<drc_flag>]");
   printf("\n[-inter_tes_enc:<inter_tes_enc_flag>]");
+  printf("\n[-rap:<random access interval in ms>]");
+  printf("\n[-stream_id:<stream identifier>]");
   printf("\n\nwhere, \n  <paramfile> is the parameter file with multiple commands");
   printf("\n  <inputfile> is the input 16-bit WAV or PCM file name");
   printf("\n  <outputfile> is the output ADTS/ES file name");
@@ -279,7 +307,16 @@ void ia_enhaacplus_enc_print_usage() {
       "1 (enable DRC encoding). Default is 0.");
   printf(
       "\n  <inter_tes_enc_flag> Valid values are 0 (disable inter - TES encoding) and "
-      "1 (enable inter - TES encoding). Default is 0.\n");
+      "1 (enable inter - TES encoding). Default is 0.");
+  printf(
+      "\n  <random access interval in ms> is the time interval between audio preroll frames in "
+      "ms. It is applicable only for AOT 42."
+      "\n        Valid values are -1 (Audio preroll sent only at beginning of file) and "
+      "greater than 1000 ms. Default is -1.");
+  printf(
+      "\n <stream identifier> is the stream id used to uniquely identify configuration of a "
+      "stream within a set of associated streams."
+      "\n        It is applicable only for AOT 42. Valid values are 0 to 65535. Default is 0.");
   exit(1);
 }
 
@@ -379,6 +416,14 @@ static VOID ixheaace_parse_config_param(WORD32 argc, pWORD8 argv[], pVOID ptr_en
     if (!strncmp((const char *)argv[i], "-inter_tes_enc:", 15)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 15);
       pstr_enc_api->input_config.inter_tes_active = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-rap:", 5)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 5);
+      pstr_enc_api->input_config.random_access_interval = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-stream_id:", 11)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 11);
+      pstr_enc_api->input_config.stream_id = atoi(pb_arg_val);
     }
   }
 
@@ -921,12 +966,91 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
       printf("\nDRC : 1");
       ixheaace_print_drc_config_params(pstr_input_config, pstr_input_config_user);
     }
+
+    if (pstr_input_config->random_access_interval !=
+        pstr_input_config_user->random_access_interval) {
+      printf("\nRandom access interval (Invalid config value, setting to default) : %d",
+             pstr_input_config->random_access_interval);
+    }
   }
 
   printf(
       "\n*************************************************************************************"
       "***********\n\n");
 }
+
+static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *pstr_in_cfg,
+                                                        ixheaace_output_config *pstr_out_cfg,
+                                                        FILE *in_file) {
+  WORD32 temp_pos, input_size;
+  WORD32 count = 0;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
+  temp_pos = ftell(in_file);
+  VOID *loudness_handle =
+      malloc_global(ixheaace_loudness_info_get_handle_size(), DEFAULT_MEM_ALIGN_8);
+  if (loudness_handle == NULL) {
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    return -1;
+  }
+  input_size = (pstr_in_cfg->i_samp_freq / 10) * (pstr_in_cfg->i_channels);
+  err_code = ixheaace_loudness_init_params(loudness_handle, pstr_in_cfg, pstr_out_cfg);
+  if (err_code) {
+    free_global(loudness_handle);
+    return -1;
+  }
+  WORD16 **samples = 0;
+  samples =
+      (WORD16 **)malloc_global(pstr_in_cfg->i_channels * sizeof(*samples), DEFAULT_MEM_ALIGN_8);
+  if (samples == NULL) {
+    printf("fatal error: libxaac encoder: Memory allocation failed");
+    free_global(loudness_handle);
+    return -1;
+  }
+  for (count = 0; count < pstr_in_cfg->i_channels; count++) {
+    samples[count] = (WORD16 *)malloc_global(
+        (pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]), DEFAULT_MEM_ALIGN_8);
+    if (samples[count] == NULL) {
+      printf("fatal error: libxaac encoder: Memory allocation failed");
+      while (count) {
+        count--;
+        free_global(samples[count]);
+      }
+      free_global(samples);
+      free_global(loudness_handle);
+      return -1;
+    }
+    memset(samples[count], 0, (pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]));
+  }
+  count = 0;
+  WORD32 no_samples_per_frame = (WORD32)(pstr_out_cfg->samp_freq * 0.1 * pstr_in_cfg->i_channels);
+  while (count <= ((pstr_in_cfg->aac_config.length / 2) - no_samples_per_frame)) {
+    err_code =
+        ia_enhaacplus_enc_pcm_data_read(in_file, input_size, pstr_in_cfg->i_channels, samples);
+    if (err_code) {
+      printf("fatal error: libxaac encoder: Reading PCM data failed");
+      for (count = 0; count < pstr_in_cfg->i_channels; count++) {
+        free_global(samples[count]);
+      }
+      free_global(samples);
+      free_global(loudness_handle);
+      return -1;
+    }
+    pstr_in_cfg->measured_loudness = ixheaace_measure_loudness(loudness_handle, samples);
+    count += no_samples_per_frame;
+  }
+  if (pstr_in_cfg->method_def == METHOD_DEFINITION_PROGRAM_LOUDNESS) {
+    pstr_in_cfg->measured_loudness = ixheaace_measure_integrated_loudness(loudness_handle);
+    pstr_in_cfg->sample_peak_level = ixheaace_measure_sample_peak_value(loudness_handle);
+  }
+  fseek(in_file, temp_pos, SEEK_SET);
+  for (count = 0; count < pstr_in_cfg->i_channels; count++) {
+    free_global(samples[count]);
+  }
+  free_global(samples);
+  free_global(loudness_handle);
+  return err_code;
+}
+
 IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, WORD32 argc,
                                             pWORD8 argv[]) {
   LOOPIDX frame_count = 0;
@@ -1019,6 +1143,10 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   pstr_in_cfg->user_tns_flag = 0;
   pstr_in_cfg->user_esbr_flag = 0;
   pstr_in_cfg->i_use_adts = !pstr_context->use_ga_hdr;
+  pstr_in_cfg->random_access_interval = DEFAULT_RAP_INTERVAL_IN_MS;
+  pstr_in_cfg->method_def = METHOD_DEFINITION_PROGRAM_LOUDNESS;
+  pstr_in_cfg->measurement_system = MEASUREMENT_SYSTEM_BS_1770_3;
+
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
   /* ******************************************************************/
@@ -1088,6 +1216,19 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     pstr_in_cfg->i_channels_mask = ui_channel_mask;
 
     pstr_in_cfg->aac_config.length = i_total_length;
+  }
+
+  /*1st pass -> Loudness Measurement */
+  if (pstr_in_cfg->aot == AOT_USAC) {
+    err_code =
+        ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg, pstr_context->pf_inp);
+    if (err_code) {
+      printf("\n Error in calculating loudness.\n");
+      exit(1);
+    } else {
+      printf("\n loudness level : %lf", pstr_in_cfg->measured_loudness);
+      printf("\n sample_peak_level : %lf \n", pstr_in_cfg->sample_peak_level);
+    }
   }
 
   ixheaace_input_config pstr_in_cfg_user = *pstr_in_cfg;
@@ -1175,6 +1316,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
 
   if (pstr_drc_cfg_user) {
     free_global(pstr_drc_cfg_user);
+    pstr_drc_cfg_user = NULL;
   }
 
   start_offset_samples = 0;
@@ -1214,7 +1356,6 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     /*****************************************************************************/
     /* Print frame number */
     /*****************************************************************************/
-    frame_count++;
     fprintf(stdout, "Frames Processed [%d]\r", frame_count);
     fflush(stdout);
 
@@ -1234,20 +1375,16 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     i_out_bytes = pstr_out_cfg->i_out_bytes;
 
     if (max_frame_size < i_out_bytes) max_frame_size = i_out_bytes;
+    if (i_out_bytes) {
+      frame_count++;
+      ia_stsz_size[frame_count - 1] = pstr_out_cfg->i_out_bytes;
 
-    if (pstr_in_cfg->usac_en || pstr_in_cfg->i_use_es || !(pstr_in_cfg->i_use_adts)) {
-      if (i_out_bytes)
-        ia_stsz_size[frame_count - 1] = i_out_bytes;
-      else
-        frame_count--;
+      ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, i_out_bytes);
+      fflush(pstr_context->pf_out);
+
+      i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
+                                             pstr_context->pf_inp);
     }
-
-    ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, i_out_bytes);
-    fflush(pstr_context->pf_out);
-
-    i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
-                                           pstr_context->pf_inp);
-
     if (frame_count == expected_frame_count) break;
   }
 

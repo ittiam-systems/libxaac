@@ -945,9 +945,7 @@ ixheaace_frame_info_generator(ixheaace_pstr_sbr_env_frame pstr_sbr_env_frame,
   ixheaace_freq_res *ptr_tuning_freq = (ixheaace_freq_res *)(ptr_v_tuning + 3);
 
   ixheaace_freq_res freq_res_fix = pstr_sbr_env_frame->freq_res_fix;
-  if (pstr_sbr_env_frame->use_low_freq_res == 1) {
-    freq_res_fix = FREQ_RES_LOW;
-  }
+
   if (is_ld_sbr) {
     if ((!tran_flag && ptr_v_pre_transient_info[1]) &&
         (num_time_slots - ptr_v_pre_transient_info[0] < 4)) {
