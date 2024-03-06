@@ -38,3 +38,9 @@ IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
 IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt);
 
 VOID impd_drc_write_uni_drc_gain(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt);
+
+IA_ERRORCODE impd_drc_write_measured_loudness_info(ia_drc_enc_state *pstr_drc_state);
+
+IA_ERRORCODE impd_drc_write_loudness_info_set(ia_drc_enc_state *pstr_drc_state,
+  ia_bit_buf_struct *it_bit_buf,
+  WORD32 *ptr_bit_cnt);

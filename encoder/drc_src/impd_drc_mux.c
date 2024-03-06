@@ -3005,6 +3005,20 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state,
   return err_code;
 }
 
+IA_ERRORCODE impd_drc_write_measured_loudness_info(ia_drc_enc_state *pstr_drc_state) {
+
+  IA_ERRORCODE err_code = IA_NO_ERROR;
+  ia_bit_buf_struct *it_bit_buf_lis = &pstr_drc_state->str_bit_buf_cfg_ext;
+  WORD32 bit_cnt_lis = 0;
+  err_code = impd_drc_write_loudness_info_set(pstr_drc_state, it_bit_buf_lis, &bit_cnt_lis);
+  if (err_code & IA_FATAL_ERROR) {
+    return (err_code);
+  }
+  pstr_drc_state->drc_config_ext_data_size_bit = bit_cnt_lis;
+ 
+  return err_code;
+}
+
 IA_ERRORCODE impd_drc_enc_initial_gain(const WORD32 gain_coding_profile, FLOAT32 gain_initial,
                                        FLOAT32 *gain_initial_quant, WORD32 *code_size,
                                        WORD32 *code) {

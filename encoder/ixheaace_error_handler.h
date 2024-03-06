@@ -51,6 +51,7 @@ IA_ERRORCODE ia_error_handler(ia_error_info_struct *p_mod_err_info, WORD8 *pb_co
       }                                                         \
       if (pstr_drc_cfg_user) {                                  \
         free_global(pstr_drc_cfg_user);                         \
+        pstr_drc_cfg_user = NULL;                               \
       }                                                         \
       if (ia_stsz_size != NULL) {                               \
         pv_output->free_xheaace(ia_stsz_size);                  \

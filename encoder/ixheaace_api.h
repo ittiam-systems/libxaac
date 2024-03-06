@@ -108,6 +108,13 @@ typedef struct {
   WORD32 hq_esbr;
   FLAG write_program_config_element;
   ixheaace_aac_enc_config aac_config;
+  WORD32 random_access_interval;
+  UWORD32 method_def;
+  FLAG use_measured_loudness;
+  FLOAT64 measured_loudness;
+  UWORD32 measurement_system;
+  FLOAT32 sample_peak_level;
+  UWORD16 stream_id;
 } ixheaace_input_config;
 
 typedef struct {

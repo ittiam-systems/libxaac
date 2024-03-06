@@ -59,6 +59,7 @@ list(
      "${XAAC_ROOT}/encoder/ixheaace_hybrid.c"
      "${XAAC_ROOT}/encoder/ixheaace_hybrid_init.c"
      "${XAAC_ROOT}/encoder/ixheaace_interface.c"
+     "${XAAC_ROOT}/encoder/ixheaace_loudness_measurement.c"
      "${XAAC_ROOT}/encoder/ixheaace_mdct_480.c"
      "${XAAC_ROOT}/encoder/ixheaace_mps_bitstream.c"
      "${XAAC_ROOT}/encoder/ixheaace_mps_dct.c"

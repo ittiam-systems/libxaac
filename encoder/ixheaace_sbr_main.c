@@ -81,7 +81,11 @@ VOID ixheaace_set_usac_sbr_params(ixheaace_pstr_sbr_enc pstr_env_enc, WORD32 usa
   pstr_env_enc->str_sbr_bs.usac_indep_flag = usac_indep_flag;
   pstr_env_enc->str_sbr_hdr.sbr_pre_proc = sbr_pre_proc;
   pstr_env_enc->str_sbr_hdr.sbr_pvc_active = sbr_pvc_active;
-  pstr_env_enc->str_sbr_hdr.sbr_pvc_mode = sbr_pvc_mode;
+  if (pstr_env_enc->str_sbr_cfg.num_ch == 2) {
+    pstr_env_enc->str_sbr_hdr.sbr_pvc_mode = 0;
+  } else {
+    pstr_env_enc->str_sbr_hdr.sbr_pvc_mode = sbr_pvc_mode;
+  }
   pstr_env_enc->str_sbr_hdr.sbr_inter_tes_active = inter_tes_active;
   pstr_env_enc->str_sbr_hdr.sbr_harmonic = sbr_harmonic;
   for (ch = 0; ch < pstr_env_enc->str_sbr_cfg.num_ch; ch++) {
@@ -188,7 +192,11 @@ static IA_ERRORCODE ixheaace_create_env_channel(
 
   e = ixheaac_shl32(1, params->e);
 
-  pstr_env->enc_env_data.freq_res_fix = FREQ_RES_HIGH;
+  if (params->use_low_freq_res == 1) {
+    pstr_env->enc_env_data.freq_res_fix = FREQ_RES_LOW;
+  } else {
+    pstr_env->enc_env_data.freq_res_fix = FREQ_RES_HIGH;
+  }
 
   pstr_env->enc_env_data.sbr_xpos_mode = (ixheaace_sbr_xpos_mode)params->sbr_xpos_mode;
   pstr_env->enc_env_data.sbr_xpos_ctrl = params->sbr_xpos_ctrl;
@@ -697,8 +705,10 @@ ixheaace_env_encode_frame(ixheaace_pstr_sbr_enc pstr_env_encoder, FLOAT32 *ptr_s
       for (WORD32 k = 0; k < num_bytes; k++) {
         ixheaace_write_bits(&pstr_env_encoder->str_cmon_data.str_sbr_bit_buf, *ptr_mps_data++, 8);
       }
-      ixheaace_write_bits(&pstr_env_encoder->str_cmon_data.str_sbr_bit_buf, *ptr_mps_data++,
-                          mps_bits & 0x7);
+      if (mps_bits & 0x7) {
+        ixheaace_write_bits(&pstr_env_encoder->str_cmon_data.str_sbr_bit_buf,
+                            (*ptr_mps_data++) >> (8 - (mps_bits & 0x7)), mps_bits & 0x7);
+      }
     }
 
     ixheaace_assemble_sbr_bitstream(&pstr_env_encoder->str_cmon_data,

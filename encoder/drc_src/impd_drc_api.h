@@ -36,8 +36,17 @@ typedef struct {
   ia_drc_uni_drc_gain_ext_struct str_enc_gain_extension;
 } ia_drc_input_config;
 
+typedef struct {
+  ia_drc_enc_params_struct str_enc_params;
+  ia_drc_uni_drc_config_struct str_uni_drc_config;
+  ia_drc_loudness_info_set_struct str_enc_loudness_info_set;
+  ia_drc_uni_drc_gain_ext_struct str_enc_gain_extension;
+} ia_drc_internal_config;
+
 IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
                                ia_drc_input_config *pstr_inp_config);
 
 IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 inp_offset,
                           WORD32 *ptr_bits_written, VOID *pstr_scratch);
+
+IA_ERRORCODE impd_loudness_info_init(VOID *pstr_drc_state, ia_drc_input_config *pstr_inp_config);

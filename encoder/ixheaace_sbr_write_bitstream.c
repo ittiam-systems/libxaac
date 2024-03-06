@@ -561,13 +561,13 @@ static WORD32 ixheaace_write_synthetic_coding_data(ixheaace_pstr_sbr_env_data ps
       payload_cnt_bits +=
           ixheaace_write_bits(pstr_bs_handle, pstr_sbr_env_info->add_harmonic[i], 1);
     }
-  }
-  if (USAC_SBR == sbr_codec && 0 != sbr_pvc_mode) {
-    if (pstr_sbr_env_info->sbr_sinusoidal_pos_flag) {
-      payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 1, 1);
-      payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 31, 5);
-    } else {
-      payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 0, 1);
+    if (USAC_SBR == sbr_codec && 0 != sbr_pvc_mode) {
+      if (pstr_sbr_env_info->sbr_sinusoidal_pos_flag) {
+        payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 1, 1);
+        payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 31, 5);
+      } else {
+        payload_cnt_bits += ixheaace_write_bits(pstr_bs_handle, 0, 1);
+      }
     }
   }
   return payload_cnt_bits;

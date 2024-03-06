@@ -143,10 +143,13 @@ typedef struct {
 
 #define ID_EXT_ELE_FILL 0
 #define ID_EXT_ELE_UNI_DRC 4
+#define ID_EXT_ELE_AUDIOPREROLL (3)
 
 #define ID_CONFIG_EXT_FILL 0
 #define ID_CONFIG_EXT_DOWNMIX (1)
 #define ID_CONFIG_EXT_LOUDNESS_INFO (2)
+#define ID_CONFIG_EXT_STREAM_ID (7)
+#define CONFIG_EXT_LEN_STREAM_ID (2)
 #define NUM_COEFF (1024)
 
 typedef enum {
@@ -223,6 +226,7 @@ typedef struct {
   WORD32 output_channel_pos[BS_MAX_NUM_OUT_CHANNELS];
   WORD32 ccfl;
   ia_usac_enc_element_config_struct str_usac_element_config[USAC_MAX_ELEMENTS];
+  UWORD16 stream_identifier;
 } ia_usac_config_struct;
 
 typedef struct {
@@ -272,6 +276,16 @@ typedef struct {
   WORD32 drc_frame_size;
   ia_drc_input_config str_drc_cfg;
   WORD32 use_acelp_only;
+  WORD32 random_access_interval;
+  WORD32 preroll_flag;
+  WORD32 num_preroll_frames;
+  WORD32 preroll_idx;
+  WORD32 is_ipf;
+  WORD32 preroll_frame;
+  WORD32 is_first_frame;
+  ia_drc_internal_config str_internal_drc_cfg;
+  WORD32 use_measured_loudness;
+  UWORD16 stream_id;
 } ia_usac_encoder_config_struct;
 
 typedef struct {

@@ -416,17 +416,19 @@ static IA_ERRORCODE ixheaace_mps_212_encode(
   }
   pstr_frame_data = &pstr_space_enc->pstr_bitstream_formatter->frame;
 
-  if (pstr_space_enc->num_discard_out_frames > 0) {
-    pstr_space_enc->independency_count = 0;
-    pstr_space_enc->independency_flag = 1;
-  } else {
-    pstr_space_enc->independency_flag = (pstr_space_enc->independency_count == 0) ? 1 : 0;
-    if (pstr_space_enc->independency_factor > 0) {
-      pstr_space_enc->independency_count++;
-      pstr_space_enc->independency_count =
-          pstr_space_enc->independency_count % ((WORD32)pstr_space_enc->independency_factor);
+  if (aot != AOT_USAC) {
+    if (pstr_space_enc->num_discard_out_frames > 0) {
+      pstr_space_enc->independency_count = 0;
+      pstr_space_enc->independency_flag = 1;
     } else {
-      pstr_space_enc->independency_count = -1;
+      pstr_space_enc->independency_flag = (pstr_space_enc->independency_count == 0) ? 1 : 0;
+      if (pstr_space_enc->independency_factor > 0) {
+        pstr_space_enc->independency_count++;
+        pstr_space_enc->independency_count =
+            pstr_space_enc->independency_count % ((WORD32)pstr_space_enc->independency_factor);
+      } else {
+        pstr_space_enc->independency_count = -1;
+      }
     }
   }
 

@@ -509,7 +509,7 @@ WORD32 iusace_write_cpe(ia_sfb_params_struct *pstr_sfb_prms, ia_bit_buf_struct *
                              pstr_sfb_prms->num_window_groups[ch], pstr_sfb_prms->max_sfb_ste);
 
     {
-      if (ms_mask == 3) {
+      if ((ms_mask == 3) && (pstr_usac_data->stereo_config_index == 0)) {
         bit_count += iusace_write_cplx_pred_data(
             it_bit_buf, pstr_sfb_prms->num_window_groups[ch], pstr_sfb_prms->max_sfb_ste,
             pstr_usac_data->complex_coef[ch], pstr_usac_data->pred_coef_re[ch],
