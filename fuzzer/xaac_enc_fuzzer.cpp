@@ -406,7 +406,7 @@ static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *p
   for (count = 0; count < pstr_in_cfg->i_channels; count++)
   {
     samples[count] =
-      (WORD16 *)malloc_global((pstr_out_cfg->samp_freq / 10) * sizeof(samples),
+      (WORD16 *)malloc_global((pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]),
         DEFAULT_MEM_ALIGN_8);
     if (samples[count] == NULL)
     {
@@ -420,6 +420,7 @@ static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *p
       free_global(loudness_handle);
       return -1;
     }
+    memset(samples[count], 0, (pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]));
   }
   count = 0;
   while (count <= fuzzed_data->remaining_bytes())
@@ -427,9 +428,6 @@ static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *p
     std::vector<WORD8> input_vec = fuzzed_data->ConsumeBytes<WORD8>(input_size);
     err_code = ia_enhaacplus_enc_pcm_data_read(input_vec, input_size,
       pstr_in_cfg->i_channels, samples);
-    if (input_size > input_vec.size()) {
-       memset((*samples + input_vec.size()), 0, (input_size - input_vec.size()));
-    }
     if (err_code) {
       for (count = 0; count < pstr_in_cfg->i_channels; count++)
       {
