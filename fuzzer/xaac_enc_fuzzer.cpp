@@ -203,105 +203,16 @@ static VOID ixheaace_read_drc_config_params(
     }
   }
 
-  pstr_enc_loudness_info_set->loudness_info_count =
-      fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_LOUDNESS_INFO_COUNT);
-  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_count; n++) {
-    pstr_enc_loudness_info_set->str_loudness_info[n].drc_set_id =
-        fuzzed_data->ConsumeIntegral<WORD8>();
-    pstr_enc_loudness_info_set->str_loudness_info[n].downmix_id =
-        fuzzed_data->ConsumeIntegral<WORD8>();
-    pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level_present =
-        fuzzed_data->ConsumeBool();
-    if (1 == pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level_present) {
-      pstr_enc_loudness_info_set->str_loudness_info[n].sample_peak_level =
-          fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-    }
-    pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_present =
-        fuzzed_data->ConsumeBool();
-    if (1 == pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_present) {
-      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level =
-          fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_measurement_system =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info[n].true_peak_level_reliability =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-    }
+  pstr_uni_drc_config->str_channel_layout.layout_signaling_present = 0;
+  pstr_uni_drc_config->str_channel_layout.defined_layout = 0;
+  pstr_uni_drc_config->str_channel_layout.speaker_position[0] = 0;
 
-    pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count =
-        fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_MEASUREMENT_COUNT);
-    for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info[n].measurement_count; m++) {
-      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].method_definition =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].method_value =
-          fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-      pstr_enc_loudness_info_set->str_loudness_info[n]
-          .str_loudness_measure[m]
-          .measurement_system = fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info[n].str_loudness_measure[m].reliability =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-    }
-  }
+  pstr_uni_drc_config->downmix_instructions_count = 0;
 
-  pstr_enc_loudness_info_set->loudness_info_album_count =
-      fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_LOUDNESS_INFO_COUNT);
-  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_album_count; n++) {
-    pstr_enc_loudness_info_set->str_loudness_info_album[n].drc_set_id =
-        fuzzed_data->ConsumeIntegral<WORD8>();
-    pstr_enc_loudness_info_set->str_loudness_info_album[n].downmix_id =
-        fuzzed_data->ConsumeIntegral<WORD8>();
-    pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level_present =
-        fuzzed_data->ConsumeBool();
-    if (1 == pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level_present) {
-      pstr_enc_loudness_info_set->str_loudness_info_album[n].sample_peak_level =
-          fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-    }
-    pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_present =
-        fuzzed_data->ConsumeBool();
-    if (1 == pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_present) {
-      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level =
-          fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_measurement_system =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info_album[n].true_peak_level_reliability =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-    }
-
-    pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count =
-        fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_MEASUREMENT_COUNT);
-    for (m = 0; m < pstr_enc_loudness_info_set->str_loudness_info_album[n].measurement_count;
-         m++) {
-      pstr_enc_loudness_info_set->str_loudness_info_album[n]
-          .str_loudness_measure[m]
-          .method_definition = fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info_album[n]
-          .str_loudness_measure[m]
-          .method_value = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
-      pstr_enc_loudness_info_set->str_loudness_info_album[n]
-          .str_loudness_measure[m]
-          .measurement_system = fuzzed_data->ConsumeIntegral<WORD8>();
-      pstr_enc_loudness_info_set->str_loudness_info_album[n].str_loudness_measure[m].reliability =
-          fuzzed_data->ConsumeIntegral<WORD8>();
-    }
-  }
-
-  pstr_uni_drc_config->str_channel_layout.layout_signaling_present = fuzzed_data->ConsumeBool();
-  pstr_uni_drc_config->str_channel_layout.defined_layout = fuzzed_data->ConsumeIntegral<WORD8>();
-  pstr_uni_drc_config->str_channel_layout.speaker_position[0] =
-      fuzzed_data->ConsumeIntegral<WORD8>();
-
-  pstr_uni_drc_config->downmix_instructions_count =
-      fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_DOWNMIX_INSTRUCTION_COUNT);
-  for (n = 0; n < pstr_uni_drc_config->downmix_instructions_count; n++) {
-    pstr_uni_drc_config->str_downmix_instructions[n].target_layout =
-        fuzzed_data->ConsumeIntegral<WORD8>();
-    pstr_uni_drc_config->str_downmix_instructions[n].downmix_coefficients_present =
-        fuzzed_data->ConsumeBool();
-  }
-
-  pstr_uni_drc_config->drc_description_basic_present = fuzzed_data->ConsumeBool();
-  pstr_uni_drc_config->uni_drc_config_ext_present = fuzzed_data->ConsumeBool();
-  pstr_enc_loudness_info_set->loudness_info_set_ext_present = fuzzed_data->ConsumeBool();
-  pstr_enc_gain_extension->uni_drc_gain_ext_present = fuzzed_data->ConsumeBool();
+  pstr_uni_drc_config->drc_description_basic_present = 0;
+  pstr_uni_drc_config->uni_drc_config_ext_present = 0;
+  pstr_enc_loudness_info_set->loudness_info_set_ext_present = 0;
+  pstr_enc_gain_extension->uni_drc_gain_ext_present = 0;
 }
 
 static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
