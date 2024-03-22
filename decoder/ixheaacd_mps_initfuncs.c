@@ -157,6 +157,26 @@ WORD32 ixheaacd_mps_persistent_buffer_sizes() {
 
   buffer_size += IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8);
 
+  // Add buffer sizes for pstr_mps_state->array_struct
+  // res_mdct
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(MDCT_RES_BUF_SIZE, BYTE_ALIGN_8);
+  // qmf_residual_real
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
+  // qmf_residual_imag
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
+  // m_qmf_real
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
+  // m_qmf_imag
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
+  // buf_real
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
+  // buf_imag
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
+  // aux_struct
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_auxilary_struct), BYTE_ALIGN_8);
+  // aux_struct->m2_param
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_m2_param_struct), BYTE_ALIGN_8);
+
   return buffer_size;
 }
 
@@ -292,34 +312,32 @@ VOID ixheaacd_set_mps_persistent_buffers(ia_heaac_mps_state_struct *pstr_mps_sta
          IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8));
   used_persistent += IXHEAAC_GET_SIZE_ALIGNED(ARRAY_STRUCT_SIZE, BYTE_ALIGN_8);
 
-  *persistent_used = used_persistent;
-}
-
-VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state, VOID *scratch_mem) {
-  WORD32 scratch_used;
+  // Set buffers pointers of pstr_mps_state->array_struct
   ia_mps_dec_reuse_array_struct *p_array_struct = pstr_mps_state->array_struct;
 
-  p_array_struct->res_mdct = scratch_mem;
-  scratch_used = MDCT_RES_BUF_SIZE;
+  p_array_struct->res_mdct = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(MDCT_RES_BUF_SIZE, BYTE_ALIGN_8);
 
-  p_array_struct->qmf_residual_real = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += QMF_RES_BUF_SIZE;
-  p_array_struct->qmf_residual_imag = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += QMF_RES_BUF_SIZE;
+  p_array_struct->qmf_residual_real = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
+  p_array_struct->qmf_residual_imag = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
 
-  p_array_struct->m_qmf_real = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += QMF_BUF_SIZE;
-  p_array_struct->m_qmf_imag = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += QMF_BUF_SIZE;
+  p_array_struct->m_qmf_real = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
+  p_array_struct->m_qmf_imag = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
 
-  p_array_struct->buf_real = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += BUF_SIZE;
-  p_array_struct->buf_imag = (WORD32 *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += BUF_SIZE;
+  p_array_struct->buf_real = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
+  p_array_struct->buf_imag = (WORD32 *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
 
   p_array_struct->hyb_output_real_dry = p_array_struct->res_mdct;
   p_array_struct->hyb_output_imag_dry =
-      p_array_struct->res_mdct + MAX_OUTPUT_CHANNELS_AT_MPS * TSXHB;
+      p_array_struct->res_mdct +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_OUTPUT_CHANNELS_AT_MPS * TSXHB,
+                                    sizeof(*p_array_struct->hyb_output_imag_dry), BYTE_ALIGN_8);
 
   p_array_struct->x_real = p_array_struct->hyb_output_real_dry;
   p_array_struct->x_imag = p_array_struct->hyb_output_imag_dry;
@@ -329,14 +347,25 @@ VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state, VOI
   p_array_struct->w_dry_real = p_array_struct->m_qmf_real;
   p_array_struct->w_dry_imag = p_array_struct->m_qmf_imag;
 
-  p_array_struct->env_dmx_0 = p_array_struct->m_qmf_real + TSXHBX5;
-  p_array_struct->env_dmx_1 = p_array_struct->env_dmx_0 + MAX_TIME_SLOTS;
+  p_array_struct->env_dmx_0 =
+      p_array_struct->m_qmf_real +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(TSXHBX5, sizeof(*p_array_struct->env_dmx_0), BYTE_ALIGN_8);
+  p_array_struct->env_dmx_1 =
+      p_array_struct->env_dmx_0 +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_TIME_SLOTS, sizeof(*p_array_struct->env_dmx_1),
+                                    BYTE_ALIGN_8);
 
   p_array_struct->qmf_residual_real_pre = p_array_struct->qmf_residual_real;
-  p_array_struct->qmf_residual_real_post = p_array_struct->qmf_residual_real + RES_CHXQMFXTS;
+  p_array_struct->qmf_residual_real_post =
+      p_array_struct->qmf_residual_real +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+          RES_CHXQMFXTS, sizeof(*p_array_struct->qmf_residual_real_post), BYTE_ALIGN_8);
 
   p_array_struct->qmf_residual_imag_pre = p_array_struct->qmf_residual_imag;
-  p_array_struct->qmf_residual_imag_post = p_array_struct->qmf_residual_imag + RES_CHXQMFXTS;
+  p_array_struct->qmf_residual_imag_post =
+      p_array_struct->qmf_residual_imag +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+          RES_CHXQMFXTS, sizeof(*p_array_struct->qmf_residual_imag_post), BYTE_ALIGN_8);
 
   p_array_struct->buffer_real = p_array_struct->qmf_residual_real_post;
   p_array_struct->buffer_imag = p_array_struct->qmf_residual_imag_post;
@@ -344,12 +373,42 @@ VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state, VOI
   p_array_struct->m1_param = (ia_mps_dec_m1_param_struct *)p_array_struct->buffer_real;
 
   pstr_mps_state->aux_struct =
-      (ia_mps_dec_auxilary_struct *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += sizeof(ia_mps_dec_auxilary_struct);
+      (ia_mps_dec_auxilary_struct *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_auxilary_struct), BYTE_ALIGN_8);
 
   pstr_mps_state->aux_struct->m2_param =
-      (ia_mps_dec_m2_param_struct *)((WORD8 *)scratch_mem + scratch_used);
-  scratch_used += sizeof(ia_mps_dec_m2_param_struct);
+      (ia_mps_dec_m2_param_struct *)((WORD8 *)persistent_mem + used_persistent);
+  used_persistent += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_m2_param_struct), BYTE_ALIGN_8);
+
+  *persistent_used = used_persistent;
+}
+
+WORD32 ixheaacd_scratch_buffer_sizes() {
+  WORD32 buffer_size;
+
+  buffer_size = IXHEAAC_GET_SIZE_ALIGNED(MDCT_RES_BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_RES_BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(QMF_BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(BUF_SIZE, BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_auxilary_struct), BYTE_ALIGN_8);
+
+  buffer_size += IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_m2_param_struct), BYTE_ALIGN_8);
+
+  return buffer_size;
+}
+
+VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state, VOID *scratch_mem) {
+  WORD32 scratch_used = 0;
 
   pstr_mps_state->mps_scratch_mem_v = (VOID *)((WORD8 *)scratch_mem + scratch_used);
 }

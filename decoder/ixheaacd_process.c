@@ -103,12 +103,9 @@
 
 #define MAXNRSBRELEMENTS 6
 
-VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct,
-                               VOID *base_scratch_ptr, VOID *output_ptr,
-                               WORD total_elements, WORD ch_fac,
-                               WORD32 object_type, WORD32 total_channels,
-                               WORD8 *p_qshift_arr, UWORD8 slot_element,
-                               WORD32 channel);
+VOID ixheaacd_allocate_sbr_scr(ia_sbr_scr_struct *sbr_scratch_struct, VOID *base_scratch_ptr,
+                               VOID *output_ptr, WORD32 total_channels, WORD8 *p_qshift_arr,
+                               UWORD8 slot_element, WORD32 channel);
 
 IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
                                    ia_bit_buf_struct *it_bit_buff,
@@ -122,9 +119,8 @@ IA_ERRORCODE ixheaacd_esbr_process(ia_usac_data_struct *usac_data,
   ia_handle_sbr_dec_inst_struct self = usac_data->pstr_esbr_dec;
 
   ia_sbr_scr_struct sbr_scratch_struct;
-  ixheaacd_allocate_sbr_scr(&sbr_scratch_struct,
-                            usac_data->sbr_scratch_mem_base, NULL, 2, 1,
-                            audio_object_type, 0, NULL, 0, 0);
+  ixheaacd_allocate_sbr_scr(&sbr_scratch_struct, usac_data->sbr_scratch_mem_base, NULL, 0, NULL,
+                            0, 0);
 
   self->usac_independency_flag = usac_data->usac_independency_flg;
 
@@ -169,8 +165,8 @@ IA_ERRORCODE ixheaacd_esbr_parse(ia_usac_data_struct *usac_data, ia_bit_buf_stru
 
   ia_sbr_scr_struct sbr_scratch_struct;
   jmp_buf local;
-  ixheaacd_allocate_sbr_scr(&sbr_scratch_struct, usac_data->sbr_scratch_mem_base, NULL, 2, 1,
-                            audio_object_type, 0, NULL, 0, 0);
+  ixheaacd_allocate_sbr_scr(&sbr_scratch_struct, usac_data->sbr_scratch_mem_base, NULL, 0, NULL,
+                            0, 0);
 
   self->usac_independency_flag = usac_data->usac_independency_flg;
 

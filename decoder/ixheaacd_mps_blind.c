@@ -301,11 +301,17 @@ static VOID ixheaacd_update_down_mix_state(ia_heaac_mps_state_struct *pstr_mps_s
   WORD32 num_parameter_bands = pstr_mps_state->num_parameter_bands;
   WORD32 hybrid_bands = pstr_mps_state->hybrid_bands;
   excitation_0 = pstr_mps_state->mps_scratch_mem_v;
-  q_excitation_0 = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + PARAMETER_BANDSX2;
-  excitation_1 = excitation_0 + PARAMETER_BANDSX1_5;
-  q_excitation_1 = q_excitation_0 + PARAMETER_BANDSX3;
-  excitation_2 = excitation_1 + PARAMETER_BANDSX1_5;
-  q_excitation_2 = q_excitation_1 + PARAMETER_BANDSX3;
+  q_excitation_0 =
+      (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX2, sizeof(*q_excitation_0), BYTE_ALIGN_8);
+  excitation_1 = excitation_0 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                    PARAMETER_BANDSX1_5, sizeof(*excitation_1), BYTE_ALIGN_8);
+  q_excitation_1 = q_excitation_0 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                        PARAMETER_BANDSX3, sizeof(*q_excitation_1), BYTE_ALIGN_8);
+  excitation_2 = excitation_1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                    PARAMETER_BANDSX1_5, sizeof(*excitation_2), BYTE_ALIGN_8);
+  q_excitation_2 = q_excitation_1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                        PARAMETER_BANDSX3, sizeof(*q_excitation_2), BYTE_ALIGN_8);
 
   p_x_real = &pstr_mps_state->array_struct->x_real[offset * MAX_HYBRID_BANDS];
   p_x_imag = &pstr_mps_state->array_struct->x_imag[offset * MAX_HYBRID_BANDS];

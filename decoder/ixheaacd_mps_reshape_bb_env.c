@@ -103,8 +103,10 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
       pstr_mps_state->ia_mps_dec_mps_table.bitdec_table_ptr->kernel_table.bb_env_kernels;
 
   q_slot_nrg_fix = (WORD16 *)scratch;
-  n_slot_nrg = (WORD32 *)((WORD8 *)scratch + RESHAPE_OFFSET_1);
-  slot_nrg_fix = (WORD64 *)ALIGN_SIZE64((SIZE_T)((WORD8 *)scratch + RESHAPE_OFFSET_2));
+  n_slot_nrg =
+      (WORD32 *)((WORD8 *)scratch + IXHEAAC_GET_SIZE_ALIGNED(RESHAPE_OFFSET_1, BYTE_ALIGN_8));
+  slot_nrg_fix =
+      (WORD64 *)((WORD8 *)scratch + IXHEAAC_GET_SIZE_ALIGNED(RESHAPE_OFFSET_2, BYTE_ALIGN_8));
   switch (inp) {
     WORD32 frame_nrg_prev;
     WORD16 q_frame_nrg_prev;
@@ -401,8 +403,10 @@ VOID ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
   env_dry = free_scratch;
   env_dmx_0 = pstr_mps_state->array_struct->env_dmx_0;
   env_dmx_1 = pstr_mps_state->array_struct->env_dmx_1;
-  inter = (WORD64 *)((WORD8 *)free_scratch + MAX_TIME_SLOTSX12);
-  free_scratch = inter + MAX_TIME_SLOTS;
+  inter = (WORD64 *)((WORD8 *)free_scratch +
+                     IXHEAAC_GET_SIZE_ALIGNED(MAX_TIME_SLOTSX12, BYTE_ALIGN_8));
+  free_scratch =
+      inter + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_TIME_SLOTS, sizeof(*inter), BYTE_ALIGN_8);
 
   p_buffer_real = pstr_mps_state->array_struct->buf_real + start_hsb;
   p_buffer_imag = pstr_mps_state->array_struct->buf_imag + start_hsb;
