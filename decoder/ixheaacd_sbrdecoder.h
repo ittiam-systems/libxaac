@@ -69,8 +69,6 @@ typedef struct ia_sbr_dec_inst_struct *ia_handle_sbr_dec_inst_struct;
 
 typedef struct {
   VOID *ptr_work_buf_core;
-  VOID *ptr_work_buf;
-  VOID *extra_scr_1k[2];
 } ia_sbr_scr_struct;
 
 IA_ERRORCODE ixheaacd_applysbr(

@@ -699,17 +699,21 @@ static IA_ERRORCODE ixheaacd_parse_extension_frame(ia_heaac_mps_state_struct *ps
 
   for (ch = 0; ch < 2; ch++) {
     pstr_mps_state->p_aac_decoder_channel_info[ch] = free_scratch;
-    free_scratch = (WORD8 *)free_scratch + sizeof(ia_mps_dec_residual_channel_info_struct);
+    free_scratch =
+        (WORD8 *)free_scratch +
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_residual_channel_info_struct), BYTE_ALIGN_8);
     pstr_mps_state->p_aac_decoder_dynamic_data_init[ch] = free_scratch;
-    free_scratch = (WORD8 *)free_scratch + sizeof(ia_mps_dec_residual_dynamic_data_struct);
+    free_scratch =
+        (WORD8 *)free_scratch +
+        IXHEAAC_GET_SIZE_ALIGNED(sizeof(ia_mps_dec_residual_dynamic_data_struct), BYTE_ALIGN_8);
     pstr_mps_state->p_aac_decoder_channel_info[ch]->p_scale_factor =
         pstr_mps_state->p_aac_decoder_dynamic_data_init[ch]->a_scale_factor;
     pstr_mps_state->p_aac_decoder_channel_info[ch]->p_code_book =
         pstr_mps_state->p_aac_decoder_dynamic_data_init[ch]->a_code_book;
     pstr_mps_state->p_aac_decoder_channel_info[ch]->p_spectral_coefficient = free_scratch;
-    free_scratch = (WORD8 *)free_scratch + 4096;
+    free_scratch = (WORD8 *)free_scratch + IXHEAAC_GET_SIZE_ALIGNED(4096, BYTE_ALIGN_8);
     pstr_mps_state->p_aac_decoder_channel_info[ch]->p_tns_scratch = free_scratch;
-    free_scratch = (WORD8 *)free_scratch + 4096;
+    free_scratch = (WORD8 *)free_scratch + IXHEAAC_GET_SIZE_ALIGNED(4096, BYTE_ALIGN_8);
     pstr_mps_state->p_aac_decoder_channel_info[ch]->ics_info.frame_length = AAC_FRAME_LENGTH;
     pstr_mps_state->p_aac_decoder_channel_info[ch]->common_window = 0;
   }
@@ -1473,9 +1477,12 @@ static IA_ERRORCODE ixheaacd_map_index_data(
   db_1 = ott_vs_tot_db_1;
   db_2 = ott_vs_tot_db_2;
   a_param_slots = scratch;
-  a_interpolate = a_param_slots + MAX_PARAMETER_SETS;
-  a_map = a_interpolate + MAX_PARAMETER_SETS;
-  free_scratch = a_map + MAX_PARAMETER_BANDS_PLUS_1;
+  a_interpolate = a_param_slots + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                      MAX_PARAMETER_SETS, sizeof(*a_interpolate), BYTE_ALIGN_8);
+  a_map = a_interpolate +
+          IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_SETS, sizeof(*a_map), BYTE_ALIGN_8);
+  free_scratch = a_map + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS_PLUS_1, sizeof(*a_map),
+                                                       BYTE_ALIGN_8);
 
   data_sets = 0;
   for (i = 0; i < num_parameter_sets; i++) {
@@ -1736,16 +1743,23 @@ static IA_ERRORCODE ixheaacd_decode_and_map_frame_ott(ia_heaac_mps_state_struct 
   WORD32 quant_mode = curr_state->quant_mode;
 
   tot_db = pstr_mps_state->mps_scratch_mem_v;
-  ott_vs_tot_db_fc = tot_db + MAX_PSXPB;
-  ott_vs_tot_db_s = ott_vs_tot_db_fc + MAX_PSXPB;
-  ott_vs_tot_db_f = ott_vs_tot_db_s + MAX_PSXPB;
-  ott_vs_tot_db_c = ott_vs_tot_db_f + MAX_PSXPB;
-  ott_vs_tot_db_lr = ott_vs_tot_db_c + MAX_PSXPB;
-  ott_vs_tot_db_l = ott_vs_tot_db_lr + MAX_PSXPB;
-  ott_vs_tot_db_r = ott_vs_tot_db_l + MAX_PSXPB;
-  tmp1 = ott_vs_tot_db_r + MAX_PSXPB;
-  tmp2 = tmp1 + MAX_PSXPB;
-  free_scratch = tmp2 + MAX_PSXPB;
+  ott_vs_tot_db_fc =
+      tot_db + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PSXPB, sizeof(*ott_vs_tot_db_fc), BYTE_ALIGN_8);
+  ott_vs_tot_db_s = ott_vs_tot_db_fc + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                           MAX_PSXPB, sizeof(*ott_vs_tot_db_s), BYTE_ALIGN_8);
+  ott_vs_tot_db_f = ott_vs_tot_db_s + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                          MAX_PSXPB, sizeof(*ott_vs_tot_db_f), BYTE_ALIGN_8);
+  ott_vs_tot_db_c = ott_vs_tot_db_f + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                          MAX_PSXPB, sizeof(*ott_vs_tot_db_c), BYTE_ALIGN_8);
+  ott_vs_tot_db_lr = ott_vs_tot_db_c + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                           MAX_PSXPB, sizeof(*ott_vs_tot_db_lr), BYTE_ALIGN_8);
+  ott_vs_tot_db_l = ott_vs_tot_db_lr + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                           MAX_PSXPB, sizeof(*ott_vs_tot_db_l), BYTE_ALIGN_8);
+  ott_vs_tot_db_r = ott_vs_tot_db_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                          MAX_PSXPB, sizeof(*ott_vs_tot_db_r), BYTE_ALIGN_8);
+  tmp1 = ott_vs_tot_db_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PSXPB, sizeof(*tmp1), BYTE_ALIGN_8);
+  tmp2 = tmp1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PSXPB, sizeof(*tmp2), BYTE_ALIGN_8);
+  free_scratch = tmp2 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PSXPB, sizeof(*tmp2), BYTE_ALIGN_8);
 
   p_cur_bs = pstr_mps_state->bs_frame;
   num_ott_boxes = curr_state->num_ott_boxes;
@@ -2026,7 +2040,9 @@ static VOID ixheaacd_decode_and_map_frame_smg(ia_heaac_mps_state_struct *pstr_mp
   ia_mps_dec_spatial_bs_frame_struct *frame = pstr_mps_state->bs_frame;
   pstr_mps_state->smooth_control = frame->bs_smooth_control;
   a_group_to_band = pstr_mps_state->mps_scratch_mem_v;
-  free_scratch = a_group_to_band + MAX_PARAMETER_BANDS_PLUS_1;
+  free_scratch =
+      a_group_to_band + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS_PLUS_1,
+                                                      sizeof(*a_group_to_band), BYTE_ALIGN_8);
 
   if (pstr_mps_state->smooth_control) {
     for (ps = 0; ps < pstr_mps_state->num_parameter_sets; ps++) {

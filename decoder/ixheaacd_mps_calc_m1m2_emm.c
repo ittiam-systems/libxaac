@@ -56,14 +56,18 @@ VOID ixheaacd_calc_m1m2_emm(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD16 *dummy3, *dummy4;
 
   h11 = pstr_mps_state->mps_scratch_mem_v;
-  h12 = h11 + MAX_PARAMETER_BANDS;
-  h21 = h12 + MAX_PARAMETER_BANDS;
-  h22 = h21 + MAX_PARAMETER_BANDS;
-  dummy1 = h22 + MAX_PARAMETER_BANDS;
-  dummy2 = dummy1 + MAX_PARAMETER_BANDS;
+  h12 = h11 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12), BYTE_ALIGN_8);
+  h21 = h12 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h21), BYTE_ALIGN_8);
+  h22 = h21 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22), BYTE_ALIGN_8);
+  dummy1 =
+      h22 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*dummy1), BYTE_ALIGN_8);
+  dummy2 =
+      dummy1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*dummy2), BYTE_ALIGN_8);
 
-  dummy3 = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + PARAMETER_BANDSX12;
-  dummy4 = dummy3 + MAX_PARAMETER_BANDS;
+  dummy3 = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+           IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX12, sizeof(*dummy3), BYTE_ALIGN_8);
+  dummy4 =
+      dummy3 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*dummy4), BYTE_ALIGN_8);
 
   for (ps = 0; ps < pstr_mps_state->num_parameter_sets; ps++) {
     ixheaacd_param_2_umx_ps(pstr_mps_state, h11, h12, h21, h22, dummy1, dummy2, dummy3, dummy4, 0,

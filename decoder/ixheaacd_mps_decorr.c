@@ -623,7 +623,8 @@ static VOID ixheaacd_ducker_apply_71(
   WORD16 one_by_5 = ONE_BY_FIVE_Q16;
 
   duck_gain = scratch;
-  q_duck_gain = (WORD16 *)scratch + PARAMETER_BANDSX2;
+  q_duck_gain = (WORD16 *)scratch + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                        PARAMETER_BANDSX2, sizeof(*q_duck_gain), BYTE_ALIGN_8);
 
   p_input_real = input_real;
   p_input_imag = input_imag;
@@ -792,7 +793,8 @@ static VOID ixheaacd_ducker_apply(
   WORD16 one_by_5 = ONE_BY_FIVE_Q16;
 
   duck_gain = scratch;
-  q_duck_gain = (WORD16 *)scratch + PARAMETER_BANDSX2;
+  q_duck_gain = (WORD16 *)scratch + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                        PARAMETER_BANDSX2, sizeof(*q_duck_gain), BYTE_ALIGN_8);
 
   p_input_real = input_real;
   p_input_imag = input_imag;
@@ -1012,7 +1014,8 @@ VOID ixheaacd_decorr_apply(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 len
   WORD32 length1;
   VOID *free_scratch;
 
-  free_scratch = (WORD32 *)pstr_mps_state->mps_scratch_mem_v + MAX_TIMESLOTSX2;
+  free_scratch = (WORD32 *)pstr_mps_state->mps_scratch_mem_v +
+                 IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_TIMESLOTSX2, sizeof(WORD32), BYTE_ALIGN_8);
 
   if (decorr_ptr != NULL) {
     p_input_real = input_real;

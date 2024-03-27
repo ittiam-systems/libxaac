@@ -290,8 +290,11 @@ VOID ixheaacd_smooth_m1m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 *m1_param_imag_prev = persistent_mem->m1_param_imag_prev;
 
   ton = pstr_mps_state->mps_scratch_mem_v;
-  delta = delta_ptr = ton + MAX_PARAMETER_BANDS;
-  one_minus_delta = one_minus_delta_ptr = delta + MAX_PARAMETER_SETS;
+  delta = delta_ptr =
+      ton + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*delta), BYTE_ALIGN_8);
+  one_minus_delta = one_minus_delta_ptr =
+      delta +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_SETS, sizeof(*one_minus_delta), BYTE_ALIGN_8);
 
   param_r = curr_state->res_bands;
   if (curr_state->residual_coding) {

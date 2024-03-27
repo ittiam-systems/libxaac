@@ -70,15 +70,20 @@ VOID ixheaacd_calc_m1m2_5227(ia_heaac_mps_state_struct *pstr_mps_state) {
   const WORD32 *cld_tab_1 = pstr_mps_state->ia_mps_dec_mps_table.m1_m2_table_ptr->cld_tab_1;
 
   lf = pstr_mps_state->mps_scratch_mem_v;
-  ls = lf + MAX_PARAMETER_BANDS;
-  rf = ls + MAX_PARAMETER_BANDS;
-  rs = rf + MAX_PARAMETER_BANDS;
-  a_c1 = rs + MAX_PARAMETER_BANDS;
-  a_c2 = a_c1 + MAX_PARAMETER_BANDS;
-  a_icc_c = a_c2 + MAX_PARAMETER_BANDS;
-  a_prediction_mode = a_icc_c + MAX_PARAMETER_BANDS;
-  m_real = a_prediction_mode + MAX_PARAMETER_BANDS;
-  m_imag = m_real + PARAMETER_BANDSX15;
+  ls = lf + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*ls), BYTE_ALIGN_8);
+  rf = ls + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*rf), BYTE_ALIGN_8);
+  rs = rf + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*rs), BYTE_ALIGN_8);
+  a_c1 = rs + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*a_c1), BYTE_ALIGN_8);
+  a_c2 = a_c1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*a_c2), BYTE_ALIGN_8);
+  a_icc_c =
+      a_c2 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*a_icc_c), BYTE_ALIGN_8);
+  a_prediction_mode =
+      a_icc_c + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*a_prediction_mode),
+                                              BYTE_ALIGN_8);
+  m_real = a_prediction_mode +
+           IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*m_real), BYTE_ALIGN_8);
+  m_imag =
+      m_real + IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX15, sizeof(*m_imag), BYTE_ALIGN_8);
 
   for (i = 0; i < PARAMETER_BANDSX15; i++) {
     m_real[i] = 0;
@@ -295,26 +300,44 @@ VOID ixheaacd_calc_m1m2_5251(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD64 acc;
 
   h11_l = pstr_mps_state->mps_scratch_mem_v;
-  h11_r = h11_l + MAX_PARAMETER_BANDS;
-  h12_l = h11_r + MAX_PARAMETER_BANDS;
-  h12_r = h12_l + MAX_PARAMETER_BANDS;
-  h21_l = h12_r + MAX_PARAMETER_BANDS;
-  h21_r = h21_l + MAX_PARAMETER_BANDS;
-  h22_l = h21_r + MAX_PARAMETER_BANDS;
-  h22_r = h22_l + MAX_PARAMETER_BANDS;
-  h12_res_l = h22_r + MAX_PARAMETER_BANDS;
-  h12_res_r = h12_res_l + MAX_PARAMETER_BANDS;
-  h22_res_l = h12_res_r + MAX_PARAMETER_BANDS;
-  h22_res_r = h22_res_l + MAX_PARAMETER_BANDS;
-  c_l_clfe = h22_res_r + MAX_PARAMETER_BANDS;
-  c_r_clfe = c_l_clfe + MAX_PARAMETER_BANDS;
-  kappa = c_r_clfe + MAX_PARAMETER_BANDS;
-  g_dd = kappa + MAX_PARAMETER_BANDS;
+  h11_r =
+      h11_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h11_r), BYTE_ALIGN_8);
+  h12_l =
+      h11_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_l), BYTE_ALIGN_8);
+  h12_r =
+      h12_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_r), BYTE_ALIGN_8);
+  h21_l =
+      h12_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h21_l), BYTE_ALIGN_8);
+  h21_r =
+      h21_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h21_r), BYTE_ALIGN_8);
+  h22_l =
+      h21_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_l), BYTE_ALIGN_8);
+  h22_r =
+      h22_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_r), BYTE_ALIGN_8);
+  h12_res_l = h22_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_res_l),
+                                                    BYTE_ALIGN_8);
+  h12_res_r = h12_res_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_res_r),
+                                                        BYTE_ALIGN_8);
+  h22_res_l = h12_res_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_res_l),
+                                                        BYTE_ALIGN_8);
+  h22_res_r = h22_res_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_res_r),
+                                                        BYTE_ALIGN_8);
+  c_l_clfe = h22_res_r +
+             IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*c_l_clfe), BYTE_ALIGN_8);
+  c_r_clfe = c_l_clfe +
+             IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*c_r_clfe), BYTE_ALIGN_8);
+  kappa =
+      c_r_clfe + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*kappa), BYTE_ALIGN_8);
+  g_dd = kappa + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*g_dd), BYTE_ALIGN_8);
 
-  c_f_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + PARAMETER_BANDSX32;
-  c_f_r = c_f_l + MAX_PARAMETER_BANDS;
-  dummy1 = c_f_r + MAX_PARAMETER_BANDS;
-  dummy2 = dummy1 + MAX_PARAMETER_BANDS;
+  c_f_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+          IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX32, sizeof(*c_f_l), BYTE_ALIGN_8);
+  c_f_r =
+      c_f_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*c_f_r), BYTE_ALIGN_8);
+  dummy1 =
+      c_f_r + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*dummy1), BYTE_ALIGN_8);
+  dummy2 =
+      dummy1 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*dummy2), BYTE_ALIGN_8);
 
   if (enable_additionals) {
     if (mode_1 == 0 &&

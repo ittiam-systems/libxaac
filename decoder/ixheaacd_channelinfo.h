@@ -292,7 +292,8 @@ typedef struct {
   ia_aac_dec_ola_data overlap_add_data;
 
   WORD16 *ltp_buf;
-  UWORD16 ltp_lag;
+  UWORD16 ltp_lag_1;
+  UWORD16 ltp_lag_2;
   ia_ec_state_str str_ec_state;
 } ia_aac_dec_channel_info;
 

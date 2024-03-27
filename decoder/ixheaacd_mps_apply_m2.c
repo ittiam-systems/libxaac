@@ -89,7 +89,8 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
   params[3] = hybrid_bands;
 
   rout_ptr = pstr_mps_state->mps_scratch_mem_v;
-  rout_kernel_ptr = rout_ptr + TSXHB;
+  rout_kernel_ptr =
+      rout_ptr + IXHEAAC_GET_SIZE_ALIGNED_TYPE(TSXHB, sizeof(*rout_kernel_ptr), BYTE_ALIGN_8);
 
   p_hyb_out_dry_real = p_array_struct->hyb_output_real_dry;
   p_hyb_out_dry_imag = p_array_struct->hyb_output_imag_dry;

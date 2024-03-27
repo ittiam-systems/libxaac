@@ -72,9 +72,12 @@ VOID ixheaacd_mps_apply_m1(ia_heaac_mps_state_struct *pstr_mps_state) {
   params[3] = hybrid_bands;
 
   rout_real_ptr = pstr_mps_state->mps_scratch_mem_v;
-  rout_kernel_real_ptr = rout_real_ptr + TSXHB;
-  rout_imag_ptr = rout_kernel_real_ptr + TSXHB;
-  rout_kernel_imag_ptr = rout_imag_ptr + TSXHB;
+  rout_kernel_real_ptr = rout_real_ptr + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                             TSXHB, sizeof(*rout_kernel_real_ptr), BYTE_ALIGN_8);
+  rout_imag_ptr = rout_kernel_real_ptr +
+                  IXHEAAC_GET_SIZE_ALIGNED_TYPE(TSXHB, sizeof(*rout_imag_ptr), BYTE_ALIGN_8);
+  rout_kernel_imag_ptr = rout_imag_ptr + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                             TSXHB, sizeof(*rout_kernel_imag_ptr), BYTE_ALIGN_8);
 
   p_buffer_real = p_array_struct->buf_real;
   p_buffer_imag = p_array_struct->buf_imag;

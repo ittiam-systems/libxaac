@@ -67,15 +67,18 @@ VOID ixheaacd_calc_m1m2_51s1(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 num_parameter_sets = pstr_mps_state->num_parameter_sets;
   WORD32 num_parameter_bands = pstr_mps_state->num_parameter_bands;
   iid = pstr_mps_state->mps_scratch_mem_v;
-  icc = iid + MAX_PARAMETER_BANDS;
-  h11 = icc + MAX_PARAMETER_BANDS;
-  h12 = h11 + MAX_PARAMETER_BANDS;
-  h21 = h12 + MAX_PARAMETER_BANDS;
-  h22 = h21 + MAX_PARAMETER_BANDS;
-  h12_res = h22 + MAX_PARAMETER_BANDS;
-  h22_res = h12_res + MAX_PARAMETER_BANDS;
-  c_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + PARAMETER_BANDSX16;
-  c_r = c_l + MAX_PARAMETER_BANDS;
+  icc = iid + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*icc), BYTE_ALIGN_8);
+  h11 = icc + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h11), BYTE_ALIGN_8);
+  h12 = h11 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12), BYTE_ALIGN_8);
+  h21 = h12 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h21), BYTE_ALIGN_8);
+  h22 = h21 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22), BYTE_ALIGN_8);
+  h12_res =
+      h22 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_res), BYTE_ALIGN_8);
+  h22_res = h12_res +
+            IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_res), BYTE_ALIGN_8);
+  c_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+        IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX16, sizeof(*c_l), BYTE_ALIGN_8);
+  c_r = c_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*c_r), BYTE_ALIGN_8);
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
     for (pb = 0; pb < num_parameter_bands; pb++) {
@@ -200,16 +203,19 @@ VOID ixheaacd_calc_m1m2_51s2(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 num_parameter_bands = pstr_mps_state->num_parameter_bands;
 
   iid = pstr_mps_state->mps_scratch_mem_v;
-  icc = iid + MAX_PARAMETER_BANDS;
-  h11 = icc + MAX_PARAMETER_BANDS;
-  h12 = h11 + MAX_PARAMETER_BANDS;
-  h21 = h12 + MAX_PARAMETER_BANDS;
-  h22 = h21 + MAX_PARAMETER_BANDS;
-  h12_res = h22 + MAX_PARAMETER_BANDS;
-  h22_res = h12_res + MAX_PARAMETER_BANDS;
-  g_s = h22_res + MAX_PARAMETER_BANDS;
-  c_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + PARAMETER_BANDSX18;
-  c_r = c_l + MAX_PARAMETER_BANDS;
+  icc = iid + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*icc), BYTE_ALIGN_8);
+  h11 = icc + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h11), BYTE_ALIGN_8);
+  h12 = h11 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12), BYTE_ALIGN_8);
+  h21 = h12 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h21), BYTE_ALIGN_8);
+  h22 = h21 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22), BYTE_ALIGN_8);
+  h12_res =
+      h22 + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h12_res), BYTE_ALIGN_8);
+  h22_res = h12_res +
+            IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*h22_res), BYTE_ALIGN_8);
+  g_s = h22_res + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*g_s), BYTE_ALIGN_8);
+  c_l = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+        IXHEAAC_GET_SIZE_ALIGNED_TYPE(PARAMETER_BANDSX18, sizeof(*c_l), BYTE_ALIGN_8);
+  c_r = c_l + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_PARAMETER_BANDS, sizeof(*c_r), BYTE_ALIGN_8);
 
   for (ps = 0; ps < num_parameter_sets; ps++) {
     for (pb = 0; pb < num_parameter_bands; pb++) {
