@@ -277,13 +277,15 @@ WORD32 ixheaacd_aacdec_decodeframe(
     }
     if ((object_type == AOT_ER_AAC_LD) || (object_type == AOT_AAC_LTP)) {
       if (aac_dec_handle->samples_per_frame <= 512) {
+        aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info.ltp2.lag =
+            aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag_1;
         aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info.ltp.lag =
-            aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag;
+            aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag_2;
       }
       aac_dec_handle->pstr_aac_dec_ch_info[ch]->ltp_buf =
           aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_buf;
       aac_dec_handle->pstr_aac_dec_ch_info[ch]->ltp_lag =
-          aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag;
+          aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag_1;
     }
 
     aac_dec_handle->pstr_aac_dec_ch_info[ch]->scratch_buf_ptr = work_buffer_2;
@@ -897,7 +899,9 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
   if (object_type == AOT_ER_AAC_LD) {
     for (ch = 0; ch < channel; ch++) {
-      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag =
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag_1 =
+          aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info.ltp2.lag;
+      aac_dec_handle->ptr_aac_dec_static_channel_info[ch]->ltp_lag_2 =
           aac_dec_handle->pstr_aac_dec_ch_info[ch]->str_ics_info.ltp.lag;
     }
   }

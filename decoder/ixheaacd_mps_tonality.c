@@ -212,15 +212,19 @@ VOID ixheaacd_measure_tonality(ia_heaac_mps_state_struct *pstr_mps_state, WORD32
   WORD32 temp_1, temp;
   WORD16 qtemp1, qtemp2;
 
-  spec_zoom_real =
-      (WORD32 *)((WORD8 *)pstr_mps_state->mps_scratch_mem_v + SCRATCH_OFFSET_SMOOTHING);
-  spec_zoom_imag = spec_zoom_real + QMF_BANDSX8;
-  p_max = spec_zoom_imag + QMF_BANDSX8;
-  coh_spec = p_max + QMF_BANDSX8;
-  pow_spec = coh_spec + QMF_BANDSX8;
+  spec_zoom_real = (WORD32 *)((WORD8 *)pstr_mps_state->mps_scratch_mem_v +
+                              IXHEAAC_GET_SIZE_ALIGNED(SCRATCH_OFFSET_SMOOTHING, BYTE_ALIGN_8));
+  spec_zoom_imag = spec_zoom_real + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                        QMF_BANDSX8, sizeof(*spec_zoom_imag), BYTE_ALIGN_8);
+  p_max =
+      spec_zoom_imag + IXHEAAC_GET_SIZE_ALIGNED_TYPE(QMF_BANDSX8, sizeof(*p_max), BYTE_ALIGN_8);
+  coh_spec = p_max + IXHEAAC_GET_SIZE_ALIGNED_TYPE(QMF_BANDSX8, sizeof(*coh_spec), BYTE_ALIGN_8);
+  pow_spec =
+      coh_spec + IXHEAAC_GET_SIZE_ALIGNED_TYPE(QMF_BANDSX8, sizeof(*pow_spec), BYTE_ALIGN_8);
 
-  qmf_real = pow_spec + QMF_BANDSX8;
-  qmf_imag = qmf_real + QBXTS;
+  qmf_real =
+      pow_spec + IXHEAAC_GET_SIZE_ALIGNED_TYPE(QMF_BANDSX8, sizeof(*qmf_real), BYTE_ALIGN_8);
+  qmf_imag = qmf_real + IXHEAAC_GET_SIZE_ALIGNED_TYPE(QBXTS, sizeof(*qmf_imag), BYTE_ALIGN_8);
 
   switch (num_parameter_bands) {
     case PARAMETER_BANDS_4:

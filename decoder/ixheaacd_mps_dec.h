@@ -93,7 +93,7 @@
 
 #define BP_SIZE 25
 
-#define MPS_SCRATCH_MEM_SIZE (235168)
+#define MPS_SCRATCH_MEM_SIZE (194048)
 
 typedef struct {
   FLOAT32 re;
@@ -1015,6 +1015,8 @@ VOID ixheaacd_set_mps_persistent_buffers(ia_heaac_mps_state_struct *pstr_mps_sta
                                          WORD32 *persistent_used,
                                          WORD32 num_channel,
                                          VOID *persistent_mem);
+
+WORD32 ixheaacd_scratch_buffer_sizes();
 
 VOID ixheaacd_set_scratch_buffers(ia_heaac_mps_state_struct *pstr_mps_state,
                                   VOID *scratch_mem);

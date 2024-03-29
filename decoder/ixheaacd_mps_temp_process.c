@@ -360,24 +360,37 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
   WORD32 tree_config = pstr_mps_state->tree_config;
 
   dry_ener = pstr_mps_state->mps_scratch_mem_v;
-  q_dry_ener = (WORD16 *)pstr_mps_state->mps_scratch_mem_v + INPUT_CHX2;
+  q_dry_ener = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
+               IXHEAAC_GET_SIZE_ALIGNED_TYPE(INPUT_CHX2, sizeof(*q_dry_ener), BYTE_ALIGN_8);
 
-  wet_ener = dry_ener + INPUT_CHX1_5;
-  q_wet_ener = q_dry_ener + IN_CH_2XOUT_CH;
+  wet_ener =
+      dry_ener + IXHEAAC_GET_SIZE_ALIGNED_TYPE(INPUT_CHX1_5, sizeof(*wet_ener), BYTE_ALIGN_8);
+  q_wet_ener = q_dry_ener +
+               IXHEAAC_GET_SIZE_ALIGNED_TYPE(IN_CH_2XOUT_CH, sizeof(*q_wet_ener), BYTE_ALIGN_8);
 
-  scale = wet_ener + OUTPUT_CHX1_5;
-  q_scale = q_wet_ener + OUTPUT_CHX3;
+  scale = wet_ener + IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUTPUT_CHX1_5, sizeof(*scale), BYTE_ALIGN_8);
+  q_scale =
+      q_wet_ener + IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUTPUT_CHX3, sizeof(*q_scale), BYTE_ALIGN_8);
 
-  dmx_real = scale + OUTPUT_CHX1_5;
-  dmx_imag = dmx_real + IN_CHXBP_SIZE;
+  dmx_real =
+      scale + IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUTPUT_CHX1_5, sizeof(*dmx_real), BYTE_ALIGN_8);
+  dmx_imag =
+      dmx_real + IXHEAAC_GET_SIZE_ALIGNED_TYPE(IN_CHXBP_SIZE, sizeof(*dmx_imag), BYTE_ALIGN_8);
 
-  qmf_output_real_dry = dmx_imag + IN_CHXBP_SIZE;
+  qmf_output_real_dry = dmx_imag + IXHEAAC_GET_SIZE_ALIGNED_TYPE(
+                                       IN_CHXBP_SIZE, sizeof(*qmf_output_real_dry), BYTE_ALIGN_8);
 
-  qmf_output_imag_dry = qmf_output_real_dry + OUT_CHXQB;
+  qmf_output_imag_dry =
+      qmf_output_real_dry +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUT_CHXQB, sizeof(*qmf_output_imag_dry), BYTE_ALIGN_8);
 
-  qmf_output_real_wet = qmf_output_imag_dry + OUT_CHXQB;
+  qmf_output_real_wet =
+      qmf_output_imag_dry +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUT_CHXQB, sizeof(*qmf_output_real_wet), BYTE_ALIGN_8);
 
-  qmf_output_imag_wet = qmf_output_real_wet + OUT_CHXQB;
+  qmf_output_imag_wet =
+      qmf_output_real_wet +
+      IXHEAAC_GET_SIZE_ALIGNED_TYPE(OUT_CHXQB, sizeof(*qmf_output_imag_wet), BYTE_ALIGN_8);
 
   if (sub_band_tp->update_old_ener == STP_UPDATE_ENERGY_RATE) {
     sub_band_tp->update_old_ener = 1;
