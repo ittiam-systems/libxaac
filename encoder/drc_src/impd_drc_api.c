@@ -41,7 +41,7 @@
     var = MAX(var, lower_bound);                            \
   }
 
-static IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config) {
+IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config) {
   LOOPIDX i, j, k;
   WORD32 curr_start_subband_idx, next_start_subband_idx;
   ia_drc_uni_drc_config_struct *pstr_uni_drc_config = &pstr_inp_config->str_uni_drc_config;
@@ -280,11 +280,6 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
                            pstr_drc_state_local->bit_buf_base_out,
                            sizeof(pstr_drc_state_local->bit_buf_base_out), 1);
 
-  err_code = impd_drc_validate_config_params(pstr_inp_config);
-  if (err_code) {
-    return err_code;
-  }
-
   err_code = impd_drc_gain_enc_init(
       &pstr_drc_state_local->str_gain_enc, &pstr_inp_config->str_uni_drc_config,
       &pstr_inp_config->str_enc_loudness_info_set, pstr_inp_config->str_enc_params.frame_size,
@@ -302,12 +297,22 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
     return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
   }
 
-  err_code = impd_drc_write_uni_drc_config(pstr_drc_state_local, &bit_count);
+  err_code = impd_drc_write_uni_drc_config(pstr_drc_state_local, &bit_count, 1);
   if (err_code & IA_FATAL_ERROR) {
     return err_code;
   }
-
   pstr_drc_state_local->drc_config_data_size_bit = bit_count;
+
+  // Loudness info set
+  if (pstr_drc_state_local->str_gain_enc.str_uni_drc_config.loudness_info_set_present == 1){
+    bit_count = 0;
+    err_code = impd_drc_write_loudness_info_set(
+        pstr_drc_state, &pstr_drc_state_local->str_bit_buf_cfg_ext, &bit_count, 1);
+    if (err_code & IA_FATAL_ERROR) {
+      return (err_code);
+    }
+    pstr_drc_state_local->drc_config_ext_data_size_bit = bit_count;
+  }
 
   return err_code;
 }

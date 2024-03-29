@@ -1213,8 +1213,8 @@ static VOID impd_drc_write_split_drc_characteristic(
         it_bit_buf, pstr_split_characteristic->characteristic_node_count - 1, 2);
 
     for (idx = 1; idx <= pstr_split_characteristic->characteristic_node_count; idx++) {
-      bs_node_level_delta = (WORD32)(
-          floor(fabs(pstr_split_characteristic->node_level[idx] - bs_node_level_previous) +
+      bs_node_level_delta = (WORD32)(floor(fabs(pstr_split_characteristic->node_level[idx] -
+                                                bs_node_level_previous) +
                 0.5f) -
           1);
 
@@ -2510,7 +2510,8 @@ static IA_ERRORCODE impd_drc_write_eq_instructions(
 static IA_ERRORCODE impd_drc_write_uni_drc_config_extn(
     ia_drc_enc_state *pstr_drc_state, ia_drc_gain_enc_struct *pstr_gain_enc,
     ia_drc_uni_drc_config_struct *pstr_uni_drc_config,
-    ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext, WORD32 *ptr_bit_cnt) {
+    ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext, WORD32 *ptr_bit_cnt,
+    FLAG write_bs) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   LOOPIDX idx;
   WORD32 version;
@@ -2519,10 +2520,15 @@ static IA_ERRORCODE impd_drc_write_uni_drc_config_extn(
   WORD32 bit_cnt_local = 0, bit_cnt_local_ext = 0;
   WORD32 *scratch_used = &pstr_drc_state->drc_scratch_used;
   VOID *ptr_scratch = &pstr_drc_state->drc_scratch_mem;
-  ia_bit_buf_struct *it_bit_buf = &pstr_drc_state->str_bit_buf_cfg;
-  ia_bit_buf_struct *ptr_bit_buf_ext = &pstr_drc_state->str_bit_buf_cfg_ext;
+  ia_bit_buf_struct *it_bit_buf = NULL;
+  ia_bit_buf_struct *ptr_bit_buf_ext = NULL;
 
-  iusace_reset_bit_buffer(ptr_bit_buf_ext);
+  if (write_bs) {
+    it_bit_buf = &pstr_drc_state->str_bit_buf_cfg;
+    ptr_bit_buf_ext = &pstr_drc_state->str_bit_buf_cfg_ext;
+
+    iusace_reset_bit_buffer(ptr_bit_buf_ext);
+  }
 
   bit_cnt_local += iusace_write_bits_buf(
       it_bit_buf, pstr_uni_drc_config_ext->uni_drc_config_ext_type[counter], 4);
@@ -2755,7 +2761,7 @@ static IA_ERRORCODE impd_drc_write_uni_drc_config_extn(
 IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
     ia_drc_enc_state *pstr_drc_state, ia_bit_buf_struct *it_bit_buf,
     ia_drc_loudness_info_set_extension_struct *pstr_loudness_info_set_extension,
-    WORD32 *ptr_bit_cnt) {
+    WORD32 *ptr_bit_cnt, FLAG write_bs) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   LOOPIDX idx;
   WORD32 counter = 0, version = 1;
@@ -2764,9 +2770,13 @@ IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
   WORD32 bit_cnt_local_tmp = 0;
   ia_drc_loudness_info_set_ext_eq_struct *pstr_loudness_info_set_ext_eq =
       &pstr_loudness_info_set_extension->str_loudness_info_set_ext_eq;
-  ia_bit_buf_struct *ptr_bit_buf_tmp = &pstr_drc_state->str_bit_buf_cfg_tmp;
+  ia_bit_buf_struct *ptr_bit_buf_tmp = NULL;
 
-  iusace_reset_bit_buffer(ptr_bit_buf_tmp);
+  if (write_bs) {
+    ptr_bit_buf_tmp = &pstr_drc_state->str_bit_buf_cfg_tmp;
+
+    iusace_reset_bit_buffer(ptr_bit_buf_tmp);
+  }
 
   bit_cnt_local += iusace_write_bits_buf(
       it_bit_buf, pstr_loudness_info_set_extension->loudness_info_set_ext_type[counter], 4);
@@ -2850,8 +2860,8 @@ IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
 }
 
 IA_ERRORCODE impd_drc_write_loudness_info_set(ia_drc_enc_state *pstr_drc_state,
-                                              ia_bit_buf_struct *it_bit_buf,
-                                              WORD32 *ptr_bit_cnt) {
+                                              ia_bit_buf_struct *it_bit_buf, WORD32 *ptr_bit_cnt,
+                                              FLAG write_bs) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   LOOPIDX idx;
   WORD32 version = 0;
@@ -2888,7 +2898,7 @@ IA_ERRORCODE impd_drc_write_loudness_info_set(ia_drc_enc_state *pstr_drc_state,
   if (pstr_loudness_info_set->loudness_info_set_ext_present) {
     err_code = impd_drc_write_loudness_info_set_extension(
         pstr_drc_state, it_bit_buf, &pstr_loudness_info_set->str_loudness_info_set_extension,
-        &bit_cnt_local);
+        &bit_cnt_local, write_bs);
     if (err_code) {
       return err_code;
     }
@@ -2899,16 +2909,20 @@ IA_ERRORCODE impd_drc_write_loudness_info_set(ia_drc_enc_state *pstr_drc_state,
   return err_code;
 }
 
-IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state,
-                                           WORD32 *ptr_bit_cnt) {
+IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt,
+                                           FLAG write_bs) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   LOOPIDX idx;
   WORD32 version = 0;
   WORD32 bit_cnt_local = 0;
   VOID *ptr_scratch = pstr_drc_state->drc_scratch_mem;
-  ia_bit_buf_struct *it_bit_buf = &pstr_drc_state->str_bit_buf_cfg;
+  ia_bit_buf_struct *it_bit_buf = NULL;
   ia_drc_gain_enc_struct *pstr_gain_enc = &pstr_drc_state->str_gain_enc;
   ia_drc_uni_drc_config_struct *pstr_uni_drc_config = &(pstr_gain_enc->str_uni_drc_config);
+
+  if (write_bs) {
+    it_bit_buf = &pstr_drc_state->str_bit_buf_cfg;
+  }
 
   bit_cnt_local += iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->sample_rate_present, 1);
 
@@ -2983,21 +2997,10 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state,
   if (pstr_uni_drc_config->uni_drc_config_ext_present) {
     err_code = impd_drc_write_uni_drc_config_extn(
         pstr_drc_state, pstr_gain_enc, pstr_uni_drc_config,
-        &(pstr_uni_drc_config->str_uni_drc_config_ext), &bit_cnt_local);
+        &(pstr_uni_drc_config->str_uni_drc_config_ext), &bit_cnt_local, write_bs);
     if (err_code & IA_FATAL_ERROR) {
       return (err_code);
     }
-  }
-
-  // Loudness info set
-  if (pstr_uni_drc_config->loudness_info_set_present == 1) {
-    ia_bit_buf_struct *it_bit_buf_lis = &pstr_drc_state->str_bit_buf_cfg_ext;
-    WORD32 bit_cnt_lis = 0;
-    err_code = impd_drc_write_loudness_info_set(pstr_drc_state, it_bit_buf_lis, &bit_cnt_lis);
-    if (err_code & IA_FATAL_ERROR) {
-      return (err_code);
-    }
-    pstr_drc_state->drc_config_ext_data_size_bit = bit_cnt_lis;
   }
 
   *ptr_bit_cnt += bit_cnt_local;
@@ -3010,7 +3013,7 @@ IA_ERRORCODE impd_drc_write_measured_loudness_info(ia_drc_enc_state *pstr_drc_st
   IA_ERRORCODE err_code = IA_NO_ERROR;
   ia_bit_buf_struct *it_bit_buf_lis = &pstr_drc_state->str_bit_buf_cfg_ext;
   WORD32 bit_cnt_lis = 0;
-  err_code = impd_drc_write_loudness_info_set(pstr_drc_state, it_bit_buf_lis, &bit_cnt_lis);
+  err_code = impd_drc_write_loudness_info_set(pstr_drc_state, it_bit_buf_lis, &bit_cnt_lis, 1);
   if (err_code & IA_FATAL_ERROR) {
     return (err_code);
   }

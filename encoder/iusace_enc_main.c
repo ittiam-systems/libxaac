@@ -635,11 +635,12 @@ IA_ERRORCODE iusace_enc_init(ia_usac_encoder_config_struct *ptr_usac_config,
 
     err_code = impd_drc_enc_init(&usac_data->str_drc_state, pstr_state->str_scratch.drc_scratch,
                                  &ptr_usac_config->str_drc_cfg);
-    if (err_code == IA_EXHEAACE_EXE_NONFATAL_USAC_INVALID_GAIN_POINTS) {
-      ptr_usac_config->use_drc_element = 0;
-    }
     if (err_code & IA_FATAL_ERROR) {
       return err_code;
+    }
+    if (err_code) {
+      ptr_usac_config->use_drc_element = 0;
+      err_code = IA_NO_ERROR;
     }
 
     if (ptr_usac_config->use_drc_element) {

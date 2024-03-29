@@ -50,3 +50,5 @@ IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 in
                           WORD32 *ptr_bits_written, VOID *pstr_scratch);
 
 IA_ERRORCODE impd_loudness_info_init(VOID *pstr_drc_state, ia_drc_input_config *pstr_inp_config);
+
+IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_config);

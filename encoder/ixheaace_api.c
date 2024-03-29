@@ -539,7 +539,8 @@ static VOID ixheaace_set_default_config(ixheaace_api_struct *pstr_api_struct,
       (ixheaace_common_tables *)&ia_enhaacplus_enc_common_tab;
 }
 
-static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_config) {
+static IA_ERRORCODE ixheaace_validate_config_params(ixheaace_input_config *pstr_input_config) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   if (pstr_input_config->aot != AOT_AAC_ELD && pstr_input_config->aot != AOT_AAC_LC &&
       pstr_input_config->aot != AOT_AAC_LD && pstr_input_config->aot != AOT_PS &&
       pstr_input_config->aot != AOT_SBR && pstr_input_config->aot != AOT_USAC) {
@@ -730,6 +731,17 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
         pstr_input_config->sample_peak_level < MIN_SAMPLE_PEAK_LEVEL) {
       pstr_input_config->sample_peak_level = DEFAULT_SAMPLE_PEAK_VALUE;
     }
+    if (pstr_input_config->use_drc_element) {
+      ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)pstr_input_config->pv_drc_cfg;
+      err_code = impd_drc_validate_config_params(pstr_drc_cfg);
+      if (err_code & IA_FATAL_ERROR) {
+        return err_code;
+      }
+      if (err_code) {
+        pstr_input_config->use_drc_element = 0;
+        err_code = IA_NO_ERROR;
+      }
+    }
   } else {
     pstr_input_config->cplx_pred = 0;
     pstr_input_config->harmonic_sbr = 0;
@@ -788,13 +800,18 @@ static VOID ixheaace_validate_config_params(ixheaace_input_config *pstr_input_co
       pstr_input_config->esbr_flag = 0;
     }
   }
+  return err_code;
 }
 
 static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_struct,
                                                ixheaace_input_config *pstr_input_config) {
   WORD32 ele_idx;
+  IA_ERRORCODE err_code = IA_NO_ERROR;
   ia_usac_encoder_config_struct *pstr_usac_config = &pstr_api_struct->config[0].usac_config;
-  ixheaace_validate_config_params(pstr_input_config);
+  err_code = ixheaace_validate_config_params(pstr_input_config);
+  if (err_code) {
+    return err_code;
+  }
 
   if (pstr_input_config->ui_pcm_wd_sz != 16) {
     return (IA_EXHEAACE_CONFIG_FATAL_PCM_WDSZ);
@@ -1454,12 +1471,54 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
   return;
 }
 
+static WORD32 get_drc_config_size(ixheaace_api_struct *pstr_api_struct,
+                                  ixheaace_output_config *ptr_out_cfg,
+                                  ixheaace_input_config *ptr_in_cfg) {
+  WORD32 bit_count = 0;
+  WORD32 total_byte_cnt = 0;
+
+  ia_drc_enc_state *pstr_drc_state =
+      &pstr_api_struct->pstr_state->str_usac_enc_data.str_drc_state;
+  ia_drc_input_config *pstr_in_drc_cfg = (ia_drc_input_config *)ptr_in_cfg->pv_drc_cfg;
+
+  memset(pstr_drc_state, 0, sizeof(*pstr_drc_state));
+
+  pstr_drc_state->str_enc_params = pstr_in_drc_cfg->str_enc_params;
+  pstr_drc_state->str_uni_drc_config = pstr_in_drc_cfg->str_uni_drc_config;
+  pstr_drc_state->str_gain_enc.str_loudness_info_set = pstr_in_drc_cfg->str_enc_loudness_info_set;
+  pstr_drc_state->str_enc_gain_extension = pstr_in_drc_cfg->str_enc_gain_extension;
+  pstr_drc_state->str_gain_enc.str_uni_drc_config = pstr_in_drc_cfg->str_uni_drc_config;
+  pstr_drc_state->drc_scratch_mem =
+      pstr_api_struct->pstr_state->str_usac_enc_data.str_scratch.ptr_scratch_buf;
+
+  //uniDrc payload size
+  impd_drc_write_uni_drc_config(pstr_drc_state, &bit_count, 0);
+  total_byte_cnt += ((bit_count + 7) >> 3);
+  bit_count = 0;
+
+  // LoudnessInfo payload size
+  impd_drc_write_loudness_info_set(pstr_drc_state, NULL, &bit_count, 0);
+  total_byte_cnt += ((bit_count + 7) >> 3);
+
+  return total_byte_cnt;
+}
+
 static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_struct,
-                                                  ixheaace_output_config *ptr_out_cfg) {
+                                                  ixheaace_output_config *ptr_out_cfg,
+                                                  ixheaace_input_config *ptr_in_cfg) {
   IA_ERRORCODE err_code = IA_NO_ERROR;
   UWORD32 i_idx;
   pVOID pv_value;
   for (i_idx = 0; i_idx < 4; i_idx++) {
+    if (i_idx == IA_ENHAACPLUSENC_OUTPUT_IDX &&
+        pstr_api_struct->config[0].usac_config.use_drc_element) {
+      WORD32 drc_config_size_expected =
+          get_drc_config_size(pstr_api_struct, ptr_out_cfg, ptr_in_cfg);
+      if (drc_config_size_expected > MAX_DRC_CONFIG_SIZE_EXPECTED) {
+        return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
+      }
+      pstr_api_struct->pstr_mem_info[i_idx].ui_size += drc_config_size_expected;
+    }
     ptr_out_cfg->mem_info_table[i_idx].ui_size = pstr_api_struct->pstr_mem_info[i_idx].ui_size;
     ptr_out_cfg->mem_info_table[i_idx].ui_alignment =
         pstr_api_struct->pstr_mem_info[i_idx].ui_alignment;
@@ -3490,28 +3549,21 @@ static void ixheaace_config_drc_parameters(ixheaace_api_struct *pstr_api_struct,
       &pstr_internal_drc_cfg->str_enc_loudness_info_set;
 
   WORD32 n;
-  WORD32 i, k = 0;
 
-  i = pstr_enc_loudness_info_set->loudness_info_count;
   pstr_enc_loudness_info_set->loudness_info_count =
-      MIN(pstr_enc_loudness_info_set->loudness_info_count +
-              pstr_enc_internal_loudness_info_set->loudness_info_count,
-          MAX_LOUDNESS_INFO_COUNT);
+      MIN(pstr_enc_internal_loudness_info_set->loudness_info_count, MAX_LOUDNESS_INFO_COUNT);
 
-  for (n = i; n < pstr_enc_loudness_info_set->loudness_info_count; n++, k++) {
+  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_count; n++) {
     memcpy(&pstr_enc_loudness_info_set->str_loudness_info[n],
-           &pstr_enc_internal_loudness_info_set->str_loudness_info[k],
+           &pstr_enc_internal_loudness_info_set->str_loudness_info[n],
            sizeof(ia_drc_loudness_info_struct));
   }
-  i = pstr_enc_loudness_info_set->loudness_info_album_count;
-  k = 0;
-  pstr_enc_loudness_info_set->loudness_info_album_count =
-      MIN(pstr_enc_loudness_info_set->loudness_info_album_count +
-              pstr_enc_internal_loudness_info_set->loudness_info_album_count,
-          MAX_LOUDNESS_INFO_COUNT);
-  for (n = i; n < pstr_enc_loudness_info_set->loudness_info_album_count; n++, k++) {
+
+  pstr_enc_loudness_info_set->loudness_info_album_count = MIN(
+      pstr_enc_internal_loudness_info_set->loudness_info_album_count, MAX_LOUDNESS_INFO_COUNT);
+  for (n = 0; n < pstr_enc_loudness_info_set->loudness_info_album_count; n++) {
     memcpy(&pstr_enc_loudness_info_set->str_loudness_info_album[n],
-           &pstr_enc_internal_loudness_info_set->str_loudness_info_album[k],
+           &pstr_enc_internal_loudness_info_set->str_loudness_info_album[n],
            sizeof(ia_drc_loudness_info_struct));
   }
 }
@@ -3658,11 +3710,11 @@ IA_ERRORCODE ixheaace_allocate(pVOID pv_input, pVOID pv_output) {
 
   ixheaace_fill_mem_tabs(pstr_api_struct, pstr_input_config->aot);
 
-  err_code = ixheaace_alloc_and_assign_mem(pstr_api_struct, pstr_output_config);
+  err_code =
+      ixheaace_alloc_and_assign_mem(pstr_api_struct, pstr_output_config, pstr_input_config);
   if (err_code) {
     return err_code;
   }
-
   return err_code;
 }
 
