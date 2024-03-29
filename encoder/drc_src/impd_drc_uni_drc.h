@@ -585,7 +585,7 @@ typedef struct {
   WORD32 uni_drc_config_ext_present;
   ia_drc_uni_drc_config_ext_struct str_uni_drc_config_ext;
   ia_drc_coefficients_basic_struct str_drc_coefficients_basic[MAX_DRC_COEFF_COUNT];
-  ia_drc_instructions_basic_struct str_drc_instructions_basic[MAX_DRC_INSTRUCTIONS_COUNT];
+  ia_drc_instructions_basic_struct str_drc_instructions_basic[MAX_DRC_INSTRUCTIONS_BASIC_COUNT];
   ia_drc_coefficients_uni_drc_struct str_drc_coefficients_uni_drc[MAX_DRC_COEFF_COUNT];
   ia_drc_instructions_uni_drc str_drc_instructions_uni_drc[MAX_DRC_INSTRUCTIONS_COUNT];
   ia_drc_channel_layout_struct str_channel_layout;

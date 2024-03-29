@@ -33,14 +33,15 @@ IA_ERRORCODE impd_drc_encode_uni_drc_gain(ia_drc_gain_enc_struct *pstr_gain_enc,
 IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
     ia_drc_enc_state *pstr_drc_state, ia_bit_buf_struct *it_bit_buf,
     ia_drc_loudness_info_set_extension_struct *pstr_loudness_info_set_extension,
-    WORD32 *ptr_bit_cnt);
+    WORD32 *ptr_bit_cnt, FLAG write_bs);
 
-IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt);
+IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt,
+                                           FLAG write_bs);
 
 VOID impd_drc_write_uni_drc_gain(ia_drc_enc_state *pstr_drc_state, WORD32 *ptr_bit_cnt);
 
 IA_ERRORCODE impd_drc_write_measured_loudness_info(ia_drc_enc_state *pstr_drc_state);
 
 IA_ERRORCODE impd_drc_write_loudness_info_set(ia_drc_enc_state *pstr_drc_state,
-  ia_bit_buf_struct *it_bit_buf,
-  WORD32 *ptr_bit_cnt);
+                                              ia_bit_buf_struct *it_bit_buf, WORD32 *ptr_bit_cnt,
+                                              FLAG write_bs);
