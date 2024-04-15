@@ -1127,19 +1127,12 @@ WORD32 ixheaacd_aac_headerdecode(
             ixheaacd_latm_header_decode(aac_state_struct, &it_bit_buff,
                                         bytes_consumed, pstr_samp_rate_info);
         if (result != 0) {
-          if ((result ==
-               (WORD32)
-                   IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES) ||
-              (result ==
-               (WORD32)IA_XHEAAC_DEC_INIT_FATAL_STREAM_CHAN_GT_MAX)) {
+          if ((result == (WORD32)IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES) ||
+              (result < 0)) {
             bytes_taken += *bytes_consumed;
             *bytes_consumed = bytes_taken;
             return result;
-          } else if (result == -1)
-            return -1;
-          else if (result == (WORD32)IA_FATAL_ERROR)
-            return IA_FATAL_ERROR;
-          else
+          } else
             bytes_taken += *bytes_consumed - 1;
           continue;
         }

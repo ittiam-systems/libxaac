@@ -253,6 +253,8 @@ IA_ERRORCODE ixheaacd_latm_stream_mux_config(
             }
             break;
 
+          case 1:
+            latm_element->frame_length = ixheaacd_read_bits_buf(it_bit_buff, 9);
           default:
             return IA_XHEAAC_DEC_EXE_FATAL_INVALID_LOAS_HEADER;
         }

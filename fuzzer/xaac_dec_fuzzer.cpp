@@ -52,6 +52,13 @@
 
 #define MAX_MEM_ALLOCS 100
 
+#define IA_MAX_OUTPUT_PCM_SIZE (3)
+#define IA_MAX_USAC_CH (2)
+#define IA_MAX_OUT_SAMPLES_PER_FRAME (4096)
+
+#define IA_DRC_DEC_IN_OUT_BUF_SIZE \
+  (IA_MAX_USAC_CH * IA_MAX_OUT_SAMPLES_PER_FRAME * IA_MAX_OUTPUT_PCM_SIZE)
+
 class Codec {
  public:
   IA_ERRORCODE initDecoder(const uint8_t* data, size_t size, bool isADTS);
@@ -396,10 +403,7 @@ IA_ERRORCODE Codec::initMPEGDDDrc() {
                               pv_alloc_ptr);
   }
 
-  WORD32 ui_size;
-  ui_size = 8192 * 2;
-
-  mDrcInBuf = (int8_t*)malloc(ui_size);
+  mDrcInBuf = (int8_t*)malloc(IA_DRC_DEC_IN_OUT_BUF_SIZE);
   if (mDrcInBuf == nullptr) {
     return IA_FATAL_ERROR;
   }
@@ -408,7 +412,7 @@ IA_ERRORCODE Codec::initMPEGDDDrc() {
   err_code =
       ia_drc_dec_api(mMpegDDrcHandle, IA_API_CMD_SET_MEM_PTR, 2, mDrcInBuf);
 
-  mDrcOutBuf = (int8_t*)malloc(ui_size);
+  mDrcOutBuf = (int8_t*)malloc(IA_DRC_DEC_IN_OUT_BUF_SIZE);
   if (mDrcOutBuf == nullptr) {
     return IA_FATAL_ERROR;
   }
