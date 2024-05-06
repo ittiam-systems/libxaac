@@ -104,8 +104,16 @@ IA_ERRORCODE impd_drc_gain_enc_init(ia_drc_gain_enc_struct *pstr_gain_enc,
       all_band_gain_count += pstr_drc_coefficients_uni_drc->str_gain_set_params[i].band_count;
     }
     pstr_gain_enc->n_sequences = all_band_gain_count;
-  } else {
-    pstr_gain_enc->n_sequences = pstr_drc_coefficients_uni_drc_v1->gain_sequence_count;
+  }
+  else {
+    for (i = 0; i < pstr_uni_drc_config_ext->drc_coefficients_uni_drc_v1_count; i++) {
+      WORD32 all_band_gain_count = 0;
+      for (j = 0; j < pstr_drc_coefficients_uni_drc_v1[i].gain_set_count; j++) {
+        all_band_gain_count += pstr_drc_coefficients_uni_drc_v1[i].str_gain_set_params[j].band_count;
+      }
+      pstr_drc_coefficients_uni_drc_v1[i].gain_sequence_count = all_band_gain_count;
+      pstr_gain_enc->n_sequences += all_band_gain_count;
+    }
   }
 
   if (pstr_gain_enc->n_sequences > IMPD_DRCMAX_NSEQ) {

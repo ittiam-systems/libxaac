@@ -1,4 +1,33 @@
 #####str_drc_instructions_uni_drc#####
+drc_instructions_uni_drc_count:0
+#####str_drc_coefficients_uni_drc#####
+drc_coefficients_uni_drc_count:0
+#####str_downmix_instructions_v1#####
+downmix_instructions_v1_count:1
+#n=0
+target_layout:1
+#s=0
+downmix_coeff:0.70794578438
+#end downmix coeeficients
+#####str_drc_coefficients_uni_drc_v1#####
+drc_coefficients_uni_drc_count_v1:1
+#n=0
+gain_set_count:1
+#s=0
+band_count:1
+#gain parameters m=0
+nb_points:3
+x:-60.0
+y:-40.0
+x:-30.0
+y:-30.0
+x:0.0
+y:-20.0
+width:0.01
+attack:2.0
+decay:5.0
+#end gain parameters
+#####str_drc_instructions_uni_drc_v1#####
 drc_instructions_uni_drc_count:8
 #n=0
 downmix_id:0
@@ -61,14 +90,14 @@ downmix_id:0
 #Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0010
 gain_set_channels:8
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
-gain_set_index:1
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
+gain_set_index:0
 num_drc_channel_groups:1
 #n=5
 downmix_id:0
@@ -112,60 +141,3 @@ gain_set_index:0
 gain_set_index:0
 gain_set_index:0
 num_drc_channel_groups:1
-#####str_drc_coefficients_uni_drc#####
-drc_coefficients_uni_drc_count:1
-#n=0
-gain_set_count:2
-#s=0
-band_count:1
-#gain parameters m=0
-nb_points:3
-x:-60.0
-y:-40.0
-x:-30.0
-y:-30.0
-x:0.0
-y:-20.0
-width:0.01
-attack:2.0
-decay:5.0
-#end gain parameters
-#s=1
-band_count:3
-#gain parameters m=0
-nb_points:2
-x:-50.0
-y:-50.0
-x:0.0
-y:-10.0
-width:0.01
-attack:2.0
-decay:5.0
-start_sub_band_index:0
-#end gain parameters
-#gain parameters m=1
-nb_points:3
-x:-60.0
-y:-60.0
-x:-20.0
-y:-15.0
-x:0.0
-y:-5.0
-width:0.01
-attack:2.0
-decay:5.0
-start_sub_band_index:3
-#end gain parameters
-#gain parameters m=2
-nb_points:3
-x:-80.0
-y:-80.0
-x:-30.0
-y:-60.0
-x:0.0
-y:-30.0
-width:0.01
-attack:2.0
-decay:5.0
-start_sub_band_index:44
-#end gain parameters

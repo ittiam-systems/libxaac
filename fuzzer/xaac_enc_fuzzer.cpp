@@ -36,8 +36,8 @@ extern "C" {
 }
 
 static constexpr WORD32 k_sample_rates[] = {7350,  8000,  11025, 12000, 16000, 22050, 24000,
-                                          32000, 44100, 48000, 64000, 88200, 96000};
-static constexpr WORD16 k_frame_length[] = {480,  512,  768, 960, 1024};
+                                            32000, 44100, 48000, 64000, 88200, 96000};
+static constexpr WORD16 k_frame_length[] = {480, 512, 768, 960, 1024};
 
 pVOID malloc_global(UWORD32 size, UWORD32 alignment) {
   pVOID ptr = NULL;
@@ -52,7 +52,8 @@ VOID free_global(pVOID ptr) { free(ptr); }
 static VOID ixheaace_read_drc_config_params(
     ia_drc_enc_params_struct *pstr_enc_params, ia_drc_uni_drc_config_struct *pstr_uni_drc_config,
     ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set,
-    ia_drc_uni_drc_gain_ext_struct *pstr_enc_gain_extension, FuzzedDataProvider *fuzzed_data) {
+    ia_drc_uni_drc_gain_ext_struct *pstr_enc_gain_extension, FuzzedDataProvider *fuzzed_data,
+    WORD32 in_ch) {
   WORD32 n, g, s, m, ch, p;
   WORD32 gain_set_channels;
 
@@ -302,11 +303,207 @@ static VOID ixheaace_read_drc_config_params(
   pstr_uni_drc_config->uni_drc_config_ext_present = fuzzed_data->ConsumeBool();
   pstr_enc_loudness_info_set->loudness_info_set_ext_present = fuzzed_data->ConsumeBool();
   pstr_enc_gain_extension->uni_drc_gain_ext_present = fuzzed_data->ConsumeBool();
+
+  if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+    pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[0] = UNIDRC_CONF_EXT_V1;
+    pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present =
+        fuzzed_data->ConsumeBool();
+    if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present) {
+      /***********  str_downmix_instructions_v1  *************/
+
+      pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_count =
+          fuzzed_data->ConsumeIntegralInRange<WORD8>(0, DOWNMIX_INSTRUCTIONS_COUNT_MAX);
+      for (n = 0; n < pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_count;
+           n++) {
+        ia_drc_downmix_instructions_struct *pstr_downmix_instructions_v1 =
+            &pstr_uni_drc_config->str_uni_drc_config_ext.str_downmix_instructions_v1[n];
+        pstr_downmix_instructions_v1->downmix_id = fuzzed_data->ConsumeIntegral<WORD8>();
+        ;
+        pstr_downmix_instructions_v1->target_ch_count = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_downmix_instructions_v1->target_layout = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_downmix_instructions_v1->downmix_coefficients_present = fuzzed_data->ConsumeBool();
+        if (pstr_downmix_instructions_v1->downmix_coefficients_present) {
+          FLOAT32 dwn_mix_coeff = 0.0f;
+          for (s = 0; s < pstr_downmix_instructions_v1->target_layout; s++) {
+            dwn_mix_coeff = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+            for (ch = 0; ch < in_ch; ch++) {
+              pstr_downmix_instructions_v1->downmix_coeff[in_ch * s + ch] = dwn_mix_coeff;
+            }
+          }
+        }
+      }
+    }
+
+    pstr_uni_drc_config->str_uni_drc_config_ext.drc_coeffs_and_instructions_uni_drc_v1_present =
+        fuzzed_data->ConsumeBool();
+    if (pstr_uni_drc_config->str_uni_drc_config_ext
+            .drc_coeffs_and_instructions_uni_drc_v1_present) {
+      /***********  str_drc_coefficients_uni_drc_v1  *************/
+
+      pstr_uni_drc_config->str_uni_drc_config_ext.drc_coefficients_uni_drc_v1_count =
+          fuzzed_data->ConsumeIntegralInRange<WORD8>(0, DRC_COEFFICIENTS_UNIDRC_V1_COUNT_MAX);
+      for (n = 0;
+           n < pstr_uni_drc_config->str_uni_drc_config_ext.drc_coefficients_uni_drc_v1_count;
+           n++) {
+        ia_drc_coefficients_uni_drc_struct *pstr_drc_coefficients_uni_drc_v1 =
+            &pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_coefficients_uni_drc_v1[n];
+        pstr_drc_coefficients_uni_drc_v1->drc_location = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_coefficients_uni_drc_v1->gain_set_count =
+            fuzzed_data->ConsumeIntegralInRange<WORD8>(0, GAIN_SET_COUNT_MAX);
+        for (s = 0; s < pstr_drc_coefficients_uni_drc_v1->gain_set_count; s++) {
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_coding_profile =
+              fuzzed_data->ConsumeIntegral<WORD8>();
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_interpolation_type =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].full_frame =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].time_alignment =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].time_delta_min_present =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].band_count =
+              fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_BAND_COUNT);
+          if (pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].band_count == 1) {
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[0].nb_points =
+                fuzzed_data->ConsumeIntegralInRange<WORD16>(0, MAX_GAIN_POINTS);
+            for (p = 0; p < pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                                .gain_params[0]
+                                .nb_points;
+                 p++) {
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                  .gain_params[0]
+                  .gain_points[p]
+                  .x = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                  .gain_params[0]
+                  .gain_points[p]
+                  .y = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+            }
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[0].width =
+                fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[0].attack =
+                fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[0].decay =
+                fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                .gain_params[0]
+                .drc_characteristic = fuzzed_data->ConsumeIntegral<WORD8>();
+            ;
+            pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                .gain_params[0]
+                .crossover_freq_index = fuzzed_data->ConsumeIntegral<WORD8>();
+          } else {
+            for (m = 0; m < pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].band_count;
+                 m++) {
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[m].nb_points =
+                  fuzzed_data->ConsumeIntegralInRange<WORD16>(0, MAX_GAIN_POINTS);
+              for (p = 0; p < pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                                  .gain_params[m]
+                                  .nb_points;
+                   p++) {
+                pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                    .gain_params[m]
+                    .gain_points[p]
+                    .x = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+                pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                    .gain_params[m]
+                    .gain_points[p]
+                    .y = fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+              }
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[m].width =
+                  fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[m].attack =
+                  fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].gain_params[m].decay =
+                  fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s].drc_band_type = 0;
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                  .gain_params[m]
+                  .start_sub_band_index = fuzzed_data->ConsumeIntegral<WORD16>();
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                  .gain_params[m]
+                  .drc_characteristic = fuzzed_data->ConsumeIntegral<WORD8>();
+              ;
+              pstr_drc_coefficients_uni_drc_v1->str_gain_set_params[s]
+                  .gain_params[m]
+                  .crossover_freq_index = fuzzed_data->ConsumeIntegral<WORD8>();
+            }
+          }
+        }
+      }
+
+      /***********  str_drc_instructions_uni_drc_v1  *************/
+      pstr_uni_drc_config->str_uni_drc_config_ext.drc_instructions_uni_drc_v1_count =
+          fuzzed_data->ConsumeIntegralInRange<WORD8>(0, DRC_INSTRUCTIONS_UNIDRC_V1_COUNT_MAX);
+      for (n = 0;
+           n < pstr_uni_drc_config->str_uni_drc_config_ext.drc_instructions_uni_drc_v1_count;
+           n++) {
+        ia_drc_instructions_uni_drc *pstr_drc_instructions_uni_drc =
+            &pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_instructions_uni_drc_v1[n];
+        pstr_drc_instructions_uni_drc->drc_set_id = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->downmix_id = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->additional_downmix_id_present = fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->additional_downmix_id_count =
+            fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->drc_location = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->depends_on_drc_set_present = fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->depends_on_drc_set = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->no_independent_use = fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->drc_set_effect = fuzzed_data->ConsumeIntegral<WORD16>();
+        pstr_drc_instructions_uni_drc->drc_set_target_loudness_present =
+            fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_upper =
+            fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower_present =
+            fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->drc_set_target_loudness_value_lower =
+            fuzzed_data->ConsumeIntegral<WORD8>();
+
+        gain_set_channels = fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_CHANNEL_COUNT);
+        for (ch = 0; ch < gain_set_channels; ch++) {
+          pstr_drc_instructions_uni_drc->gain_set_index[ch] =
+              fuzzed_data->ConsumeIntegral<WORD8>();
+        }
+        for (; ch < MAX_CHANNEL_COUNT; ch++) {
+          if (gain_set_channels > 0) {
+            pstr_drc_instructions_uni_drc->gain_set_index[ch] =
+                pstr_drc_instructions_uni_drc->gain_set_index[gain_set_channels - 1];
+          } else {
+            pstr_drc_instructions_uni_drc->gain_set_index[ch] = 0;
+          }
+        }
+
+        pstr_drc_instructions_uni_drc->num_drc_channel_groups =
+            fuzzed_data->ConsumeIntegralInRange<WORD8>(0, MAX_CHANNEL_GROUP_COUNT);
+        for (g = 0; g < pstr_drc_instructions_uni_drc->num_drc_channel_groups; g++) {
+          pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_scaling_present[0] =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_instructions_uni_drc->str_gain_modifiers[g].attenuation_scaling[0] =
+              fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+          pstr_drc_instructions_uni_drc->str_gain_modifiers[g].amplification_scaling[0] =
+              fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+          pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset_present[0] =
+              fuzzed_data->ConsumeBool();
+          pstr_drc_instructions_uni_drc->str_gain_modifiers[g].gain_offset[0] =
+              fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+        }
+
+        pstr_drc_instructions_uni_drc->limiter_peak_target_present = fuzzed_data->ConsumeBool();
+        pstr_drc_instructions_uni_drc->limiter_peak_target =
+            fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
+        pstr_drc_instructions_uni_drc->drc_instructions_type =
+            fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->mae_group_id = fuzzed_data->ConsumeIntegral<WORD8>();
+        pstr_drc_instructions_uni_drc->mae_group_preset_id =
+            fuzzed_data->ConsumeIntegral<WORD8>();
+      }
+    }
+  }
 }
 
 static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
                                  ia_drc_input_config *pstr_drc_cfg,
-                                 FuzzedDataProvider *fuzzed_data) {
+                                 FuzzedDataProvider *fuzzed_data, WORD32 in_ch) {
   // Set Default value for AAC config structure
 
   pstr_in_cfg->i_bitrate = fuzzed_data->ConsumeIntegral<WORD32>();
@@ -352,21 +549,19 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
     ixheaace_read_drc_config_params(&pstr_drc_cfg->str_enc_params,
                                     &pstr_drc_cfg->str_uni_drc_config,
                                     &pstr_drc_cfg->str_enc_loudness_info_set,
-                                    &pstr_drc_cfg->str_enc_gain_extension, fuzzed_data);
+                                    &pstr_drc_cfg->str_enc_gain_extension, fuzzed_data, in_ch);
   }
 }
 
 IA_ERRORCODE ia_enhaacplus_enc_pcm_data_read(std::vector<WORD8> input_vec, UWORD32 num_samples,
-  WORD32 num_channels, WORD16 **data)
-{
+                                             WORD32 num_channels, WORD16 **data) {
   UWORD32 count = 0;
   UWORD8 channel_no;
   UWORD32 sample_no = 0;
   UWORD32 i = 0;
-  while (count < num_samples)
-  {
+  while (count < num_samples) {
     sample_no = (count / num_channels);
-    channel_no = (UWORD8)(count%num_channels);
+    channel_no = (UWORD8)(count % num_channels);
     data[channel_no][sample_no] = *input_vec.data();
     i++;
     count++;
@@ -375,44 +570,39 @@ IA_ERRORCODE ia_enhaacplus_enc_pcm_data_read(std::vector<WORD8> input_vec, UWORD
 }
 
 static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *pstr_in_cfg,
-  ixheaace_output_config *pstr_out_cfg, FuzzedDataProvider *fuzzed_data)
-{
+                                                        ixheaace_output_config *pstr_out_cfg,
+                                                        FuzzedDataProvider *fuzzed_data) {
   WORD32 input_size;
   WORD32 count = 0;
   IA_ERRORCODE err_code = 0;
-  VOID *loudness_handle = malloc_global(ixheaace_loudness_info_get_handle_size(),
-    DEFAULT_MEM_ALIGN_8);
+  VOID *loudness_handle =
+      malloc_global(ixheaace_loudness_info_get_handle_size(), DEFAULT_MEM_ALIGN_8);
   if (loudness_handle == NULL) {
     printf("fatal error: libxaac encoder: Memory allocation failed");
     return -1;
   }
 
   err_code = ixheaace_loudness_init_params(loudness_handle, pstr_in_cfg, pstr_out_cfg);
-  
+
   if (err_code) {
     free_global(loudness_handle);
     return -1;
   }
-  input_size = (pstr_out_cfg->samp_freq / 10)*(pstr_in_cfg->i_channels);
+  input_size = (pstr_out_cfg->samp_freq / 10) * (pstr_in_cfg->i_channels);
   WORD16 **samples = 0;
-  samples = (WORD16 **)malloc_global(pstr_in_cfg->i_channels * sizeof(*samples),
-    DEFAULT_MEM_ALIGN_8);
-  if (samples == NULL)
-  {
+  samples =
+      (WORD16 **)malloc_global(pstr_in_cfg->i_channels * sizeof(*samples), DEFAULT_MEM_ALIGN_8);
+  if (samples == NULL) {
     printf("fatal error: libxaac encoder: Memory allocation failed");
     free_global(loudness_handle);
     return -1;
   }
-  for (count = 0; count < pstr_in_cfg->i_channels; count++)
-  {
-    samples[count] =
-      (WORD16 *)malloc_global((pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]),
-        DEFAULT_MEM_ALIGN_8);
-    if (samples[count] == NULL)
-    {
+  for (count = 0; count < pstr_in_cfg->i_channels; count++) {
+    samples[count] = (WORD16 *)malloc_global(
+        (pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]), DEFAULT_MEM_ALIGN_8);
+    if (samples[count] == NULL) {
       printf("fatal error: libxaac encoder: Memory allocation failed");
-      while (count)
-      {
+      while (count) {
         count--;
         free_global(samples[count]);
       }
@@ -423,14 +613,12 @@ static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *p
     memset(samples[count], 0, (pstr_out_cfg->samp_freq / 10) * sizeof(*samples[count]));
   }
   count = 0;
-  while (count <= fuzzed_data->remaining_bytes())
-  {
+  while (count <= fuzzed_data->remaining_bytes()) {
     std::vector<WORD8> input_vec = fuzzed_data->ConsumeBytes<WORD8>(input_size);
-    err_code = ia_enhaacplus_enc_pcm_data_read(input_vec, input_size,
-      pstr_in_cfg->i_channels, samples);
+    err_code =
+        ia_enhaacplus_enc_pcm_data_read(input_vec, input_size, pstr_in_cfg->i_channels, samples);
     if (err_code) {
-      for (count = 0; count < pstr_in_cfg->i_channels; count++)
-      {
+      for (count = 0; count < pstr_in_cfg->i_channels; count++) {
         free_global(samples[count]);
       }
       free_global(samples);
@@ -443,8 +631,7 @@ static IA_ERRORCODE ixheaace_calculate_loudness_measure(ixheaace_input_config *p
   if (pstr_in_cfg->method_def == METHOD_DEFINITION_PROGRAM_LOUDNESS) {
     pstr_in_cfg->measured_loudness = ixheaace_measure_integrated_loudness(loudness_handle);
   }
-  for (count = 0; count < pstr_in_cfg->i_channels; count++)
-  {
+  for (count = 0; count < pstr_in_cfg->i_channels; count++) {
     free_global(samples[count]);
   }
   free_global(samples);
@@ -485,13 +672,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
   /* ******************************************************************/
-  ixheaace_fuzzer_flag(pstr_in_cfg, pstr_drc_cfg, &fuzzed_data);
-  
-    /*1st pass -> Loudness Measurement */
-  if (pstr_in_cfg->aot == AOT_USAC)
-  {
-    err_code = ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg,
-      &fuzzed_data_loudness);
+  ixheaace_fuzzer_flag(pstr_in_cfg, pstr_drc_cfg, &fuzzed_data, pstr_in_cfg->i_channels);
+
+  /*1st pass -> Loudness Measurement */
+  if (pstr_in_cfg->aot == AOT_USAC) {
+    err_code =
+        ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg, &fuzzed_data_loudness);
     if (err_code) {
       if (pstr_drc_cfg) {
         free(pstr_drc_cfg);
@@ -505,7 +691,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       return -1;
     }
   }
-  
+
   err_code = ixheaace_create((pVOID)pstr_in_cfg, (pVOID)pstr_out_cfg);
   if (err_code) {
     if (pstr_drc_cfg) {
@@ -550,8 +736,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
       read_inp_data = 1;
     }
     /* Stop processing after 500 frames */
-    if (num_proc_iterations > 500)
-      break;
+    if (num_proc_iterations > 500) break;
   }
 
   ixheaace_delete((pVOID)pstr_out_cfg);

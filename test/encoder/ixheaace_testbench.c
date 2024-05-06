@@ -1260,7 +1260,8 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
       memset(pstr_drc_cfg, 0, sizeof(ia_drc_input_config));
       ixheaace_read_drc_config_params(
           pf_drc_inp, &pstr_drc_cfg->str_enc_params, &pstr_drc_cfg->str_uni_drc_config,
-          &pstr_drc_cfg->str_enc_loudness_info_set, &pstr_drc_cfg->str_enc_gain_extension);
+          &pstr_drc_cfg->str_enc_loudness_info_set, &pstr_drc_cfg->str_enc_gain_extension,
+          pstr_in_cfg->i_channels);
 
       pstr_drc_cfg->str_enc_params.gain_sequence_present = FALSE;
       for (k = 0; k < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count; k++) {

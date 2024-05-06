@@ -1007,6 +1007,7 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       pstr_drc_cfg->str_uni_drc_config.str_channel_layout.base_ch_count =
           pstr_input_config->i_channels;
       pstr_drc_cfg->str_enc_params.sample_rate = pstr_input_config->i_samp_freq;
+      pstr_drc_cfg->str_enc_params.domain = TIME_DOMAIN;
       pstr_drc_cfg->str_uni_drc_config.sample_rate = pstr_drc_cfg->str_enc_params.sample_rate;
       for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
            i++) {
@@ -1017,6 +1018,18 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
               .str_gain_set_params[j]
               .delta_tmin =
               impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+        }
+      }
+      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+        .drc_coefficients_uni_drc_v1_count; i++) {
+        for (WORD32 j = 0;
+          j < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+          .str_drc_coefficients_uni_drc_v1[i].gain_set_count; j++) {
+          pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+            .str_drc_coefficients_uni_drc_v1[i]
+            .str_gain_set_params[j]
+            .delta_tmin =
+            impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
         }
       }
 
@@ -1472,7 +1485,6 @@ static VOID ixheaace_fill_mem_tabs(ixheaace_api_struct *pstr_api_struct, WORD32 
 }
 
 static WORD32 get_drc_config_size(ixheaace_api_struct *pstr_api_struct,
-                                  ixheaace_output_config *ptr_out_cfg,
                                   ixheaace_input_config *ptr_in_cfg) {
   WORD32 bit_count = 0;
   WORD32 total_byte_cnt = 0;
@@ -1490,6 +1502,7 @@ static WORD32 get_drc_config_size(ixheaace_api_struct *pstr_api_struct,
   pstr_drc_state->str_gain_enc.str_uni_drc_config = pstr_in_drc_cfg->str_uni_drc_config;
   pstr_drc_state->drc_scratch_mem =
       pstr_api_struct->pstr_state->str_usac_enc_data.str_scratch.ptr_scratch_buf;
+  pstr_drc_state->str_gain_enc.base_ch_count = ptr_in_cfg->i_channels;
 
   //uniDrc payload size
   impd_drc_write_uni_drc_config(pstr_drc_state, &bit_count, 0);
@@ -1513,7 +1526,7 @@ static IA_ERRORCODE ixheaace_alloc_and_assign_mem(ixheaace_api_struct *pstr_api_
     if (i_idx == IA_ENHAACPLUSENC_OUTPUT_IDX &&
         pstr_api_struct->config[0].usac_config.use_drc_element) {
       WORD32 drc_config_size_expected =
-          get_drc_config_size(pstr_api_struct, ptr_out_cfg, ptr_in_cfg);
+          get_drc_config_size(pstr_api_struct, ptr_in_cfg);
       if (drc_config_size_expected > MAX_DRC_CONFIG_SIZE_EXPECTED) {
         return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
       }

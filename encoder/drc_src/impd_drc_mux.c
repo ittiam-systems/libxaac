@@ -1113,7 +1113,7 @@ static VOID impd_drc_write_gain_params(ia_bit_buf_struct *it_bit_buf, const WORD
     }
   } else {
     WORD32 index_present;
-    WORD32 gain_sequence_index_last = -100;
+    WORD32 gain_sequence_index_last = -1;
     for (idx = 0; idx < band_count; idx++) {
       if (pstr_gain_params[idx].gain_sequence_index == gain_sequence_index_last + 1) {
         index_present = 0;
@@ -2747,10 +2747,11 @@ static IA_ERRORCODE impd_drc_write_uni_drc_config_extn(
         }
         break;
     }
-    bit_cnt_local += iusace_write_bits_buf(
-        it_bit_buf, pstr_uni_drc_config_ext->uni_drc_config_ext_type[counter], 4);
 
     counter++;
+
+    bit_cnt_local += iusace_write_bits_buf(
+        it_bit_buf, pstr_uni_drc_config_ext->uni_drc_config_ext_type[counter], 4);
   }
 
   *ptr_bit_cnt += bit_cnt_local;
