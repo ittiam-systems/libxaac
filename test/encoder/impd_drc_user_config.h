@@ -22,4 +22,5 @@
 VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_enc_params,
                                      ia_drc_uni_drc_config_struct *pstr_uni_drc_config,
                                      ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set,
-                                     ia_drc_uni_drc_gain_ext_struct *pstr_enc_gain_extension);
+                                     ia_drc_uni_drc_gain_ext_struct *pstr_enc_gain_extension,
+                                     WORD32 in_ch);
