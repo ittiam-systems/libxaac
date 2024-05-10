@@ -520,8 +520,10 @@ WORD32 iusace_fd_encode_fac(WORD32 *prm, WORD16 *ptr_bit_buf, WORD32 fac_length)
       n = qn - nk * 2;
     }
 
-    iusace_write_bits2buf(I, 4 * n, ptr_bit_buf);
-    ptr_bit_buf += 4 * n;
+    if (n != 0) {
+      iusace_write_bits2buf(I, 4 * n, ptr_bit_buf);
+      ptr_bit_buf += 4 * n;
+    }
     for (j = 0; j < 8; j++) {
       iusace_write_bits2buf(kv[j], nk, ptr_bit_buf);
       ptr_bit_buf += nk;
