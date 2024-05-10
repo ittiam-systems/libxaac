@@ -2023,6 +2023,7 @@ IA_ERRORCODE ixheaacd_dec_init(
 
     while ((type != 7)) {
       ia_aac_dec_scratch_struct aac_scratch_struct;
+      memset(&aac_scratch_struct, 0, sizeof(aac_scratch_struct));
 
       if (ch_idx >= elements_number) {
         p_state_enhaacplus_dec->i_bytes_consumed = 1;
