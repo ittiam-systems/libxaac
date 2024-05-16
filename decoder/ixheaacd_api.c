@@ -3184,6 +3184,8 @@ IA_ERRORCODE ixheaacd_dec_execute(
     {
       WORD element_index_order1[MAX_BS_ELEMENT];
       ia_aac_dec_scratch_struct aac_scratch_struct;
+      memset(&aac_scratch_struct, 0, sizeof(aac_scratch_struct));
+
       ixheaacd_allocate_aac_scr(
           &aac_scratch_struct, p_state_enhaacplus_dec->aac_scratch_mem_v,
           time_data, channel, p_obj_exhaacplus_dec->aac_config.ui_max_channels,
