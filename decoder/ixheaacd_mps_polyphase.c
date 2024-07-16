@@ -826,7 +826,7 @@ VOID ixheaacd_calculate_syn_filt_bank_res64(ia_mps_dec_qmf_syn_filter_bank *syn,
   p_si = si;
   for (k = 0; k < nr_samples; k++) {
     WORD32 *new_samp = p_si;
-    WORD32 *new_samp1, *new_samp2;
+    WORD32 *new_samp2;
 
     ixheaacd_inverse_modulation(p_sr, p_si, qmf_table_ptr);
 
@@ -872,7 +872,6 @@ VOID ixheaacd_calculate_syn_filt_bank_res64(ia_mps_dec_qmf_syn_filter_bank *syn,
 
     syn_buf_p2 = synth_buf;
     syn_buf_p3 = syn_buf_p2;
-    new_samp1 = p_sr + 1;
     new_samp2 = p_sr + 63;
     for (j = 0; j < resolution - 1; j++) {
       *time_sig-- = ixheaac_add32_sat(syn_buf_p3[512],
@@ -898,7 +897,6 @@ VOID ixheaacd_calculate_syn_filt_bank_res64(ia_mps_dec_qmf_syn_filter_bank *syn,
       new_samp++;
       syn_buf_p2++;
 
-      new_samp1++;
       new_samp2--;
       syn_buf_p3++;
     }

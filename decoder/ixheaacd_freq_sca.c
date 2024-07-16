@@ -696,7 +696,8 @@ WORD32 ixheaacd_calc_frq_bnd_tbls(ia_sbr_header_data_struct *ptr_header_data,
 
   ptr_header_data->status = 1;
 
-  if ((lsb > NO_ANALYSIS_CHANNELS) || (lsb >= usb)) {
+  if ((lsb > ((ptr_header_data->sbr_ratio_idx == SBR_UPSAMPLE_IDX_4_1) ? 16 : 32)) ||
+      (lsb >= usb)) {
     return -1;
   }
 

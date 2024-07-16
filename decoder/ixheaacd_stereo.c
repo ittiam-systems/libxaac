@@ -52,7 +52,7 @@
 #include "ixheaacd_stereo.h"
 
 VOID ixheaacd_ms_stereo_process(
-    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[2],
+    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS],
     ia_aac_dec_tables_struct *ptr_aac_tables)
 
 {
@@ -127,9 +127,9 @@ static PLATFORM_INLINE WORD32 ixheaacd_mult32x16in32l(WORD32 a, WORD32 b) {
 }
 
 VOID ixheaacd_intensity_stereo_process(
-    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[2],
-    ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 object_type,
-    WORD32 aac_sf_data_resil_flag, WORD16 framelength) {
+    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS],
+    ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 object_type, WORD32 aac_sf_data_resil_flag,
+    WORD16 framelength) {
   UWORD8 *ptr_ms_used =
       &ptr_aac_dec_channel_info[LEFT]->pstr_stereo_info->ms_used[0][0];
   WORD8 *ptr_code_book = &ptr_aac_dec_channel_info[RIGHT]->ptr_code_book[0];
