@@ -688,8 +688,7 @@ static VOID ixheaacd_ld_mps_ecdata_decoding(
     ia_mps_dec_state_struct *self, ia_bit_buf_struct *it_bit_buff,
     WORD32 data[MAX_PARAMETER_SETS_MPS][MAX_PARAMETER_BANDS], WORD32 datatype,
     WORD32 start_band) {
-  WORD32 i, j, pb, data_set, set_index, bs_data_pair, data_bands,
-      old_quant_coarse_xxx;
+  WORD32 i, j, pb, set_index, bs_data_pair, data_bands, old_quant_coarse_xxx;
   WORD32 strides[MAX_PARAMETER_BANDS + 1] = {0};
   WORD32 band_stop = 0;
 
@@ -716,13 +715,9 @@ static VOID ixheaacd_ld_mps_ecdata_decoding(
     lastdata = frame->cmp_cld_idx_prev;
     band_stop = self->bs_param_bands;
   }
-  data_set = 0;
   for (i = 0; i < self->num_parameter_sets; i++) {
     frame_xxx_data->bs_xxx_data_mode[i] =
         ixheaacd_read_bits_buf(it_bit_buff, 2);
-    if (frame_xxx_data->bs_xxx_data_mode[i] == 3) {
-      data_set++;
-    }
   }
 
   set_index = 0;

@@ -109,9 +109,8 @@ VOID ixheaacd_set_corr_info(
 VOID ixheaacd_gen_rand_vec(WORD32 scale, WORD shift, WORD32 *spec,
                            WORD32 sfb_width, WORD32 *random_vec);
 
-VOID ixheaacd_pns_process(
-    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[], WORD32 channel,
-    ia_aac_dec_tables_struct *ptr_aac_tables);
+VOID ixheaacd_pns_process(ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS],
+                          WORD32 channel, ia_aac_dec_tables_struct *ptr_aac_tables);
 
 VOID ixheaacd_spec_to_overlapbuf_dec(WORD32 *ptr_overlap_buf,
                                      WORD32 *ptr_spec_coeff, WORD32 q_shift,

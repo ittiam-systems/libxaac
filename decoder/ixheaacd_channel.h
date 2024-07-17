@@ -41,11 +41,10 @@ enum {
 #define RIGHT 1
 
 IA_ERRORCODE ixheaacd_channel_pair_process(
-    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[], WORD32 num_ch,
-    ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels,
-    WORD32 object_type, WORD32 aac_spect_data_resil_flag,
-    WORD32 aac_sf_data_resil_flag, WORD32 *in_data, WORD32 *out_data,
-    void *self_ptr);
+    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS], WORD32 num_ch,
+    ia_aac_dec_tables_struct *ptr_aac_tables, WORD32 total_channels, WORD32 object_type,
+    WORD32 aac_spect_data_resil_flag, WORD32 aac_sf_data_resil_flag, WORD32 *in_data,
+    WORD32 *out_data, void *self_ptr);
 
 VOID ixheaacd_map_ms_mask_pns(
     ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS]);

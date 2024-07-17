@@ -36,10 +36,9 @@ WORD32 ixheaacd_dft_hbe_apply(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                               WORD32 pitch_in_bins,
                               FLOAT32 *dft_hbe_scratch_buf);
 
-WORD32 ixheaacd_qmf_hbe_data_reinit(
-    ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
-    WORD16 *ptr_freq_band_tbl[MAX_FREQ_COEFFS + 1], WORD16 *ptr_num_sf_bands,
-    WORD32 upsamp_4_flag);
+WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
+                                    WORD16 *ptr_freq_band_tbl[2], WORD16 *ptr_num_sf_bands,
+                                    WORD32 upsamp_4_flag);
 
 IA_ERRORCODE ixheaacd_hbe_post_anal_process(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                             WORD32 pitch_in_bins, WORD32 sbr_upsamp_4_flg);

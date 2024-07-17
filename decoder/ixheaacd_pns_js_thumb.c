@@ -111,9 +111,8 @@ VOID ixheaacd_gen_rand_vec(WORD32 scale, WORD shift, WORD32 *ptr_spec_coef,
   }
 }
 
-VOID ixheaacd_pns_process(
-    ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[], WORD32 channel,
-    ia_aac_dec_tables_struct *ptr_aac_tables) {
+VOID ixheaacd_pns_process(ia_aac_dec_channel_info_struct *ptr_aac_dec_channel_info[CHANNELS],
+                          WORD32 channel, ia_aac_dec_tables_struct *ptr_aac_tables) {
   ia_pns_info_struct *ptr_pns_info =
       &ptr_aac_dec_channel_info[channel]->str_pns_info;
   ia_ics_info_struct *ptr_ics_info =

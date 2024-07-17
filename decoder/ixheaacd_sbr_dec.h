@@ -294,10 +294,9 @@ VOID ixheaacd_rescale_x_overlap(
     WORD32 **pp_overlap_buffer_real, WORD32 **pp_overlap_buffer_imag,
     FLAG low_pow_flag);
 
-WORD32 ixheaacd_qmf_hbe_data_reinit(
-    ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
-    WORD16 *ptr_freq_band_tbl[MAX_FREQ_COEFFS + 1], WORD16 *ptr_num_sf_bands,
-    WORD32 upsamp_4_flag);
+WORD32 ixheaacd_qmf_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_transposer_str,
+                                    WORD16 *ptr_freq_band_tbl[2], WORD16 *ptr_num_sf_bands,
+                                    WORD32 upsamp_4_flag);
 
 WORD32 ixheaacd_dft_hbe_data_reinit(ia_esbr_hbe_txposer_struct *ptr_hbe_txposer,
                                     WORD16 *p_freq_band_tab[2], WORD16 *p_num_sfb);
