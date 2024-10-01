@@ -136,4 +136,3 @@ else()
   include("${XAAC_ROOT}/decoder/x86/libxaacdec_x86.cmake")
 endif()
 
-add_library(libxaacdec STATIC ${LIBXAAC_COMMON_SRCS} ${LIBXAACDEC_SRCS} ${LIBXAACCDEC_ASMS})
