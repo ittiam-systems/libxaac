@@ -229,6 +229,7 @@ void ia_enhaacplus_enc_print_usage() {
   printf("\n[-inter_tes_enc:<inter_tes_enc_flag>]");
   printf("\n[-rap:<random access interval in ms>]");
   printf("\n[-stream_id:<stream identifier>]");
+  printf("\n[-delay_adjust:<delay adjustment>]");
   printf("\n\nwhere, \n  <paramfile> is the parameter file with multiple commands");
   printf("\n  <inputfile> is the input 16-bit WAV or PCM file name");
   printf("\n  <outputfile> is the output ADTS/ES file name");
@@ -317,6 +318,10 @@ void ia_enhaacplus_enc_print_usage() {
       "\n <stream identifier> is the stream id used to uniquely identify configuration of a "
       "stream within a set of associated streams."
       "\n        It is applicable only for AOT 42. Valid values are 0 to 65535. Default is 0.");
+  printf(
+    "\n <delay adjustment> is used to discard delay on the decoded file using pre-roll frames"
+    "on encoder."
+    "\n        It is applicable only for AOT 42. Valid values are 0 and 1. Default is 0.");
   exit(1);
 }
 
@@ -424,6 +429,10 @@ static VOID ixheaace_parse_config_param(WORD32 argc, pWORD8 argv[], pVOID ptr_en
     if (!strncmp((const char *)argv[i], "-stream_id:", 11)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 11);
       pstr_enc_api->input_config.stream_id = atoi(pb_arg_val);
+    }
+    if (!strncmp((const char *)argv[i], "-delay_adjust:", 14)) {
+      pWORD8 pb_arg_val = argv[i] + 14;
+      pstr_enc_api->input_config.use_delay_adjustment = atoi((const char *)pb_arg_val);
     }
   }
 
@@ -972,6 +981,12 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
       printf("\nRandom access interval (Invalid config value, setting to default) : %d",
              pstr_input_config->random_access_interval);
     }
+
+    if (pstr_input_config->use_delay_adjustment !=
+      pstr_input_config_user->use_delay_adjustment) {
+      printf("\nDelay compensation (Invalid config value, setting to default) : %d",
+        pstr_input_config->use_delay_adjustment);
+    }
   }
 
   printf(
@@ -1146,6 +1161,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   pstr_in_cfg->random_access_interval = DEFAULT_RAP_INTERVAL_IN_MS;
   pstr_in_cfg->method_def = METHOD_DEFINITION_PROGRAM_LOUDNESS;
   pstr_in_cfg->measurement_system = MEASUREMENT_SYSTEM_BS_1770_3;
+  pstr_in_cfg->use_delay_adjustment = USAC_DEFAULT_DELAY_ADJUSTMENT_VALUE;
 
   /* ******************************************************************/
   /* Parse input configuration parameters                             */
@@ -1219,7 +1235,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   }
 
   /*1st pass -> Loudness Measurement */
-  if (pstr_in_cfg->aot == AOT_USAC) {
+  if (pstr_in_cfg->aot == AOT_USAC || pstr_in_cfg->usac_en) {
     err_code =
         ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg, pstr_context->pf_inp);
     if (err_code) {
@@ -1322,10 +1338,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
 
   start_offset_samples = 0;
   input_size = pstr_out_cfg->input_size;
-
-  if (input_size) {
-    expected_frame_count = (pstr_in_cfg->aac_config.length + (input_size - 1)) / input_size;
-  }
+  expected_frame_count = pstr_out_cfg->expected_frame_count;
 
   if (NULL == ia_stsz_size) {
     ia_stsz_size = (UWORD32 *)malloc_global((expected_frame_count + 2) * sizeof(*ia_stsz_size),
@@ -1382,10 +1395,16 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
 
       ia_enhaacplus_enc_fwrite(pb_out_buf, pstr_context->pf_out, i_out_bytes);
       fflush(pstr_context->pf_out);
-
-      i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
-                                             pstr_context->pf_inp);
+      if (!pstr_in_cfg->use_delay_adjustment) {
+         i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
+           pstr_context->pf_inp);
+      }
     }
+    if (pstr_in_cfg->use_delay_adjustment) {
+      i_bytes_read = ia_enhaacplus_enc_fread((pVOID)pb_inp_buf, sizeof(WORD8), input_size,
+        pstr_context->pf_inp);
+    }
+
     if (frame_count == expected_frame_count) break;
   }
 

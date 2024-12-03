@@ -99,12 +99,9 @@ ixheaace_create_extract_sbr_envelope(WORD32 ch,
     if ((sbr_codec == USAC_SBR) && (USAC_SBR_RATIO_INDEX_4_1 == sbr_ratio_idx)) {
       qmf_time_slots = QMF_TIME_SLOTS_USAC_4_1;
       y_buffer_write_offset = QMF_TIME_SLOTS_USAC_4_1;
+      no_cols = qmf_time_slots;
     }
-    if (is_ld_sbr && frame_flag_480) {
-      y_buffer_write_offset = 30;
-      no_cols = 30;
-      time_slots = 15;
-    }
+
     pstr_sbr_ext_env->y_buffer_write_offset = y_buffer_write_offset;
 
     y_buffer_length = pstr_sbr_ext_env->y_buffer_write_offset + y_buffer_write_offset;

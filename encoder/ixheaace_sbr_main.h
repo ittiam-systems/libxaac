@@ -101,7 +101,7 @@ UWORD32 ixheaace_sbr_limit_bitrate(UWORD32 bit_rate, UWORD32 num_channels,
 VOID ixheaace_adjust_sbr_settings(const ixheaace_pstr_sbr_cfg pstr_config, UWORD32 bit_rate,
                                   UWORD32 num_channels, UWORD32 fs_core, UWORD32 trans_fac,
                                   UWORD32 standard_bitrate, ixheaace_str_qmf_tabs *ptr_qmf_tab,
-                                  WORD32 aot);
+                                  WORD32 aot, WORD32 is_esbr_4_1);
 
 VOID ixheaace_initialize_sbr_defaults(ixheaace_pstr_sbr_cfg pstr_config);
 

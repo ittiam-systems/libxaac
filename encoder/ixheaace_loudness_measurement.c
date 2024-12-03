@@ -354,8 +354,12 @@ FLOAT64 ixheaace_measure_integrated_loudness(pVOID loudness_handle) {
   pstr_loudness_hdl->no_of_mf_passing_rel_gate = 0;
   pstr_loudness_hdl->tot_int_val_mf_passing_rel_gate = 0;
 
-  avg = (pstr_loudness_hdl->tot_int_val_mf_passing_abs_gate /
-         pstr_loudness_hdl->no_of_mf_passing_abs_gate);
+  if (pstr_loudness_hdl->no_of_mf_passing_abs_gate) {
+    avg = (pstr_loudness_hdl->tot_int_val_mf_passing_abs_gate /
+           pstr_loudness_hdl->no_of_mf_passing_abs_gate);
+  } else {
+    avg = IXHEAACE_SUM_SQUARE_EPS / pstr_loudness_hdl->num_samples_per_ch;
+  }
   pstr_loudness_hdl->rel_gate = -0.691 + 10 * log10(avg) - 10;
 
   while (count < pstr_loudness_hdl->ml_count_fn_call) {
@@ -368,8 +372,13 @@ FLOAT64 ixheaace_measure_integrated_loudness(pVOID loudness_handle) {
     count++;
   }
 
-  loudness = -0.691 + 10 * log10((pstr_loudness_hdl->tot_int_val_mf_passing_rel_gate /
-                                  (FLOAT64)pstr_loudness_hdl->no_of_mf_passing_rel_gate));
+  if (pstr_loudness_hdl->no_of_mf_passing_rel_gate) {
+    loudness = -0.691 + 10 * log10((pstr_loudness_hdl->tot_int_val_mf_passing_rel_gate /
+                                    (FLOAT64)pstr_loudness_hdl->no_of_mf_passing_rel_gate));
+  } else {
+    loudness =
+        -0.691 + 10 * log10(IXHEAACE_SUM_SQUARE_EPS / pstr_loudness_hdl->num_samples_per_ch);
+  }
 
   return loudness;
 }

@@ -117,7 +117,7 @@ static VOID ixheaace_calc_auto_corr_second_order(ixheaace_acorr_coeffs *pstr_ac,
 
 VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_corr,
                                         FLOAT32 **ptr_real, FLOAT32 **ptr_imag, WORD32 usb,
-                                        WORD32 num_time_slots, WORD32 is_ld_sbr) {
+                                        WORD32 num_time_slots, WORD32 time_step) {
   WORD32 i, k, r, time_index;
   FLOAT32 alphar[2], alphai[2], r01r, r02r, r11r, r12r, r01i, r02i, r12i, det, r00r;
   ixheaace_acorr_coeffs ac;
@@ -129,7 +129,7 @@ VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_
   WORD32 no_est_per_frame = pstr_ton_corr->est_cnt_per_frame;
   WORD32 move = pstr_ton_corr->move;
   WORD32 num_qmf_ch = pstr_ton_corr->num_qmf_ch;
-  WORD32 len = num_time_slots;
+  WORD32 len;
   WORD32 qm_len;
   for (i = 0; i < move; i++) {
     memcpy(ptr_quota_mtx[i], ptr_quota_mtx[i + no_est_per_frame],
@@ -139,12 +139,9 @@ VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_
   memmove(ptr_energy_vec, ptr_energy_vec + no_est_per_frame, move * sizeof(ptr_energy_vec[0]));
   memset(ptr_energy_vec + start_index_matrix, 0,
          (tot_no_est - start_index_matrix) * sizeof(ptr_energy_vec[0]));
-  if (is_ld_sbr) {
-    len = num_time_slots / 2;
-    qm_len = 2 + len;
-  } else {
-    qm_len = 18;
-  }
+
+  len = (num_time_slots * time_step) / 2;
+  qm_len = 2 + len;
 
   for (r = 0; r < usb; r++) {
     k = 2;
@@ -185,7 +182,7 @@ VOID ixheaace_calculate_tonality_quotas(ixheaace_pstr_sbr_ton_corr_est pstr_ton_
       }
       ptr_energy_vec[time_index] += r00r;
 
-      k += is_ld_sbr ? len : 16;
+      k += len;
 
       time_index++;
     }

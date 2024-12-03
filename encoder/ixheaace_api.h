@@ -115,6 +115,7 @@ typedef struct {
   UWORD32 measurement_system;
   FLOAT32 sample_peak_level;
   UWORD16 stream_id;
+  FLAG use_delay_adjustment;
 } ixheaace_input_config;
 
 typedef struct {
@@ -140,7 +141,7 @@ typedef struct {
   WORD32 header_samp_freq;
   WORD32 audio_profile;
   FLOAT32 down_sampling_ratio;
-  pWORD32 pb_inp_buf_32;
+  WORD32 expected_frame_count;
 } ixheaace_output_config;
 
 typedef struct {

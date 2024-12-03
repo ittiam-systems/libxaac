@@ -161,6 +161,107 @@ VOID ixheaace_detect_transient(FLOAT32 **ptr_energies,
   }
 }
 
+static VOID ixheaace_calc_thresholds_4_1(FLOAT32 **ptr_energies, WORD32 num_cols, WORD32 num_rows,
+                                         FLOAT32 *ptr_thresholds,
+                                         ixheaace_sbr_codec_type sbr_codec, WORD32 time_step) {
+  FLOAT32 mean_val, std_val, thr;
+  FLOAT32 *ptr_energy;
+  FLOAT32 inv_num_cols = 1.0f / (FLOAT32)((num_cols + num_cols / 2) / time_step);
+  FLOAT32 inv_num_cols_1 = 1.0f / (FLOAT32)((num_cols + num_cols / 2 - 1) / time_step);
+
+  WORD32 i = 0;
+  WORD32 j;
+  WORD32 start_band = 8;
+  WORD32 end_band = 32;
+
+  while (i < num_rows) {
+    mean_val = std_val = 0;
+
+    j = start_band;
+    while (j < end_band) {
+      ptr_energy = &ptr_energies[j][i];
+      mean_val += (*ptr_energy);
+      j++;
+    }
+
+    mean_val *= inv_num_cols;
+
+    j = start_band;
+    while (j < end_band) {
+      FLOAT32 tmp_var;
+      tmp_var = mean_val - ptr_energies[j][i];
+      std_val += tmp_var * tmp_var;
+      j++;
+    }
+
+    std_val = (FLOAT32)sqrt(std_val * inv_num_cols_1);
+
+    thr = 0.66f * ptr_thresholds[i] + 0.34f * IXHEAACE_SBR_TRAN_STD_FAC * std_val;
+    ptr_thresholds[i] = MAX(thr, IXHEAACE_SBR_TRAN_ABS_THR);
+
+    i++;
+  }
+}
+
+static VOID ixheaace_extract_transient_candidates_4_1(FLOAT32 **ptr_energies,
+                                                      FLOAT32 *ptr_thresholds,
+                                                      FLOAT32 *ptr_transients, WORD32 num_cols,
+                                                      WORD32 start_band, WORD32 stop_band,
+                                                      WORD32 buf_len, WORD32 time_step)
+
+{
+  WORD32 idx;
+  WORD32 buf_move = num_cols / 2;
+  WORD32 band = start_band;
+
+  memmove(ptr_transients, ptr_transients + num_cols, buf_move * sizeof(ptr_transients[0]));
+  memset(ptr_transients + buf_move, 0, num_cols * sizeof(ptr_transients[0]));
+
+  while (band < stop_band) {
+    for (idx = buf_move; idx < num_cols + buf_move; idx++) {
+      float l = 0, r = 0;
+      for (int d = 1; d < 4; d++) {
+        l = ptr_energies[(idx - d) / time_step][band];
+        r = ptr_energies[(idx + d) / time_step][band];
+        if (r - l > ptr_thresholds[band])
+          ptr_transients[idx] += (r - l - ptr_thresholds[band]) / ptr_thresholds[band];
+      }
+    }
+    band++;
+  }
+}
+
+VOID ixheaace_detect_transient_4_1(FLOAT32 **ptr_energies,
+                                   ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_det,
+                                   WORD32 *ptr_tran_vector, WORD32 time_step,
+                                   ixheaace_sbr_codec_type sbr_codec) {
+  WORD32 i;
+  WORD32 no_cols = pstr_sbr_trans_det->no_cols;
+  WORD32 qmf_start_sample = time_step * 4;
+  FLOAT32 int_thr = (FLOAT32)pstr_sbr_trans_det->tran_thr / (FLOAT32)pstr_sbr_trans_det->no_rows;
+  FLOAT32 *ptr_trans = &(pstr_sbr_trans_det->ptr_transients[qmf_start_sample]);
+
+  ptr_tran_vector[0] = 0;
+  ptr_tran_vector[1] = 0;
+
+  ixheaace_calc_thresholds_4_1(ptr_energies, pstr_sbr_trans_det->no_cols,
+                               pstr_sbr_trans_det->no_rows, pstr_sbr_trans_det->ptr_thresholds,
+                               sbr_codec, time_step);
+
+  ixheaace_extract_transient_candidates_4_1(
+      ptr_energies, pstr_sbr_trans_det->ptr_thresholds, pstr_sbr_trans_det->ptr_transients,
+      pstr_sbr_trans_det->no_cols, 0, pstr_sbr_trans_det->no_rows,
+      pstr_sbr_trans_det->buffer_length, time_step);
+
+  for (i = 0; i < no_cols; i++) {
+    if ((ptr_trans[i] < 0.9f * ptr_trans[i - 1]) && (ptr_trans[i - 1] > int_thr)) {
+      ptr_tran_vector[0] = (WORD32)floor(i / time_step);
+      ptr_tran_vector[1] = 1;
+      break;
+    }
+  }
+}
+
 VOID ixheaace_detect_transient_eld(FLOAT32 **ptr_energies,
                                    ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_det,
                                    WORD32 *ptr_tran_vector) {

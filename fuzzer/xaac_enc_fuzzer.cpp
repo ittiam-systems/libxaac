@@ -544,6 +544,7 @@ static VOID ixheaace_fuzzer_flag(ixheaace_input_config *pstr_in_cfg,
   pstr_in_cfg->measurement_system = fuzzed_data->ConsumeIntegral<WORD32>();
   pstr_in_cfg->measured_loudness = fuzzed_data->ConsumeIntegral<WORD32>();
   pstr_in_cfg->stream_id = fuzzed_data->ConsumeIntegral<UWORD16>();
+  pstr_in_cfg->use_delay_adjustment = fuzzed_data->ConsumeIntegral<WORD32>();
   /* DRC */
   if (pstr_in_cfg->use_drc_element == 1) {
     ixheaace_read_drc_config_params(&pstr_drc_cfg->str_enc_params,
@@ -675,7 +676,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   ixheaace_fuzzer_flag(pstr_in_cfg, pstr_drc_cfg, &fuzzed_data, pstr_in_cfg->i_channels);
 
   /*1st pass -> Loudness Measurement */
-  if (pstr_in_cfg->aot == AOT_USAC) {
+  if (pstr_in_cfg->aot == AOT_USAC || pstr_in_cfg->usac_en) {
     err_code =
         ixheaace_calculate_loudness_measure(pstr_in_cfg, pstr_out_cfg, &fuzzed_data_loudness);
     if (err_code) {
