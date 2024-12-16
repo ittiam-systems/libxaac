@@ -201,8 +201,8 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
 
   i = 0;
   while (i < n_envelopes) {
-    start_pos = time_step * pstr_const_frame_info->borders[i];
-    stop_pos = time_step * pstr_const_frame_info->borders[i + 1];
+    start_pos = pstr_const_frame_info->borders[i];
+    stop_pos = pstr_const_frame_info->borders[i + 1];
     freq_res = pstr_const_frame_info->freq_res[i];
     num_bands = pstr_sbr_cfg->num_scf[freq_res];
 
@@ -216,7 +216,7 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
           stop_pos = stop_pos - temp;
         }
       } else {
-        stop_pos = stop_pos - time_step;
+        stop_pos = stop_pos - 1;
       }
     }
     for (j = 0; j < num_bands; j++) {
@@ -265,14 +265,22 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
       if (missing_harmonic) {
         count = stop_pos - start_pos;
         for (l = start_pos; l < stop_pos; l++) {
-          energy_left += ptr_y_buf_left[l / 2][li];
+          if (pstr_sbr_cfg->is_ld_sbr) {
+            energy_left += ptr_y_buf_left[l >> 1][li];
+          } else {
+            energy_left += ptr_y_buf_left[l][li];
+          }
         }
 
         k = li + 1;
         while (k < ui) {
           tmp_ene_l = 0.0f;
           for (l = start_pos; l < stop_pos; l++) {
-            tmp_ene_l += ptr_y_buf_left[l / 2][k];
+            if (pstr_sbr_cfg->is_ld_sbr) {
+              tmp_ene_l += ptr_y_buf_left[l >> 1][k];
+            } else {
+              tmp_ene_l += ptr_y_buf_left[l][k];
+            }
           }
 
           if (tmp_ene_l > energy_left) {
@@ -291,14 +299,22 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
 
         if (stereo_mode == SBR_COUPLING) {
           for (l = start_pos; l < stop_pos; l++) {
-            energy_right += ptr_y_buf_right[l / 2][li];
+            if (pstr_sbr_cfg->is_ld_sbr) {
+              energy_right += ptr_y_buf_right[l >> 1][li];
+            } else {
+              energy_right += ptr_y_buf_right[l][li];
+            }
           }
 
           k = li + 1;
           while (k < ui) {
             tmp_ene_r = 0.0f;
             for (l = start_pos; l < stop_pos; l++) {
-              tmp_ene_r += ptr_y_buf_right[l / 2][k];
+              if (pstr_sbr_cfg->is_ld_sbr) {
+                tmp_ene_r += ptr_y_buf_right[l >> 1][k];
+              } else {
+                tmp_ene_r += ptr_y_buf_right[l][k];
+              }
             }
 
             if (tmp_ene_r > energy_right) {
@@ -314,10 +330,9 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
               energy_right = energy_right * 0.5f;
             }
           }
-
           tmp_ene_l = energy_left;
           energy_left = (energy_left + energy_right) * 0.5f;
-          energy_right = (tmp_ene_l + 1) / (energy_right + 1);
+          energy_right = ((tmp_ene_l * time_step) + 1) / ((energy_right * time_step) + 1);
         }
       } else {
         count = (stop_pos - start_pos) * (ui - li);
@@ -325,11 +340,7 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
         k = li;
         while (k < ui) {
           for (l = start_pos; l < stop_pos; l++) {
-            if (pstr_sbr_cfg->is_ld_sbr) {
-              energy_left += ptr_y_buf_left[l][k];
-            } else {
-              energy_left += ptr_y_buf_left[l / 2][k];
-            }
+            energy_left += ptr_y_buf_left[l][k];
           }
           k++;
         }
@@ -338,17 +349,21 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
           k = li;
           while (k < ui) {
             for (l = start_pos; l < stop_pos; l++) {
-              energy_right += ptr_y_buf_right[l / 2][k];
+              if (pstr_sbr_cfg->is_ld_sbr) {
+                energy_right += ptr_y_buf_right[l >> 1][k];
+              } else {
+                energy_right += ptr_y_buf_right[l][k];
+              }
             }
             k++;
           }
           tmp_ene_l = energy_left;
           energy_left = (energy_left + energy_right) * 0.5f;
-          energy_right = (tmp_ene_l + 1) / (energy_right + 1);
+          energy_right = ((tmp_ene_l * time_step) + 1) / ((energy_right * time_step) + 1);
         }
       }
 
-      energy_left = (FLOAT32)(log(energy_left / (count * 64) + EPS) * SBR_INV_LOG_2);
+      energy_left = (FLOAT32)(log((energy_left / (count * 64)) + EPS) * SBR_INV_LOG_2);
 
       if (energy_left < 0.0f) {
         energy_left = 0.0f;
@@ -374,8 +389,9 @@ static IA_ERRORCODE ixheaace_calculate_sbr_envelope(
 
       for (j = 0; j < num_bands; j++) {
         if (freq_res == FREQ_RES_HIGH && pstr_sbr->str_sbr_extract_env.envelope_compensation[j]) {
-          ptr_sfb_ene_l[m] -= (WORD32)(
-              ca * ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
+          ptr_sfb_ene_l[m] -=
+              (WORD32)(ca *
+                       ixheaac_abs32(pstr_sbr->str_sbr_extract_env.envelope_compensation[j]));
         }
 
         if (ptr_sfb_ene_l[m] < 0) {
@@ -2124,17 +2140,22 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
         pstr_sbr_extract_env->ptr_y_buffer + pstr_sbr_extract_env->y_buffer_write_offset,
         pstr_sbr_extract_env->ptr_r_buffer, pstr_sbr_extract_env->ptr_i_buffer,
         pstr_sbr_cfg->is_ld_sbr, pstr_env_ch[ch]->str_sbr_qmf.num_time_slots, samp_ratio_fac,
-        pstr_hbe_enc, (IXHEAACE_OP_DELAY_OFFSET + IXHEAACE_ESBR_HBE_DELAY_OFFSET +
-        IXHEAACE_SBR_HF_ADJ_OFFSET), pstr_sbr_hdr->sbr_harmonic);
+        pstr_hbe_enc,
+        (IXHEAACE_OP_DELAY_OFFSET + IXHEAACE_ESBR_HBE_DELAY_OFFSET + IXHEAACE_SBR_HF_ADJ_OFFSET),
+        pstr_sbr_hdr->sbr_harmonic);
 
     ixheaace_calculate_tonality_quotas(
         &pstr_env_ch[ch]->str_ton_corr, pstr_sbr_extract_env->ptr_r_buffer,
         pstr_sbr_extract_env->ptr_i_buffer,
         pstr_sbr_cfg->ptr_freq_band_tab[HI][pstr_sbr_cfg->num_scf[HI]],
-        pstr_env_ch[ch]->str_sbr_qmf.num_time_slots, pstr_sbr_cfg->is_ld_sbr);
+        pstr_env_ch[ch]->str_sbr_qmf.num_time_slots, pstr_sbr_extract_env->time_step);
     if (pstr_sbr_cfg->is_ld_sbr) {
       ixheaace_detect_transient_eld(pstr_sbr_extract_env->ptr_y_buffer,
                                     &pstr_env_ch[ch]->str_sbr_trans_detector, transient_info[ch]);
+    } else if (pstr_sbr_extract_env->time_step == 4) {
+      ixheaace_detect_transient_4_1(pstr_sbr_extract_env->ptr_y_buffer,
+                                    &pstr_env_ch[ch]->str_sbr_trans_detector, transient_info[ch],
+                                    pstr_sbr_extract_env->time_step, pstr_sbr_cfg->sbr_codec);
     } else {
       ixheaace_detect_transient(pstr_sbr_extract_env->ptr_y_buffer,
                                 &pstr_env_ch[ch]->str_sbr_trans_detector, transient_info[ch],
@@ -2913,8 +2934,8 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
       FLOAT32 *ptr_tmp;
       ptr_tmp = pstr_sbr_extract_env->ptr_y_buffer[i];
       pstr_sbr_extract_env->ptr_y_buffer[i] =
-          pstr_sbr_extract_env->ptr_y_buffer[i + (pstr_sbr_extract_env->no_cols >> 1)];
-      pstr_sbr_extract_env->ptr_y_buffer[i + (pstr_sbr_extract_env->no_cols >> 1)] = ptr_tmp;
+          pstr_sbr_extract_env->ptr_y_buffer[i + pstr_sbr_extract_env->time_slots];
+      pstr_sbr_extract_env->ptr_y_buffer[i + pstr_sbr_extract_env->time_slots] = ptr_tmp;
     }
 
     pstr_sbr_extract_env->buffer_flag ^= 1;

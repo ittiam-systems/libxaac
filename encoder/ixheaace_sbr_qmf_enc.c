@@ -961,17 +961,14 @@ VOID ixheaace_get_energy_from_cplx_qmf(
   }
   if (0 == is_ld_sbr) {
     FLOAT32 *ptr_energy_val = &ptr_energy_vals[0][0];
-    FLOAT32 *ptr_real = &ptr_real_values[0][0];
-    FLOAT32 *ptr_imag = &ptr_imag_values[0][0];
     FLOAT32 *ptr_hbe_real = NULL;
     FLOAT32 *ptr_hbe_imag = NULL;
     if (harmonic_sbr == 1) {
       ptr_hbe_real = &pstr_hbe_enc->qmf_buf_real[op_delay][0];
       ptr_hbe_imag = &pstr_hbe_enc->qmf_buf_imag[op_delay][0];
     }
-    k = (num_time_slots - 1);
-    while (k >= 0) {
-      for (j = 63; j >= 0; j--) {
+    for (k = 0; k < num_time_slots; k++) {
+      for (j = 0; j < IXHEAACE_QMF_CHANNELS; j++) {
         FLOAT32 tmp = 0.0f;
         if (harmonic_sbr == 1) {
           FLOAT32 real_hbe, imag_hbe;
@@ -981,28 +978,23 @@ VOID ixheaace_get_energy_from_cplx_qmf(
           *ptr_energy_val = tmp;
           ptr_hbe_real++;
           ptr_hbe_imag++;
+          ptr_energy_val++;
         } else {
           FLOAT32 real, imag;
-          WORD32 i;
+          WORD32 i, subband;
+          subband = samp_ratio_fac * k;
           for (i = 0; i < samp_ratio_fac; i++) {
-            real = *(ptr_real + i * IXHEAACE_QMF_CHANNELS);
-            imag = *(ptr_imag + i * IXHEAACE_QMF_CHANNELS);
+            real = ptr_real_values[subband + i][j];
+            imag = ptr_imag_values[subband + i][j];
             tmp += (real * real) + (imag * imag);
           }
-          *ptr_energy_val = tmp * avg_fac;
-          ptr_real++;
-          ptr_imag++;
+          ptr_energy_vals[k][j] = tmp * avg_fac;
         }
-        ptr_energy_val++;
       }
       if (harmonic_sbr == 1) {
         ptr_hbe_real += 64;
         ptr_hbe_imag += 64;
-      } else {
-        ptr_real += 64;
-        ptr_imag += 64;
       }
-      k--;
     }
   } else {
     FLOAT32 *ptr_real = &ptr_real_values[0][0];

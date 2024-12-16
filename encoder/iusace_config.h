@@ -286,6 +286,7 @@ typedef struct {
   ia_drc_internal_config str_internal_drc_cfg;
   WORD32 use_measured_loudness;
   UWORD16 stream_id;
+  FLAG use_delay_adjustment;
 } ia_usac_encoder_config_struct;
 
 typedef struct {

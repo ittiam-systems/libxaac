@@ -431,7 +431,7 @@ UWORD32 ixheaace_sbr_limit_bitrate(UWORD32 bit_rate, UWORD32 num_ch, UWORD32 cor
 VOID ixheaace_adjust_sbr_settings(const ixheaace_pstr_sbr_cfg pstr_config, UWORD32 bit_rate,
                                   UWORD32 num_ch, UWORD32 fs_core, UWORD32 trans_fac,
                                   UWORD32 std_br, ixheaace_str_qmf_tabs *pstr_qmf_tab,
-                                  WORD32 aot) {
+                                  WORD32 aot, WORD32 is_esbr_4_1) {
   FLAG table_found = IXHEAACE_TABLE_IDX_NOT_FOUND;
   WORD32 idx_sr = 0;
   WORD32 idx_ch = 0;
@@ -537,6 +537,11 @@ VOID ixheaace_adjust_sbr_settings(const ixheaace_pstr_sbr_cfg pstr_config, UWORD
     if (pstr_config->use_ps) {
       pstr_config->ps_mode = ixheaace_get_ps_mode(bit_rate);
     }
+  }
+
+  if (is_esbr_4_1) {
+    pstr_config->start_freq = 10;
+    pstr_config->stop_freq = 11;
   }
 }
 

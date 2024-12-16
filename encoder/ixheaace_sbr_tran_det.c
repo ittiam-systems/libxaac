@@ -87,26 +87,25 @@ static IA_ERRORCODE ixheaace_spectral_change(FLOAT32 *ptr_energies[16], FLOAT32 
 }
 
 FLOAT32 ixheaace_add_lowband_energies(FLOAT32 **ptr_energies, UWORD8 *ptr_freq_band_tab,
-                                      WORD32 time_slots, WORD32 is_ld_sbr) {
+                                      WORD32 time_slots, WORD32 is_ld_sbr, WORD32 time_step) {
   WORD32 band, ts;
   FLOAT32 energy = 1.0f;
   WORD32 tran_offset = 0;
   if (is_ld_sbr) {
     tran_offset = 7;
     energy = 0.0f;
-
-    for (ts = tran_offset; ts < time_slots + tran_offset; ts++) {
-      for (band = 0; band < ptr_freq_band_tab[0]; band++) {
-        energy += ptr_energies[ts][band];
-      }
-    }
   } else {
-    for (ts = tran_offset; ts < time_slots + tran_offset; ts++) {
-      for (band = 0; band < ptr_freq_band_tab[0]; band++) {
-        energy += ptr_energies[(ts + time_slots / 2) / 2][band];
-      }
+    tran_offset = time_slots / 2;
+  }
+
+  for (ts = tran_offset; ts < time_slots + tran_offset; ts++) {
+    for (band = 0; band < ptr_freq_band_tab[0]; band++) {
+      energy += ptr_energies[ts][band];
     }
   }
+
+  energy *= time_step;
+
   return energy;
 }
 
@@ -114,41 +113,25 @@ static FLOAT32 ixheaace_add_highband_energies(FLOAT32 **ptr_energies, FLOAT32 *p
                                               UWORD8 *ptr_freq_band_tab, WORD32 num_sfb,
                                               WORD32 time_slots, WORD32 time_step,
                                               WORD32 is_ld_sbr) {
-  WORD32 band, ts, sfb, low_band, high_band, st;
+  WORD32 band, ts, sfb, low_band, high_band;
   FLOAT32 energy = 1.0f, tmp;
   if (is_ld_sbr) {
     energy = 0.0f;
-    for (ts = 0; ts < time_slots; ts++) {
-      for (sfb = 0; sfb < num_sfb; sfb++) {
-        tmp = 0;
-        low_band = ptr_freq_band_tab[sfb];
-        high_band = ptr_freq_band_tab[sfb + 1];
-        band = low_band;
-        while (band < high_band) {
-          tmp += ptr_energies[ts][band];
-          band++;
-        }
-        ptr_energies_m[ts][sfb] = tmp;
-        energy += tmp;
+  }
+  for (ts = 0; ts < time_slots; ts++) {
+    for (sfb = 0; sfb < num_sfb; sfb++) {
+      tmp = 0;
+      low_band = ptr_freq_band_tab[sfb];
+      high_band = ptr_freq_band_tab[sfb + 1];
+      band = low_band;
+      while (band < high_band) {
+        tmp += (ptr_energies[ts][band] * time_step);
+        band++;
       }
-    }
-  } else {
-    for (ts = 0; ts < time_slots; ts++) {
-      for (sfb = 0; sfb < num_sfb; sfb++) {
-        tmp = 0;
-        low_band = ptr_freq_band_tab[sfb];
-        high_band = ptr_freq_band_tab[sfb + 1];
-        band = low_band;
-        while (band < high_band) {
-          st = 0;
-          while (st < time_step) {
-            tmp += ptr_energies[ts + (st / 2)][band];
-            st++;
-          }
-          band++;
-        }
-        ptr_energies_m[ts][sfb] = tmp;
-
+      ptr_energies_m[ts][sfb] = tmp;
+      if (is_ld_sbr || time_step == 4) {
+        energy += tmp;
+      } else {
         energy += ptr_energies[ts][sfb];
       }
     }
@@ -181,8 +164,8 @@ ixheaace_frame_splitter(FLOAT32 **ptr_energies,
     ptr_frame_splitter_scratch += MAXIMUM_FREQ_COEFFS;
   }
 
-  low_band_energy =
-      ixheaace_add_lowband_energies(ptr_energies, ptr_freq_band_tab, no_cols, is_ld_sbr);
+  low_band_energy = ixheaace_add_lowband_energies(ptr_energies, ptr_freq_band_tab, num_sbr_slots,
+                                                  is_ld_sbr, time_step);
 
   high_band_energy =
       ixheaace_add_highband_energies(ptr_energies, ptr_energies_m, ptr_freq_band_tab, num_scf,
@@ -222,6 +205,7 @@ VOID ixheaace_create_sbr_transient_detector(
   if ((sbr_codec == USAC_SBR) && (sbr_ratio_idx == USAC_SBR_RATIO_INDEX_4_1)) {
     frm_dur = frm_dur * 2;
     split_thr_fac = frm_dur - 0.01f;
+    no_cols = 64;
   }
   if ((1 == is_ld_sbr) && (1 == frame_flag_480)) {
     no_cols = 30;
