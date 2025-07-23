@@ -63,6 +63,9 @@ typedef struct ia_drc_config_struct {
   WORD32 apply_crossfade;
   WORD32 is_config_changed;
   WORD32 ln_dbgain_prev;
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 loudness_leveling_flag;
+#endif
 } ia_drc_config_struct;
 
 /* DRC bitsteam handler */

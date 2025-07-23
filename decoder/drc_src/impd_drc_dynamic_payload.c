@@ -28,6 +28,10 @@
 #include "impd_drc_parser.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
+#ifdef LOUDNESS_LEVELING_SUPPORT
+#include "impd_drc_error_codes.h"
+#include "ixheaacd_error_codes.h"
+#endif
 WORD32 impd_parse_loud_eq_instructions(
     ia_bit_buf_struct* it_bit_buff,
     ia_loud_eq_instructions_struct* loud_eq_instructions);
@@ -645,6 +649,42 @@ WORD32 impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
   }
   return 0;
 }
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+IA_ERROR_CODE impd_leveling_instructions(ia_bit_buf_struct* it_bit_buff,
+                                         ia_drc_config* pstr_drc_config) {
+  WORD32 i;
+  IA_ERROR_CODE err = IA_NO_ERROR;
+  WORD32 drc_instruction_uni_drc_count = pstr_drc_config->drc_instructions_uni_drc_count;
+
+  for (i = 0; i < drc_instruction_uni_drc_count; ++i) {
+    if ((pstr_drc_config->str_drc_instruction_str[i].drc_set_effect & (1 << 11)) != 0) {
+      pstr_drc_config->str_drc_instruction_str[i].leveling_present =
+          impd_read_bits_buf(it_bit_buff, 1);
+
+      if (pstr_drc_config->str_drc_instruction_str[i].leveling_present) {
+        WORD32 ducking_only_drc_set_present = impd_read_bits_buf(it_bit_buff, 1);
+
+        if (ducking_only_drc_set_present) {
+          pstr_drc_config->drc_instructions_uni_drc_count++;
+
+          if (pstr_drc_config->drc_instructions_uni_drc_count > DRC_INSTRUCTIONS_COUNT_MAX) {
+            return IA_XHEAAC_DEC_INIT_NONFATAL_MAX_INSTRUCTIONS_ERROR;
+          }
+
+          err = impd_parse_drc_instructions_uni_drc(
+              it_bit_buff, 1, pstr_drc_config,
+              &pstr_drc_config
+                   ->str_drc_instruction_str[pstr_drc_config->drc_instructions_uni_drc_count -
+                                             1]);
+          if (err) return err;
+        }
+      }
+    }
+  }
+  return err;
+}
+#endif
 
 WORD32 impd_parse_filt_block(ia_bit_buf_struct* it_bit_buff,
                              ia_filt_block_struct* str_filter_block,

@@ -424,6 +424,9 @@ typedef struct {
   WORD32 gain_set_idx_of_ch_group_parametric_drc[CHANNEL_GROUP_COUNT_MAX];
   WORD32 parametric_drc_look_ahead_samples[CHANNEL_GROUP_COUNT_MAX];
   WORD32 parametric_drc_look_ahead_samples_max;
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 leveling_present;
+#endif
 } ia_drc_instructions_struct;
 
 typedef struct {

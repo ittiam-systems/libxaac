@@ -73,6 +73,10 @@ impd_parse_drc_ext_v1(ia_bit_buf_struct* it_bit_buff,
                       ia_drc_config* drc_config,
                       ia_drc_config_ext* str_drc_config_ext);
 
+#ifdef LOUDNESS_LEVELING_SUPPORT
+WORD32 impd_leveling_instructions(ia_bit_buf_struct* it_bit_buff, ia_drc_config* pstr_drc_config);
+#endif
+
 WORD32
 impd_parse_drc_config(ia_bit_buf_struct* it_bit_buff,
                       ia_drc_params_bs_dec_struct* ia_drc_params_struct,

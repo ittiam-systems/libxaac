@@ -75,7 +75,12 @@ pWORD8 ixheaacd_ppb_config_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid target loudness value",
     (pWORD8) "Invalid HQ eSBR flag option. Setting to default 0",
     (pWORD8) "Invalid frame length flag option. Setting to default 0",
-    (pWORD8) "Invalid eSBR flag option. Setting to default 1"};
+    (pWORD8) "Invalid eSBR flag option. Setting to default 1"
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    ,
+    (pWORD8) "Invalid Loudness leveling flag option. Setting to default 1"
+#endif
+};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid Sample rate specified for RAW decoding"};
@@ -87,7 +92,12 @@ pWORD8 ixheaacd_ppb_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
 pWORD8 ixheaacd_ppb_init_non_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Header not found at the beginning of input data continuing syncing",
     (pWORD8) "Invalid number of QMF bands", (pWORD8) "Decoder initialization failed",
-    (pWORD8) "Input bytes insufficient for decoding", (pWORD8) "Error in AAC decoding"};
+    (pWORD8) "Input bytes insufficient for decoding", (pWORD8) "Error in AAC decoding"
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    ,
+    (pWORD8) "DRC instruction count exceeded"
+#endif
+};
 /* Fatal Errors */
 pWORD8 ixheaacd_ppb_init_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "AAC Decoder initialization failed",

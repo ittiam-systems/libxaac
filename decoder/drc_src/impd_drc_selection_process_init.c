@@ -104,6 +104,10 @@ WORD32 impd_drc_sel_proc_init_dflt(
     pstr_drc_uni_sel_proc->eq_inst_index[0] = -1;
     pstr_drc_uni_sel_proc->eq_inst_index[1] = -1;
     pstr_drc_uni_sel_proc->sel_proc_request_flag = 1;
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_leveling_on = 1;
+#endif
   } else {
     return 1;
   }
@@ -133,6 +137,10 @@ VOID impd_drc_sel_proc_init_interface_params(
   WORD32 i, j;
 
   if (pstr_drc_uni_sel_proc != NULL && pstr_drc_interface != NULL) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_leveling_on =
+        pstr_drc_interface->drc_uni_interface_ext.loudness_leveling_on;
+#endif
     if (pstr_drc_interface->system_interface_flag) {
       if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_params
               .target_config_request_type !=

@@ -240,6 +240,10 @@ enum {
   DRC_BOOST_OFFSET,
   DRC_COMPRESS_OFFSET,
   DRC_EFFECT_OFFSET
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  ,
+  DRC_LOUDNESS_LEVELING_OFFSET
+#endif
 };
 
 IA_ERRORCODE Codec::initXAACDrc(const uint8_t* data, size_t size) {
@@ -294,6 +298,15 @@ IA_ERRORCODE Codec::initXAACDrc(const uint8_t* data, size_t size) {
   ui_drc_val = (unsigned int)effectType;
   err_code = ixheaacd_dec_api(mXheaacCodecHandle, IA_API_CMD_SET_CONFIG_PARAM,
                               IA_ENHAACPLUS_DEC_DRC_EFFECT_TYPE, &ui_drc_val);
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  // DRC_LOUDNESS_LEVELING_FLAG
+  size_t flagOffset = std::min((size_t)DRC_LOUDNESS_LEVELING_OFFSET, size - 1);
+  uint8_t loudnessFlag = data[flagOffset];
+  ui_drc_val = (unsigned int)loudnessFlag;
+  err_code = ixheaacd_dec_api(mXheaacCodecHandle, IA_API_CMD_SET_CONFIG_PARAM,
+                              IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING, &ui_drc_val);
+#endif
 
   return IA_NO_ERROR;
 }
