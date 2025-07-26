@@ -480,7 +480,9 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 0;
           p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 0;
           p_obj_exhaacplus_dec->aac_config.output_level = -1;
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+          p_obj_exhaacplus_dec->aac_config.ui_loudness_leveling_flag = 1;
+#endif
           p_obj_exhaacplus_dec->aac_config.ui_max_channels = 6;
 
           p_obj_exhaacplus_dec->aac_config.ui_coupling_channel = 0;
@@ -789,6 +791,16 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_enh_sbr = *pui_value_signed;
           break;
         }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+        case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING: {
+          if (((*pui_value_signed) != 0) && ((*pui_value_signed) != 1)) {
+            p_obj_exhaacplus_dec->aac_config.ui_loudness_leveling_flag = 1;
+            return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_LOUDNESS_LEVELING_FLAG);
+          }
+          p_obj_exhaacplus_dec->aac_config.ui_loudness_leveling_flag = *pui_value_signed;
+          break;
+        }
+#endif
         default: { return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM; }
       }
       break;
@@ -931,7 +943,15 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
         } else {
           *pui_value = AOT_AAC_LC;
         }
-      } else {
+      }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+      else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING == i_idx) {
+        WORD32 *ui_value =
+            (WORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_loudness_leveling_flag);
+        *pui_value = *ui_value;
+      }
+#endif
+      else {
         return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
       break;

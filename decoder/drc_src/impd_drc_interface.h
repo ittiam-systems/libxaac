@@ -42,6 +42,11 @@ typedef struct {
 typedef struct {
   WORD32 interface_ext_count;
   ia_specific_interface_extension_struct specific_interface_ext[EXT_COUNT_MAX];
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 loudness_leveling_on;
+#endif
+
   WORD32 loudness_eq_parameter_interface_flag;
   WORD32 eq_ctrl_interface_flag;
   ia_loudness_eq_parameter_interface_struct loudness_eq_parameter_interface;

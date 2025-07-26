@@ -1,3 +1,8 @@
+#In order to support DRC AMD-2(ISO/IEC 23003-4:2020/Amd. 2:2023(E)), `leveling_present` and `ducking_only_set` fields are introduced in DRC config file.
+#For a given DRC effect, when both `leveling_present` and `ducking_only_set` are set to 1, automatically the next drc instruction is treated as ducking only set.
+#For example, if the second DRC effect is marked as 2048/4096 with  `leveling_present` is set to 1 and `ducking_only_set` is set to 1, then the third DRC effect will be treated as ducking-only.
+#For the last drc instruction, `leveling_present` and `ducking_only_set` fields are ignored and reset to 0. Maximum supported instructions are 8.
+
 #####str_drc_instructions_uni_drc#####
 drc_instructions_uni_drc_count:0
 #####str_drc_coefficients_uni_drc#####
@@ -28,10 +33,9 @@ attack:2.0
 decay:5.0
 #end gain parameters
 #####str_drc_instructions_uni_drc_v1#####
-drc_instructions_uni_drc_count:8
+drc_instructions_uni_drc_count_v1:3
 #n=0
 downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
 drc_set_effect:0x0001
 gain_set_channels:8
 gain_set_index:0
@@ -45,8 +49,7 @@ gain_set_index:0
 num_drc_channel_groups:1
 #n=1
 downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0002
+drc_set_effect:0x800
 gain_set_channels:8
 gain_set_index:0
 gain_set_index:0
@@ -57,80 +60,13 @@ gain_set_index:0
 gain_set_index:0
 gain_set_index:0
 num_drc_channel_groups:1
+#leveling present flag
+leveling_present:1
+#if ducking_only_set is one next drc instruction's set effect is set to 0x800 (ducking/leveling self)
+ducking_only_set:1
 #n=2
 downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0004
-gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-num_drc_channel_groups:1
-#n=3
-downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0008
-gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-num_drc_channel_groups:1
-#n=4
-downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0010
-gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-num_drc_channel_groups:1
-#n=5
-downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0020
-gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-num_drc_channel_groups:1
-#n=6
-downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0040
-gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-num_drc_channel_groups:1
-#n=7
-downmix_id:0
-#Different drc_effect values are present in impeghe_drc_uni_drc.h file with prefix EFFECT_BIT_
-drc_set_effect:0x0080
+drc_set_effect:0x0800
 gain_set_channels:8
 gain_set_index:0
 gain_set_index:0

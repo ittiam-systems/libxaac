@@ -162,8 +162,7 @@ VOID ixheaace_detect_transient(FLOAT32 **ptr_energies,
 }
 
 static VOID ixheaace_calc_thresholds_4_1(FLOAT32 **ptr_energies, WORD32 num_cols, WORD32 num_rows,
-                                         FLOAT32 *ptr_thresholds,
-                                         ixheaace_sbr_codec_type sbr_codec, WORD32 time_step) {
+                                         FLOAT32 *ptr_thresholds, WORD32 time_step) {
   FLOAT32 mean_val, std_val, thr;
   FLOAT32 *ptr_energy;
   FLOAT32 inv_num_cols = 1.0f / (FLOAT32)((num_cols + num_cols / 2) / time_step);
@@ -207,7 +206,7 @@ static VOID ixheaace_extract_transient_candidates_4_1(FLOAT32 **ptr_energies,
                                                       FLOAT32 *ptr_thresholds,
                                                       FLOAT32 *ptr_transients, WORD32 num_cols,
                                                       WORD32 start_band, WORD32 stop_band,
-                                                      WORD32 buf_len, WORD32 time_step)
+                                                      WORD32 time_step)
 
 {
   WORD32 idx;
@@ -233,8 +232,7 @@ static VOID ixheaace_extract_transient_candidates_4_1(FLOAT32 **ptr_energies,
 
 VOID ixheaace_detect_transient_4_1(FLOAT32 **ptr_energies,
                                    ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_det,
-                                   WORD32 *ptr_tran_vector, WORD32 time_step,
-                                   ixheaace_sbr_codec_type sbr_codec) {
+                                   WORD32 *ptr_tran_vector, WORD32 time_step) {
   WORD32 i;
   WORD32 no_cols = pstr_sbr_trans_det->no_cols;
   WORD32 qmf_start_sample = time_step * 4;
@@ -246,12 +244,11 @@ VOID ixheaace_detect_transient_4_1(FLOAT32 **ptr_energies,
 
   ixheaace_calc_thresholds_4_1(ptr_energies, pstr_sbr_trans_det->no_cols,
                                pstr_sbr_trans_det->no_rows, pstr_sbr_trans_det->ptr_thresholds,
-                               sbr_codec, time_step);
+                               time_step);
 
   ixheaace_extract_transient_candidates_4_1(
       ptr_energies, pstr_sbr_trans_det->ptr_thresholds, pstr_sbr_trans_det->ptr_transients,
-      pstr_sbr_trans_det->no_cols, 0, pstr_sbr_trans_det->no_rows,
-      pstr_sbr_trans_det->buffer_length, time_step);
+      pstr_sbr_trans_det->no_cols, 0, pstr_sbr_trans_det->no_rows, time_step);
 
   for (i = 0; i < no_cols; i++) {
     if ((ptr_trans[i] < 0.9f * ptr_trans[i - 1]) && (ptr_trans[i - 1] > int_thr)) {

@@ -577,6 +577,20 @@ static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_c
         pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].limiter_peak_target) {
       flag = 1;
     }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_set_effect !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].drc_set_effect) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].leveling_present) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present !=
+        pstr_uni_drc_config_user->str_drc_instructions_uni_drc[i].ducking_only_set_present) {
+      flag = 1;
+    }
+#endif
   }
   if (flag == 1) {
     printf("\nDRC : Invalid config str_drc_instructions_uni_drc");
@@ -653,6 +667,33 @@ static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_c
     printf("\nDRC : Invalid config: str_drc_coefficients_uni_drc");
     flag = 0;
   }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext =
+      &pstr_uni_drc_config->str_uni_drc_config_ext;
+  ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext_user =
+      &pstr_uni_drc_config_user->str_uni_drc_config_ext;
+
+  for (i = 0; i < pstr_uni_drc_config_ext->drc_instructions_uni_drc_v1_count; i++) {
+    if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].drc_set_effect !=
+        pstr_uni_drc_config_ext_user->str_drc_instructions_uni_drc_v1[i].drc_set_effect) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present !=
+        pstr_uni_drc_config_ext_user->str_drc_instructions_uni_drc_v1[i].leveling_present) {
+      flag = 1;
+    }
+    if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].ducking_only_set_present !=
+        pstr_uni_drc_config_ext_user->str_drc_instructions_uni_drc_v1[i]
+            .ducking_only_set_present) {
+      flag = 1;
+    }
+  }
+
+  if (flag == 1) {
+    printf("\nDRC : Invalid config str_drc_instructions_uni_drc_v1");
+    flag = 0;
+  }
+#endif
   for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_count; i++) {
     if (pstr_enc_loudness_info_set->str_loudness_info[i].sample_peak_level !=
         pstr_enc_loudness_info_set_user->str_loudness_info[i].sample_peak_level) {

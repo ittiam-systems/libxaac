@@ -262,7 +262,7 @@ static IA_ERRORCODE ixheaace_create_env_channel(
   }
   err_code = ixheaace_create_extract_sbr_envelope(
       ch, &pstr_env->str_sbr_extract_env, start_index, ptr_common_buffer2, ptr_sbr_env_r_buf,
-      ptr_sbr_env_i_buf, params->is_ld_sbr, params->frame_flag_480, params->sbr_codec);
+      ptr_sbr_env_i_buf, params->frame_flag_480, params->sbr_codec);
   if (err_code) {
     return err_code;
   }

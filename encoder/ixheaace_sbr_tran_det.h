@@ -61,8 +61,7 @@ VOID ixheaace_detect_transient(FLOAT32 **ptr_energies,
 
 VOID ixheaace_detect_transient_4_1(FLOAT32 **ptr_energies,
                                    ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_det,
-                                   WORD32 *ptr_tran_vector, WORD32 time_step,
-                                   ixheaace_sbr_codec_type sbr_codec);
+                                   WORD32 *ptr_tran_vector, WORD32 time_step);
 
 VOID ixheaace_detect_transient_eld(FLOAT32 **ptr_energies,
                                    ixheaace_pstr_sbr_trans_detector pstr_sbr_trans_det,

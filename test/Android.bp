@@ -21,7 +21,8 @@ cc_test {
         "-DECLIPSE",
         "-DDRC_ENABLE",
         "-DMULTICHANNEL_ENABLE",
-        "-DENABLE_DRC"
+        "-DENABLE_DRC",
+        "-DLOUDNESS_LEVELING_SUPPORT",
     ],
 
     include_dirs: [
@@ -50,6 +51,7 @@ cc_test {
     cflags: [
         "-O3",
         "-D_X86_",
+        "-DLOUDNESS_LEVELING_SUPPORT",
     ],
 
     include_dirs: [

@@ -58,10 +58,15 @@ impd_drc_dec_interface_process(ia_bit_buf_struct *it_bit_buff,
                                WORD32 *num_bits_read);
 
 WORD32
-impd_drc_dec_interface_add_effect_type(
-    ia_drc_interface_struct *pstr_drc_interface, WORD32 drc_effect_type,
-    WORD32 target_loudness, WORD32 loud_norm, WORD32 album_mode, FLOAT32 boost,
-    FLOAT32 compress);
+impd_drc_dec_interface_add_effect_type(ia_drc_interface_struct *pstr_drc_interface,
+                                       WORD32 drc_effect_type, WORD32 target_loudness,
+                                       WORD32 loud_norm, WORD32 album_mode, FLOAT32 boost,
+                                       FLOAT32 compress
+#ifdef LOUDNESS_LEVELING_SUPPORT
+                                       ,
+                                       WORD32 loudness_leveling_flag
+#endif
+);
 
 #define BITSTREAM_FILE_FORMAT_SPLIT 1
 #define LIM_DEFAULT_THRESHOLD (0.89125094f)
@@ -411,10 +416,15 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
     p_obj_drc->str_config.compress = 1.0f;
 
   err_code = impd_drc_dec_interface_add_effect_type(
-      p_obj_drc->str_payload.pstr_drc_interface,
-      p_obj_drc->str_config.effect_type, p_obj_drc->str_config.target_loudness,
-      p_obj_drc->str_config.loud_norm_flag, p_obj_drc->str_config.album_mode,
-      p_obj_drc->str_config.boost, p_obj_drc->str_config.compress);
+      p_obj_drc->str_payload.pstr_drc_interface, p_obj_drc->str_config.effect_type,
+      p_obj_drc->str_config.target_loudness, p_obj_drc->str_config.loud_norm_flag,
+      p_obj_drc->str_config.album_mode, p_obj_drc->str_config.boost,
+      p_obj_drc->str_config.compress
+#ifdef LOUDNESS_LEVELING_SUPPORT
+      ,
+      p_obj_drc->str_config.loudness_leveling_flag
+#endif
+  );
 
   if (err_code != IA_NO_ERROR) return err_code;
 

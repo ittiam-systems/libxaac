@@ -88,6 +88,15 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
     }
     IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_instructions_uni_drc[i].limiter_peak_target,
                          MIN_LIMITER_PEAK_TARGET, 0.0f);
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_set_effect &
+        EFFECT_BIT_DUCK_SELF) {
+      IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present,
+                           0, 1);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present, 0, 1);
+    }
+#endif
   }
 
   IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->drc_coefficients_uni_drc_count, 0,
@@ -395,6 +404,16 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
         IMPD_DRC_BOUND_CHECK(
             pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].limiter_peak_target,
             MIN_LIMITER_PEAK_TARGET, 0.0f);
+#ifdef LOUDNESS_LEVELING_SUPPORT
+        if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].drc_set_effect &
+            EFFECT_BIT_DUCK_SELF) {
+          IMPD_DRC_BOUND_CHECK(
+              pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present, 0, 1);
+          IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                                   .ducking_only_set_present,
+                               0, 1);
+        }
+#endif
       }
     }
   }
@@ -423,8 +442,67 @@ static IA_ERRORCODE impd_drc_validate_drc_instructions(
     if (profile_found == FALSE) {
       return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
     }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_set_effect &
+        EFFECT_BIT_DUCK_SELF) {
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present &&
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present) {
+        if (i < pstr_uni_drc_config->drc_instructions_uni_drc_count - 1) {
+          if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i + 1].drc_set_effect !=
+                  EFFECT_BIT_DUCK_SELF &&
+              pstr_uni_drc_config->str_drc_instructions_uni_drc[i + 1].drc_set_effect !=
+                  EFFECT_BIT_DUCK_OTHER) {
+            pstr_uni_drc_config->str_drc_instructions_uni_drc[i + 1].drc_set_effect =
+                EFFECT_BIT_DUCK_SELF;
+          }
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i + 1].leveling_present = 0;
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i + 1].ducking_only_set_present = 0;
+        } else {
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present = 0;
+        }
+      } else if (!pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present &&
+                 pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present) {
+        pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present = 0;
+      }
+    }
+#endif
   }
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+    ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext =
+        &pstr_uni_drc_config->str_uni_drc_config_ext;
+    for (i = 0; i < pstr_uni_drc_config_ext->drc_instructions_uni_drc_v1_count; i++) {
+      if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].drc_set_effect &
+          EFFECT_BIT_DUCK_SELF) {
+        if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present &&
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                .ducking_only_set_present) {
+          if (i < pstr_uni_drc_config_ext->drc_instructions_uni_drc_v1_count - 1) {
+            if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i + 1].drc_set_effect !=
+                    EFFECT_BIT_DUCK_SELF &&
+                pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i + 1].drc_set_effect !=
+                    EFFECT_BIT_DUCK_OTHER) {
+              pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i + 1].drc_set_effect =
+                  EFFECT_BIT_DUCK_SELF;
+            }
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i + 1].leveling_present = 0;
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i + 1]
+                .ducking_only_set_present = 0;
+          } else {
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].ducking_only_set_present =
+                0;
+          }
+        } else if (!pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                        .leveling_present &&
+                   pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                       .ducking_only_set_present) {
+          pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].ducking_only_set_present =
+              0;
+        }
+      }
+    }
+  }
+#endif
   return IA_NO_ERROR;
 }
 
@@ -461,6 +539,18 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   if (err_code) {
     return err_code;
   }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  err_code = impd_drc_validate_drc_instructions(&pstr_inp_config->str_uni_drc_config);
+
+  if (err_code & IA_FATAL_ERROR) {
+    return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
+  }
+
+  pstr_drc_state_local->str_enc_params = pstr_inp_config->str_enc_params;
+  pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
+  pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;
+  pstr_drc_state_local->str_gain_enc.str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
+#else
   pstr_drc_state_local->str_enc_params = pstr_inp_config->str_enc_params;
   pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
   pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;
@@ -469,6 +559,7 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   if (err_code & IA_FATAL_ERROR) {
     return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
   }
+#endif
 
   err_code = impd_drc_write_uni_drc_config(pstr_drc_state_local, &bit_count, 1);
   if (err_code & IA_FATAL_ERROR) {

@@ -30,6 +30,9 @@
 #include "impd_drc_loudness_control.h"
 #include "impd_drc_filter_bank.h"
 #include "impd_drc_rom.h"
+#ifdef LOUDNESS_LEVELING_SUPPORT
+#include "ixheaac_error_standards.h"
+#endif
 
 static const WORD32 effect_types_request_table[] = {
     EFFECT_BIT_NIGHT,    EFFECT_BIT_NOISY,   EFFECT_BIT_LIMITED,
@@ -170,6 +173,12 @@ WORD32 impd_get_ducking_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc) {
         (EFFECT_BIT_DUCK_OTHER | EFFECT_BIT_DUCK_SELF)) {
       for (k = 0; k < str_drc_instruction_str->dwnmix_id_count; k++) {
         if (str_drc_instruction_str->downmix_id[k] == requested_dwnmix_id) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+          if (drc_instructions_index != -1) break;
+          if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_leveling_on == 0 &&
+              str_drc_instruction_str->leveling_present == 1)
+            continue;
+#endif
           drc_instructions_index = n;
         }
       }
@@ -186,6 +195,12 @@ WORD32 impd_get_ducking_drc_set(ia_drc_sel_pro_struct* pstr_drc_uni_sel_proc) {
           (EFFECT_BIT_DUCK_OTHER | EFFECT_BIT_DUCK_SELF)) {
         for (k = 0; k < str_drc_instruction_str->dwnmix_id_count; k++) {
           if (str_drc_instruction_str->downmix_id[k] == ID_FOR_BASE_LAYOUT) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+            if (drc_instructions_index != -1) break;
+            if (pstr_drc_uni_sel_proc->uni_drc_sel_proc_params.loudness_leveling_on == 0 &&
+                str_drc_instruction_str->leveling_present == 1)
+              continue;
+#endif
             drc_instructions_index = n;
           }
         }

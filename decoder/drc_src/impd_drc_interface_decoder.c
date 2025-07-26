@@ -29,10 +29,15 @@
 #include "impd_drc_parser_interface.h"
 
 WORD32
-impd_drc_dec_interface_add_effect_type(
-    ia_drc_interface_struct* pstr_drc_interface, WORD32 drc_effect_type,
-    WORD32 target_loudness, WORD32 loud_norm, WORD32 album_mode, FLOAT32 boost,
-    FLOAT32 compress) {
+impd_drc_dec_interface_add_effect_type(ia_drc_interface_struct* pstr_drc_interface,
+                                       WORD32 drc_effect_type, WORD32 target_loudness,
+                                       WORD32 loud_norm, WORD32 album_mode, FLOAT32 boost,
+                                       FLOAT32 compress
+#ifdef LOUDNESS_LEVELING_SUPPORT
+                                       ,
+                                       WORD32 loudness_leveling_flag
+#endif
+) {
   WORD32 err = 0;
   WORD32 i = 0;
 
@@ -65,7 +70,9 @@ impd_drc_dec_interface_add_effect_type(
     }
     pstr_drc_interface->loudness_norm_ctrl_interface.target_loudness =
         (FLOAT32)target_loudness;
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    pstr_drc_interface->drc_uni_interface_ext.loudness_leveling_on = loudness_leveling_flag;
+#endif
     pstr_drc_interface->loudness_norm_parameter_interface_flag = 1;
     pstr_drc_interface->loudness_norm_param_interface.album_mode = album_mode;
     pstr_drc_interface->loudness_norm_param_interface.peak_limiter = 0;

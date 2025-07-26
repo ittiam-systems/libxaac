@@ -28,6 +28,7 @@ cc_library_static {
     host_supported: true,
     cflags: [
         "-O3",
+        "-DLOUDNESS_LEVELING_SUPPORT",
     ],
 
     export_include_dirs: [
@@ -354,6 +355,7 @@ cc_library_static {
     host_supported: true,
     cflags: [
         "-O3",
+        "-DLOUDNESS_LEVELING_SUPPORT",
     ],
 
     export_include_dirs: [

@@ -2155,7 +2155,7 @@ IA_ERRORCODE ixheaace_extract_sbr_envelope(FLOAT32 *ptr_in_time, FLOAT32 *ptr_co
     } else if (pstr_sbr_extract_env->time_step == 4) {
       ixheaace_detect_transient_4_1(pstr_sbr_extract_env->ptr_y_buffer,
                                     &pstr_env_ch[ch]->str_sbr_trans_detector, transient_info[ch],
-                                    pstr_sbr_extract_env->time_step, pstr_sbr_cfg->sbr_codec);
+                                    pstr_sbr_extract_env->time_step);
     } else {
       ixheaace_detect_transient(pstr_sbr_extract_env->ptr_y_buffer,
                                 &pstr_env_ch[ch]->str_sbr_trans_detector, transient_info[ch],
