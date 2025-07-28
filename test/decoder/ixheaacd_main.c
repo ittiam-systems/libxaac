@@ -2327,7 +2327,7 @@ void print_usage() {
   printf("\n    Default value is 0");
   printf("\n  <esbr_flag> is to enable / disable eSBR. Default value is 1\n\n");
 #ifdef LOUDNESS_LEVELING_SUPPORT
-  printf("\n  <loudness_leveling_flag>] is to enable / disable loudness leveling.");
+  printf("\n  <loudness_leveling_flag> is to enable / disable loudness leveling.");
   printf("\n    Default value is 1");
 #endif
 }

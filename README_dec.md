@@ -192,7 +192,7 @@ Command line usage :
 [-peak_limiter_off:<peak_limiter_off_flag>]
 [-err_conceal:<error_concealment_flag>]
 [-esbr:<esbr_flag>]
-[-loudness_leveling:<loudness_leveling_flag>]")
+[-loudness_leveling:<loudness_leveling_flag>]
 
 where,
   <input_file>             is the input AAC-LC/HE-AACv1/HE-AACv2/AAC-LD/AAC-ELD/AAC-ELDv2/USAC file name.
@@ -224,8 +224,11 @@ where,
   <peak_limiter_off_flag>  is to enable/disable peak limiter. Default value is 0.
   <error_concealment_flag> is to enable/disable error concealment. Default value is 0.
   <esbr_flag>              is to enable/disable eSBR. Default value is 1.
-  <loudness_leveling_flag>] is to enable / disable loudness leveling. Default value is 1
+  <loudness_leveling_flag> is to enable / disable loudness leveling. Default value is 1
 
+```
+```
+Note: `loudness_leveling_flag` is applicable only if `LOUDNESS_LEVELING_SUPPORT` macro is enabled.
 ```
 Sample CLI:
 ```
