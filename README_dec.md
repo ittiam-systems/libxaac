@@ -224,12 +224,10 @@ where,
   <peak_limiter_off_flag>  is to enable/disable peak limiter. Default value is 0.
   <error_concealment_flag> is to enable/disable error concealment. Default value is 0.
   <esbr_flag>              is to enable/disable eSBR. Default value is 1.
-  <loudness_leveling_flag> is to enable / disable loudness leveling. Default value is 1
+  <loudness_leveling_flag> is to enable / disable loudness leveling. Default value is 1.
 
 ```
-```
 Note: `loudness_leveling_flag` is applicable only if `LOUDNESS_LEVELING_SUPPORT` macro is enabled.
-```
 Sample CLI:
 ```
 <xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16
