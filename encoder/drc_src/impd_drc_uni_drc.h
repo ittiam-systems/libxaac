@@ -388,6 +388,10 @@ typedef struct {
   WORD32 multiband_audio_signal_count;
   WORD32 channel_group_is_parametric_drc[MAX_CHANNEL_GROUP_COUNT];
   WORD32 gain_set_idx_for_ch_group_parametric_drc[MAX_CHANNEL_GROUP_COUNT];
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 leveling_present;
+  WORD32 ducking_only_set_present;
+#endif
 } ia_drc_instructions_uni_drc;
 
 typedef struct {

@@ -47,8 +47,7 @@ ixheaace_create_extract_sbr_envelope(WORD32 ch,
                                      ixheaace_pstr_sbr_extract_envelope pstr_sbr_ext_env,
                                      WORD32 start_index, WORD32 *ptr_common_buffer2,
                                      FLOAT32 *ptr_sbr_env_r_buf, FLOAT32 *ptr_sbr_env_i_buf,
-                                     WORD32 is_ld_sbr, WORD32 frame_flag_480,
-                                     ixheaace_sbr_codec_type sbr_codec);
+                                     WORD32 frame_flag_480, ixheaace_sbr_codec_type sbr_codec);
 
 struct ixheaace_str_sbr_config_data;
 struct ixheaace_str_sbr_bitstream_data;

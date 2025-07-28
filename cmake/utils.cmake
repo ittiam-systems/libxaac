@@ -50,6 +50,7 @@ function(libxaac_add_definitions)
   elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     add_definitions(-DX86_64 -D_X86_64_)
   endif()
+  add_definitions(-DLOUDNESS_LEVELING_SUPPORT)
 endfunction()
 
 # Adds libraries needed for executables

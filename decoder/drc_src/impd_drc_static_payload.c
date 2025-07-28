@@ -954,6 +954,13 @@ impd_parse_drc_config_ext(ia_bit_buf_struct* it_bit_buff,
                                     drc_config, str_drc_config_ext);
         if (err) return (err);
         break;
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+      case UNIDRCCONFEXT_LEVELING:
+        err = impd_leveling_instructions(it_bit_buff, drc_config);
+        if (err) return err;
+        break;
+#endif
       default:
         for (i = 0; i < str_drc_config_ext->ext_bit_size[k]; i++) {
           impd_read_bits_buf(it_bit_buff, 1);

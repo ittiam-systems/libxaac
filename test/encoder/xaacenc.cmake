@@ -18,12 +18,12 @@ if (MSVC)
         xaacenc 
         PROPERTIES 
         COMPILE_FLAGS
-        "-D_CRT_SECURE_NO_WARNINGS -D_X86_") 
+        "-D_CRT_SECURE_NO_WARNINGS -D_X86_ -DLOUDNESS_LEVELING_SUPPORT") 
 else()
     set_target_properties(
         xaacenc 
         PROPERTIES 
         COMPILE_FLAGS
-        "-D_X86_ -c -O3 -Wall -Wsequence-point -Wunused-function"
+        "-D_X86_ -c -O3 -Wall -Wsequence-point -Wunused-function -DLOUDNESS_LEVELING_SUPPORT"
         ) 
 endif()

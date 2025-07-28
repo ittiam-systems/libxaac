@@ -56,7 +56,10 @@ static VOID ixheaace_read_drc_config_params(
     WORD32 in_ch) {
   WORD32 n, g, s, m, ch, p;
   WORD32 gain_set_channels;
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  UWORD32 loudness_leveling_extension_present = 0;
+  UWORD32 config_extension_count = 0;
+#endif
   pstr_enc_params->gain_sequence_present = fuzzed_data->ConsumeBool();
   pstr_enc_params->delay_mode = fuzzed_data->ConsumeBool();
   pstr_uni_drc_config->sample_rate_present = fuzzed_data->ConsumeBool();
@@ -121,6 +124,13 @@ static VOID ixheaace_read_drc_config_params(
     pstr_drc_instructions_uni_drc->drc_instructions_type = fuzzed_data->ConsumeIntegral<WORD8>();
     pstr_drc_instructions_uni_drc->mae_group_id = fuzzed_data->ConsumeIntegral<WORD8>();
     pstr_drc_instructions_uni_drc->mae_group_preset_id = fuzzed_data->ConsumeIntegral<WORD8>();
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (pstr_drc_instructions_uni_drc->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
+      pstr_drc_instructions_uni_drc->leveling_present = fuzzed_data->ConsumeBool();
+      pstr_drc_instructions_uni_drc->ducking_only_set_present = fuzzed_data->ConsumeBool();
+      loudness_leveling_extension_present = 1;
+    }
+#endif
   }
 
   pstr_uni_drc_config->drc_coefficients_uni_drc_count =
@@ -305,7 +315,13 @@ static VOID ixheaace_read_drc_config_params(
   pstr_enc_gain_extension->uni_drc_gain_ext_present = fuzzed_data->ConsumeBool();
 
   if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[config_extension_count] =
+        UNIDRC_CONF_EXT_V1;
+    config_extension_count++;
+#else
     pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[0] = UNIDRC_CONF_EXT_V1;
+#endif
     pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present =
         fuzzed_data->ConsumeBool();
     if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present) {
@@ -496,8 +512,23 @@ static VOID ixheaace_read_drc_config_params(
         pstr_drc_instructions_uni_drc->mae_group_id = fuzzed_data->ConsumeIntegral<WORD8>();
         pstr_drc_instructions_uni_drc->mae_group_preset_id =
             fuzzed_data->ConsumeIntegral<WORD8>();
+#ifdef LOUDNESS_LEVELING_SUPPORT
+
+        if (pstr_drc_instructions_uni_drc->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
+          pstr_drc_instructions_uni_drc->leveling_present = fuzzed_data->ConsumeBool();
+          pstr_drc_instructions_uni_drc->ducking_only_set_present = fuzzed_data->ConsumeBool();
+          loudness_leveling_extension_present = 1;
+        }
+#endif
       }
     }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (loudness_leveling_extension_present) {
+      pstr_uni_drc_config->str_uni_drc_config_ext
+          .uni_drc_config_ext_type[config_extension_count] = UNIDRCCONFEXT_LEVELING;
+      config_extension_count++;
+    }
+#endif
   }
 }
 

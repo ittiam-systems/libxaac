@@ -92,7 +92,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
   pstr_uni_drc_config->sample_rate_present = 1;
   pstr_uni_drc_config->str_drc_coefficients_uni_drc->drc_frame_size_present = 0;
   pstr_uni_drc_config->loudness_info_set_present = 1;
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD16 loudness_leveling_extension_present = 0;
+  UWORD32 config_extension_count = 0;
+#endif
   /***********  str_drc_instructions_uni_drc  *************/
 
   pstr_uni_drc_config->drc_instructions_uni_drc_count = impd_drc_get_integer_value(fp);
@@ -145,8 +148,15 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
     pstr_drc_instructions_uni_drc->drc_instructions_type = 0;
     pstr_drc_instructions_uni_drc->mae_group_id = 0;
     pstr_drc_instructions_uni_drc->mae_group_preset_id = 0;
-  }
 
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (pstr_drc_instructions_uni_drc->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
+      pstr_drc_instructions_uni_drc->leveling_present = impd_drc_get_integer_value(fp);
+      pstr_drc_instructions_uni_drc->ducking_only_set_present = impd_drc_get_integer_value(fp);
+      loudness_leveling_extension_present = 1;
+    }
+#endif  // LOUDNESS_LEVELING_SUPPORT
+  }
   /***********  str_drc_coefficients_uni_drc  *************/
 
   pstr_uni_drc_config->drc_coefficients_uni_drc_count = impd_drc_get_integer_value(fp);
@@ -247,7 +257,13 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   pstr_uni_drc_config->uni_drc_config_ext_present = 1;
   if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[config_extension_count] =
+        UNIDRC_CONF_EXT_V1;
+    config_extension_count++;
+#else
     pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[0] = UNIDRC_CONF_EXT_V1;
+#endif
 
     pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present = 1;
     if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present) {
@@ -420,9 +436,25 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
         pstr_drc_instructions_uni_drc->drc_instructions_type = 0;
         pstr_drc_instructions_uni_drc->mae_group_id = 0;
         pstr_drc_instructions_uni_drc->mae_group_preset_id = 0;
+#ifdef LOUDNESS_LEVELING_SUPPORT
+        if (pstr_drc_instructions_uni_drc->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
+          pstr_drc_instructions_uni_drc->leveling_present = impd_drc_get_integer_value(fp);
+          pstr_drc_instructions_uni_drc->ducking_only_set_present =
+              impd_drc_get_integer_value(fp);
+          loudness_leveling_extension_present = 1;
+        }
+#endif  // LOUDNESS_LEVELING_SUPPORT
       }
     }
   }
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  if (loudness_leveling_extension_present) {
+    pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[config_extension_count] =
+        UNIDRCCONFEXT_LEVELING;
+    config_extension_count++;
+  }
+#endif
   pstr_enc_loudness_info_set->loudness_info_set_ext_present = 0;
   pstr_enc_gain_extension->uni_drc_gain_ext_present = 0;
 }

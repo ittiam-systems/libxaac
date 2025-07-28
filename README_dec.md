@@ -39,8 +39,8 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_PEAK_LIMITER | Sets the flag to disable/enable peak limiter |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_FRAMELENGTH_FLAG | Sets to flag to indicate whether decoder should decode for frame length 960 or 1024 |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_PARAM_DRC_TARGET_LEVEL | Sets the value of DRC target level |
-|IA_API_CMD_SET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_ERROR_CONCEALMENT | Sets to flag to disable/enable error concealment |
-|IA_API_CMD_SET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_PARAM_ESBR | Sets to flag to disable/enable eSBR |
+|IA_API_CMD_SET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_ERROR_CONCEALMENT | Sets the flag to disable/enable error concealment |
+|IA_API_CMD_SET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_PARAM_ESBR | Sets the flag to disable/enable eSBR |
 |IA_API_CMD_GET_N_MEMTABS | 0 | Gets the number of memory types |
 |IA_API_CMD_GET_N_TABLES | 0 | Gets the number of tables |
 |IA_API_CMD_GET_MEM_INFO_SIZE | 0 | Gets the size of the memory type being referred to by the index |
@@ -66,6 +66,7 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_TARGET_LOUDNESS | Gets the value of DRC target loudness |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_DRC_LOUD_NORM | Gets the value of DRC loudness normalization level |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_PARAM_AOT | Gets the value of audio object type |
+|IA_API_CMD_GET_CONFIG_PARAM | IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING | Gets the value of loudness leveling flag |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_PTR | Gets the extension element pointer |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_EXT_ELE_BUF_SIZES | Gets the extension element buffer sizes |
 |IA_API_CMD_GET_CONFIG_PARAM | IA_ENHAACPLUS_DEC_CONFIG_NUM_ELE | Gets the number of configuration elements |
@@ -132,7 +133,7 @@ A single API is used to get and set configurations and execute the decode thread
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_NUM_CHANNELS | Sets the number of channels in the input stream/data |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_PCM_WDSZ | Sets the PCM word size of the input data |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_BITS_FORMAT | Sets the bit stream format |
-|IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_INT_PRESENT | Sets the DRC decoder’s interface present flag to 1 or 0 |
+|IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_INT_PRESENT | Sets the DRC decoders interface present flag to 1 or 0 |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_PARAM_FRAME_SIZE | Sets the frame size |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_DRC_EFFECT_TYPE | Sets the value of DRC effect type |
 |IA_API_CMD_SET_CONFIG_PARAM | IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS | Sets the value of DRC target loudness |
@@ -191,6 +192,7 @@ Command line usage :
 [-peak_limiter_off:<peak_limiter_off_flag>]
 [-err_conceal:<error_concealment_flag>]
 [-esbr:<esbr_flag>]
+[-loudness_leveling:<loudness_leveling_flag>]
 
 where,
   <input_file>             is the input AAC-LC/HE-AACv1/HE-AACv2/AAC-LD/AAC-ELD/AAC-ELDv2/USAC file name.
@@ -222,8 +224,10 @@ where,
   <peak_limiter_off_flag>  is to enable/disable peak limiter. Default value is 0.
   <error_concealment_flag> is to enable/disable error concealment. Default value is 0.
   <esbr_flag>              is to enable/disable eSBR. Default value is 1.
+  <loudness_leveling_flag> is to enable / disable loudness leveling. Default value is 1.
 
 ```
+Note: `loudness_leveling_flag` is applicable only if `LOUDNESS_LEVELING_SUPPORT` macro is enabled.
 Sample CLI:
 ```
 <xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16

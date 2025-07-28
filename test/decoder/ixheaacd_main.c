@@ -667,6 +667,17 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
       ec_enable = ui_err_conceal;
     }
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    /* For loudness leveling*/
+    if (!strncmp((pCHAR8)argv[i], "-loudness_leveling:", 19)) {
+      pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 19);
+      UWORD32 loudness_leveling_flag = atoi(pb_arg_val);
+      err_code = (*p_ia_process_api)(p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                                     IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING,
+                                     &loudness_leveling_flag);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+#endif
   }
 
   return IA_NO_ERROR;
@@ -899,7 +910,9 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 drc_flag = 0;
   WORD32 mpegd_drc_present = 0;
   WORD32 uo_num_chan;
-
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 i_loudness_leveling_flag = 1;
+#endif
   /* The process API function */
   IA_ERRORCODE(*p_ia_process_api)
   (pVOID p_ia_process_api_obj, WORD32 i_cmd, WORD32 i_idx, pVOID pv_value);
@@ -1409,6 +1422,22 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
           IA_DRC_DEC_CONFIG_DRC_TARGET_LOUDNESS, &i_target_loudness);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
+
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    /*Set loudness leveling */
+
+    {
+      err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                                     IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING,
+                                     &i_loudness_leveling_flag);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+      err_code =
+          ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                         IA_DRC_DEC_CONFIG_DRC_LOUDNESS_LEVELING, &i_loudness_leveling_flag);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+    }
+#endif
 
     /*Set loud_norm_flag*/
     {
@@ -2238,6 +2267,9 @@ void print_usage() {
   printf("\n[-peak_limiter_off:<peak_limiter_off_flag>]");
   printf("\n[-err_conceal:<error_concealment_flag>]");
   printf("\n[-esbr:<esbr_flag>]");
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  printf("\n[-loudness_leveling:<loudness_leveling_flag>]");
+#endif
   printf("\n\nwhere, \n  <input_file> is the input AAC-LC/HE-AACv1/HE-AACv2//AAC-LD/AAC-ELD/AAC-ELDv2/USAC file name");
   printf("\n  <meta_data_file> is a text file which contains metadata.");
   printf("\n   To be given when -mp4:1 is enabled");
@@ -2294,6 +2326,10 @@ void print_usage() {
   printf("\n  <error_concealment_flag> is to enable / disable error concealment.");
   printf("\n    Default value is 0");
   printf("\n  <esbr_flag> is to enable / disable eSBR. Default value is 1\n\n");
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  printf("\n  <loudness_leveling_flag> is to enable / disable loudness leveling.");
+  printf("\n    Default value is 1");
+#endif
 }
 
 /*******************************************************************************/

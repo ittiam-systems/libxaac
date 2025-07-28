@@ -82,6 +82,10 @@ typedef struct ia_drc_sel_proc_params_struct {
   FLOAT32 playback_gain;
   WORD32 eq_set_purpose_request;
 
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  WORD32 loudness_leveling_on;
+#endif
+
   FLOAT32 boost;
   FLOAT32 compress;
   WORD32 drc_characteristic_target;
