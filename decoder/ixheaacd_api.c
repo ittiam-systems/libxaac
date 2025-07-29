@@ -3679,7 +3679,7 @@ IA_ERRORCODE ixheaacd_dec_execute(
       error_code = ixheaacd_heaac_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer, mps_buffer,
                                             p_state_enhaacplus_dec->ui_mps_out_bytes);
 
-      if (error_code == IA_FATAL_ERROR) {
+      if (error_code != IA_NO_ERROR) {
         return error_code;
       }
 
