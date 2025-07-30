@@ -3101,9 +3101,17 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WOR
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->drc_coefficients_uni_drc_count, 3);
 
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  UWORD32 num_ducking_only_drc_sets =
+      get_num_ducking_only_drc_sets(pstr_uni_drc_config->str_drc_instructions_uni_drc,
+                                    pstr_uni_drc_config->drc_instructions_uni_drc_count);
+  bit_cnt_local += iusace_write_bits_buf(
+      it_bit_buf, pstr_uni_drc_config->drc_instructions_uni_drc_count - num_ducking_only_drc_sets,
+      6);
+#else
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->drc_instructions_uni_drc_count, 6);
-
+#endif
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->str_channel_layout.base_ch_count, 7);
   bit_cnt_local += iusace_write_bits_buf(
@@ -3138,6 +3146,12 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WOR
   }
 
   for (idx = 0; idx < pstr_uni_drc_config->drc_instructions_uni_drc_count; idx++) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (idx > 0 &&
+        pstr_uni_drc_config->str_drc_instructions_uni_drc[idx - 1].ducking_only_set_present) {
+      continue;
+    }
+#endif
     err_code = impd_drc_write_drc_instruct_uni_drc(
         it_bit_buf, version, pstr_uni_drc_config, pstr_gain_enc,
         &(pstr_uni_drc_config->str_drc_instructions_uni_drc[idx]), ptr_scratch, &bit_cnt_local);
