@@ -673,7 +673,7 @@ IA_ERROR_CODE impd_leveling_instructions(ia_bit_buf_struct* it_bit_buff,
           }
 
           err = impd_parse_drc_instructions_uni_drc(
-              it_bit_buff, 1, pstr_drc_config,
+              it_bit_buff, 0, pstr_drc_config,
               &pstr_drc_config
                    ->str_drc_instruction_str[pstr_drc_config->drc_instructions_uni_drc_count -
                                              1]);
