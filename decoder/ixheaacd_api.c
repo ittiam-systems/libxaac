@@ -3676,9 +3676,12 @@ IA_ERRORCODE ixheaacd_dec_execute(
       p_obj_exhaacplus_dec->p_state_aac->heaac_mps_handle.ec_flag =
           p_obj_exhaacplus_dec->aac_config.ui_err_conceal;
 
-      ixheaacd_heaac_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer,
-                               mps_buffer,
-                               p_state_enhaacplus_dec->ui_mps_out_bytes);
+      error_code = ixheaacd_heaac_mps_apply(p_obj_exhaacplus_dec, actual_out_buffer, mps_buffer,
+                                            p_state_enhaacplus_dec->ui_mps_out_bytes);
+
+      if (error_code != IA_NO_ERROR) {
+        return error_code;
+      }
 
       p_state_enhaacplus_dec->heaac_mps_handle.mps_decode = 1;
       p_obj_exhaacplus_dec->p_state_aac->ui_out_bytes =
