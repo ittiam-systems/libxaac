@@ -283,10 +283,9 @@ typedef struct {
   WORD32 is_ipf;
   WORD32 preroll_frame;
   WORD32 is_first_frame;
-  ia_drc_internal_config str_internal_drc_cfg;
-  WORD32 use_measured_loudness;
   UWORD16 stream_id;
   FLAG use_delay_adjustment;
+  FLAG is_loudness_configured;
 } ia_usac_encoder_config_struct;
 
 typedef struct {

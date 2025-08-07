@@ -105,6 +105,7 @@ where,
   <inter_tes_enc_flag> Valid values are 0 (disable inter-TES encoding) and 1 (enable inter-TES encoding). Default is 0.
   <random access interval in ms> is the time interval between audio preroll frames in ms. It is applicable only for AOT 42. Valid values are -1 (Audio preroll sent only at beginning of file) and greater than 1000 ms. Default is -1.
   <stream identifier> It is the stream id used to uniquely identify configuration of a stream within a set of associated streams. It is applicable only for AOT 42. Valid values are 0 to 65535. Any value outside this range is type-casted to a value of unsigned short type. Default is 0.
+  <delay adjustment> is used to discard algorithmic delay from the decoded file. It is applicable only for AOT 42. Valid values are 0 and 1. Default is 1."
 
 ```
 Sample CLI:

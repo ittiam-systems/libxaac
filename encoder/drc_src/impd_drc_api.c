@@ -417,6 +417,90 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
       }
     }
   }
+
+  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present) {
+    ia_drc_loudness_info_set_ext_eq_struct *pstr_enc_loudness_info_set_ext =
+        &pstr_enc_loudness_info_set->str_loudness_info_set_extension.str_loudness_info_set_ext_eq;
+    IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->loudness_info_v1_count, 0,
+                         MAX_LOUDNESS_INFO_COUNT);
+    for (i = 0; i < pstr_enc_loudness_info_set_ext->loudness_info_v1_count; i++) {
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].sample_peak_level,
+          MIN_SAMPLE_PEAK_LEVEL, MAX_SAMPLE_PEAK_LEVEL);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].true_peak_level,
+          MIN_TRUE_PEAK_LEVEL, MAX_TRUE_PEAK_LEVEL);
+      IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                               .true_peak_level_measurement_system,
+                           0, MAX_MEASUREMENT_SYSTEM_TYPE);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].true_peak_level_reliability, 0,
+          MAX_RELIABILITY_TYPE);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].measurement_count, 0,
+          MAX_MEASUREMENT_COUNT);
+      for (j = 0; j < pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].measurement_count;
+           j++) {
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                                 .str_loudness_measure[j]
+                                 .method_definition,
+                             0, MAX_METHOD_DEFINITION_TYPE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                                 .str_loudness_measure[j]
+                                 .method_value,
+                             MIN_METHOD_VALUE, MAX_METHOD_VALUE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                                 .str_loudness_measure[j]
+                                 .measurement_system,
+                             0, MAX_MEASUREMENT_SYSTEM_TYPE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                                 .str_loudness_measure[j]
+                                 .reliability,
+                             0, MAX_RELIABILITY_TYPE);
+      }
+    }
+
+    IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->loudness_info_v1_album_count, 0,
+                         MAX_LOUDNESS_INFO_COUNT);
+    for (i = 0; i < pstr_enc_loudness_info_set_ext->loudness_info_v1_album_count; i++) {
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].sample_peak_level,
+          MIN_SAMPLE_PEAK_LEVEL, MAX_SAMPLE_PEAK_LEVEL);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].true_peak_level,
+          MIN_TRUE_PEAK_LEVEL, MAX_TRUE_PEAK_LEVEL);
+      IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                               .true_peak_level_measurement_system,
+                           0, MAX_MEASUREMENT_SYSTEM_TYPE);
+      IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                               .true_peak_level_reliability,
+                           0, MAX_RELIABILITY_TYPE);
+      IMPD_DRC_BOUND_CHECK(
+          pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].measurement_count, 0,
+          MAX_MEASUREMENT_COUNT);
+      for (j = 0;
+           j < pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].measurement_count;
+           j++) {
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                                 .str_loudness_measure[j]
+                                 .method_definition,
+                             0, MAX_METHOD_DEFINITION_TYPE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                                 .str_loudness_measure[j]
+                                 .method_value,
+                             MIN_METHOD_VALUE, MAX_METHOD_VALUE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                                 .str_loudness_measure[j]
+                                 .measurement_system,
+                             0, MAX_MEASUREMENT_SYSTEM_TYPE);
+        IMPD_DRC_BOUND_CHECK(pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                                 .str_loudness_measure[j]
+                                 .reliability,
+                             0, MAX_RELIABILITY_TYPE);
+      }
+    }
+  }
+
   return IA_NO_ERROR;
 }
 
@@ -539,7 +623,7 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   if (err_code) {
     return err_code;
   }
-#ifdef LOUDNESS_LEVELING_SUPPORT
+
   err_code = impd_drc_validate_drc_instructions(&pstr_inp_config->str_uni_drc_config);
 
   if (err_code & IA_FATAL_ERROR) {
@@ -550,16 +634,6 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
   pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;
   pstr_drc_state_local->str_gain_enc.str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
-#else
-  pstr_drc_state_local->str_enc_params = pstr_inp_config->str_enc_params;
-  pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
-  pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;
-
-  err_code = impd_drc_validate_drc_instructions(&pstr_inp_config->str_uni_drc_config);
-  if (err_code & IA_FATAL_ERROR) {
-    return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
-  }
-#endif
 
   err_code = impd_drc_write_uni_drc_config(pstr_drc_state_local, &bit_count, 1);
   if (err_code & IA_FATAL_ERROR) {
@@ -571,6 +645,8 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   if (pstr_drc_state_local->str_gain_enc.str_uni_drc_config.loudness_info_set_present == 1) {
     bit_count = 0;
     iusace_reset_bit_buffer(&pstr_drc_state_local->str_bit_buf_cfg_ext);
+    memset(pstr_drc_state_local->bit_buf_base_cfg_ext, 0,
+           sizeof(MAX_DRC_PAYLOAD_BYTES * sizeof(pstr_drc_state_local->bit_buf_base_cfg_ext[0])));
     err_code = impd_drc_write_loudness_info_set(
         pstr_drc_state, &pstr_drc_state_local->str_bit_buf_cfg_ext, &bit_count, 1);
     if (err_code & IA_FATAL_ERROR) {
