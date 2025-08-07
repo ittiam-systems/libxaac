@@ -319,9 +319,8 @@ void ia_enhaacplus_enc_print_usage() {
       "stream within a set of associated streams."
       "\n        It is applicable only for AOT 42. Valid values are 0 to 65535. Default is 0.");
   printf(
-    "\n <delay adjustment> is used to discard delay on the decoded file using pre-roll frames"
-    "on encoder."
-    "\n        It is applicable only for AOT 42. Valid values are 0 and 1. Default is 0.");
+    "\n <delay adjustment> is used to discard algorithmic delay from the decoded file."
+    "\n        It is applicable only for AOT 42. Valid values are 0 and 1. Default is 1.");
   exit(1);
 }
 
