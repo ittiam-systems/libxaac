@@ -498,7 +498,8 @@ static VOID iaace_aac_set_default_config(ixheaace_aac_enc_config *config) {
 }
 
 static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_config,
-                                             ixheaace_input_config *pstr_input_config_user) {
+                                             ixheaace_input_config *pstr_input_config_user,
+                                             ixheaace_output_config *pstr_output_config) {
   WORD32 flag = 0, i, j, k;
   ia_drc_input_config *drc_cfg = (ia_drc_input_config *)(pstr_input_config->pv_drc_cfg);
   ia_drc_input_config *drc_cfg_user = (ia_drc_input_config *)(pstr_input_config_user->pv_drc_cfg);
@@ -510,6 +511,12 @@ static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_c
       &drc_cfg->str_enc_loudness_info_set;
   ia_drc_loudness_info_set_struct *pstr_enc_loudness_info_set_user =
       &drc_cfg_user->str_enc_loudness_info_set;
+  ia_drc_loudness_info_set_ext_eq_struct *pstr_enc_loudness_info_set_ext =
+      &drc_cfg->str_enc_loudness_info_set.str_loudness_info_set_extension
+           .str_loudness_info_set_ext_eq;
+  ia_drc_loudness_info_set_ext_eq_struct *pstr_enc_loudness_info_set_ext_user =
+      &drc_cfg_user->str_enc_loudness_info_set.str_loudness_info_set_extension
+           .str_loudness_info_set_ext_eq;
 
   for (i = 0; i < pstr_uni_drc_config->drc_instructions_uni_drc_count; i++) {
     if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].additional_downmix_id_count !=
@@ -694,123 +701,258 @@ static VOID ixheaace_print_drc_config_params(ixheaace_input_config *pstr_input_c
     flag = 0;
   }
 #endif
-  for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_count; i++) {
-    if (pstr_enc_loudness_info_set->str_loudness_info[i].sample_peak_level !=
-        pstr_enc_loudness_info_set_user->str_loudness_info[i].sample_peak_level) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level !=
-        pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_measurement_system !=
-        pstr_enc_loudness_info_set_user->str_loudness_info[i]
-            .true_peak_level_measurement_system) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_reliability !=
-        pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level_reliability) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count !=
-        pstr_enc_loudness_info_set_user->str_loudness_info[i].measurement_count) {
-      flag = 1;
-    }
-    for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count; j++) {
-      if (pstr_enc_loudness_info_set->str_loudness_info[i]
-              .str_loudness_measure[j]
-              .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info[i]
-                                        .str_loudness_measure[j]
-                                        .method_definition) {
+
+  if (pstr_output_config->is_loudness_configured) {
+    for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_count; i++) {
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].sample_peak_level !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i].sample_peak_level) {
         flag = 1;
       }
-      if (pstr_enc_loudness_info_set->str_loudness_info[i].str_loudness_measure[j].method_value !=
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_measurement_system !=
           pstr_enc_loudness_info_set_user->str_loudness_info[i]
-              .str_loudness_measure[j]
-              .method_value) {
+              .true_peak_level_measurement_system) {
         flag = 1;
       }
-      if (pstr_enc_loudness_info_set->str_loudness_info[i]
-              .str_loudness_measure[j]
-              .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info[i]
-                                         .str_loudness_measure[j]
-                                         .measurement_system) {
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].true_peak_level_reliability !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i].true_peak_level_reliability) {
         flag = 1;
       }
-      if (pstr_enc_loudness_info_set->str_loudness_info[i].str_loudness_measure[j].reliability !=
-          pstr_enc_loudness_info_set_user->str_loudness_info[i]
-              .str_loudness_measure[j]
-              .reliability) {
+      if (pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count !=
+          pstr_enc_loudness_info_set_user->str_loudness_info[i].measurement_count) {
         flag = 1;
       }
+      for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info[i].measurement_count; j++) {
+        if (pstr_enc_loudness_info_set->str_loudness_info[i]
+                .str_loudness_measure[j]
+                .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                          .str_loudness_measure[j]
+                                          .method_definition) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info[i]
+                .str_loudness_measure[j]
+                .method_value != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                     .str_loudness_measure[j]
+                                     .method_value) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info[i]
+                .str_loudness_measure[j]
+                .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                           .str_loudness_measure[j]
+                                           .measurement_system) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info[i]
+                .str_loudness_measure[j]
+                .reliability != pstr_enc_loudness_info_set_user->str_loudness_info[i]
+                                    .str_loudness_measure[j]
+                                    .reliability) {
+          flag = 1;
+        }
+      }
     }
-  }
-  if (flag == 1) {
-    printf("\nDRC : Invalid config str_loudness_info");
-    flag = 0;
-  }
-  for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_album_count; i++) {
-    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].sample_peak_level !=
-        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].sample_peak_level) {
-      flag = 1;
+    if (flag == 1) {
+      printf("\nDRC : Invalid config str_loudness_info");
+      flag = 0;
     }
-    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level !=
-        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].true_peak_level) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
-            .true_peak_level_measurement_system !=
-        pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
-            .true_peak_level_measurement_system) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level_reliability !=
-        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].true_peak_level_reliability) {
-      flag = 1;
-    }
-    if (pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count !=
-        pstr_enc_loudness_info_set_user->str_loudness_info_album[i].measurement_count) {
-      flag = 1;
-    }
-    for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count;
-         j++) {
-      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
-              .str_loudness_measure[j]
-              .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
-                                        .str_loudness_measure[j]
-                                        .method_definition) {
+
+    for (i = 0; i < pstr_enc_loudness_info_set->loudness_info_album_count; i++) {
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i].sample_peak_level !=
+          pstr_enc_loudness_info_set_user->str_loudness_info_album[i].sample_peak_level) {
         flag = 1;
       }
-      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
-              .str_loudness_measure[j]
-              .method_value != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
-                                   .str_loudness_measure[j]
-                                   .method_value) {
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level !=
+          pstr_enc_loudness_info_set_user->str_loudness_info_album[i].true_peak_level) {
         flag = 1;
       }
       if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
-              .str_loudness_measure[j]
-              .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
-                                         .str_loudness_measure[j]
-                                         .measurement_system) {
+              .true_peak_level_measurement_system !=
+          pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+              .true_peak_level_measurement_system) {
         flag = 1;
       }
-      if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
-              .str_loudness_measure[j]
-              .reliability != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
-                                  .str_loudness_measure[j]
-                                  .reliability) {
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i].true_peak_level_reliability !=
+          pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+              .true_peak_level_reliability) {
         flag = 1;
+      }
+      if (pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count !=
+          pstr_enc_loudness_info_set_user->str_loudness_info_album[i].measurement_count) {
+        flag = 1;
+      }
+      for (j = 0; j < pstr_enc_loudness_info_set->str_loudness_info_album[i].measurement_count;
+           j++) {
+        if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+                .str_loudness_measure[j]
+                .method_definition != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                          .str_loudness_measure[j]
+                                          .method_definition) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+                .str_loudness_measure[j]
+                .method_value != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                     .str_loudness_measure[j]
+                                     .method_value) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+                .str_loudness_measure[j]
+                .measurement_system != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                           .str_loudness_measure[j]
+                                           .measurement_system) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set->str_loudness_info_album[i]
+                .str_loudness_measure[j]
+                .reliability != pstr_enc_loudness_info_set_user->str_loudness_info_album[i]
+                                    .str_loudness_measure[j]
+                                    .reliability) {
+          flag = 1;
+        }
       }
     }
-  }
-  if (flag == 1) {
-    printf("\nDRC : Invalid config str_loudness_info_album");
+    if (flag == 1) {
+      printf("\nDRC : Invalid config str_loudness_info_album");
+    }
+
+    for (i = 0; i < pstr_enc_loudness_info_set_ext->loudness_info_v1_count; i++) {
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].sample_peak_level !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i].sample_peak_level) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].true_peak_level !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i].true_peak_level) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+              .true_peak_level_measurement_system !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+              .true_peak_level_measurement_system) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].true_peak_level_reliability !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+              .true_peak_level_reliability) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].measurement_count !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i].measurement_count) {
+        flag = 1;
+      }
+      for (j = 0; j < pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i].measurement_count;
+           j++) {
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                .str_loudness_measure[j]
+                .method_definition != pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+                                          .str_loudness_measure[j]
+                                          .method_definition) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                .str_loudness_measure[j]
+                .method_value != pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+                                     .str_loudness_measure[j]
+                                     .method_value) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                .str_loudness_measure[j]
+                .measurement_system !=
+            pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+                .str_loudness_measure[j]
+                .measurement_system) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1[i]
+                .str_loudness_measure[j]
+                .reliability != pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1[i]
+                                    .str_loudness_measure[j]
+                                    .reliability) {
+          flag = 1;
+        }
+      }
+    }
+    if (flag == 1) {
+      printf("\nDRC : Invalid config str_loudness_info_v1");
+      flag = 0;
+    }
+
+    for (i = 0; i < pstr_enc_loudness_info_set_ext->loudness_info_v1_album_count; i++) {
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].sample_peak_level !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i].sample_peak_level) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].true_peak_level !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i].true_peak_level) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+              .true_peak_level_measurement_system !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+              .true_peak_level_measurement_system) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+              .true_peak_level_reliability !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+              .true_peak_level_reliability) {
+        flag = 1;
+      }
+      if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].measurement_count !=
+          pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i].measurement_count) {
+        flag = 1;
+      }
+      for (j = 0;
+           j < pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i].measurement_count;
+           j++) {
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .method_definition !=
+            pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .method_definition) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .method_value !=
+            pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .method_value) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .measurement_system !=
+            pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .measurement_system) {
+          flag = 1;
+        }
+        if (pstr_enc_loudness_info_set_ext->str_loudness_info_v1_album[i]
+                .str_loudness_measure[j]
+                .reliability != pstr_enc_loudness_info_set_ext_user->str_loudness_info_v1_album[i]
+                                    .str_loudness_measure[j]
+                                    .reliability) {
+          flag = 1;
+        }
+      }
+    }
+    if (flag == 1) {
+      printf("\nDRC : Invalid config str_loudness_info_v1_album");
+    }
   }
 }
 
 static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_config,
-                                         ixheaace_input_config *pstr_input_config_user) {
+                                         ixheaace_input_config *pstr_input_config_user,
+                                         ixheaace_output_config *pstr_output_config) {
   printf(
       "\n*************************************************************************************"
       "***********\n");
@@ -1014,7 +1156,8 @@ static VOID ixheaace_print_config_params(ixheaace_input_config *pstr_input_confi
     }
     if (pstr_input_config->use_drc_element) {
       printf("\nDRC : 1");
-      ixheaace_print_drc_config_params(pstr_input_config, pstr_input_config_user);
+      ixheaace_print_drc_config_params(pstr_input_config, pstr_input_config_user,
+                                       pstr_output_config);
     }
 
     if (pstr_input_config->random_access_interval !=
@@ -1370,7 +1513,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   pb_inp_buf = (pWORD8)pstr_out_cfg->mem_info_table[IA_MEMTYPE_INPUT].mem_ptr;
   pb_out_buf = (pWORD8)pstr_out_cfg->mem_info_table[IA_MEMTYPE_OUTPUT].mem_ptr;
 
-  ixheaace_print_config_params(pstr_in_cfg, &pstr_in_cfg_user);
+  ixheaace_print_config_params(pstr_in_cfg, &pstr_in_cfg_user, pstr_out_cfg);
 
   if (pstr_drc_cfg_user) {
     free_global(pstr_drc_cfg_user);

@@ -110,7 +110,6 @@ typedef struct {
   ixheaace_aac_enc_config aac_config;
   WORD32 random_access_interval;
   UWORD32 method_def;
-  FLAG use_measured_loudness;
   FLOAT64 measured_loudness;
   UWORD32 measurement_system;
   FLOAT32 sample_peak_level;
@@ -142,6 +141,7 @@ typedef struct {
   WORD32 audio_profile;
   FLOAT32 down_sampling_ratio;
   WORD32 expected_frame_count;
+  FLAG is_loudness_configured;
 } ixheaace_output_config;
 
 typedef struct {

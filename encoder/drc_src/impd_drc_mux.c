@@ -1123,32 +1123,25 @@ static WORD32 write_loudness_leveling_extension(ia_bit_buf_struct *it_bit_buf,
       pstr_uni_drc_config->str_uni_drc_config_ext.drc_instructions_uni_drc_v1_count;
   WORD32 drc_instructions_uni_drc_count = pstr_uni_drc_config->drc_instructions_uni_drc_count;
   WORD32 version = 0;
-  WORD16 ducking_set_expected = 0;
   // V0 instructions
   for (WORD16 i = 0; i < drc_instructions_uni_drc_count; i++) {
     ia_drc_instructions_uni_drc *pstr_drc_instruction =
         &pstr_uni_drc_config->str_drc_instructions_uni_drc[i];
     if (pstr_drc_instruction->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
-      if (ducking_set_expected) {
-        ia_drc_instructions_uni_drc *pstr_drc_instruction_prev =
-            &pstr_uni_drc_config->str_drc_instructions_uni_drc[i - 1];
-        if (pstr_drc_instruction_prev->ducking_only_set_present) {
-          err_code = impd_drc_write_drc_instruct_uni_drc(it_bit_buf, version, pstr_uni_drc_config,
-                                                         pstr_gain_enc, pstr_drc_instruction,
-                                                         ptr_scratch, &bit_cnt_local);
-          if (err_code & IA_FATAL_ERROR) {
-            return (err_code);
-          }
+      if (i > 0 && pstr_uni_drc_config->str_drc_instructions_uni_drc[i - 1].leveling_present &&
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i - 1].ducking_only_set_present) {
+        err_code = impd_drc_write_drc_instruct_uni_drc(it_bit_buf, version, pstr_uni_drc_config,
+                                                       pstr_gain_enc, pstr_drc_instruction,
+                                                       ptr_scratch, &bit_cnt_local);
+        if (err_code & IA_FATAL_ERROR) {
+          return (err_code);
         }
-        ducking_set_expected = 0;
       } else {
         bit_cnt_local +=
             iusace_write_bits_buf(it_bit_buf, pstr_drc_instruction->leveling_present, 1);
         if (pstr_drc_instruction->leveling_present) {
-          ducking_set_expected = 1;
           bit_cnt_local += iusace_write_bits_buf(
               it_bit_buf, pstr_drc_instruction->ducking_only_set_present, 1);
-          continue;
         }
       }
     }
@@ -1156,31 +1149,27 @@ static WORD32 write_loudness_leveling_extension(ia_bit_buf_struct *it_bit_buf,
 
   // V1 instructions
   version = 1;
-  ducking_set_expected = 0;
   for (WORD16 i = 0; i < drc_instructions_uni_drc_count_v1; i++) {
     ia_drc_instructions_uni_drc *pstr_drc_instruction =
         &pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_instructions_uni_drc_v1[i];
     if (pstr_drc_instruction->drc_set_effect & EFFECT_BIT_DUCK_SELF) {
-      if (ducking_set_expected) {
-        ia_drc_instructions_uni_drc *pstr_drc_instruction_prev =
-            &pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_instructions_uni_drc_v1[i - 1];
-        if (pstr_drc_instruction_prev->ducking_only_set_present) {
-          err_code = impd_drc_write_drc_instruct_uni_drc(it_bit_buf, version, pstr_uni_drc_config,
-                                                         pstr_gain_enc, pstr_drc_instruction,
-                                                         ptr_scratch, &bit_cnt_local);
-          if (err_code & IA_FATAL_ERROR) {
-            return (err_code);
-          }
+      if (i > 0 &&
+          pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_instructions_uni_drc_v1[i - 1]
+              .leveling_present &&
+          pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_instructions_uni_drc_v1[i - 1]
+              .ducking_only_set_present) {
+        err_code = impd_drc_write_drc_instruct_uni_drc(it_bit_buf, version, pstr_uni_drc_config,
+                                                       pstr_gain_enc, pstr_drc_instruction,
+                                                       ptr_scratch, &bit_cnt_local);
+        if (err_code & IA_FATAL_ERROR) {
+          return (err_code);
         }
-        ducking_set_expected = 0;
       } else {
         bit_cnt_local +=
             iusace_write_bits_buf(it_bit_buf, pstr_drc_instruction->leveling_present, 1);
         if (pstr_drc_instruction->leveling_present) {
-          ducking_set_expected = 1;
           bit_cnt_local += iusace_write_bits_buf(
               it_bit_buf, pstr_drc_instruction->ducking_only_set_present, 1);
-          continue;
         }
       }
     }
@@ -3002,10 +2991,10 @@ IA_ERRORCODE impd_drc_write_loudness_info_set_extension(
         }
         break;
     }
+    counter++;
+
     bit_cnt_local += iusace_write_bits_buf(
         it_bit_buf, pstr_loudness_info_set_extension->loudness_info_set_ext_type[counter], 4);
-
-    counter++;
   }
 
   *ptr_bit_cnt += bit_cnt_local;
@@ -3101,9 +3090,17 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WOR
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->drc_coefficients_uni_drc_count, 3);
 
+#ifdef LOUDNESS_LEVELING_SUPPORT
+  UWORD32 num_ducking_only_drc_sets =
+      get_num_ducking_only_drc_sets(pstr_uni_drc_config->str_drc_instructions_uni_drc,
+                                    pstr_uni_drc_config->drc_instructions_uni_drc_count);
+  bit_cnt_local += iusace_write_bits_buf(
+      it_bit_buf, pstr_uni_drc_config->drc_instructions_uni_drc_count - num_ducking_only_drc_sets,
+      6);
+#else
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->drc_instructions_uni_drc_count, 6);
-
+#endif
   bit_cnt_local +=
       iusace_write_bits_buf(it_bit_buf, pstr_uni_drc_config->str_channel_layout.base_ch_count, 7);
   bit_cnt_local += iusace_write_bits_buf(
@@ -3138,6 +3135,12 @@ IA_ERRORCODE impd_drc_write_uni_drc_config(ia_drc_enc_state *pstr_drc_state, WOR
   }
 
   for (idx = 0; idx < pstr_uni_drc_config->drc_instructions_uni_drc_count; idx++) {
+#ifdef LOUDNESS_LEVELING_SUPPORT
+    if (idx > 0 &&
+        pstr_uni_drc_config->str_drc_instructions_uni_drc[idx - 1].ducking_only_set_present) {
+      continue;
+    }
+#endif
     err_code = impd_drc_write_drc_instruct_uni_drc(
         it_bit_buf, version, pstr_uni_drc_config, pstr_gain_enc,
         &(pstr_uni_drc_config->str_drc_instructions_uni_drc[idx]), ptr_scratch, &bit_cnt_local);
