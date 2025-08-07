@@ -92,3 +92,40 @@ width:0.01
 attack:2.0
 decay:5.0
 #end gain parameters
+
+#####str_downmix_instructions_v1#####
+downmix_instructions_v1_count:0
+#end str_downmix_instructions_v1
+#####str_drc_coefficients_uni_drc_v1#####
+drc_coefficients_uni_drc_count_v1:0
+#end str_drc_coefficients_uni_drc_v1
+#####str_drc_instructions_uni_drc_v1#####
+drc_instructions_uni_drc_count_v1:0
+#end str_drc_instructions_uni_drc_v1
+
+#loudness info parameters
+loudness_info_count:1
+#n=0
+drc_set_id:1
+downmix_id:0
+sample_peak_level_present:1
+sample_peak_level:0.0
+true_peak_level_present:1
+true_peak_level:1.0
+true_peak_level_measurement_system:2
+true_peak_level_reliability:3
+measurement_count:1
+#m=0
+method_definition:1
+method_value:-16.0
+measurement_system:2
+reliability:3
+#end loudness info parameters
+
+#loudness info album parameters
+loudness_info_album_count:0
+#end of loudness info album parameters
+
+#####loudness info set extension#####
+loudness_info_set_ext_present:0
+# end of loudness info set extension
