@@ -255,8 +255,8 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   pstr_uni_drc_config->drc_description_basic_present = 0;
 
-  pstr_uni_drc_config->uni_drc_config_ext_present = 1;
-  if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+  pstr_uni_drc_config->uni_drc_config_ext_present = impd_drc_get_integer_value(fp);
+  if (pstr_uni_drc_config->uni_drc_config_ext_present == 1) {
 #ifdef LOUDNESS_LEVELING_SUPPORT
     pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[config_extension_count] =
         UNIDRC_CONF_EXT_V1;
@@ -265,8 +265,9 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
     pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[0] = UNIDRC_CONF_EXT_V1;
 #endif
 
-    pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present = 1;
-    if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present) {
+    pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present =
+        impd_drc_get_integer_value(fp);
+    if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present == 1) {
 
       /***********  str_downmix_instructions_v1  *************/
       pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_count = impd_drc_get_integer_value(fp);
@@ -293,9 +294,10 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       }
     }
 
-    pstr_uni_drc_config->str_uni_drc_config_ext.drc_coeffs_and_instructions_uni_drc_v1_present = 1;
-    if (pstr_uni_drc_config->str_uni_drc_config_ext.drc_coeffs_and_instructions_uni_drc_v1_present) {
-
+    pstr_uni_drc_config->str_uni_drc_config_ext.drc_coeffs_and_instructions_uni_drc_v1_present =
+        impd_drc_get_integer_value(fp);
+    if (pstr_uni_drc_config->str_uni_drc_config_ext
+            .drc_coeffs_and_instructions_uni_drc_v1_present == 1) {
       /***********  str_drc_coefficients_uni_drc_v1  *************/
       pstr_uni_drc_config->str_uni_drc_config_ext.drc_coefficients_uni_drc_v1_count = impd_drc_get_integer_value(fp);
 
@@ -545,7 +547,7 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
 
   /*********************   loudness info set extension   *********************/
   pstr_enc_loudness_info_set->loudness_info_set_ext_present = impd_drc_get_integer_value(fp);
-  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present) {
+  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present == 1) {
     ia_drc_loudness_info_set_ext_eq_struct *pstr_loudness_info_set_ext_eq =
         &pstr_enc_loudness_info_set->str_loudness_info_set_extension.str_loudness_info_set_ext_eq;
 
@@ -564,13 +566,14 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].sample_peak_level_present =
           impd_drc_get_integer_value(fp);
       if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n]
-              .sample_peak_level_present) {
+              .sample_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].sample_peak_level =
             impd_drc_get_float_value(fp);
       }
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present =
           impd_drc_get_integer_value(fp);
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present ==
+          1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level =
             impd_drc_get_float_value(fp);
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n]
@@ -613,13 +616,13 @@ VOID ixheaace_read_drc_config_params(FILE *fp, ia_drc_enc_params_struct *pstr_en
           impd_drc_get_integer_value(fp);
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present =
           impd_drc_get_integer_value(fp);
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level =
             impd_drc_get_float_value(fp);
       }
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present =
           impd_drc_get_integer_value(fp);
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level =
             impd_drc_get_float_value(fp);
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n]

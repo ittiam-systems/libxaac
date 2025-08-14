@@ -1298,6 +1298,7 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     return -1;
   }
   ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)pstr_in_cfg->pv_drc_cfg;
+  memset(pstr_drc_cfg, 0, sizeof(*pstr_drc_cfg));
 
   /* Stack process struct initing */
   p_error_init = ia_enhaacplus_enc_error_handler_init;
@@ -1444,7 +1445,6 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   /* ******************************************************************/
   /* DRC */
   if (pstr_in_cfg->use_drc_element == 1 && pstr_in_cfg->aot == AOT_USAC) {
-    LOOPIDX k;
     CHAR8 drc_config_file_name[IA_MAX_CMD_LINE_LENGTH];
     strcpy(drc_config_file_name, DRC_CONFIG_FILE);
 
@@ -1461,34 +1461,6 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
           pf_drc_inp, &pstr_drc_cfg->str_enc_params, &pstr_drc_cfg->str_uni_drc_config,
           &pstr_drc_cfg->str_enc_loudness_info_set, &pstr_drc_cfg->str_enc_gain_extension,
           pstr_in_cfg->i_channels);
-
-      pstr_drc_cfg->str_enc_params.gain_sequence_present = FALSE;
-      for (k = 0; k < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count; k++) {
-        if (pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[k].drc_location == 1) {
-          if (pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[k].gain_set_count >
-              0) {
-            pstr_drc_cfg->str_enc_params.gain_sequence_present = TRUE;
-            break;
-          }
-        }
-      }
-
-      if (pstr_drc_cfg->str_enc_params.gain_sequence_present == FALSE) {
-        for (k = 0; k < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-                            .drc_coefficients_uni_drc_v1_count;
-             k++) {
-          if (pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-                  .str_drc_coefficients_uni_drc_v1[k]
-                  .drc_location == 1) {
-            if (pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-                    .str_drc_coefficients_uni_drc_v1[k]
-                    .gain_sequence_count > 0) {
-              pstr_drc_cfg->str_enc_params.gain_sequence_present = TRUE;
-              break;
-            }
-          }
-        }
-      }
 
       pstr_drc_cfg_user =
           (ia_drc_input_config *)malloc_global(sizeof(ia_drc_input_config), DEFAULT_MEM_ALIGN_8);
@@ -1624,6 +1596,9 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
   }
   if (ia_stsz_size != NULL) {
     free_global(ia_stsz_size);
+  }
+  if (pf_drc_inp) {
+    fclose(pf_drc_inp);
   }
   return IA_NO_ERROR;
 }

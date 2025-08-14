@@ -91,10 +91,14 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
 #ifdef LOUDNESS_LEVELING_SUPPORT
     if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_set_effect &
         EFFECT_BIT_DUCK_SELF) {
-      IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present,
-                           0, 1);
-      IMPD_DRC_BOUND_CHECK(
-          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present, 0, 1);
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present != 0 &&
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present != 1) {
+        pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present = 0;
+      }
+      if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present != 0 &&
+          pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present != 1) {
+        pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present = 0;
+      }
     }
 #endif
   }
@@ -254,9 +258,30 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
     }
   }
 
+  if (pstr_uni_drc_config->uni_drc_config_ext_present != 0 &&
+      pstr_uni_drc_config->uni_drc_config_ext_present != 1) {
+    pstr_uni_drc_config->uni_drc_config_ext_present = 0;
+  }
+
+  if (pstr_uni_drc_config->uni_drc_config_ext_present &&
+      (pstr_uni_drc_config->drc_instructions_uni_drc_count > 0 ||
+       pstr_uni_drc_config->drc_coefficients_uni_drc_count > 0)) {
+    memset(pstr_uni_drc_config->str_drc_instructions_uni_drc, 0,
+           sizeof(pstr_uni_drc_config->str_drc_instructions_uni_drc[0]) *
+               pstr_uni_drc_config->drc_instructions_uni_drc_count);
+    memset(pstr_uni_drc_config->str_drc_coefficients_uni_drc, 0,
+           sizeof(pstr_uni_drc_config->str_drc_coefficients_uni_drc[0]) *
+               pstr_uni_drc_config->drc_coefficients_uni_drc_count);
+    pstr_uni_drc_config->drc_instructions_uni_drc_count = 0;
+    pstr_uni_drc_config->drc_coefficients_uni_drc_count = 0;
+  }
   if (pstr_uni_drc_config->uni_drc_config_ext_present) {
     ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext =
         &pstr_uni_drc_config->str_uni_drc_config_ext;
+    if (pstr_uni_drc_config_ext->downmix_instructions_v1_present != 0 &&
+        pstr_uni_drc_config_ext->downmix_instructions_v1_present != 1) {
+      pstr_uni_drc_config_ext->downmix_instructions_v1_present = 0;
+    }
     if (pstr_uni_drc_config_ext->downmix_instructions_v1_present) {
       IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config_ext->downmix_instructions_v1_count, 0,
                            DOWNMIX_INSTRUCTIONS_COUNT_MAX);
@@ -270,6 +295,10 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
       }
     }
 
+    if (pstr_uni_drc_config_ext->drc_coeffs_and_instructions_uni_drc_v1_present != 0 &&
+        pstr_uni_drc_config_ext->drc_coeffs_and_instructions_uni_drc_v1_present != 1) {
+      pstr_uni_drc_config_ext->drc_coeffs_and_instructions_uni_drc_v1_present = 0;
+    }
     if (pstr_uni_drc_config_ext->drc_coeffs_and_instructions_uni_drc_v1_present) {
       IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config_ext->drc_coefficients_uni_drc_v1_count, 0,
                            DRC_COEFFICIENTS_UNIDRC_V1_COUNT_MAX);
@@ -407,17 +436,27 @@ IA_ERRORCODE impd_drc_validate_config_params(ia_drc_input_config *pstr_inp_confi
 #ifdef LOUDNESS_LEVELING_SUPPORT
         if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].drc_set_effect &
             EFFECT_BIT_DUCK_SELF) {
-          IMPD_DRC_BOUND_CHECK(
-              pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present, 0, 1);
-          IMPD_DRC_BOUND_CHECK(pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
-                                   .ducking_only_set_present,
-                               0, 1);
+          if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present != 0 &&
+              pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present != 1) {
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].leveling_present = 0;
+          }
+          if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                      .ducking_only_set_present != 0 &&
+              pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i]
+                      .ducking_only_set_present != 1) {
+            pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].ducking_only_set_present =
+                0;
+          }
         }
 #endif
       }
     }
   }
 
+  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present != 0 &&
+      pstr_enc_loudness_info_set->loudness_info_set_ext_present != 1) {
+    pstr_enc_loudness_info_set->loudness_info_set_ext_present = 0;
+  }
   if (pstr_enc_loudness_info_set->loudness_info_set_ext_present) {
     ia_drc_loudness_info_set_ext_eq_struct *pstr_enc_loudness_info_set_ext =
         &pstr_enc_loudness_info_set->str_loudness_info_set_extension.str_loudness_info_set_ext_eq;
@@ -509,24 +548,23 @@ static IA_ERRORCODE impd_drc_validate_drc_instructions(
   LOOPIDX i, j;
   WORD32 profile_found = FALSE;
 
-  for (i = 0; i < pstr_uni_drc_config->drc_instructions_uni_drc_count; i++) {
-    profile_found = FALSE;
-    for (j = 0; j < pstr_uni_drc_config->drc_coefficients_uni_drc_count; j++) {
-      if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[j].drc_location == 1) {
-        profile_found = TRUE;
-        break;
-      }
-    }
-    if (pstr_uni_drc_config->uni_drc_config_ext_present &&
-        pstr_uni_drc_config->str_uni_drc_config_ext.parametric_drc_present &&
-        pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_coeff_parametric_drc.drc_location ==
-            1) {
+  for (j = 0; j < pstr_uni_drc_config->drc_coefficients_uni_drc_count; j++) {
+    if (pstr_uni_drc_config->str_drc_coefficients_uni_drc[j].drc_location == 1) {
       profile_found = TRUE;
+      break;
     }
-    if (profile_found == FALSE) {
-      return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
-    }
+  }
+  if (pstr_uni_drc_config->uni_drc_config_ext_present &&
+      pstr_uni_drc_config->str_uni_drc_config_ext.parametric_drc_present &&
+      pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_coeff_parametric_drc.drc_location ==
+          1) {
+    profile_found = TRUE;
+  }
+  if ((pstr_uni_drc_config->uni_drc_config_ext_present == 0) && profile_found == FALSE) {
+    return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
+  }
 #ifdef LOUDNESS_LEVELING_SUPPORT
+  for (i = 0; i < pstr_uni_drc_config->drc_instructions_uni_drc_count; i++) {
     if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].drc_set_effect &
         EFFECT_BIT_DUCK_SELF) {
       if (pstr_uni_drc_config->str_drc_instructions_uni_drc[i].leveling_present &&
@@ -549,12 +587,28 @@ static IA_ERRORCODE impd_drc_validate_drc_instructions(
         pstr_uni_drc_config->str_drc_instructions_uni_drc[i].ducking_only_set_present = 0;
       }
     }
-#endif
   }
-#ifdef LOUDNESS_LEVELING_SUPPORT
+#endif
+
   if (pstr_uni_drc_config->uni_drc_config_ext_present) {
     ia_drc_uni_drc_config_ext_struct *pstr_uni_drc_config_ext =
         &pstr_uni_drc_config->str_uni_drc_config_ext;
+    profile_found = FALSE;
+    for (j = 0; j < pstr_uni_drc_config_ext->drc_coefficients_uni_drc_v1_count; j++) {
+      if (pstr_uni_drc_config_ext->str_drc_coefficients_uni_drc_v1[j].drc_location == 1) {
+        profile_found = TRUE;
+        break;
+      }
+    }
+    if (pstr_uni_drc_config->str_uni_drc_config_ext.parametric_drc_present &&
+        pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_coeff_parametric_drc.drc_location ==
+            1) {
+      profile_found = TRUE;
+    }
+    if (profile_found == FALSE) {
+      return IA_EXHEAACE_CONFIG_FATAL_DRC_INVALID_CONFIG;
+    }
+#ifdef LOUDNESS_LEVELING_SUPPORT
     for (i = 0; i < pstr_uni_drc_config_ext->drc_instructions_uni_drc_v1_count; i++) {
       if (pstr_uni_drc_config_ext->str_drc_instructions_uni_drc_v1[i].drc_set_effect &
           EFFECT_BIT_DUCK_SELF) {
@@ -585,8 +639,9 @@ static IA_ERRORCODE impd_drc_validate_drc_instructions(
         }
       }
     }
-  }
 #endif
+  }
+
   return IA_NO_ERROR;
 }
 
@@ -634,6 +689,34 @@ IA_ERRORCODE impd_drc_enc_init(VOID *pstr_drc_state, VOID *ptr_drc_scratch,
   pstr_drc_state_local->str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
   pstr_drc_state_local->str_enc_gain_extension = pstr_inp_config->str_enc_gain_extension;
   pstr_drc_state_local->str_gain_enc.str_uni_drc_config = pstr_inp_config->str_uni_drc_config;
+
+  pstr_drc_state_local->str_enc_params.gain_sequence_present = FALSE;
+  for (WORD16 k = 0; k < pstr_drc_state_local->str_uni_drc_config.drc_coefficients_uni_drc_count;
+       k++) {
+    if ((pstr_drc_state_local->str_uni_drc_config.str_drc_coefficients_uni_drc[k].drc_location ==
+         1) &&
+        (pstr_drc_state_local->str_uni_drc_config.str_drc_coefficients_uni_drc[k].gain_set_count >
+         0)) {
+      pstr_drc_state_local->str_enc_params.gain_sequence_present = TRUE;
+      break;
+    }
+  }
+
+  if (pstr_drc_state_local->str_enc_params.gain_sequence_present == FALSE) {
+    for (WORD16 k = 0; k < pstr_drc_state_local->str_uni_drc_config.str_uni_drc_config_ext
+                               .drc_coefficients_uni_drc_v1_count;
+         k++) {
+      if ((pstr_drc_state_local->str_uni_drc_config.str_uni_drc_config_ext
+               .str_drc_coefficients_uni_drc_v1[k]
+               .drc_location == 1) &&
+          (pstr_drc_state_local->str_uni_drc_config.str_uni_drc_config_ext
+               .str_drc_coefficients_uni_drc_v1[k]
+               .gain_set_count > 0)) {
+        pstr_drc_state_local->str_enc_params.gain_sequence_present = TRUE;
+        break;
+      }
+    }
+  }
 
   err_code = impd_drc_write_uni_drc_config(pstr_drc_state_local, &bit_count, 1);
   if (err_code & IA_FATAL_ERROR) {
@@ -686,6 +769,15 @@ IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 in
   ia_drc_compand_struct *pstr_drc_compand;
   ia_drc_stft_gain_calc_struct *pstr_drc_stft_gain_calc;
   IA_ERRORCODE err_code = IA_NO_ERROR;
+  ia_drc_coefficients_uni_drc_struct *pstr_drc_coefficients_uni_drc;
+
+  if (pstr_uni_drc_config->str_uni_drc_config_ext.drc_coefficients_uni_drc_v1_count > 0) {
+    pstr_drc_coefficients_uni_drc =
+        &pstr_uni_drc_config->str_uni_drc_config_ext.str_drc_coefficients_uni_drc_v1[0];
+  } else {
+    pstr_drc_coefficients_uni_drc = &pstr_uni_drc_config->str_drc_coefficients_uni_drc[0];
+  }
+
   if (pstr_drc_state_local->str_enc_params.gain_sequence_present) {
     for (i = 0; i < MAX_DRC_COEFF_COUNT; i++) {
       for (j = 0; j < GAIN_SET_COUNT_MAX; j++) {
@@ -704,17 +796,12 @@ IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 in
             is_fft_ready[pstr_drc_stft_gain_calc->ch_idx] = 1;
           }
 
-          for (k = 0; k < pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
-                              .str_gain_set_params[j]
-                              .band_count;
+          for (k = 0; k < pstr_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count;
                k++) {
-            if (k == pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
-                             .str_gain_set_params[j]
-                             .band_count -
-                         1) {
+            if (k == pstr_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count - 1) {
               stop_sub_band_index = STFT256_HOP_SIZE - 1;
             } else {
-              stop_sub_band_index = pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+              stop_sub_band_index = pstr_drc_coefficients_uni_drc[i]
                                         .str_gain_set_params[j]
                                         .gain_params[k + 1]
                                         .start_sub_band_index -
@@ -723,7 +810,7 @@ IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 in
 
             impd_drc_stft_drc_gain_calc_process(
                 pstr_gain_enc, i, j, k,
-                pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
+                pstr_drc_coefficients_uni_drc[i]
                     .str_gain_set_params[j]
                     .gain_params[k]
                     .start_sub_band_index,
@@ -738,9 +825,7 @@ IA_ERRORCODE impd_drc_enc(VOID *pstr_drc_state, FLOAT32 **pptr_input, UWORD32 in
                                             pstr_drc_state_local->gain_buffer[band_count]);
         }
 
-        band_count += pstr_uni_drc_config->str_drc_coefficients_uni_drc[i]
-                          .str_gain_set_params[j]
-                          .band_count;
+        band_count += pstr_drc_coefficients_uni_drc[i].str_gain_set_params[j].band_count;
       }
     }
   }
