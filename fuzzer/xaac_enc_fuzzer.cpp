@@ -314,7 +314,7 @@ static VOID ixheaace_read_drc_config_params(
   pstr_enc_loudness_info_set->loudness_info_set_ext_present = fuzzed_data->ConsumeBool();
   pstr_enc_gain_extension->uni_drc_gain_ext_present = fuzzed_data->ConsumeBool();
 
-  if (pstr_uni_drc_config->uni_drc_config_ext_present) {
+  if (pstr_uni_drc_config->uni_drc_config_ext_present == 1) {
 #ifdef LOUDNESS_LEVELING_SUPPORT
     pstr_uni_drc_config->str_uni_drc_config_ext.uni_drc_config_ext_type[config_extension_count] =
         UNIDRC_CONF_EXT_V1;
@@ -324,7 +324,7 @@ static VOID ixheaace_read_drc_config_params(
 #endif
     pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present =
         fuzzed_data->ConsumeBool();
-    if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present) {
+    if (pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_present == 1) {
       /***********  str_downmix_instructions_v1  *************/
 
       pstr_uni_drc_config->str_uni_drc_config_ext.downmix_instructions_v1_count =
@@ -353,7 +353,7 @@ static VOID ixheaace_read_drc_config_params(
     pstr_uni_drc_config->str_uni_drc_config_ext.drc_coeffs_and_instructions_uni_drc_v1_present =
         fuzzed_data->ConsumeBool();
     if (pstr_uni_drc_config->str_uni_drc_config_ext
-            .drc_coeffs_and_instructions_uni_drc_v1_present) {
+            .drc_coeffs_and_instructions_uni_drc_v1_present == 1) {
       /***********  str_drc_coefficients_uni_drc_v1  *************/
 
       pstr_uni_drc_config->str_uni_drc_config_ext.drc_coefficients_uni_drc_v1_count =
@@ -531,7 +531,7 @@ static VOID ixheaace_read_drc_config_params(
 #endif
   }
 
-  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present) {
+  if (pstr_enc_loudness_info_set->loudness_info_set_ext_present == 1) {
     ia_drc_loudness_info_set_ext_eq_struct *pstr_loudness_info_set_ext_eq =
         &pstr_enc_loudness_info_set->str_loudness_info_set_extension.str_loudness_info_set_ext_eq;
 
@@ -549,13 +549,14 @@ static VOID ixheaace_read_drc_config_params(
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].sample_peak_level_present =
           fuzzed_data->ConsumeBool();
       if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n]
-              .sample_peak_level_present) {
+              .sample_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].sample_peak_level =
             fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
       }
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present =
           fuzzed_data->ConsumeBool();
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level_present ==
+          1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n].true_peak_level =
             fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1_album[n]
@@ -593,13 +594,13 @@ static VOID ixheaace_read_drc_config_params(
           fuzzed_data->ConsumeIntegral<WORD8>();
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present =
           fuzzed_data->ConsumeBool();
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].sample_peak_level =
             fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
       }
       pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present =
           fuzzed_data->ConsumeBool();
-      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present) {
+      if (pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level_present == 1) {
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n].true_peak_level =
             fuzzed_data->ConsumeFloatingPoint<FLOAT32>();
         pstr_loudness_info_set_ext_eq->str_loudness_info_v1[n]

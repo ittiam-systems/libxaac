@@ -7,17 +7,27 @@
 drc_instructions_uni_drc_count:0
 #####str_drc_coefficients_uni_drc#####
 drc_coefficients_uni_drc_count:0
+
+########### uniDRCv1 configuration ###########
+uni_drc_config_ext_present:1
+
 #####str_downmix_instructions_v1#####
+downmix_instructions_v1_present:1
+
 downmix_instructions_v1_count:1
 #n=0
 target_layout:1
 #s=0
 downmix_coeff:0.70794578438
 #end downmix coeeficients
+
+######## str_drc_coefficients_uni_drc_v1 & str_drc_instructions_uni_drc_v1 ########
+drc_coeffs_and_instructions_uni_drc_v1_present:1
+
 #####str_drc_coefficients_uni_drc_v1#####
 drc_coefficients_uni_drc_count_v1:1
 #n=0
-gain_set_count:1
+gain_set_count:3
 #s=0
 band_count:1
 #gain parameters m=0
@@ -28,6 +38,31 @@ x:-30.0
 y:-30.0
 x:0.0
 y:-20.0
+width:0.01
+attack:2.0
+decay:5.0
+#end gain parameters
+#s=1
+band_count:1
+#gain parameters m=0
+nb_points:2
+x:-50.0
+y:-50.0
+x:0.0
+y:-10.0
+width:0.01
+attack:2.0
+decay:5.0
+#s=2
+band_count:1
+#gain parameters m=0
+nb_points:3
+x:-60.0
+y:-60.0
+x:-20.0
+y:-15.0
+x:0.0
+y:-5.0
 width:0.01
 attack:2.0
 decay:5.0
@@ -51,14 +86,14 @@ num_drc_channel_groups:1
 downmix_id:0
 drc_set_effect:0x800
 gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
+gain_set_index:1
 num_drc_channel_groups:1
 #leveling present flag
 leveling_present:1
@@ -68,17 +103,18 @@ ducking_only_set_present:1
 downmix_id:0
 drc_set_effect:0x0800
 gain_set_channels:8
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
-gain_set_index:0
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
+gain_set_index:2
 num_drc_channel_groups:1
 leveling_present:0
 ducking_only_set_present:0
+########### end of uniDRCv1 configuration ###########
 
 #loudness info parameters
 loudness_info_count:1
