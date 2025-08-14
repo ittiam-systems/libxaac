@@ -506,18 +506,18 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
 #ifdef DRC_ENABLE
     if (!strncmp((pCHAR8)argv[i], "-drc_cut_fac:", 13)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 13);
-      UWORD32 ui_drc_cut = atoi(pb_arg_val);
+      FLOAT32 drc_cut = (FLOAT32)atof(pb_arg_val);
       err_code = (*p_ia_process_api)(
           p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-          IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT, &ui_drc_cut);
+          IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT, &drc_cut);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
     if (!strncmp((pCHAR8)argv[i], "-drc_boost_fac:", 15)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 15);
-      UWORD32 ui_drc_boost = atoi(pb_arg_val);
+      FLOAT32 drc_boost = (FLOAT32)atof(pb_arg_val);
       err_code = (*p_ia_process_api)(
           p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
-          IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST, &ui_drc_boost);
+          IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST, &drc_boost);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
     if (!strncmp((pCHAR8)argv[i], "-drc_target_level:", 18)) {
@@ -910,6 +910,10 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 drc_flag = 0;
   WORD32 mpegd_drc_present = 0;
   WORD32 uo_num_chan;
+  UWORD32 ui_boost = 0;
+  UWORD32 ui_cut = 0;
+  UWORD8 ui_drc_mode_cut = 0;
+  UWORD8 ui_drc_mode_boost = 0;
 #ifdef LOUDNESS_LEVELING_SUPPORT
   WORD32 i_loudness_leveling_flag = 1;
 #endif
@@ -1438,6 +1442,43 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
     }
 #endif
+
+    /*Set cut */
+
+    {
+      err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                                     IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_CUT, &ui_drc_mode_cut);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+      if (ui_drc_mode_cut) {
+        err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                                       IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT, &ui_cut);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                                  IA_DRC_DEC_CONFIG_DRC_CUT, &ui_cut);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      }
+    }
+
+    /*Set boost */
+
+    {
+      err_code =
+          (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                              IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_BOOST, &ui_drc_mode_boost);
+      _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+      if (ui_drc_mode_boost) {
+        err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_GET_CONFIG_PARAM,
+                                       IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST, &ui_boost);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+
+        err_code = ia_drc_dec_api(pv_ia_drc_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
+                                  IA_DRC_DEC_CONFIG_DRC_BOOST, &ui_boost);
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      }
+    }
 
     /*Set loud_norm_flag*/
     {

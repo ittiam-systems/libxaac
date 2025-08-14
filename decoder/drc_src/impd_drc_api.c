@@ -75,7 +75,6 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
   pWORD8 pb_value = pv_value;
   SIZE_T *ps_value = pv_value;
   pWORD32 pi_value = pv_value;
-  float *pf_value = pv_value;
 
   switch (i_cmd) {
     case IA_API_CMD_GET_MEM_INFO_SIZE:
@@ -319,12 +318,12 @@ IA_ERRORCODE ia_drc_dec_api(pVOID p_ia_drc_dec_obj, WORD32 i_cmd, WORD32 i_idx,
           break;
         }
         case IA_DRC_DEC_CONFIG_DRC_BOOST: {
-          p_obj_drc->str_config.boost = (*pf_value);
+          p_obj_drc->str_config.boost = (*pus_value)/100.0f;
           p_obj_drc->str_config.boost_set = 1;
           break;
         }
-        case IA_DRC_DEC_CONFIG_DRC_COMPRESS: {
-          p_obj_drc->str_config.compress = (*pf_value);
+        case IA_DRC_DEC_CONFIG_DRC_CUT: {
+          p_obj_drc->str_config.compress = (*pus_value)/100.0f;
           p_obj_drc->str_config.compress_set = 1;
           break;
         }

@@ -474,8 +474,10 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
           p_obj_exhaacplus_dec->aac_config.ui_pce_found_in_hdr = 0;
           p_obj_exhaacplus_dec->aac_config.loas_present = 0;
           p_obj_exhaacplus_dec->aac_config.ld_decoder = 0;
-          p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
-          p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
+          p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 100;
+          p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 100;
+          p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut = 0;
+          p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost = 0;
           p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 0;
           p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 0;
@@ -623,10 +625,12 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
         }
         case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
-          if (*pf_value > 1) {
+          if (*pf_value > 1 || *pf_value < 0) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
             return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRC_CUT);
           }
+
+          p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut = 1;
           p_obj_exhaacplus_dec->aac_config.ui_drc_cut =
               (WORD32)((*pf_value) * 100);
           break;
@@ -634,10 +638,12 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
 
         case IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST: {
           p_obj_exhaacplus_dec->aac_config.ui_drc_set = 1;
-          if (*pf_value > 1) {
+          if (*pf_value > 1 || *pf_value < 0) {
             p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
             return (IA_XHEAAC_DEC_CONFIG_NONFATAL_INVALID_DRC_BOOST);
           }
+
+          p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost = 1;
           p_obj_exhaacplus_dec->aac_config.ui_drc_boost =
               (WORD32)((*pf_value) * 100);
           break;
@@ -951,6 +957,19 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
         *pui_value = *ui_value;
       }
 #endif
+      else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT == i_idx) {
+        UWORD32 *ui_value = (UWORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_drc_cut);
+        *pui_value = *ui_value;
+      } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST == i_idx) {
+        UWORD32 *ui_value = (UWORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_drc_boost);
+        *pui_value = *ui_value;
+      } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_CUT == i_idx) {
+        UWORD8 *ui_value = (&p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut);
+        *pb_value = *ui_value;
+      } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_BOOST == i_idx) {
+        UWORD8 *ui_value = (&p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost);
+        *pb_value = *ui_value;
+      }
       else {
         return IA_XHEAAC_DEC_API_FATAL_INVALID_CONFIG_PARAM;
       }
@@ -1085,6 +1104,8 @@ IA_ERRORCODE ixheaacd_decoder_2_ga_hdr(ia_exhaacplus_dec_api_struct *p_obj_exhaa
     p_obj_exhaacplus_dec->aac_config.loas_present = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
+    p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut = 0;
+    p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
     p_obj_exhaacplus_dec->aac_config.ui_drc_set = 0;
     p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 1;
@@ -1174,6 +1195,8 @@ IA_ERRORCODE ixheaacd_decoder_flush_api(ia_exhaacplus_dec_api_struct *p_obj_exha
     p_obj_exhaacplus_dec->aac_config.loas_present = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_cut = 0;
+    p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut = 0;
+    p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost = 0;
     p_obj_exhaacplus_dec->aac_config.ui_drc_target_level = 108;
     p_obj_exhaacplus_dec->aac_config.ui_drc_set = 0;
     p_obj_exhaacplus_dec->aac_config.ui_flush_cmd = 1;
