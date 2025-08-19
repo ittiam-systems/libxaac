@@ -165,9 +165,9 @@ static IA_ERRORCODE iusace_fd_mdct_long(ia_usac_data_struct *pstr_usac_data,
     case LONG_STOP_SEQUENCE:
       win_len = n_short << prev_mode;
       nflat_ls = (n_long - win_len) >> 1;
-      err_code = iusace_calc_window(&ptr_win_long, n_long, window_shape);
+      err_code = iusace_calc_window(&ptr_win_long, n_long, 1);
       if (err_code) return err_code;
-      err_code = iusace_calc_window(&ptr_win_med, win_len, 1);
+      err_code = iusace_calc_window(&ptr_win_med, win_len, window_shape);
       if (err_code) return err_code;
       iusace_windowing_long_stop(ptr_overlap, ptr_win_long, ptr_windowed_buf, ptr_in_data, n_long,
                                  nflat_ls, ptr_win_med, win_len);
