@@ -1033,30 +1033,33 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       pstr_drc_cfg->str_enc_params.domain = TIME_DOMAIN;
       pstr_drc_cfg->str_uni_drc_config.sample_rate = pstr_drc_cfg->str_enc_params.sample_rate;
       if (pstr_usac_config->use_drc_element) {
-      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
-           i++) {
-        for (WORD32 j = 0;
-             j < pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i].gain_set_count;
-             j++) {
-          pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i]
-              .str_gain_set_params[j]
-              .delta_tmin =
-              impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+        for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
+             i++) {
+          for (WORD32 j = 0;
+               j <
+               pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i].gain_set_count;
+               j++) {
+            pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .delta_tmin =
+                impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+          }
+        }
+        for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                                   .drc_coefficients_uni_drc_v1_count;
+             i++) {
+          for (WORD32 j = 0; j < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                                     .str_drc_coefficients_uni_drc_v1[i]
+                                     .gain_set_count;
+               j++) {
+            pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                .str_drc_coefficients_uni_drc_v1[i]
+                .str_gain_set_params[j]
+                .delta_tmin =
+                impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+          }
         }
       }
-      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-        .drc_coefficients_uni_drc_v1_count; i++) {
-        for (WORD32 j = 0;
-          j < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-          .str_drc_coefficients_uni_drc_v1[i].gain_set_count; j++) {
-          pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-            .str_drc_coefficients_uni_drc_v1[i]
-            .str_gain_set_params[j]
-            .delta_tmin =
-            impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
-        }
-      }
-    }
       pstr_usac_config->str_drc_cfg = *pstr_drc_cfg;
       pstr_usac_config->str_drc_cfg.str_enc_params.frame_size = pstr_usac_config->drc_frame_size;
       pstr_usac_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc
