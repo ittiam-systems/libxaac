@@ -164,9 +164,6 @@ input buffer (1ch)
 #define MAXIMUM_DS_1_3_FILTER_DELAY (36)
 
 #define CC_DELAY_ADJUSTMENT (448)
-#define SBR_2_1_DELAY_ADJUSTMENT (-70)
-#define SBR_4_1_DELAY_ADJUSTMENT (218)
-#define SBR_8_3_DELAY_ADJUSTMENT (-74)
 
 extern const FLOAT32 ixheaace_fd_quant_table[257];
 extern const FLOAT32 ixheaace_fd_inv_quant_table[257];

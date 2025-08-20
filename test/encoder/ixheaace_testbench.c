@@ -1298,7 +1298,6 @@ IA_ERRORCODE ia_enhaacplus_enc_main_process(ixheaace_app_context *pstr_context, 
     return -1;
   }
   ia_drc_input_config *pstr_drc_cfg = (ia_drc_input_config *)pstr_in_cfg->pv_drc_cfg;
-  memset(pstr_drc_cfg, 0, sizeof(*pstr_drc_cfg));
 
   /* Stack process struct initing */
   p_error_init = ia_enhaacplus_enc_error_handler_init;

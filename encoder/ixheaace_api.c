@@ -1032,30 +1032,34 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       pstr_drc_cfg->str_enc_params.sample_rate = pstr_input_config->i_samp_freq;
       pstr_drc_cfg->str_enc_params.domain = TIME_DOMAIN;
       pstr_drc_cfg->str_uni_drc_config.sample_rate = pstr_drc_cfg->str_enc_params.sample_rate;
-      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
-           i++) {
-        for (WORD32 j = 0;
-             j < pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i].gain_set_count;
-             j++) {
-          pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i]
-              .str_gain_set_params[j]
-              .delta_tmin =
-              impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+      if (pstr_usac_config->use_drc_element) {
+        for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.drc_coefficients_uni_drc_count;
+             i++) {
+          for (WORD32 j = 0;
+               j <
+               pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i].gain_set_count;
+               j++) {
+            pstr_drc_cfg->str_uni_drc_config.str_drc_coefficients_uni_drc[i]
+                .str_gain_set_params[j]
+                .delta_tmin =
+                impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+          }
+        }
+        for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                                   .drc_coefficients_uni_drc_v1_count;
+             i++) {
+          for (WORD32 j = 0; j < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                                     .str_drc_coefficients_uni_drc_v1[i]
+                                     .gain_set_count;
+               j++) {
+            pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
+                .str_drc_coefficients_uni_drc_v1[i]
+                .str_gain_set_params[j]
+                .delta_tmin =
+                impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
+          }
         }
       }
-      for (WORD32 i = 0; i < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-        .drc_coefficients_uni_drc_v1_count; i++) {
-        for (WORD32 j = 0;
-          j < pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-          .str_drc_coefficients_uni_drc_v1[i].gain_set_count; j++) {
-          pstr_drc_cfg->str_uni_drc_config.str_uni_drc_config_ext
-            .str_drc_coefficients_uni_drc_v1[i]
-            .str_gain_set_params[j]
-            .delta_tmin =
-            impd_drc_get_delta_t_min(pstr_drc_cfg->str_uni_drc_config.sample_rate);
-        }
-      }
-
       pstr_usac_config->str_drc_cfg = *pstr_drc_cfg;
       pstr_usac_config->str_drc_cfg.str_enc_params.frame_size = pstr_usac_config->drc_frame_size;
       pstr_usac_config->str_drc_cfg.str_uni_drc_config.str_drc_coefficients_uni_drc
@@ -3125,16 +3129,6 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
 
     write_off_set = INPUT_DELAY_LC * IXHEAACE_MAX_CH_IN_BS_ELE;
 
-    if (pstr_config->use_delay_adjustment == 1) {
-      if (pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
-        write_off_set += SBR_4_1_DELAY_ADJUSTMENT * IXHEAACE_MAX_CH_IN_BS_ELE;
-      } else if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1) {
-        write_off_set += SBR_2_1_DELAY_ADJUSTMENT * IXHEAACE_MAX_CH_IN_BS_ELE;
-      } else {
-        write_off_set += SBR_8_3_DELAY_ADJUSTMENT * IXHEAACE_MAX_CH_IN_BS_ELE;
-      }
-    }
-
     if (pstr_api_struct->config[0].ccfl_idx == SBR_4_1) {
       write_off_set = write_off_set * 2;
     }
@@ -3367,9 +3361,6 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
       ixheaace_get_input_scratch_buf(pstr_api_struct->pstr_state->ptr_temp_buff_resamp,
                                      &in_buffer_temp);
       if (pstr_api_struct->config[0].ccfl_idx == SBR_8_3) {
-        if (pstr_config->use_delay_adjustment == 1) {
-          delay = SBR_8_3_DELAY_ADJUSTMENT * IXHEAACE_MAX_CH_IN_BS_ELE;
-        }
         WORD32 input_tot = num_samples_read / pstr_api_struct->config[0].i_channels;
         ixheaace_upsampling_inp_buf_generation(ptr_input_buffer, in_buffer_temp, input_tot,
                                                UPSAMPLE_FAC, write_off_set - delay);
@@ -3398,13 +3389,6 @@ static IA_ERRORCODE iusace_process(ixheaace_api_struct *pstr_api_struct) {
               shared_buf1_ring, shared_buf2_ring, pstr_scratch_resampler);
         } else {
           WORD32 out_stride = IXHEAACE_MAX_CH_IN_BS_ELE * resamp_ratio;
-          if (pstr_config->use_delay_adjustment == 1) {
-            if (pstr_api_struct->config[0].ccfl_idx == SBR_2_1) {
-              delay = out_stride * SBR_2_1_DELAY_ADJUSTMENT;
-            } else {
-              delay = out_stride * SBR_4_1_DELAY_ADJUSTMENT;
-            }
-          }
           ia_enhaacplus_enc_iir_downsampler(
               &(pstr_api_struct->pstr_state->down_sampler[0][ch]),
               ptr_input_buffer + write_off_set - delay + ch,
