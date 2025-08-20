@@ -676,6 +676,7 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
                                      IA_XHEAAC_DEC_CONFIG_PARAM_DRC_LOUDNESS_LEVELING,
                                      &loudness_leveling_flag);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      mpeg_d_drc_on = 1;
     }
 #endif
   }
@@ -2325,8 +2326,10 @@ void print_usage() {
   printf("\n    interleaved to stereo output. Default 1 ");
   printf("\n  <down_sample_sbr> is to enable/disable down-sampled SBR ");
   printf("\n    output. Default auto identification from header");
-  printf("\n  <drc_cut_factor> is to set DRC cut factor value. Default value is 0");
-  printf("\n  <drc_boost_factor> is to set DRC boost factor. Default value is 0");
+  printf("\n  <drc_cut_factor> is to set DRC cut factor value. Default value is 1 for USAC path "
+         "and 0 for AAC path");
+  printf("\n  <drc_boost_factor> is to set DRC boost factor. Default value is 1 for USAC path "
+         "and 0 for AAC path");
   printf("\n  <drc_target_level> is to set DRC target reference level.");
   printf("\n    Default value is 108");
   printf("\n  <drc_heavy_compression> is to enable / disable DRC heavy compression.");
