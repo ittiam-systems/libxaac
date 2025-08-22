@@ -205,8 +205,8 @@ where,
   <esbr_ps_flag>           is to indicate eSBR with PS. Default 0.
   <interleave_to_stereo>   is to enable/disable always interleaved to stereo output. Default 1.
   <down_sample_sbr>        is to enable/disable down-sampled SBR output. Default auto identification from header.
-  <drc_cut_factor>         is to set DRC cut factor value. Default value is 0.
-  <drc_boost_factor>       is to set DRC boost factor. Default value is 0.
+  <drc_cut_factor>         is to set DRC cut factor value. Default value is 1 for USAC path and 0 for AAC path.
+  <drc_boost_factor>       is to set DRC boost factor. Default value is 1 for USAC path and 0 for AAC path.
   <drc_target_level>       is to set DRC target reference level. Default value is 108.
   <drc_heavy_compression>  is to enable/disable DRC heavy compression. Default value is 0.
   <effect_type>            is to set DRC effect type. Default value is 0.
