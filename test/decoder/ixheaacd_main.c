@@ -33,7 +33,6 @@
 #include "ixheaacd_metadata_read.h"
 #include "impd_drc_config_params.h"
 
-#ifdef SUPPORT_MP4
 #include "ISOMovies.h"
 #define _IA_HANDLE_ERROR_MP4(a)                               \
 if (a)                                                        \
@@ -41,7 +40,7 @@ if (a)                                                        \
   printf("ISOBMFF parser library error. Error No: %d\n", a);  \
   exit(1);                                                    \
 }
-#endif
+
 
 IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_module_obj, WORD32 i_cmd, WORD32 i_idx,
                               pVOID pv_value);
@@ -109,22 +108,21 @@ FILE *g_pf_out;
 FileWrapperPtr g_pf_inp; /* file pointer to bitstream file (mp4) */
 
 WORD32 mpeg_d_drc_on = 0;
-
-#ifndef SUPPORT_MP4
+WORD32 mp4_supp = 1;
 metadata_info meta_info;  // metadata pointer;
 WORD32 ixheaacd_i_bytes_to_read;
 FILE *g_pf_meta;
 
 WORD32 raw_testing = 0;
-#else
-WORD32 mp4_flag = 0;
+
+WORD32 mp4_flag = 1;
 WORD32 ixheaacd_i_bytes_to_read;
 ISOMedia media;
 ISOTrack trak;
 ISOTrackReader reader;
 ISOHandle sample_hdl;
 ISOHandle decoder_cfg_hdl;
-#endif
+
 WORD32 prev_i_bytes_to_read;
 WORD32 flush_frame = 0;
 WORD32 eld_testing = 0;
@@ -407,7 +405,7 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
   ia_error_info_struct *p_proc_err_info = &ixheaacd_error_info;
 
   for (i = 0; i < argc; i++) {
-#ifndef SUPPORT_MP4
+  if (!mp4_supp) {
     /* To indicate if its a MP4 file or not. */
     if (!strncmp((pCHAR8)argv[i], "-mp4:", 5)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 5);
@@ -416,8 +414,9 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
           p_ia_process_api_obj, IA_API_CMD_SET_CONFIG_PARAM,
           IA_XHEAAC_DEC_CONFIG_PARAM_MP4FLAG, &ui_mp4_flag);
       _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      mp4_flag = ui_mp4_flag;
     }
-#endif
+  }
     /* PCM WORD Size (For single input file) */
     if (!strncmp((pCHAR8)argv[i], "-pcmsz:", 7)) {
       pCHAR8 pb_arg_val = (pCHAR8)(argv[i] + 7);
@@ -702,7 +701,7 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
     }
 #endif
   }
-#ifdef SUPPORT_MP4
+  
   {
     UWORD32 ui_mp4_flag = mp4_flag;
     err_code = (*p_ia_process_api)(
@@ -710,7 +709,7 @@ IA_ERRORCODE ixheaacd_set_config_param(WORD32 argc, pWORD8 argv[],
         IA_ENHAACPLUS_DEC_CONFIG_PARAM_ISMP4, &ui_mp4_flag);
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
   }
-#endif
+  
 
   return IA_NO_ERROR;
 }
@@ -915,11 +914,11 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   WORD32 prev_sampling_rate = 0;
   WORD32 skip_samples = 0;
   WORD32 total_samples = 0;
-#ifdef SUPPORT_MP4
+
   s64 segment_duration = 0;
   s64 start_offset_duration = 0;
   u32 entryIndex = 1;
-#endif
+
   WORD32 write_flag = 1;
   WORD32 bytes_to_write = 0;
   WORD32 ixheaacd_drc_offset = 0;
@@ -974,9 +973,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   /* The process error info structure */
   ia_error_info_struct *p_proc_err_info;
 
-#ifdef SUPPORT_MP4
   ISOErr err = ISONoErr;
-#endif
 
   /* Process struct initing */
   p_ia_process_api = ixheaacd_dec_api;
@@ -1255,7 +1252,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   do {
     i_bytes_read = 0;
 
-#ifndef SUPPORT_MP4
+  if (!mp4_supp) {
     if ((ui_inp_size - (i_buff_size - i_bytes_consumed)) > 0) {
       for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
         pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
@@ -1318,7 +1315,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
       return 1;
     }
-#else
+  }
+  else {
     if (!mp4_flag)
     {
       if ((ui_inp_size - (i_buff_size - i_bytes_consumed)) > 0) {
@@ -1381,9 +1379,9 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         return 1;
       }
     }
-#endif
+  }
     if (init_iteration == 1) {
-#ifndef SUPPORT_MP4
+    if (!mp4_supp) {
       if (raw_testing)
         ixheaacd_i_bytes_to_read = get_metadata_dec_info_init(meta_info);
       else
@@ -1394,7 +1392,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
           (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
                               0, &ixheaacd_i_bytes_to_read);
       init_iteration++;
-#else
+    }
+      else {
       if (!mp4_flag)
       {
         ixheaacd_i_bytes_to_read = i_buff_size;
@@ -1437,9 +1436,9 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         }
       }
       init_iteration++;
-#endif
-    } else {
-#ifndef SUPPORT_MP4
+    }
+   } else {
+    if (!mp4_supp) {
       if (raw_testing) {
         ixheaacd_i_bytes_to_read =
             get_metadata_dec_exec(meta_info, frame_counter);
@@ -1466,7 +1465,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         err_code = (*p_ia_process_api)(
             pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
       }
-#else
+    }
+    else {
       if (mp4_flag) {
         u32 unit_size;
         s32 cts;
@@ -1503,8 +1503,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         err_code = (*p_ia_process_api)(
             pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
       }
-#endif
     }
+  }
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
@@ -1904,7 +1904,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
   if (ui_aot == 42)
     esbr_testing = 1;
 
-#ifndef SUPPORT_MP4
+if (!mp4_supp) {
   if (raw_testing) {
     skip_samples = get_start_offset_in_samples(meta_info);
     if (ui_aot >= 23 && esbr_testing) {
@@ -1915,7 +1915,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     }
     if (eld_testing == 0) total_samples = get_play_time_in_samples(meta_info);
   }
-#else
+}
+else {
   if (mp4_flag) {
     u32 entry_count = 1;
     err = ISOGetTrackEditlistEntryCount(trak, &entry_count);
@@ -1929,7 +1930,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
       }
     }
   }
-#endif
+}
 
 /* End second part */
 
@@ -1945,14 +1946,15 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 #endif
 #endif
   prev_sampling_rate = i_samp_freq;
-
-#if SUPPORT_MP4
-  UWORD32 number_of_frames = 0;
+  UWORD32 number_of_frames;
+if (mp4_supp) {
+  number_of_frames = 0;
   err = ISOGetMediaSampleCount(media, &number_of_frames);
   if (err) return err;
-#else
-  UWORD32 number_of_frames = meta_info.ia_mp4_stsz_entries;
-#endif
+}
+else {
+  number_of_frames = meta_info.ia_mp4_stsz_entries;
+}
 
   do {
     if (((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)) > 0) {
@@ -1961,13 +1963,14 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
           for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
             pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
           }
-#ifndef SUPPORT_MP4
+          if (!mp4_supp) {
           FileWrapper_Read(
               g_pf_inp,
               (unsigned char *)(pb_inp_buf + i_buff_size - i_bytes_consumed),
               ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
               (pUWORD32)&i_bytes_read);
-#else
+          }
+          else {
           if (!mp4_flag)
           {
             FileWrapper_Read(
@@ -1995,18 +1998,19 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
               memcpy(pb_inp_buf, *((char **)sample_hdl), i_bytes_read);
             }
           }
-#endif
+        }
 		  
           i_buff_size = i_buff_size - (i_bytes_consumed - i_bytes_read);
 
           if ((i_buff_size <= 0) ||
               ((err_code_reinit == 0x00001804) && i_bytes_read == 0)) {
             i_buff_size = 0;
-#ifndef SUPPORT_MP4
+            if (!mp4_supp) {
             raw_testing = 0;
-#else
+            }
+            else {
             mp4_flag = 0;
-#endif
+            }
             /* Tell that the input is over in this buffer */
             err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
                                            IA_API_CMD_INPUT_OVER, 0, NULL);
@@ -2018,12 +2022,13 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         for (i = 0; i < (i_buff_size - i_bytes_consumed); i++) {
           pb_inp_buf[i] = pb_inp_buf[i + i_bytes_consumed];
         }
-#ifndef SUPPORT_MP4
+      if (!mp4_supp) {
         FileWrapper_Read(g_pf_inp, (unsigned char *)(pb_inp_buf + i_buff_size -
             i_bytes_consumed),
             ((WORD32)ui_inp_size - (WORD32)(i_buff_size - i_bytes_consumed)),
             (pUWORD32)&i_bytes_read);
-#else
+      }
+      else {
         if (!mp4_flag)
         {
           FileWrapper_Read(g_pf_inp,
@@ -2050,17 +2055,18 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
             memcpy(pb_inp_buf, *((char **)sample_hdl), i_bytes_read);
           }
         }
-#endif
+      }
         i_buff_size = i_buff_size - (i_bytes_consumed - i_bytes_read);
 
         if ((i_buff_size <= 0) ||
             ((err_code_reinit == 0x00001804) && i_bytes_read == 0)) {
           i_buff_size = 0;
-#ifndef SUPPORT_MP4
+        if (!mp4_supp) {
           raw_testing = 0;
-#else
+        }
+        else {
           mp4_flag = 0;
-#endif
+        }
           err_code = (*p_ia_process_api)(pv_ia_process_api_obj,
               IA_API_CMD_INPUT_OVER, 0, NULL);
 
@@ -2070,7 +2076,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
     }
     if (i_sbr_mode && (ui_aot < 23) && esbr_testing) {
       if (number_of_frames != frame_counter) {
-#ifndef SUPPORT_MP4
+      if (!mp4_supp) {
         if (raw_testing) {
           ixheaacd_i_bytes_to_read =
               get_metadata_dec_exec(meta_info, frame_counter);
@@ -2089,7 +2095,11 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
               (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
                   0, &ixheaacd_i_bytes_to_read);
         } else {
-#else
+          err_code = (*p_ia_process_api)(
+              pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
+        }
+      }
+      else {
         if (mp4_flag) {
           ixheaacd_i_bytes_to_read = i_bytes_read;
 
@@ -2107,13 +2117,13 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
               (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES,
                   0, &ixheaacd_i_bytes_to_read);
         } else {
-#endif
           err_code = (*p_ia_process_api)(
               pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
         }
       }
-    } else {
-#ifndef SUPPORT_MP4
+    }
+  } else {
+  if (!mp4_supp) {
     if (raw_testing) {
       ixheaacd_i_bytes_to_read =
           get_metadata_dec_exec(meta_info, frame_counter);
@@ -2143,8 +2153,21 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
           err_code = (*p_ia_process_api)(pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0,
                                          &ixheaacd_i_bytes_to_read);
         }
-    } else {
-#else
+      } else {
+      /* Set number of bytes to be processed */
+      err_code = (*p_ia_process_api)(
+          pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
+
+      if (i_buff_size <= 0)
+      {
+        err_code = (*p_ia_process_api)(
+            pv_ia_process_api_obj, IA_API_CMD_INPUT_OVER, 0, NULL);
+
+        _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
+      }
+    }
+   }
+    else {
     if (mp4_flag) {
       ixheaacd_i_bytes_to_read = i_bytes_read;
 
@@ -2174,7 +2197,6 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                                          &ixheaacd_i_bytes_to_read);
       }
     } else {
-#endif
       /* Set number of bytes to be processed */
       err_code = (*p_ia_process_api)(
           pv_ia_process_api_obj, IA_API_CMD_SET_INPUT_BYTES, 0, &i_buff_size);
@@ -2187,7 +2209,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
         _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
       }
     }
-    }
+   }
+  }
 
     _IA_HANDLE_ERROR(p_proc_err_info, (pWORD8) "", err_code);
 
@@ -2461,13 +2484,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 
     if (total_samples != 0)  // Usac stream
     {
-#ifndef SUPPORT_MP4
+      if (!mp4_supp) {
       if (raw_testing) {
-#else
-      if (mp4_flag) {
-        WORD32 frame_size = i_out_bytes / (i_num_chan * (i_pcm_wd_sz >> 3));
-        skip_samples = skip_samples % frame_size;
-#endif
         if (i_total_bytes <= skip_samples * i_num_chan * (i_pcm_wd_sz >> 3)) {
           err_code =
               (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
@@ -2489,11 +2507,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
             current_samples = i_out_bytes / (i_num_chan * (i_pcm_wd_sz >> 3));
           }
         }
-      }
-
-#ifndef SUPPORT_MP4
-      if (raw_testing) {
-        samples_written += current_samples;
+          samples_written += current_samples;
 
         if (samples_written > total_samples) {
           i_out_bytes = (total_samples - (samples_written - current_samples)) *
@@ -2501,8 +2515,34 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
           if (i_out_bytes < 0) i_out_bytes = 0;
         }
       }
-#else
+      }
+      else {
       if (mp4_flag) {
+        WORD32 frame_size = i_out_bytes / (i_num_chan * (i_pcm_wd_sz >> 3));
+        skip_samples = skip_samples % frame_size;
+        if (i_total_bytes <= skip_samples * i_num_chan * (i_pcm_wd_sz >> 3)) {
+          err_code =
+              (*p_get_config_param)(pv_ia_process_api_obj, &i_samp_freq,
+                                    &i_num_chan, &i_pcm_wd_sz, &i_channel_mask,
+                                    &i_sbr_mode, &ui_aot);
+
+          write_flag = 0;
+        }
+        else {
+          write_flag = 1;
+          bytes_to_write =
+            i_total_bytes - skip_samples * i_num_chan * (i_pcm_wd_sz >> 3);
+          if (bytes_to_write < i_out_bytes) {
+            ixheaacd_drc_offset = i_out_bytes - bytes_to_write;
+            i_out_bytes = bytes_to_write;
+            current_samples =
+              bytes_to_write / (i_num_chan * (i_pcm_wd_sz >> 3));
+          }
+          else {
+            ixheaacd_drc_offset = 0;
+            current_samples = i_out_bytes / (i_num_chan * (i_pcm_wd_sz >> 3));
+          }
+        }
         samples_written += current_samples;
 
         if (samples_written > total_samples) {
@@ -2510,8 +2550,8 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
                         (i_num_chan * (i_pcm_wd_sz >> 3));
           if (i_out_bytes < 0) i_out_bytes = 0;
         }
+       }
       }
-#endif
     }
 
     if (write_flag) {
@@ -2748,17 +2788,13 @@ void print_usage() {
 int main(WORD32 argc, char *argv[]) {
   WORD32 i, err_code = IA_NO_ERROR;
 
-#ifdef SUPPORT_MP4
   ISOErr err;
   u32 handler_type;
   ISOMovie moov;
-#endif
   ia_testbench_error_handler_init();
 
   g_pf_inp = NULL;
-#ifndef SUPPORT_MP4
   g_pf_meta = NULL;
-#endif
   g_pf_out = NULL;
 
   for (i = 1; i < argc; i++) {
@@ -2766,7 +2802,14 @@ int main(WORD32 argc, char *argv[]) {
 
     if (!strncmp((const char *)argv[i], "-ifile:", 7)) {
       pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
-#ifndef SUPPORT_MP4
+      SIZE_T len = strlen(pb_arg_val);
+      if (len > 4 && strcmp(pb_arg_val + len - 4, ".mp4") == 0) {
+        mp4_supp = 1;
+      }
+      else {
+        mp4_supp = 0;
+      }
+      if (!mp4_supp) {
       g_pf_inp = FileWrapper_Open((char *)pb_arg_val);
       if (g_pf_inp == NULL) {
         err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
@@ -2775,7 +2818,8 @@ int main(WORD32 argc, char *argv[]) {
         exit(1);
       }
       raw_testing = 0;
-#else
+      }
+      else {
       err = ISOOpenMovieFile(&moov, (char *)pb_arg_val,
             MP4OpenMovieNormal);
       if (err != MP4NoErr)
@@ -2809,9 +2853,9 @@ int main(WORD32 argc, char *argv[]) {
         err = ISOCreateTrackReader(trak, &reader);
         _IA_HANDLE_ERROR_MP4(err);
       }
-#endif
+     }
     }
-#ifndef SUPPORT_MP4
+    if (!mp4_supp) {
     if (!strncmp((const char *)argv[i], "-imeta:", 7)) {
       pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
 
@@ -2831,7 +2875,7 @@ int main(WORD32 argc, char *argv[]) {
       }
       raw_testing = 1;
     }
-#endif
+   }
 
     if (!strncmp((const char *)argv[i], "-ofile:", 7)) {
       pWORD8 pb_arg_val = (pWORD8)argv[i] + 7;
@@ -2846,7 +2890,7 @@ int main(WORD32 argc, char *argv[]) {
     }
   }
 
-#ifndef SUPPORT_MP4
+  if (!mp4_supp) {
   if ((g_pf_inp == NULL) || (g_pf_out == NULL)) {
     print_usage();
     err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
@@ -2854,7 +2898,8 @@ int main(WORD32 argc, char *argv[]) {
                            (pWORD8) "Input or Output File", err_code);
     exit(1);
   }
-#else
+ }
+  else {
   if (!mp4_flag)
   {
     if ((g_pf_inp == NULL) || (g_pf_out == NULL)) {
@@ -2875,12 +2920,12 @@ int main(WORD32 argc, char *argv[]) {
       exit(1);
     }
   }
-#endif
+ }
 
   g_w_malloc_count = 0;
 
   printf("\n");
-#ifndef SUPPORT_MP4
+  if (!mp4_supp) {
   for (i = 0; i < argc; i++) {
     if (!strcmp((pCHAR8)argv[i], "-mp4:1")) {
       if (g_pf_meta == NULL) {
@@ -2892,7 +2937,7 @@ int main(WORD32 argc, char *argv[]) {
       }
     }
   }
-#endif
+}
   for (i = 0; i < argc; i++) {
     if (strcmp((pCHAR8)argv[i], "-eld_testing:1"))
       eld_testing = 0;
@@ -2908,13 +2953,13 @@ int main(WORD32 argc, char *argv[]) {
     if (g_pv_arr_alloc_memory[i]) free(g_pv_arr_alloc_memory[i]);
   }
   if (g_pf_out) fclose(g_pf_out);
-#ifndef SUPPORT_MP4
+  if (!mp4_supp) {
   if (g_pf_meta) {
     fclose(g_pf_meta);
     metadata_mp4_stsz_size_free(&meta_info);
   }
   FileWrapper_Close(g_pf_inp);
-#else
+  } else {
   if (!mp4_flag)
   {
     FileWrapper_Close(g_pf_inp);
@@ -2930,7 +2975,7 @@ int main(WORD32 argc, char *argv[]) {
     err = ISODisposeMovie(moov);
     _IA_HANDLE_ERROR_MP4(err);
   }
-#endif
+}
   mpeg_d_drc_on = 0;
 
   return IA_NO_ERROR;
