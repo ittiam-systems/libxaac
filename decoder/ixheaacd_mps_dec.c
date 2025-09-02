@@ -2000,6 +2000,9 @@ IA_ERRORCODE ixheaacd_heaac_mps_apply(ia_exhaacplus_dec_api_struct *self,
     self->p_state_aac->heaac_mps_handle.is_first = 1;
     if (pstr_mps_state->bytes_remaining != 0) {
       buffer_size = mps_bytes + pstr_mps_state->bytes_remaining;
+      if (buffer_size > 1024) {
+        return IA_FATAL_ERROR;
+      }
       for (WORD32 ii = 0; ii < mps_bytes; ii++) {
         pstr_mps_state->temp_buf[ii + pstr_mps_state->bytes_remaining] =
             mps_buffer[ii];
