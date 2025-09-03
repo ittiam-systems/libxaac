@@ -587,9 +587,10 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
         mem_wsyn = lpd_state[k]->mem_wsyn;
 
-        iusace_find_weighted_speech(&lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) *
-          (ORDER + 1)], &pstr_scratch->p_synth_buf[k * LEN_FRAME],
-          pstr_scratch->p_temp_wsyn_buf, &mem_wsyn, LEN_FRAME);
+        iusace_find_weighted_speech(
+            &lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
+            &pstr_scratch->p_synth_buf[k * st->len_subfrm], pstr_scratch->p_temp_wsyn_buf,
+            &mem_wsyn, st->len_subfrm);
 
         lpd_state[k + 1]->mem_wsyn = mem_wsyn;
         mode[k] = 0;
@@ -623,13 +624,13 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
       mem_wsyn = lpd_state[k]->mem_wsyn;
 
       iusace_find_weighted_speech(&lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
-                                  &pstr_scratch->p_synth_buf[k * LEN_FRAME],
-                                  pstr_scratch->p_temp_wsyn_buf, &mem_wsyn, LEN_FRAME);
+                                  &pstr_scratch->p_synth_buf[k * st->len_subfrm],
+                                  pstr_scratch->p_temp_wsyn_buf, &mem_wsyn, st->len_subfrm);
 
       lpd_state[k + 1]->mem_wsyn = mem_wsyn;
 
-      ssnr_256 = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * LEN_FRAME],
-                                   pstr_scratch->p_temp_wsyn_buf, LEN_FRAME, LEN_SUBFR);
+      ssnr_256 = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * st->len_subfrm],
+                                   pstr_scratch->p_temp_wsyn_buf, st->len_subfrm, LEN_SUBFR);
 
       mode[k] = 0;
       num_tcx_param[k] = 0;
@@ -648,12 +649,12 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
       iusace_find_weighted_speech(&lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
                                   pstr_scratch->p_synth_tcx_buf, pstr_scratch->p_temp_wsyn_buf,
-                                  &mem_wsyn, LEN_FRAME);
+                                  &mem_wsyn, st->len_subfrm);
 
       lpd_state_temp->mem_wsyn = mem_wsyn;
 
-      tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * LEN_FRAME],
-                                   pstr_scratch->p_temp_wsyn_buf, LEN_FRAME, LEN_SUBFR);
+      tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * st->len_subfrm],
+                                   pstr_scratch->p_temp_wsyn_buf, st->len_subfrm, LEN_SUBFR);
 
       if (tmp_ssnr > ssnr_256) {
         ssnr_256 = tmp_ssnr;
@@ -689,12 +690,13 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
     iusace_find_weighted_speech(
         &lp_filter_coeff[2 * i1 * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
-        pstr_scratch->p_synth_tcx_buf, pstr_scratch->p_temp_wsyn_buf, &mem_wsyn, LEN_FRAME * 2);
+        pstr_scratch->p_synth_tcx_buf, pstr_scratch->p_temp_wsyn_buf, &mem_wsyn,
+        st->len_subfrm * 2);
 
     lpd_state_temp->mem_wsyn = mem_wsyn;
 
-    tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[2 * i1 * LEN_FRAME],
-                                 pstr_scratch->p_temp_wsyn_buf, LEN_FRAME * 2, LEN_SUBFR);
+    tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[2 * i1 * st->len_subfrm],
+                                 pstr_scratch->p_temp_wsyn_buf, st->len_subfrm * 2, LEN_SUBFR);
 
     if (tmp_ssnr > ssnr_512) {
       ssnr_512 = tmp_ssnr;
@@ -730,12 +732,12 @@ VOID iusace_core_lpd_encode(ia_usac_data_struct *usac_data, FLOAT32 *speech, WOR
 
   iusace_find_weighted_speech(&lp_filter_coeff[k * (num_sbfrm_per_supfrm / 4) * (ORDER + 1)],
                               pstr_scratch->p_synth_tcx_buf, pstr_scratch->p_temp_wsyn_buf,
-                              &mem_wsyn, LEN_FRAME * 4);
+                              &mem_wsyn, st->len_subfrm * 4);
 
   lpd_state_temp->mem_wsyn = mem_wsyn;
 
-  tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * LEN_FRAME],
-                               pstr_scratch->p_temp_wsyn_buf, LEN_FRAME * 4, LEN_SUBFR);
+  tmp_ssnr = iusace_cal_segsnr(&pstr_scratch->p_wsig_buf[k * st->len_subfrm],
+                               pstr_scratch->p_temp_wsyn_buf, st->len_subfrm * 4, LEN_SUBFR);
 
   if (tmp_ssnr > ssnr_1024) {
     for (i = 0; i < 4; i++) {

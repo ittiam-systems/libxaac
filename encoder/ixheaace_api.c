@@ -561,7 +561,14 @@ static IA_ERRORCODE ixheaace_validate_config_params(ixheaace_input_config *pstr_
     pstr_input_config->aot = AOT_AAC_LC;
   }
   pstr_input_config->i_native_samp_freq = pstr_input_config->i_samp_freq;
-  pstr_input_config->i_samp_freq = iusace_map_sample_rate(pstr_input_config->i_samp_freq);
+  if (pstr_input_config->aot != AOT_USAC) {
+    pstr_input_config->i_samp_freq = iusace_map_sample_rate(pstr_input_config->i_samp_freq);
+  } else {
+    err_code = iusace_validate_baseline_profile_sample_rate(pstr_input_config->i_samp_freq);
+    if (err_code) {
+      return err_code;
+    }
+  }
 
   if ((pstr_input_config->i_channels < MIN_NUM_CORE_CODER_CHANNELS) ||
       (pstr_input_config->i_channels > MAX_NUM_CORE_CODER_CHANNELS)) {
