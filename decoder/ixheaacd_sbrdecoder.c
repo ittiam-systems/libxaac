@@ -638,9 +638,9 @@ IA_ERRORCODE ixheaacd_applysbr(
                                            frame_status);
             }
           } else if (ptr_frame_data[k]->sbr_mode == PVC_SBR) {
-            frame_status = ixheaacd_sbr_read_pvc_sce(ptr_frame_data[k], it_bit_buff, 0,
-                                                     self->ptr_pvc_data_str,
-                                                     self->pstr_sbr_tables, ptr_header_data[k]);
+            frame_status = ixheaacd_sbr_read_pvc_sce(
+                ptr_frame_data[k], it_bit_buff, ptr_header_data[k]->hbe_flag,
+                self->ptr_pvc_data_str, self->pstr_sbr_tables, ptr_header_data[k]);
             if (frame_status < 0) return frame_status;
           }
         }
