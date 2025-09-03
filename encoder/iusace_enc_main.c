@@ -1455,3 +1455,18 @@ IA_ERRORCODE ixheaace_usac_encode(FLOAT32 **ptr_input,
 
   return err;
 }
+
+IA_ERRORCODE iusace_validate_baseline_profile_sample_rate(WORD32 sample_rate) {
+  IA_ERRORCODE err_code = IA_NO_ERROR;
+
+  if ((sample_rate != 7350) && (sample_rate != 8000) && (sample_rate != 9600) &&
+      (sample_rate != 11025) && (sample_rate != 12000) && (sample_rate != 12800) &&
+      (sample_rate != 16000) && (sample_rate != 19200) && (sample_rate != 22050) &&
+      (sample_rate != 24000) && (sample_rate != 32000) && (sample_rate != 38400) &&
+      (sample_rate != 44100) && (sample_rate != 48000) && (sample_rate != 64000) &&
+      (sample_rate != 88200) && (sample_rate != 96000)) {
+    err_code = IA_EXHEAACE_CONFIG_FATAL_USAC_BASELINE_INVALID_SAMP_FREQ;
+  }
+
+  return err_code;
+}

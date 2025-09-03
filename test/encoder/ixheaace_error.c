@@ -66,7 +66,8 @@ pWORD8 ppb_ia_enhaacplus_enc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
 };
 
 pWORD8 ppb_ia_enhaacplus_enc_usac_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
-    (pWORD8) "Invalid sampling frequency", (pWORD8) "Invalid resampler ratio"};
+    (pWORD8) "Invalid sampling frequency", (pWORD8) "Invalid resampler ratio",
+    (pWORD8) "Invalid sampling frequency for usac baseline profile"};
 
 pWORD8 ppb_ia_enhaacplus_enc_drc_config_fatal[IA_MAX_ERROR_SUB_CODE] = {
     (pWORD8) "Invalid configuration",

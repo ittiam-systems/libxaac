@@ -45,3 +45,5 @@ IA_ERRORCODE iusace_sfb_params_init(WORD32 sample_rate, WORD32 frame_len, WORD32
                                     WORD32 *num_sfb, WORD32 win_seq);
 
 WORD32 iusace_map_sample_rate(WORD32 sample_rate);
+
+IA_ERRORCODE iusace_validate_baseline_profile_sample_rate(WORD32 sample_rate);

@@ -39,7 +39,7 @@ y:-30.0
 x:0.0
 y:-20.0
 width:0.01
-attack:2.0
+attack:0.01
 decay:5.0
 #end gain parameters
 #s=1
@@ -51,7 +51,7 @@ y:-50.0
 x:0.0
 y:-10.0
 width:0.01
-attack:2.0
+attack:0.01
 decay:5.0
 #s=2
 band_count:1
@@ -64,7 +64,7 @@ y:-15.0
 x:0.0
 y:-5.0
 width:0.01
-attack:2.0
+attack:0.01
 decay:5.0
 #end gain parameters
 #####str_drc_instructions_uni_drc_v1#####
@@ -124,7 +124,7 @@ downmix_id:0
 sample_peak_level_present:1
 sample_peak_level:0.0
 true_peak_level_present:1
-true_peak_level:1.0
+true_peak_level:0.0
 true_peak_level_measurement_system:2
 true_peak_level_reliability:3
 measurement_count:1
