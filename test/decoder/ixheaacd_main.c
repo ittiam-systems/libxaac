@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <libgen.h>
 
 #define AOSP_CHANGE
 
@@ -2271,7 +2272,7 @@ int ixheaacd_main_process(WORD32 argc, pWORD8 argv[]) {
 /*                                                                           */
 /*****************************************************************************/
 
-void print_usage() {
+void print_usage(char *argv[]) {
 #ifdef DISPLAY_MESSAGE
   ia_lib_info_struct str_lib_info = {0};
   ixheaacd_get_lib_id_strings(&str_lib_info);
@@ -2279,7 +2280,7 @@ void print_usage() {
   ia_display_id_message(str_lib_info.p_lib_name, str_lib_info.p_version_num);
 #endif
   printf("\n Usage \n");
-  printf("\n <executable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> "
+  printf("\n %s %s", basename(argv[0]), "-ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> "
          "[options]\n");
   printf("\n[options] can be,");
   printf("\n[-mp4:<mp4_flag>]");
@@ -2460,7 +2461,7 @@ int main(WORD32 argc, char *argv[]) {
   }
 
   if ((g_pf_inp == NULL) || (g_pf_out == NULL)) {
-    print_usage();
+    print_usage(argv);
     err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
     ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
                            (pWORD8) "Input or Output File", err_code);
@@ -2474,7 +2475,7 @@ int main(WORD32 argc, char *argv[]) {
   for (i = 0; i < argc; i++) {
     if (!strcmp((pCHAR8)argv[i], "-mp4:1")) {
       if (g_pf_meta == NULL) {
-        print_usage();
+        print_usage(argv);
         err_code = IA_TESTBENCH_MFMAN_FATAL_FILE_OPEN_FAILED;
         ixheaacd_error_handler(&ixheaacd_ia_testbench_error_info,
                                (pWORD8) "Metadata File", err_code);
