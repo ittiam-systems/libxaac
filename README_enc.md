@@ -29,9 +29,9 @@ The configuration file for DRC is placed in `encoder\test` directory(impd_drc_co
 
 # Command line usage :
 ```
-<exceutable> -ifile:<input_file> -ofile:<out_file> [options]
+xaacenc -ifile:<input_file> -ofile:<out_file> [options]
 (or)
-<executable> -paramfile:<paramfile>
+xaacenc -paramfile:<paramfile>
 [options] can be,
 [-br:<bitrate>]
 [-mps:<use_mps>]
@@ -110,7 +110,7 @@ where,
 ```
 Sample CLI:
 ```
--ifile:input_file.wav -ofile:out_file.aac -br:<bit_rate> –aot:<audio profile>  
+xaacenc -ifile:input_file.wav -ofile:out_file.aac -br:<bit_rate> –aot:<audio profile>  
 ```
 
 
