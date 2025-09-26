@@ -1473,6 +1473,7 @@ static IA_ERRORCODE ixheaacd_map_index_data(
   WORD32 i1, i2, x1, xi, x2;
   WORD32 *db_in;
   WORD32 *db_1, *db_2;
+  IA_ERRORCODE error_code = IA_NO_ERROR;
   db_in = ott_vs_tot_db_in;
   db_1 = ott_vs_tot_db_1;
   db_2 = ott_vs_tot_db_2;
@@ -1554,13 +1555,21 @@ static IA_ERRORCODE ixheaacd_map_index_data(
     if (a_interpolate[i] != 1) {
       if (ll_data->no_cmp_quant_coarse_xxx[param_idx][i] == 1) {
         for (band = start_band; band < stop_band; band++) {
-          ixheaacd_deq_coarse(output_idx_data[xtt_idx][i][band], param_type,
-                              &(output_data[xtt_idx][i][band]), ixheaacd_mps_dec_bitdec_tables);
+          error_code = ixheaacd_deq_coarse(output_idx_data[xtt_idx][i][band], param_type,
+                                           &(output_data[xtt_idx][i][band]),
+                                           ixheaacd_mps_dec_bitdec_tables);
+          if (error_code) {
+            return error_code;
+          }
         }
       } else {
         for (band = start_band; band < stop_band; band++) {
-          ia_mps_dec_deq(output_idx_data[xtt_idx][i][band], param_type,
-                         &(output_data[xtt_idx][i][band]), ixheaacd_mps_dec_bitdec_tables);
+          error_code =
+              ia_mps_dec_deq(output_idx_data[xtt_idx][i][band], param_type,
+                             &(output_data[xtt_idx][i][band]), ixheaacd_mps_dec_bitdec_tables);
+          if (error_code) {
+            return error_code;
+          }
         }
       }
     }
