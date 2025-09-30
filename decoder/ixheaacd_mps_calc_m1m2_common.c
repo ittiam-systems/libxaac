@@ -43,7 +43,7 @@
 VOID ixheaacd_get_matrix_inversion_weights(
     WORD32 iid_lf_ls_idx, WORD32 iid_rf_rs_idx, WORD32 prediction_mode, WORD32 c1, WORD32 c2,
     WORD32 *weight1, WORD32 *weight2, ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr) {
-  WORD32 temp, temp_1, temp_2;
+  WORD32 temp, temp_1, temp_2, temp_one;
   WORD16 qtemp;
   WORD32 w1 = ia_mps_dec_mps_table_ptr->m1_m2_table_ptr->cld_tab_2[iid_lf_ls_idx + 15];
   WORD32 w2 = ia_mps_dec_mps_table_ptr->m1_m2_table_ptr->cld_tab_2[iid_rf_rs_idx + 15];
@@ -98,11 +98,20 @@ VOID ixheaacd_get_matrix_inversion_weights(
     c2 = ixheaacd_mps_sqrt(temp, &qtemp, sqrt_tab);
     c2 = ixheaacd_mps_convert_to_qn(c2, qtemp, 15);
   }
-  temp_1 = ONE_IN_Q15 + w1;
+  temp_one = ONE_IN_Q15;
+  if (ixheaac_norm32(w1) == 0) {
+    temp_one = ONE_IN_Q14;
+    w1 = w1 >> 1;
+  }
+  temp_1 = temp_one + w1;
   temp_2 = ixheaacd_mps_mult32_shr_15(c1, w1);
   *weight1 = ixheaacd_mps_div32_in_q15(temp_2, temp_1);
 
-  temp_1 = ONE_IN_Q15 + w2;
+  if (ixheaac_norm32(w2) == 0) {
+    temp_one = ONE_IN_Q14;
+    w2 = w2 >> 1;
+  }
+  temp_1 = temp_one + w2;
   temp_2 = ixheaacd_mps_mult32_shr_15(c2, w2);
   *weight2 = ixheaacd_mps_div32_in_q15(temp_2, temp_1);
 }
