@@ -305,16 +305,17 @@ ixheaace_reset_sbr_noise_floor_estimate(ixheaace_pstr_noise_flr_est_sbr pstr_noi
   k2 = ptr_freq_band_tab[num_scf];
   kx = ptr_freq_band_tab[0];
 
-  if (pstr_noise_floor_est_sbr->noise_groups == 0) {
-    pstr_noise_floor_est_sbr->num_of_noise_bands = 1;
-  } else {
-    pstr_noise_floor_est_sbr->num_of_noise_bands = (WORD32)(
-        (pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) * SBR_INV_LOG_2) + 0.5f);
+  /* ISO_IEC spec 14496-3 section 4.6.18.3.2.2 Derived frequency band tables */
+  pstr_noise_floor_est_sbr->num_of_noise_bands =
+      (WORD32)((pstr_noise_floor_est_sbr->noise_groups * log((FLOAT32)k2 / kx) * SBR_INV_LOG_2) +
+               0.5f);
 
-    if (pstr_noise_floor_est_sbr->num_of_noise_bands == 0) {
-      pstr_noise_floor_est_sbr->num_of_noise_bands = 1;
-    }
-  }
+  pstr_noise_floor_est_sbr->num_of_noise_bands =
+      MAX(1, pstr_noise_floor_est_sbr->num_of_noise_bands);
+
+  /* ISO_IEC spec 14496-3 section 4.6.18.3.6  Requirements */
+  pstr_noise_floor_est_sbr->num_of_noise_bands =
+      MIN(pstr_noise_floor_est_sbr->num_of_noise_bands, MAXIMUM_NUM_NOISE_COEFFS);
 
   return ia_enhaacplus_enc_down_sample_lo_res(pstr_noise_floor_est_sbr->s_freq_qmf_band_tbl,
                                               pstr_noise_floor_est_sbr->num_of_noise_bands,
