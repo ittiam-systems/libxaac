@@ -144,8 +144,7 @@ static VOID impd_drc_check_overshoot(const WORD32 t_gain_step, const FLOAT32 gai
   if ((FLOAT32)fabs((FLOAT64)norm_slope_0) < (FLOAT32)fabs((FLOAT64)norm_slope_1)) {
     t_connect = (WORD32)(0.5f + 2.0f * (gain_left - gain_right + norm_slope_0 * t_gain_step) /
                                     (norm_slope_0 - norm_slope_1));
-    t_connect = t_gain_step - t_connect;
-    if ((t_connect >= 0) && (t_connect < t_gain_step)) {
+    if ((t_gain_step >= t_connect) && (t_connect > 0)) {
       return;
     }
   } else if ((FLOAT32)fabs((FLOAT64)norm_slope_0) > (FLOAT32)fabs((FLOAT64)norm_slope_1)) {
