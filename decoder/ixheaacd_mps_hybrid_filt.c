@@ -467,8 +467,8 @@ VOID ixheaacd_mps_fft(complex *out, LOOPINDEX idx, WORD32 nob,
       out1_w32[0] = (re_temp + out2_w32[0]) >> 1;
       out1_w32[1] = (im_temp + out2_w32[1]) >> 1;
 
-      out2_w32[0] = (re_temp - out2_w32[0]) >> 1;
-      out2_w32[1] = (im_temp - out2_w32[1]) >> 1;
+      out2_w32[0] = ((WORD64)re_temp - (WORD64)out2_w32[0]) >> 1;
+      out2_w32[1] = ((WORD64)im_temp - (WORD64)out2_w32[1]) >> 1;
 
       index1 = tab_modifier;
 
@@ -600,9 +600,9 @@ VOID ixheaacd_2ch_filtering(WORD32 *p_qmf, WORD32 *m_hybrid,
 
   cum0 = (WORD32)p_qmf[HYBRID_FILTER_DELAY] >> 1;
 
-  temp = (WORD64)((WORD64)p2_6[0] * (WORD64)(p_qmf[1] + p_qmf[11]) +
-                  (WORD64)p2_6[1] * (WORD64)(p_qmf[3] + p_qmf[9]));
-  temp += (WORD64)p2_6[2] * (WORD64)(p_qmf[5] + p_qmf[7]);
+  temp = (WORD64)((WORD64)p2_6[0] * ((WORD64)p_qmf[1] + (WORD64)p_qmf[11]) +
+                  (WORD64)p2_6[1] * ((WORD64)p_qmf[3] + (WORD64)p_qmf[9]));
+  temp += (WORD64)p2_6[2] * ((WORD64)p_qmf[5] + (WORD64)p_qmf[7]);
   cum1 = (WORD32)(temp >> 16);
 
   m_hybrid[0] = cum0 + cum1;
