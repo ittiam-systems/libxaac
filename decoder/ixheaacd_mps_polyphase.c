@@ -113,19 +113,19 @@ static VOID ixheaacd_fft32(WORD32 *vec, const WORD16 *fft_c) {
   temp330 = ixheaac_add32_sat(vec[30], vec[62]);
   temp331 = ixheaac_add32_sat(vec[31], vec[63]);
 
-  temp41 = -ixheaac_add32_sat(temp20, temp214);
+  temp41 = ixheaac_negate32_sat(ixheaac_add32_sat(temp20, temp214));
   temp42 = ixheaac_sub32_sat(temp20, temp214);
   temp40 = ixheaac_add32_sat(temp21, temp215);
   temp43 = ixheaac_sub32_sat(temp21, temp215);
-  temp45 = -ixheaac_add32_sat(temp22, temp212);
+  temp45 = ixheaac_negate32_sat(ixheaac_add32_sat(temp22, temp212));
   temp46 = ixheaac_sub32_sat(temp22, temp212);
   temp44 = ixheaac_add32_sat(temp23, temp213);
   temp47 = ixheaac_sub32_sat(temp23, temp213);
-  temp49 = -ixheaac_add32_sat(temp24, temp210);
+  temp49 = ixheaac_negate32_sat(ixheaac_add32_sat(temp24, temp210));
   temp410 = ixheaac_sub32_sat(temp24, temp210);
   temp48 = ixheaac_add32_sat(temp25, temp211);
   temp411 = ixheaac_sub32_sat(temp25, temp211);
-  temp413 = -ixheaac_add32_sat(temp26, temp28);
+  temp413 = ixheaac_negate32_sat(ixheaac_add32_sat(temp26, temp28));
   temp414 = ixheaac_sub32_sat(temp26, temp28);
   temp412 = ixheaac_add32_sat(temp27, temp29);
   temp415 = ixheaac_sub32_sat(temp27, temp29);
@@ -680,18 +680,18 @@ static VOID ixheaacd_sin_mod(WORD32 *subband, ia_mps_dec_qmf_tables_struct *qmf_
     re2 = subband[62 - temp_1];
     im2 = subband[63 - temp_1];
 
-    subband[63 - temp_1] = -ixheaac_add32_sat(
-        ixheaac_mult32x16in32_shl(re1, wre), ixheaac_mult32x16in32_shl(im1, wim));
-    subband[temp_1] = -ixheaac_sub32_sat(
-        ixheaac_mult32x16in32_shl(re1, wim), ixheaac_mult32x16in32_shl(im1, wre));
+    subband[63 - temp_1] = ixheaac_negate32_sat(ixheaac_add32_sat(
+        ixheaac_mult32x16in32_shl(re1, wre), ixheaac_mult32x16in32_shl(im1, wim)));
+    subband[temp_1] = ixheaac_negate32_sat(ixheaac_sub32_sat(
+        ixheaac_mult32x16in32_shl(re1, wim), ixheaac_mult32x16in32_shl(im1, wre)));
 
     wim = *ptr1++;
     wre = *ptr2--;
 
-    subband[temp_1 + 1] = -ixheaac_add32_sat(
-        ixheaac_mult32x16in32_shl(re2, wim), ixheaac_mult32x16in32_shl(im2, wre));
-    subband[62 - temp_1] = -ixheaac_sub32_sat(
-        ixheaac_mult32x16in32_shl(re2, wre), ixheaac_mult32x16in32_shl(im2, wim));
+    subband[temp_1 + 1] = ixheaac_negate32_sat(ixheaac_add32_sat(
+        ixheaac_mult32x16in32_shl(re2, wim), ixheaac_mult32x16in32_shl(im2, wre)));
+    subband[62 - temp_1] = ixheaac_negate32_sat(ixheaac_sub32_sat(
+        ixheaac_mult32x16in32_shl(re2, wre), ixheaac_mult32x16in32_shl(im2, wim)));
   }
 }
 
