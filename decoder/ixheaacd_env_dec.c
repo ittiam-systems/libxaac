@@ -131,7 +131,6 @@ VOID ixheaacd_process_del_cod_env_data(
   FLOAT32 *ptr_env_sf_float = ptr_sbr_data->flt_env_sf_arr;
 
   WORD32 ixheaacd_drc_offset;
-  band = 0;
 
   ixheaacd_drc_offset =
       ((ptr_header_data->pstr_freq_band_data->num_sf_bands[LOW] << 1) -
@@ -142,6 +141,7 @@ VOID ixheaacd_process_del_cod_env_data(
     freq_res = ptr_sbr_data->str_frame_info_details.freq_res[i];
 
     num_sf_bands = ptr_header_data->pstr_freq_band_data->num_sf_bands[freq_res];
+    band = num_sf_bands;
 
     if (dtdf_dir == DTDF_DIR_FREQ) {
       ixheaacd_map_res_energy(*ptr_env_sf, ptr_prev_env_sf, ixheaacd_drc_offset,
