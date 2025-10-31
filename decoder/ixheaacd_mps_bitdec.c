@@ -1433,7 +1433,7 @@ static VOID ixheaacd_factor_cld(WORD32 *idx, WORD32 ott_vs_tot_db, WORD32 *ott_v
 
   ixheaacd_factor_funct(ott_vs_tot_db, quant_mode, &factor);
 
-  cld_idx = (((*idx * factor) + THIRTYONE_BY_TWO_IN_Q25) >> 25);
+  cld_idx = (((*idx * (WORD64)factor) + THIRTYONE_BY_TWO_IN_Q25) >> 25);
   cld_idx -= 15;
 
   cld_idx = min(cld_idx, 15);
