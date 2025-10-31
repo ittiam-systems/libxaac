@@ -535,9 +535,12 @@ VOID ixheaacd_8ch_filtering(const WORD32 *p_qmf_real, const WORD32 *p_qmf_imag,
   cum[12] = ixheaac_shl32(
       -((ixheaac_mult32x16in32(imag, tsin) + ixheaac_mult32x16in32(real, tcos))), 1);
 
-  cum[2] = ixheaac_shl32(ixheaac_mult32x16in32((p_qmf_real[2] - p_qmf_real[10]), p8_13[10]), 1);
-  cum[3] = ixheaac_shl32(ixheaac_mult32x16in32((p_qmf_imag[2] - p_qmf_imag[10]), p8_13[2]), 1);
-
+  cum[2] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[2], p8_13[10]) -
+                          ixheaac_mult32x16in32(p_qmf_real[10], p8_13[10])),
+                         1);
+  cum[3] = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_imag[2], p8_13[2]) -
+                          ixheaac_mult32x16in32(p_qmf_imag[10], p8_13[2])),
+                         1);
   real = ixheaac_shl32((ixheaac_mult32x16in32(p_qmf_real[1], p8_13[1]) +
                          ixheaac_mult32x16in32(p_qmf_real[9], p8_13[9])),
                         1);
