@@ -560,8 +560,8 @@ static VOID ixheaacd_decorr_filt_apply(
         temp_1 = ixheaacd_mps_mult32_shr_14(temp5, numerator_real[0]);
         temp_2 = ixheaacd_mps_mult32_shr_14(temp6, numerator_real[0]);
 
-        *output_real = temp_1 + state_real[0];
-        *output_imag = temp_2 + state_imag[0];
+        *output_real = ixheaac_add32_sat(temp_1, state_real[0]);
+        *output_imag = ixheaac_add32_sat(temp_2, state_imag[0]);
 
         temp7 = *output_real;
         temp8 = *output_imag;
@@ -575,10 +575,10 @@ static VOID ixheaacd_decorr_filt_apply(
           temp4 = ixheaacd_mps_mult32x16_shr_16(temp8, denominator_real[j]);
           temp_1 -= temp_2;
 
-          state_real[j - 1] = state_real[j] + (temp_1 << 2);
+          state_real[j - 1] = ixheaac_add32_sat(state_real[j], (temp_1 << 2));
           temp3 -= temp4;
 
-          state_imag[j - 1] = state_imag[j] + (temp3 << 2);
+          state_imag[j - 1] = ixheaac_add32_sat(state_imag[j], (temp3 << 2));
         }
       }
     }
@@ -643,10 +643,10 @@ static VOID ixheaacd_ducker_apply_71(
       v4 = p_output_imag[qs];
 
       pb = hybrid_2_param_28[qs];
-      direct_nrg[pb] +=
-          (WORD64)((WORD64)v1 * (WORD64)v1) + (WORD64)((WORD64)v2 * (WORD64)v2);
-      reverb_nrg[pb] +=
-          (WORD64)((WORD64)v3 * (WORD64)v3) + (WORD64)((WORD64)v4 * (WORD64)v4);
+      direct_nrg[pb] = ixheaac_add64_sat(direct_nrg[pb], ixheaac_mult32x32in64(v1, v1));
+      direct_nrg[pb] = ixheaac_add64_sat(direct_nrg[pb], ixheaac_mult32x32in64(v2, v2));
+      reverb_nrg[pb] = ixheaac_add64_sat(reverb_nrg[pb], ixheaac_mult32x32in64(v3, v3));
+      reverb_nrg[pb] = ixheaac_add64_sat(reverb_nrg[pb], ixheaac_mult32x32in64(v4, v4));
     }
 
     for (; qs < num_bands_2; qs++) {
@@ -655,10 +655,10 @@ static VOID ixheaacd_ducker_apply_71(
       v3 = p_output_real[qs];
       v4 = p_output_imag[qs];
 
-      direct_nrg[27] +=
-          (WORD64)((WORD64)v1 * (WORD64)v1) + (WORD64)((WORD64)v2 * (WORD64)v2);
-      reverb_nrg[27] +=
-          (WORD64)((WORD64)v3 * (WORD64)v3) + (WORD64)((WORD64)v4 * (WORD64)v4);
+      direct_nrg[27] = ixheaac_add64_sat(direct_nrg[27], ixheaac_mult32x32in64(v1, v1));
+      direct_nrg[27] = ixheaac_add64_sat(direct_nrg[27], ixheaac_mult32x32in64(v2, v2));
+      reverb_nrg[27] = ixheaac_add64_sat(reverb_nrg[27], ixheaac_mult32x32in64(v3, v3));
+      reverb_nrg[27] = ixheaac_add64_sat(reverb_nrg[27], ixheaac_mult32x32in64(v4, v4));
     }
 
     for (pb = 0; pb < parameter_bands; pb++) {
@@ -813,10 +813,10 @@ static VOID ixheaacd_ducker_apply(
       v4 = p_output_imag[qs];
 
       pb = hybrid_2_param_28[qs];
-      direct_nrg[pb] +=
-          (WORD64)((WORD64)v1 * (WORD64)v1) + (WORD64)((WORD64)v2 * (WORD64)v2);
-      reverb_nrg[pb] +=
-          (WORD64)((WORD64)v3 * (WORD64)v3) + (WORD64)((WORD64)v4 * (WORD64)v4);
+      direct_nrg[pb] = ixheaac_add64_sat(direct_nrg[pb], ixheaac_mult32x32in64(v1, v1));
+      direct_nrg[pb] = ixheaac_add64_sat(direct_nrg[pb], ixheaac_mult32x32in64(v2, v2));
+      reverb_nrg[pb] = ixheaac_add64_sat(reverb_nrg[pb], ixheaac_mult32x32in64(v3, v3));
+      reverb_nrg[pb] = ixheaac_add64_sat(reverb_nrg[pb], ixheaac_mult32x32in64(v4, v4));
     }
 
     for (pb = 0; pb < parameter_bands; pb++) {
