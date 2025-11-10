@@ -143,10 +143,11 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         hyb_output_imag_dry = p_hyb_out_dry_imag;
 
         for (qs = 12; qs < 16; qs++) {
-          temp_1 = (*hyb_output_real_dry + *p_buffer_re);
-          temp4 = (*hyb_output_imag_dry + *p_buffer_im);
+          temp_1 = ixheaac_add32_sat(*hyb_output_real_dry, *p_buffer_re);
+          temp4 = ixheaac_add32_sat(*hyb_output_imag_dry, *p_buffer_im);
 
-          *slot_nrg++ = (WORD64)temp_1 * (WORD64)temp_1 + (WORD64)temp4 * (WORD64)temp4;
+          *slot_nrg++ = ixheaac_add64_sat(ixheaac_mult32x32in64(temp_1, temp_1), 
+		                ixheaac_mult32x32in64(temp4, temp4));
 
           p_buffer_re++;
           p_buffer_im++;
@@ -160,10 +161,11 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
             slot_nrg++;
             prev_idx = idx;
           }
-          temp_1 = (*hyb_output_real_dry + *p_buffer_re);
-          temp4 = (*hyb_output_imag_dry + *p_buffer_im);
+          temp_1 = ixheaac_add32_sat(*hyb_output_real_dry, *p_buffer_re);
+          temp4 = ixheaac_add32_sat(*hyb_output_imag_dry, *p_buffer_im);
 
-          *slot_nrg += (WORD64)temp_1 * (WORD64)temp_1 + (WORD64)temp4 * (WORD64)temp4;
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(temp_1, temp_1));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(temp4, temp4));
 
           p_buffer_re++;
           p_buffer_im++;
@@ -172,10 +174,11 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         }
         slot_nrg++;
         for (; qs < cnt; qs++) {
-          temp_1 = (*hyb_output_real_dry + *p_buffer_re);
-          temp4 = (*hyb_output_imag_dry + *p_buffer_im);
+          temp_1 = ixheaac_add32_sat(*hyb_output_real_dry, *p_buffer_re);
+          temp4 = ixheaac_add32_sat(*hyb_output_imag_dry, *p_buffer_im);
 
-          *slot_nrg += (WORD64)temp_1 * (WORD64)temp_1 + (WORD64)temp4 * (WORD64)temp4;
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(temp_1, temp_1));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(temp4, temp4));
 
           p_buffer_re++;
           p_buffer_im++;
@@ -272,8 +275,8 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
         hyb_output_imag_dry = p_buffer_imag;
 
         for (qs = 12; qs < 16; qs++) {
-          *slot_nrg++ = ((WORD64)(*hyb_output_real_dry) * (WORD64)(*hyb_output_real_dry)) +
-                        ((WORD64)(*hyb_output_imag_dry) * (WORD64)(*hyb_output_imag_dry));
+          *slot_nrg++ = ixheaac_add64_sat(ixheaac_mult32x32in64(*hyb_output_real_dry, *hyb_output_real_dry), 
+		                ixheaac_mult32x32in64(*hyb_output_imag_dry, *hyb_output_imag_dry));
 
           hyb_output_real_dry++;
           hyb_output_imag_dry++;
@@ -286,16 +289,16 @@ static VOID ixheaacd_extract_bb_env(ia_heaac_mps_state_struct *pstr_mps_state, W
             prev_idx = idx;
           }
 
-          *slot_nrg += ((WORD64)(*hyb_output_real_dry) * (WORD64)(*hyb_output_real_dry)) +
-                       ((WORD64)(*hyb_output_imag_dry) * (WORD64)(*hyb_output_imag_dry));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(*hyb_output_real_dry, *hyb_output_real_dry));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(*hyb_output_imag_dry, *hyb_output_imag_dry));
 
           hyb_output_real_dry++;
           hyb_output_imag_dry++;
         }
         slot_nrg++;
         for (; qs < cnt; qs++) {
-          *slot_nrg += ((WORD64)(*hyb_output_real_dry) * (WORD64)(*hyb_output_real_dry)) +
-                       ((WORD64)(*hyb_output_imag_dry) * (WORD64)(*hyb_output_imag_dry));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(*hyb_output_real_dry, *hyb_output_real_dry));
+		  *slot_nrg = ixheaac_add64_sat(*slot_nrg, ixheaac_mult32x32in64(*hyb_output_imag_dry, *hyb_output_imag_dry));
 
           hyb_output_real_dry++;
           hyb_output_imag_dry++;
@@ -456,7 +459,7 @@ VOID ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
             case 2:
 
               for (ts = 0; ts < time_slots; ts++) {
-                temp_2 = (env_dmx_0[ts] + env_dmx_1[ts]) >> 1;
+                temp_2 = ((WORD64)env_dmx_0[ts] + (WORD64)env_dmx_1[ts]) >> 1;
                 inter[ts] = (WORD64)((WORD64)*env++ * (WORD64)temp_2);
               }
               break;
@@ -513,14 +516,14 @@ VOID ixheaacd_reshape_bb_env(ia_heaac_mps_state_struct *pstr_mps_state) {
         acc2 = 0;
 
         for (qs = start_hsb; qs < hybrid_bands; qs++) {
-          acc += (WORD64)(*hyb_output_real_dry) * (WORD64)(*hyb_output_real_dry);
+          acc = ixheaac_add64_sat(acc, ixheaac_mult32x32in64(*hyb_output_real_dry, *hyb_output_real_dry));
           hyb_output_real_dry++;
-          acc += (WORD64)(*hyb_output_imag_dry) * (WORD64)(*hyb_output_imag_dry);
+          acc = ixheaac_add64_sat(acc, ixheaac_mult32x32in64(*hyb_output_imag_dry, *hyb_output_imag_dry));
           hyb_output_imag_dry++;
 
-          acc2 += (WORD64)(*hyb_output_real_wet) * (WORD64)(*hyb_output_real_wet);
+          acc2 = ixheaac_add64_sat(acc2, ixheaac_mult32x32in64(*hyb_output_real_wet, *hyb_output_real_wet));
           hyb_output_real_wet++;
-          acc2 += (WORD64)(*hyb_output_imag_wet) * (WORD64)(*hyb_output_imag_wet);
+          acc2 = ixheaac_add64_sat(acc2, ixheaac_mult32x32in64(*hyb_output_imag_wet, *hyb_output_imag_wet));
           hyb_output_imag_wet++;
         }
         slot_amp_dry = ixheaacd_mps_narrow(acc, &q_slot_amp_dry);

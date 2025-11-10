@@ -758,7 +758,7 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
           temp_1 = r + (c >> (q_c - q_r));
           q_temp1 = q_r;
         } else {
-          temp_1 = (r >> (q_r - q_c)) + c;
+          temp_1 = ixheaac_add32_sat((r >> (q_r - q_c)), c);
           q_temp1 = q_c;
         }
 
@@ -791,7 +791,7 @@ VOID ixheaacd_calculate_ttt(ia_heaac_mps_state_struct *pstr_mps_state, WORD32 ps
           temp_1 = l + (c >> (q_c - q_l));
           q_temp1 = q_l;
         } else {
-          temp_1 = (l >> (q_l - q_c)) + c;
+          temp_1 = ixheaac_add32_sat((l >> (q_l - q_c)), c);
           q_temp1 = q_c;
         }
 
