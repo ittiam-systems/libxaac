@@ -358,6 +358,8 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
   WORD32 hybrid_bands = pstr_mps_state->hybrid_bands;
 
   WORD32 tree_config = pstr_mps_state->tree_config;
+  WORD64 dmx_real64 = 0;
+  WORD64 dmx_imag64 = 0;
 
   dry_ener = pstr_mps_state->mps_scratch_mem_v;
   q_dry_ener = (WORD16 *)pstr_mps_state->mps_scratch_mem_v +
@@ -494,8 +496,8 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
       p_array_struct->hyb_output_imag_dry + ts * MAX_HYBRID_BANDS + 6;
 
   for (ch = 0; ch < loop_counter; ch++) {
-    *p_buffer_re++ = hyb_output_real_dry[0] + hyb_output_real_dry[1];
-    *p_buffer_im++ = hyb_output_imag_dry[0] + hyb_output_imag_dry[1];
+    *p_buffer_re++ = ixheaac_add32_sat(hyb_output_real_dry[0], hyb_output_real_dry[1]);
+    *p_buffer_im++ = ixheaac_add32_sat(hyb_output_imag_dry[0], hyb_output_imag_dry[1]);
 
     hyb_output_real_dry += TSXHB;
     hyb_output_imag_dry += TSXHB;
@@ -507,8 +509,8 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
       p_array_struct->hyb_output_imag_dry + ts * MAX_HYBRID_BANDS + 8;
 
   for (ch = 0; ch < loop_counter; ch++) {
-    *p_buffer_re++ = hyb_output_real_dry[0] + hyb_output_real_dry[1];
-    *p_buffer_im++ = hyb_output_imag_dry[0] + hyb_output_imag_dry[1];
+    *p_buffer_re++ = ixheaac_add32_sat(hyb_output_real_dry[0], hyb_output_real_dry[1]);
+    *p_buffer_im++ = ixheaac_add32_sat(hyb_output_imag_dry[0], hyb_output_imag_dry[1]);
 
     hyb_output_real_dry += TSXHB;
     hyb_output_imag_dry += TSXHB;
@@ -537,99 +539,109 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
   for (n = 1; n < BP_SIZE; n++) {
     switch (tree_config) {
       case TREE_5151:
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);	    
         qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
         dmx_real++;
 
         break;
       case TREE_5152:
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
         dmx_real++;
 
         break;
       case TREE_525:
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
         break;
       case TREE_7271:
       case TREE_7272:
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
         break;
       case TREE_7571:
 
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
         qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
+		
         dmx_real++;
 
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
         break;
       case TREE_7572:
         qmf_output_real_dry++;
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
         qmf_output_real_dry++;
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
-        *dmx_real = *qmf_output_real_dry++;
-        *dmx_real += *qmf_output_real_dry++;
-
-        *dmx_real = ixheaacd_mps_mult32_shr_30(*dmx_real,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 =
+            ixheaac_mult32x32in64(*qmf_output_real_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_real64 = ixheaac_mac32x32in64(dmx_real64, *qmf_output_real_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_real = (WORD32)(dmx_real64 >> 30);
         dmx_real++;
 
         break;
@@ -642,96 +654,109 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
   for (n = 1; n < BP_SIZE; n++) {
     switch (tree_config) {
       case TREE_5151:
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);	    
         qmf_output_imag_dry++;
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
+		dmx_imag++;
+		dmx_imag++;
 
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag++ += *qmf_output_imag_dry++;
-
-        dmx_imag++;
-
-        dmx_imag[0] = ixheaacd_mps_mult32_shr_30(
-            dmx_imag[0], tp_process_table_ptr->bpxgf[n]);
         break;
       case TREE_5152:
 
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag++ += *qmf_output_imag_dry++;
-
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
-
-        dmx_imag[0] = ixheaacd_mps_mult32_shr_30(
-            dmx_imag[0], tp_process_table_ptr->bpxgf[n]);
+        dmx_imag++;
+		
         break;
       case TREE_525:
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(dmx_imag[0],
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
 
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
         break;
       case TREE_7271:
       case TREE_7272:
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
 
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
 
         break;
       case TREE_7571:
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
         qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
+		
         dmx_imag++;
 
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
+
 
         break;
       case TREE_7572:
         qmf_output_imag_dry++;
-
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
         qmf_output_imag_dry++;
-
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
 
-        *dmx_imag = *qmf_output_imag_dry++;
-        *dmx_imag += *qmf_output_imag_dry++;
-        *dmx_imag = ixheaacd_mps_mult32_shr_30(*dmx_imag,
-                                               tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 =
+            ixheaac_mult32x32in64(*qmf_output_imag_dry++, tp_process_table_ptr->bpxgf[n]);
+        dmx_imag64 = ixheaac_mac32x32in64(dmx_imag64, *qmf_output_imag_dry++,
+                                          tp_process_table_ptr->bpxgf[n]);
+        *dmx_imag = (WORD32)(dmx_imag64 >> 30);
         dmx_imag++;
 
         break;
@@ -1121,7 +1146,7 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
     temp_1 = ixheaacd_mps_mult32_shr_15(STP_LPF_COEFF2_FIX, scale[ch]);
     temp_2 =
         ixheaacd_mps_mult32_shr_15(ONE_MINUS_STP_LPF_COEFF2, prev_tp_scale[ch]);
-    scale[ch] = temp_1 + temp_2;
+    scale[ch] = ixheaac_add32_sat(temp_1, temp_2);
     prev_tp_scale[ch] = scale[ch];
   }
 
@@ -1155,41 +1180,41 @@ static VOID ixheaacd_subband_tp(ia_heaac_mps_state_struct *pstr_mps_state, WORD3
 
     if (no_scaling == 1) {
       for (n = HYBRID_BAND_BORDER; n < (HP_SIZE + QMF_TO_HYB_OFFSET); n++) {
-        *p_buf_re++ = *hyb_output_real_dry++ + *p_buffer_re++;
+        *p_buf_re++ = ixheaac_add32_sat(*hyb_output_real_dry++, *p_buffer_re++);
 
-        *p_buf_im++ = *hyb_output_imag_dry++ + *p_buffer_im++;
+        *p_buf_im++ = ixheaac_add32_sat(*hyb_output_imag_dry++, *p_buffer_im++);
       }
 
       for (; n < hybrid_bands; n++, k++) {
         temp = (no_scaling ? ONE_IN_Q15 : scale[ch]);
 
-        *p_buf_re++ = *hyb_output_real_dry++ + *p_buffer_re++;
+        *p_buf_re++ = ixheaac_add32_sat(*hyb_output_real_dry++, *p_buffer_re++);
 
-        *p_buf_im++ = *hyb_output_imag_dry++ + *p_buffer_im++;
+        *p_buf_im++ = ixheaac_add32_sat(*hyb_output_imag_dry++, *p_buffer_im++);
       }
     } else {
       for (n = HYBRID_BAND_BORDER; n < (HP_SIZE + QMF_TO_HYB_OFFSET); n++) {
         temp = ixheaacd_mps_mult32_shr_30(
             scale[ch], tp_process_table_ptr->bp[n - QMF_TO_HYB_OFFSET]);
 
-        *p_buf_re++ = *hyb_output_real_dry++ +
-                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_re);
+        *p_buf_re++ = ixheaac_add32_sat(*hyb_output_real_dry++, 
+		              ixheaacd_mps_mult32_shr_15(temp, *p_buffer_re));
         p_buffer_re++;
 
-        *p_buf_im++ = *hyb_output_imag_dry++ +
-                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_im);
+        *p_buf_im++ = ixheaac_add32_sat(*hyb_output_imag_dry++, 
+                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_im));
         p_buffer_im++;
       }
 
       for (; n < hybrid_bands; n++, k++) {
         temp = (no_scaling ? ONE_IN_Q15 : scale[ch]);
 
-        *p_buf_re++ = *hyb_output_real_dry++ +
-                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_re);
+        *p_buf_re++ = ixheaac_add32_sat(*hyb_output_real_dry++, 
+                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_re));
         p_buffer_re++;
 
-        *p_buf_im++ = *hyb_output_imag_dry++ +
-                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_im);
+        *p_buf_im++ = ixheaac_add32_sat(*hyb_output_imag_dry++, 
+                      ixheaacd_mps_mult32_shr_15(temp, *p_buffer_im));
         p_buffer_im++;
       }
     }
@@ -1259,35 +1284,41 @@ VOID ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
         buf_real = p_buf_re;
         buf_imag = p_buf_im;
 
-        temp_1 = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        temp_2 = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        temp_1 = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        temp_2 = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
         for (n = 1; n < 6; n++) {
-          temp_1 += *hyb_output_real_dry++ + *hyb_output_real_wet++;
-          temp_2 += *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+          temp_1 = ixheaac_add32_sat(temp_1, *hyb_output_real_dry++);
+          temp_1 = ixheaac_add32_sat(temp_1, *hyb_output_real_wet++);
+          temp_2 = ixheaac_add32_sat(temp_2, *hyb_output_imag_dry++);
+          temp_2 = ixheaac_add32_sat(temp_2, *hyb_output_imag_wet++);
         }
 
         *buf_real++ = temp_1;
         *buf_imag++ = temp_2;
 
-        temp = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        *buf_real = temp + *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        temp = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
-        *buf_imag = temp + *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        temp = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        *buf_real = ixheaac_add32_sat(temp, *hyb_output_real_dry++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_wet++);
+        temp = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
+        *buf_imag = ixheaac_add32_sat(temp, *hyb_output_imag_dry++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_wet++);
 
         buf_real++;
         buf_imag++;
 
-        temp = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        *buf_real = temp + *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        temp = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
-        *buf_imag = temp + *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        temp = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        *buf_real = ixheaac_add32_sat(temp, *hyb_output_real_dry++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_wet++);
+        temp = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
+        *buf_imag = ixheaac_add32_sat(temp, *hyb_output_imag_dry++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_wet++);
 
         buf_real++;
         buf_imag++;
 
         for (n = 0; n < qmf_bands; n++) {
-          *buf_real++ = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-          *buf_imag++ = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+          *buf_real++ = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+          *buf_imag++ = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
         }
 
         p_buffer_re += MAX_HYBRID_BANDS;
@@ -1328,36 +1359,42 @@ VOID ixheaacd_tp_process(ia_heaac_mps_state_struct *pstr_mps_state) {
         buf_real = p_buf_re;
         buf_imag = p_buf_im;
 
-        temp_1 = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        temp_2 = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        temp_1 = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        temp_2 = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
         for (n = 1; n < 6; n++) {
-          temp_1 += *hyb_output_real_dry++ + *hyb_output_real_wet++;
-          temp_2 += *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+          temp_1 = ixheaac_add32_sat(temp_1, *hyb_output_real_dry++);
+          temp_1 = ixheaac_add32_sat(temp_1, *hyb_output_real_wet++);
+          temp_2 = ixheaac_add32_sat(temp_2, *hyb_output_imag_dry++);
+          temp_2 = ixheaac_add32_sat(temp_2, *hyb_output_imag_wet++);
         }
 
         *buf_real++ = temp_1;
         *buf_imag++ = temp_2;
 
-        *buf_real = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        *buf_real += *hyb_output_real_dry++ + *hyb_output_real_wet++;
+        *buf_real = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_dry++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_wet++);
 
-        *buf_imag = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
-        *buf_imag += *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        *buf_imag = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_dry++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_wet++);
 
         buf_real++;
         buf_imag++;
 
-        *buf_real = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        *buf_real += *hyb_output_real_dry++ + *hyb_output_real_wet++;
-        *buf_imag = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
-        *buf_imag += *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+        *buf_real = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_dry++);
+        *buf_real = ixheaac_add32_sat(*buf_real, *hyb_output_real_wet++);
+        *buf_imag = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_dry++);
+        *buf_imag = ixheaac_add32_sat(*buf_imag, *hyb_output_imag_wet++);
 
         buf_real++;
         buf_imag++;
 
         for (hyb = 3; hyb < tp_hyb_band_border - QMF_TO_HYB_OFFSET; hyb++) {
-          *buf_real++ = *hyb_output_real_dry++ + *hyb_output_real_wet++;
-          *buf_imag++ = *hyb_output_imag_dry++ + *hyb_output_imag_wet++;
+          *buf_real++ = ixheaac_add32_sat(*hyb_output_real_dry++, *hyb_output_real_wet++);
+          *buf_imag++ = ixheaac_add32_sat(*hyb_output_imag_dry++, *hyb_output_imag_wet++);
         }
         p_buffer_re += MAX_HYBRID_BANDS;
         p_buffer_im += MAX_HYBRID_BANDS;
