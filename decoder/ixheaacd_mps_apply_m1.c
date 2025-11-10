@@ -128,12 +128,12 @@ VOID ixheaacd_mps_apply_m1(ia_heaac_mps_state_struct *pstr_mps_state) {
 
             for (qs = 0; qs < idx; qs++) {
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_real, *rout_kernel_real_ptr);
-              *v_real = *v_real + temp_1;
+              *v_real = ixheaac_add32_sat(*v_real, temp_1);
               v_real++;
 
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_imag, *rout_kernel_real_ptr);
               rout_kernel_real_ptr++;
-              *v_imag = *v_imag + temp_1;
+              *v_imag = ixheaac_add32_sat(*v_imag, temp_1);
               v_imag++;
 
               x_real++;
@@ -193,18 +193,18 @@ VOID ixheaacd_mps_apply_m1(ia_heaac_mps_state_struct *pstr_mps_state) {
             for (qs = 0; qs < 2; qs++) {
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_real, *rout_kernel_real_ptr);
               temp_2 = ixheaacd_mps_mult32_shr_15(*x_imag, *rout_kernel_imag_ptr);
-              temp_1 += temp_2;
+              temp_1 = ixheaac_add32_sat(temp_1, temp_2);
 
-              *v_real = *v_real + temp_1;
+              *v_real = ixheaac_add32_sat(*v_real, temp_1);
               v_real++;
 
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_imag, *rout_kernel_real_ptr);
               rout_kernel_real_ptr++;
               temp_2 = ixheaacd_mps_mult32_shr_15(*x_real, *rout_kernel_imag_ptr);
               rout_kernel_imag_ptr++;
-              temp_1 -= temp_2;
+              temp_1 = ixheaac_sub32_sat(temp_1, temp_2);
 
-              *v_imag = *v_imag + temp_1;
+              *v_imag = ixheaac_add32_sat(*v_imag, temp_1);
               v_imag++;
 
               x_real++;
@@ -213,18 +213,18 @@ VOID ixheaacd_mps_apply_m1(ia_heaac_mps_state_struct *pstr_mps_state) {
             for (; qs < idx; qs++) {
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_real, *rout_kernel_real_ptr);
               temp_2 = ixheaacd_mps_mult32_shr_15(*x_imag, *rout_kernel_imag_ptr);
-              temp_1 -= temp_2;
+              temp_1 = ixheaac_sub32_sat(temp_1, temp_2);
 
-              *v_real = *v_real + temp_1;
+              *v_real = ixheaac_add32_sat(*v_real, temp_1);
               v_real++;
 
               temp_1 = ixheaacd_mps_mult32_shr_15(*x_imag, *rout_kernel_real_ptr);
               rout_kernel_real_ptr++;
               temp_2 = ixheaacd_mps_mult32_shr_15(*x_real, *rout_kernel_imag_ptr);
               rout_kernel_imag_ptr++;
-              temp_1 += temp_2;
+              temp_1 = ixheaac_add32_sat(temp_1, temp_2);
 
-              *v_imag = *v_imag + temp_1;
+              *v_imag = ixheaac_add32_sat(*v_imag, temp_1);
               v_imag++;
 
               x_real++;

@@ -890,10 +890,10 @@ static VOID ixheaacd_local_imdet(
     px4 = x1 + 2 * val - 1;
 
     for (n = 0; n < val; n++) {
-      *sum++ = *px1 + *px2;
-      *sum++ = *px3 + *px4;
-      *diff++ = *px1++ - *px2--;
-      *diff++ = *px3++ - *px4--;
+      *sum++ = ixheaac_add32_sat(*px1, *px2);
+      *sum++ = ixheaac_add32_sat(*px3, *px4);
+      *diff++ = ixheaac_sub32_sat(*px1++, *px2--);
+      *diff++ = ixheaac_sub32_sat(*px3++, *px4--);
     }
 
     scale = scale1;
@@ -930,20 +930,20 @@ static VOID ixheaacd_local_imdet(
         temp_1 = *cp++;
         temp_2 = ixheaacd_mps_mult32_shr_15(temp_1, *sum);
         sum++;
-        *z_real += temp_2;
+        *z_real = ixheaac_add32_sat(*z_real, temp_2);
 
         temp_2 = ixheaacd_mps_mult32_shr_15(temp_1, *sum);
         sum++;
-        *z_real_2 += temp_2;
+        *z_real_2 = ixheaac_add32_sat(*z_real_2, temp_2);
 
         temp_1 = *--sp;
         temp_2 = ixheaacd_mps_mult32_shr_15(temp_1, *diff);
         diff++;
-        *z_imag += temp_2;
+        *z_imag = ixheaac_add32_sat(*z_imag, temp_2);
 
         temp_2 = ixheaacd_mps_mult32_shr_15(temp_1, *diff);
         diff++;
-        *z_imag_2 += temp_2;
+        *z_imag_2 = ixheaac_add32_sat(*z_imag_2, temp_2);
       }
       z_real++;
       z_imag++;
@@ -1002,20 +1002,20 @@ static VOID ixheaacd_local_imdet(
         temp_1 = *cp++;
         temp3 = ixheaacd_mps_mult32_shr_15(temp_1, *sum);
         sum++;
-        *z_real += temp3;
+        *z_real = ixheaac_add32_sat(*z_real, temp3);
 
         temp3 = ixheaacd_mps_mult32_shr_15(temp_1, *sum);
         sum++;
-        *z_real_2 += temp3;
+        *z_real_2 = ixheaac_add32_sat(*z_real_2, temp3);
 
         temp_1 = *--sp;
         temp3 = ixheaacd_mps_mult32_shr_15(temp_1, *diff);
         diff++;
-        *z_imag += temp3;
+        *z_imag = ixheaac_add32_sat(*z_imag, temp3);
 
         temp3 = ixheaacd_mps_mult32_shr_15(temp_1, *diff);
         diff++;
-        *z_imag_2 += temp3;
+        *z_imag_2 = ixheaac_add32_sat(*z_imag_2, temp3);
       }
 
       z_real++;
@@ -1525,6 +1525,7 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
   WORD32 *a, *scale;
   WORD32 gain = 0;
   WORD32 *wp;
+  WORD64 temp_prod = 0;
 
   wf = scratch;
   wt = wf + IXHEAAC_GET_SIZE_ALIGNED_TYPE(MAX_TIMESLOTSX2, sizeof(*wt), BYTE_ALIGN_8);
@@ -1586,10 +1587,14 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
               temp4 = *z1_imag++;
 
               temp_2 = j + qmf_global_offset;
-              p_qmf_real_pre[temp_2] += cos_twi * temp3;
-              p_qmf_real_pre[temp_2] -= sin_twi * temp4;
-              p_qmf_imag_pre[temp_2] += cos_twi * temp4;
-              p_qmf_imag_pre[temp_2] += sin_twi * temp3;
+              temp_prod = (WORD64)(p_qmf_real_pre[temp_2]);
+              temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+              temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+              p_qmf_real_pre[temp_2] = ixheaac_sat64_32(temp_prod);
+              temp_prod = (WORD64)(p_qmf_imag_pre[temp_2]);
+              temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+              temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+              p_qmf_imag_pre[temp_2] = ixheaac_sat64_32(temp_prod);
             }
             p_qmf_real_pre += MAX_TIME_SLOTS;
             p_qmf_imag_pre += MAX_TIME_SLOTS;
@@ -1604,15 +1609,23 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
 
               temp_2 = j + qmf_global_offset;
               if (temp_2 < time_slots) {
-                p_qmf_real_pre[temp_2] += cos_twi * temp3;
-                p_qmf_real_pre[temp_2] -= sin_twi * temp4;
-                p_qmf_imag_pre[temp_2] += cos_twi * temp4;
-                p_qmf_imag_pre[temp_2] += sin_twi * temp3;
+                temp_prod = (WORD64)(p_qmf_real_pre[temp_2]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                p_qmf_real_pre[temp_2] = ixheaac_sat64_32(temp_prod);
+                temp_prod = (WORD64)(p_qmf_imag_pre[temp_2]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                p_qmf_imag_pre[temp_2] = ixheaac_sat64_32(temp_prod);
               } else {
-                p_qmf_real_post[temp_2 - time_slots] += cos_twi * temp3;
-                p_qmf_real_post[temp_2 - time_slots] -= sin_twi * temp4;
-                p_qmf_imag_post[temp_2 - time_slots] += cos_twi * temp4;
-                p_qmf_imag_post[temp_2 - time_slots] += sin_twi * temp3;
+                temp_prod = (WORD64)(p_qmf_real_post[temp_2 - time_slots]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                p_qmf_real_post[temp_2 - time_slots] = ixheaac_sat64_32(temp_prod);
+                temp_prod = (WORD64)(p_qmf_imag_post[temp_2 - time_slots]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                p_qmf_imag_post[temp_2 - time_slots] = ixheaac_sat64_32(temp_prod);
               }
             }
             p_qmf_real_pre += MAX_TIME_SLOTS;
@@ -1632,10 +1645,14 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
 
             temp_2 = j + qmf_global_offset;
 
-            p_qmf_real_post[temp_2 - time_slots] += cos_twi * temp3;
-            p_qmf_real_post[temp_2 - time_slots] -= sin_twi * temp4;
-            p_qmf_imag_post[temp_2 - time_slots] += cos_twi * temp4;
-            p_qmf_imag_post[temp_2 - time_slots] += sin_twi * temp3;
+            temp_prod = (WORD64)(p_qmf_real_post[temp_2 - time_slots]);
+            temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+            temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+            p_qmf_real_post[temp_2 - time_slots] = ixheaac_sat64_32(temp_prod);
+            temp_prod = (WORD64)(p_qmf_imag_post[temp_2 - time_slots]);
+            temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+            temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+            p_qmf_imag_post[temp_2 - time_slots] = ixheaac_sat64_32(temp_prod);
           }
           p_qmf_real_post += MAX_TIME_SLOTS;
           p_qmf_imag_post += MAX_TIME_SLOTS;
@@ -1779,10 +1796,14 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
                 temp3 = *zr++;
                 temp4 = (*zi++);
 
-                p_qmf_real_pre[temp_2 + j] += cos_twi * temp3;
-                p_qmf_real_pre[temp_2 + j] -= sin_twi * temp4;
-                p_qmf_imag_pre[temp_2 + j] += cos_twi * temp4;
-                p_qmf_imag_pre[temp_2 + j] += sin_twi * temp3;
+                temp_prod = (WORD64)(p_qmf_real_pre[temp_2 + j]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                p_qmf_real_pre[temp_2 + j] = ixheaac_sat64_32(temp_prod);
+                temp_prod = (WORD64)(p_qmf_imag_pre[temp_2 + j]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                p_qmf_imag_pre[temp_2 + j] = ixheaac_sat64_32(temp_prod);
               }
               p_qmf_real_pre += MAX_TIME_SLOTS;
               p_qmf_imag_pre += MAX_TIME_SLOTS;
@@ -1802,15 +1823,23 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
                 temp4 = (*zi++);
 
                 if ((temp_2 + j) < time_slots) {
-                  p_qmf_real_pre[temp_2 + j] += cos_twi * temp3;
-                  p_qmf_real_pre[temp_2 + j] -= sin_twi * temp4;
-                  p_qmf_imag_pre[temp_2 + j] += cos_twi * temp4;
-                  p_qmf_imag_pre[temp_2 + j] += sin_twi * temp3;
+                  temp_prod = (WORD64)(p_qmf_real_pre[temp_2 + j]);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                  p_qmf_real_pre[temp_2 + j] = ixheaac_sat64_32(temp_prod);
+                  temp_prod = (WORD64)(p_qmf_imag_pre[temp_2 + j]);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                  p_qmf_imag_pre[temp_2 + j] = ixheaac_sat64_32(temp_prod);
                 } else {
-                  p_qmf_real_post[temp_2 + j - time_slots] += cos_twi * temp3;
-                  p_qmf_real_post[temp_2 + j - time_slots] -= sin_twi * temp4;
-                  p_qmf_imag_post[temp_2 + j - time_slots] += cos_twi * temp4;
-                  p_qmf_imag_post[temp_2 + j - time_slots] += sin_twi * temp3;
+                  temp_prod = (WORD64)(p_qmf_real_post[temp_2 + j - time_slots]);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                  p_qmf_real_post[temp_2 + j - time_slots] = ixheaac_sat64_32(temp_prod);
+                  temp_prod = (WORD64)(p_qmf_imag_post[temp_2 + j - time_slots]);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                  temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                  p_qmf_imag_post[temp_2 + j - time_slots] = ixheaac_sat64_32(temp_prod);
                 }
               }
               p_qmf_real_pre += MAX_TIME_SLOTS;
@@ -1832,10 +1861,14 @@ VOID ixheaacd_mdct2qmf_process(WORD32 upd_qmf, WORD32 *const mdct_in, WORD32 *qm
               temp3 = *zr++;
               temp4 = (*zi++);
               {
-                p_qmf_real_post[temp_2 + j - time_slots] += cos_twi * temp3;
-                p_qmf_real_post[temp_2 + j - time_slots] -= sin_twi * temp4;
-                p_qmf_imag_post[temp_2 + j - time_slots] += cos_twi * temp4;
-                p_qmf_imag_post[temp_2 + j - time_slots] += sin_twi * temp3;
+                temp_prod = (WORD64)(p_qmf_real_post[temp_2 + j - time_slots]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp3);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, -sin_twi, temp4);
+                p_qmf_real_post[temp_2 + j - time_slots] = ixheaac_sat64_32(temp_prod);
+                temp_prod = (WORD64)(p_qmf_imag_post[temp_2 + j - time_slots]);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, cos_twi, temp4);
+                temp_prod = ixheaac_mac32x32in64(temp_prod, sin_twi, temp3);
+                p_qmf_imag_post[temp_2 + j - time_slots] = ixheaac_sat64_32(temp_prod);
               }
             }
             p_qmf_real_post += MAX_TIME_SLOTS;

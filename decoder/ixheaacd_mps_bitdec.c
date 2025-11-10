@@ -1394,19 +1394,19 @@ static IA_ERRORCODE ixheaacd_factor_funct(WORD32 ott_vs_tot_db, WORD32 quant_mod
 
   switch (quant_mode) {
     case QUANT_MODE_0:
-      return (ONE_IN_Q25);
+      return (ONE_IN_Q24);
       break;
     case QUANT_MODE_1:
       x_linear = 1024;
 
-      maxfactor = 167772160;
-      constfact = 6554;
+      maxfactor = 83886080;
+      constfact = 3277;
       break;
     case QUANT_MODE_2:
       x_linear = 1024;
 
-      maxfactor = ONE_IN_Q28;
-      constfact = 9557;
+      maxfactor = (ONE_IN_Q27);
+      constfact = 4779;
       break;
     default:
       return IA_XHEAAC_MPS_DEC_EXE_FATAL_INVALID_QUANT_MODE;
@@ -1414,9 +1414,9 @@ static IA_ERRORCODE ixheaacd_factor_funct(WORD32 ott_vs_tot_db, WORD32 quant_mod
 
   if (db_diff > (x_linear << 5)) {
     WORD32 db_diff_fix = db_diff >> 5;
-    *factor = (db_diff_fix - (WORD32)x_linear) * constfact + ONE_IN_Q25;
+    *factor = (db_diff_fix - (WORD32)x_linear) * constfact + ONE_IN_Q24;
   } else {
-    *factor = ONE_IN_Q25;
+    *factor = ONE_IN_Q24;
   }
 
   *factor = min(maxfactor, *factor);
@@ -1433,7 +1433,7 @@ static VOID ixheaacd_factor_cld(WORD32 *idx, WORD32 ott_vs_tot_db, WORD32 *ott_v
 
   ixheaacd_factor_funct(ott_vs_tot_db, quant_mode, &factor);
 
-  cld_idx = (((*idx * (WORD64)factor) + THIRTYONE_BY_TWO_IN_Q25) >> 25);
+  cld_idx = (((*idx * factor) + THIRTYONE_BY_TWO_IN_Q24) >> 24);
   cld_idx -= 15;
 
   cld_idx = min(cld_idx, 15);
