@@ -93,7 +93,7 @@ VOID ixheaacd_get_matrix_inversion_weights(
     c1 = ixheaacd_mps_sqrt(temp, &qtemp, sqrt_tab);
     c1 = ixheaacd_mps_convert_to_qn(c1, qtemp, 15);
 
-    temp_2 = c1p + temp_1;
+    temp_2 = ixheaac_add32_sat(c1p, temp_1);
     temp = ixheaacd_mps_div_32(c1p, temp_2, &qtemp);
     c2 = ixheaacd_mps_sqrt(temp, &qtemp, sqrt_tab);
     c2 = ixheaacd_mps_convert_to_qn(c2, qtemp, 15);
