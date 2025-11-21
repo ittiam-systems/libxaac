@@ -144,6 +144,7 @@ WORD32 ixheaacd_aacdec_decodeframe(
 
   aac_dec_handle = p_state_enhaacplus_dec->pstr_aac_dec_info[*ch_idx];
   it_bit_buff = p_state_enhaacplus_dec->ptr_bit_stream;
+  p_obj_exhaacplus_dec->aac_config.str_prog_config.alignment_bits = it_bit_buff->bit_pos;
 
   ptr_adts_crc_info = it_bit_buff->pstr_adts_crc_info;
 
