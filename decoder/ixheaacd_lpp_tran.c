@@ -1115,8 +1115,8 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
                       ixheaac_mult32(cov_matrix.phi_01, cov_matrix.phi_12_im)),
                   ixheaac_mult32(cov_matrix.phi_02_im, cov_matrix.phi_11))) >>
               (LPC_SCALE_FACTOR - 1);
-      temp_imag = ixheaac_abs32(tmp_i);
-      temp_real = ixheaac_abs32(tmp_r);
+      temp_imag = ixheaac_abs32_sat(tmp_i);
+      temp_real = ixheaac_abs32_sat(tmp_r);
 
       if (temp_real >= modulus_d) {
         reset_lpc_coeff = 1;
@@ -1161,8 +1161,8 @@ VOID ixheaacd_hf_generator(ia_sbr_hf_generator_struct *hf_generator,
       tmp_r = tmp_r << 1;
       tmp_i = tmp_i << 1;
 
-      temp_imag = ixheaac_abs32(tmp_i);
-      temp_real = ixheaac_abs32(tmp_r);
+      temp_imag = ixheaac_abs32_sat(tmp_i);
+      temp_real = ixheaac_abs32_sat(tmp_r);
 
       if (temp_real >= cov_matrix.phi_11) {
         reset_lpc_coeff = 1;
