@@ -26,6 +26,8 @@
 #include "ixheaacd_mps_aac_struct.h"
 #include "ixheaacd_mps_res_channel.h"
 #include "ixheaac_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops40.h"
 #include "ixheaacd_cnst.h"
 #include "ixheaacd_common_rom.h"
 #include "ixheaacd_sbrdecsettings.h"
@@ -1433,8 +1435,8 @@ static VOID ixheaacd_factor_cld(WORD32 *idx, WORD32 ott_vs_tot_db, WORD32 *ott_v
 
   ixheaacd_factor_funct(ott_vs_tot_db, quant_mode, &factor);
 
-  cld_idx = (((*idx * factor) + THIRTYONE_BY_TWO_IN_Q24) >> 24);
-  cld_idx -= 15;
+  cld_idx = ixheaac_mul32_sh(*idx, factor, 23);
+  cld_idx = ixheaac_shr32(ixheaac_add32(cld_idx, 1), 1);
 
   cld_idx = min(cld_idx, 15);
   cld_idx = max(cld_idx, -15);
