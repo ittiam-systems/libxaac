@@ -147,13 +147,13 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
           for (qs = 0; qs < hybrid_bands; qs++) {
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
             w_dry_real++;
-            *hyb_output_real_dry = *hyb_output_real_dry + temp_1;
+            *hyb_output_real_dry = ixheaac_add32_sat(*hyb_output_real_dry, temp_1);
             hyb_output_real_dry++;
 
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
             w_dry_imag++;
             rout_kernel_ptr++;
-            *hyb_output_imag_dry = *hyb_output_imag_dry + temp_1;
+            *hyb_output_imag_dry = ixheaac_add32_sat(*hyb_output_imag_dry, temp_1);
             hyb_output_imag_dry++;
           }
           p_buffer_re += MAX_HYBRID_BANDS;
@@ -194,13 +194,13 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
           for (qs = 0; qs < index; qs++) {
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
             w_dry_real++;
-            *hyb_output_real_dry = *hyb_output_real_dry + temp_1;
+            *hyb_output_real_dry = ixheaac_add32_sat(*hyb_output_real_dry, temp_1);
             hyb_output_real_dry++;
 
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
             w_dry_imag++;
             rout_kernel_ptr++;
-            *hyb_output_imag_dry = *hyb_output_imag_dry + temp_1;
+            *hyb_output_imag_dry = ixheaac_add32_sat(*hyb_output_imag_dry, temp_1);
             hyb_output_imag_dry++;
           }
           rout_kernel_ptr += hybrid_bands - index;
@@ -257,26 +257,26 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
               for (qs = 0; qs < 2; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
                 w_dry_imag++;
-                *hyb_output_real_dry = *hyb_output_real_dry + temp_1;
+                *hyb_output_real_dry = ixheaac_add32_sat(*hyb_output_real_dry, temp_1);
                 hyb_output_real_dry++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
                 w_dry_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_dry = *hyb_output_imag_dry - temp_1;
+                *hyb_output_imag_dry = ixheaac_sub32_sat(*hyb_output_imag_dry, temp_1);
                 hyb_output_imag_dry++;
               }
 
               for (; qs < hybrid_bands; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
                 w_dry_imag++;
-                *hyb_output_real_dry = *hyb_output_real_dry - temp_1;
+                *hyb_output_real_dry = ixheaac_sub32_sat(*hyb_output_real_dry, temp_1);
                 hyb_output_real_dry++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
                 w_dry_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_dry = *hyb_output_imag_dry + temp_1;
+                *hyb_output_imag_dry = ixheaac_add32_sat(*hyb_output_imag_dry, temp_1);
                 hyb_output_imag_dry++;
               }
               p_buffer_re += MAX_HYBRID_BANDS;
@@ -316,26 +316,26 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
               for (qs = 0; qs < 2; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
                 w_dry_imag++;
-                *hyb_output_real_dry = *hyb_output_real_dry + temp_1;
+                *hyb_output_real_dry = ixheaac_add32_sat(*hyb_output_real_dry, temp_1);
                 hyb_output_real_dry++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
                 w_dry_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_dry = *hyb_output_imag_dry - temp_1;
+                *hyb_output_imag_dry = ixheaac_sub32_sat(*hyb_output_imag_dry, temp_1);
                 hyb_output_imag_dry++;
               }
 
               for (; qs < index; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_imag, *rout_kernel_ptr);
                 w_dry_imag++;
-                *hyb_output_real_dry = *hyb_output_real_dry - temp_1;
+                *hyb_output_real_dry = ixheaac_sub32_sat(*hyb_output_real_dry, temp_1);
                 hyb_output_real_dry++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_dry_real, *rout_kernel_ptr);
                 w_dry_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_dry = *hyb_output_imag_dry + temp_1;
+                *hyb_output_imag_dry = ixheaac_add32_sat(*hyb_output_imag_dry, temp_1);
                 hyb_output_imag_dry++;
               }
               rout_kernel_ptr += hybrid_bands - index;
@@ -400,13 +400,13 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
           for (qs = 0; qs < hybrid_bands; qs++) {
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_real, *rout_kernel_ptr);
             w_wet_real++;
-            *hyb_output_real_wet = *hyb_output_real_wet + temp_1;
+            *hyb_output_real_wet = ixheaac_add32_sat(*hyb_output_real_wet, temp_1);
             hyb_output_real_wet++;
 
             temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_imag, *rout_kernel_ptr);
             w_wet_imag++;
             rout_kernel_ptr++;
-            *hyb_output_imag_wet = *hyb_output_imag_wet + temp_1;
+            *hyb_output_imag_wet = ixheaac_add32_sat(*hyb_output_imag_wet, temp_1);
             hyb_output_imag_wet++;
           }
           p_buffer_re += MAX_HYBRID_BANDS;
@@ -456,26 +456,26 @@ VOID ixheaacd_apply_m2(ia_heaac_mps_state_struct *pstr_mps_state) {
               for (qs = 0; qs < 2; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_imag, *rout_kernel_ptr);
                 w_wet_imag++;
-                *hyb_output_real_wet = *hyb_output_real_wet + temp_1;
+                *hyb_output_real_wet = ixheaac_add32_sat(*hyb_output_real_wet, temp_1);
                 hyb_output_real_wet++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_real, *rout_kernel_ptr);
                 w_wet_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_wet = *hyb_output_imag_wet - temp_1;
+                *hyb_output_imag_wet = ixheaac_sub32_sat(*hyb_output_imag_wet, temp_1);
                 hyb_output_imag_wet++;
               }
 
               for (; qs < hybrid_bands; qs++) {
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_imag, *rout_kernel_ptr);
                 w_wet_imag++;
-                *hyb_output_real_wet = *hyb_output_real_wet - temp_1;
+                *hyb_output_real_wet = ixheaac_sub32_sat(*hyb_output_real_wet, temp_1);
                 hyb_output_real_wet++;
 
                 temp_1 = ixheaacd_mps_mult32_shr_15(*w_wet_real, *rout_kernel_ptr);
                 w_wet_real++;
                 rout_kernel_ptr++;
-                *hyb_output_imag_wet = *hyb_output_imag_wet + temp_1;
+                *hyb_output_imag_wet = ixheaac_add32_sat(*hyb_output_imag_wet, temp_1);
                 hyb_output_imag_wet++;
               }
               p_buffer_re += MAX_HYBRID_BANDS;
