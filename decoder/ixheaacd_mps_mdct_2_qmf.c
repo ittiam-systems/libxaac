@@ -787,6 +787,7 @@ static VOID ixheaacd_local_zero(WORD32 const l, WORD32 *const b) {
   }
 }
 
+ATTR_NO_SANITIZE_INTEGER
 static VOID ixheaacd_local_fold_out(WORD32 *const s, WORD32 const lv, WORD32 *const w,
                                     WORD32 const l_w, WORD32 *const v_main,
                                     WORD32 *const v_slave) {
