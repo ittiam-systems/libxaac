@@ -40,6 +40,7 @@
 #include "ixheaacd_mps_macro_def.h"
 #include "ixheaacd_mps_basic_op.h"
 
+ATTR_NO_SANITIZE_INTEGER
 VOID ixheaacd_get_matrix_inversion_weights(
     WORD32 iid_lf_ls_idx, WORD32 iid_rf_rs_idx, WORD32 prediction_mode, WORD32 c1, WORD32 c2,
     WORD32 *weight1, WORD32 *weight2, ia_mps_dec_mps_tables_struct *ia_mps_dec_mps_table_ptr) {
