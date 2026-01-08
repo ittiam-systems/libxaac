@@ -823,6 +823,7 @@ VOID ixheaacd_apply_ana_hyb_filt_bank_create_x(
   }
 }
 
+ATTR_NO_SANITIZE_INTEGER
 VOID ixheaacd_apply_ana_hyb_filt_bank_merge_res_decor(
     ia_mps_dec_thyb_filter_state_struct *hyb_state, WORD32 *m_qmf_real, WORD32 *m_qmf_imag,
     WORD32 nr_bands, WORD32 nr_samples, WORD32 *m_hybrid_real, WORD32 *m_hybrid_imag,
