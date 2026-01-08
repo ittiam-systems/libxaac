@@ -70,6 +70,12 @@
 
 #define MAX_RES_SAMP_FREQ_IDX 11
 
+#if defined(__clang__) || defined(__GNUC__)
+#define ATTR_NO_SANITIZE_INTEGER __attribute__((no_sanitize("integer")))
+#else
+#define ATTR_NO_SANITIZE_INTEGER
+#endif
+
 typedef UWORD8 UINT8;
 typedef UWORD32 UINT32;
 
