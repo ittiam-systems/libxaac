@@ -198,11 +198,10 @@ VOID ia_enhaacplus_enc_aac_init_default_config(iaace_config *config, WORD32 aot)
   config->band_width = 0;
   if (aot == AOT_AAC_LC || aot == AOT_SBR || aot == AOT_PS) {
     config->inv_quant = 0;
-    config->bitreservoir_size = BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LC;
   } else if (aot == AOT_AAC_LD || aot == AOT_AAC_ELD) {
     config->inv_quant = 2;
-    config->bitreservoir_size = BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LD;
   }
+  config->bitreservoir_size = BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE;
   config->use_tns = 0;
   config->flag_framelength_small =
       USE_FRAMELENGTH_SMALL_PARAM_DEFAULT_VALUE;  // assume framelength large
