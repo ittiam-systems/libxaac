@@ -1089,6 +1089,7 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       }
     }
   } else {
+    WORD32 max_bitreservoir_size;
     if ((pstr_input_config->i_channels > MAX_NUM_CORE_CODER_CHANNELS)) {
       return (IA_EXHEAACE_CONFIG_FATAL_NUM_CHANNELS);
     }
@@ -1212,34 +1213,20 @@ static IA_ERRORCODE ixheaace_set_config_params(ixheaace_api_struct *pstr_api_str
       }
     }
 
-    if (pstr_input_config->aot == AOT_AAC_LD || pstr_input_config->aot == AOT_AAC_ELD) {
-      WORD32 max_channel_bits = (pstr_api_struct->config[0].aac_config.flag_framelength_small
-                                     ? MAXIMUM_CHANNEL_BITS_480
-                                     : MAXIMUM_CHANNEL_BITS_512);
-      if ((pstr_input_config->aac_config.bitreservoir_size > max_channel_bits / 8) ||
-          (pstr_input_config->aac_config.bitreservoir_size < -1)) {
-        pstr_input_config->aac_config.bitreservoir_size =
-            BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LD;
-      }
-      pstr_api_struct->config[0].aac_config.bitreservoir_size =
-          pstr_input_config->aac_config.bitreservoir_size;
+    /* Right shift by 10 as 768 is the max bit reservoir calculated for framelength 1024 */
+    max_bitreservoir_size = (BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE *
+                             pstr_api_struct->config[0].frame_length) >>
+                            10;
+    if ((pstr_input_config->aac_config.bitreservoir_size > max_bitreservoir_size) ||
+        (pstr_input_config->aac_config.bitreservoir_size < -1)) {
+      pstr_input_config->aac_config.bitreservoir_size = max_bitreservoir_size;
     }
-    if (pstr_input_config->aot == AOT_AAC_LC || pstr_input_config->aot == AOT_SBR ||
-        pstr_input_config->aot == AOT_PS) {
-      WORD32 max_channel_bits = (pstr_api_struct->config[0].aac_config.flag_framelength_small
-                                     ? MAXIMUM_CHANNEL_BITS_960
-                                     : MAXIMUM_CHANNEL_BITS_1024);
-
-      if ((pstr_input_config->aac_config.bitreservoir_size > max_channel_bits / 8) ||
-          (pstr_input_config->aac_config.bitreservoir_size < -1)) {
-        pstr_input_config->aac_config.bitreservoir_size =
-            BITRESERVOIR_SIZE_CONFIG_PARAM_DEFAULT_VALUE_LC;
-      }
-      pstr_api_struct->config[0].aac_config.bitreservoir_size =
-          pstr_input_config->aac_config.bitreservoir_size;
-    }
-    pstr_api_struct->config[0].aac_config.full_bandwidth =
+    for (ele_idx = 0; ele_idx < MAXIMUM_BS_ELE; ele_idx++) {
+      pstr_api_struct->config[ele_idx].aac_config.bitreservoir_size =
+        pstr_input_config->aac_config.bitreservoir_size;
+      pstr_api_struct->config[ele_idx].aac_config.full_bandwidth =
         pstr_input_config->aac_config.full_bandwidth;
+    }
   }
 
   return IA_NO_ERROR;
