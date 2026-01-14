@@ -635,7 +635,7 @@ VOID ixheaacd_usac_tcx_ec(ia_usac_data_struct *pstr_usac_data, ia_usac_lpd_decod
     memmove(&ptr_synth[sf_idx], &ptr_syn[sf_idx], LEN_SUBFR * sizeof(FLOAT32));
   }
 
-  memcpy(st->xcitation_prev, ptr_exc + len_subfrm - (MAX_PITCH + ORDER + 1),
+  memcpy(st->xcitation_prev, exc_buf + len_subfrm,
          sizeof(FLOAT32) * (MAX_PITCH + ORDER + 1));
   memcpy(st->synth_prev_ec, synth_buf + len_subfrm, sizeof(FLOAT32) * ORDER);
   return;
