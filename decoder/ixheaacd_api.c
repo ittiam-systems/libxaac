@@ -962,13 +962,13 @@ IA_ERRORCODE ixheaacd_dec_api(pVOID p_ia_xheaac_dec_obj, WORD32 i_cmd,
 #endif
       else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_CUT == i_idx) {
         UWORD32 *ui_value = (UWORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_drc_cut);
-        *pui_value = *ui_value;
+        *pf_value = (*ui_value) / 100.0f;
       } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_BOOST == i_idx) {
         UWORD32 *ui_value = (UWORD32 *)(&p_obj_exhaacplus_dec->aac_config.ui_drc_boost);
-        *pui_value = *ui_value;
+        *pf_value = (*ui_value) / 100.0f;
       } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_CUT == i_idx) {
         UWORD8 *ui_value = (&p_obj_exhaacplus_dec->aac_config.ui_drc_mode_cut);
-        *pb_value = *ui_value;
+        *pb_value = (*ui_value);
       } else if (IA_XHEAAC_DEC_CONFIG_PARAM_DRC_MODE_BOOST == i_idx) {
         UWORD8 *ui_value = (&p_obj_exhaacplus_dec->aac_config.ui_drc_mode_boost);
         *pb_value = *ui_value;

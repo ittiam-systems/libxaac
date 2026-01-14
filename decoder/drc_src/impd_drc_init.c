@@ -121,6 +121,8 @@ IA_ERRORCODE impd_drc_set_default_config(ia_drc_api_struct *p_obj_drc) {
   p_obj_drc->str_config.album_mode = 0;
   p_obj_drc->str_config.boost = 1.0f;
   p_obj_drc->str_config.compress = 1.0f;
+  p_obj_drc->str_config.boost_set = 0;
+  p_obj_drc->str_config.compress_set = 0;
   memset(&p_obj_drc->str_bit_handler, 0, sizeof(p_obj_drc->str_bit_handler));
 
   return IA_NO_ERROR;
@@ -409,11 +411,6 @@ IA_ERRORCODE impd_drc_init(ia_drc_api_struct *p_obj_drc) {
                                     p_obj_drc->str_payload.pstr_gain_dec[i]);
     if (err_code != IA_NO_ERROR) return err_code;
   }
-
-  if (!p_obj_drc->str_config.boost_set) p_obj_drc->str_config.boost = 1.0f;
-
-  if (!p_obj_drc->str_config.compress_set)
-    p_obj_drc->str_config.compress = 1.0f;
 
   err_code = impd_drc_dec_interface_add_effect_type(
       p_obj_drc->str_payload.pstr_drc_interface, p_obj_drc->str_config.effect_type,
