@@ -257,6 +257,7 @@ VOID ixheaacd_hybrid_qmf_analysis(ia_heaac_mps_state_struct *pstr_mps_state) {
   }
 }
 
+ATTR_NO_SANITIZE_INTEGER
 VOID ixheaacd_merge_res_decor(ia_heaac_mps_state_struct *pstr_mps_state) {
   WORD32 ts, qs, row, res;
 
