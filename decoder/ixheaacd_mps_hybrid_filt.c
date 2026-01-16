@@ -760,15 +760,15 @@ VOID ixheaacd_apply_ana_hyb_filt_bank_create_x(
     *p_hybrid_re++ = m_temp_output_real[7];
     *p_hybrid_re++ = m_temp_output_real[0];
     *p_hybrid_re++ = m_temp_output_real[1];
-    *p_hybrid_re++ = (m_temp_output_real[2] + m_temp_output_real[5]);
-    *p_hybrid_re++ = (m_temp_output_real[3] + m_temp_output_real[4]);
+    *p_hybrid_re++ = ixheaac_add32_sat(m_temp_output_real[2], m_temp_output_real[5]);
+    *p_hybrid_re++ = ixheaac_add32_sat(m_temp_output_real[3], m_temp_output_real[4]);
 
     *p_hybrid_im++ = m_temp_output_imag[6];
     *p_hybrid_im++ = m_temp_output_imag[7];
     *p_hybrid_im++ = m_temp_output_imag[0];
     *p_hybrid_im++ = m_temp_output_imag[1];
-    *p_hybrid_im++ = (m_temp_output_imag[2] + m_temp_output_imag[5]);
-    *p_hybrid_im++ = (m_temp_output_imag[3] + m_temp_output_imag[4]);
+    *p_hybrid_im++ = ixheaac_add32_sat(m_temp_output_imag[2], m_temp_output_imag[5]);
+    *p_hybrid_im++ = ixheaac_add32_sat(m_temp_output_imag[3], m_temp_output_imag[4]);
 
     ixheaacd_2ch_filtering(
         &(hyb_state->buffer_lf_real[1][time_slot + nr_samples_shift_lf + 1 - PROTO_LEN]),
