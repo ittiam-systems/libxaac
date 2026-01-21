@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libgen.h>
 #include "ixheaac_type_def.h"
 #include "impd_drc_common_enc.h"
 #include "impd_drc_uni_drc.h"
@@ -202,11 +203,11 @@ IA_ERRORCODE ia_enhaacplus_enc_wav_header_decode(FILE *in_file, UWORD32 *n_chann
   return IA_NO_ERROR;
 }
 
-void ia_enhaacplus_enc_print_usage() {
+void ia_enhaacplus_enc_print_usage(pCHAR8 argv[]) {
   printf("\nUsage:\n");
-  printf("\n<executable> -ifile:<inputfile> -ofile:<outputfile> [options]\n");
+  printf("\n%s %s\n", basename(argv[0]), "-ifile:<inputfile> -ofile:<outputfile> [options]");
   printf("\nor\n");
-  printf("\n<executable> -paramfile:<paramfile>\n");
+  printf("\n%s %s\n", basename(argv[0]), "-paramfile:<paramfile>");
   printf("\n[options] can be,");
   printf("\n[-br:<bitrate>]");
   printf("\n[-mps:<use_mps>]");
@@ -320,7 +321,8 @@ void ia_enhaacplus_enc_print_usage() {
       "\n        It is applicable only for AOT 42. Valid values are 0 to 65535. Default is 0.");
   printf(
     "\n <delay adjustment> is used to discard algorithmic delay from the decoded file."
-    "\n        It is applicable only for AOT 42. Valid values are 0 and 1. Default is 1.");
+    "\n        It is applicable only for AOT 42. Valid values are 0 and 1. Default is 1."
+    "\n");
   exit(1);
 }
 
@@ -1629,7 +1631,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
       if (param_file_id == NULL) {
         ixheaace_get_lib_id_strings(&instance);
         ia_enhaacplus_enc_display_id_message(instance.p_lib_name, instance.p_version_num);
-        ia_enhaacplus_enc_print_usage();
+        ia_enhaacplus_enc_print_usage(argv);
         return IA_NO_ERROR;
       }
     } else {
@@ -1637,7 +1639,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
       if (param_file_id == NULL) {
         ixheaace_get_lib_id_strings(&instance);
         ia_enhaacplus_enc_display_id_message(instance.p_lib_name, instance.p_version_num);
-        ia_enhaacplus_enc_print_usage();
+        ia_enhaacplus_enc_print_usage(argv);
         return IA_NO_ERROR;
       }
     }
@@ -1851,7 +1853,7 @@ int main(WORD32 argc, pCHAR8 argv[]) {
       }
 
       if (!strncmp((const char *)argv[i], "-help", 5)) {
-        ia_enhaacplus_enc_print_usage();
+        ia_enhaacplus_enc_print_usage(argv);
       }
     }
 

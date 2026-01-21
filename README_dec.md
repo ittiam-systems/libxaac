@@ -164,7 +164,7 @@ The libxaac decoder can be run by providing command-line parameters(CLI options)
 
 Command line usage : 
 ```
-<executable> -ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> [options]
+xaacdec -ifile:<input_file> -imeta:<meta_data_file> -ofile:<output_file> [options]
 
 [options] can be,
 [-mp4:<mp4_flag>]
@@ -230,7 +230,7 @@ where,
 Note: `loudness_leveling_flag` is applicable only if `LOUDNESS_LEVELING_SUPPORT` macro is enabled.
 Sample CLI:
 ```
-<xaac_dec_exe> -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16
+xaacdec -ifile:in_file.aac -ofile:out_file.wav -pcmsz:16
 ```
 
 # Validating the libxaac decoder
