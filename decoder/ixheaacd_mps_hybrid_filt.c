@@ -1164,13 +1164,13 @@ VOID ixheaacd_apply_ana_hyb_filt_bank_create_x_res(
     *p_hybrid_im++ = m_temp_output_imag[1];
 
     if (*counter > 4) {
-      *p_hybrid_re++ = (m_temp_output_real[2] + m_temp_output_real[5]);
-      *p_hybrid_im++ = (m_temp_output_imag[2] + m_temp_output_imag[5]);
+      *p_hybrid_re++ = ixheaac_add32_sat(m_temp_output_real[2], m_temp_output_real[5]);
+      *p_hybrid_im++ = ixheaac_add32_sat(m_temp_output_imag[2], m_temp_output_imag[5]);
     }
 
     if (*counter > 5) {
-      *p_hybrid_re++ = (m_temp_output_real[3] + m_temp_output_real[4]);
-      *p_hybrid_im++ = (m_temp_output_imag[3] + m_temp_output_imag[4]);
+      *p_hybrid_re++ = ixheaac_add32_sat(m_temp_output_real[3], m_temp_output_real[4]);
+      *p_hybrid_im++ = ixheaac_add32_sat(m_temp_output_imag[3], m_temp_output_imag[4]);
     }
 
     ch_off_set = 6;
