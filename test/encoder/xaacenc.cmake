@@ -10,7 +10,7 @@ set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder
 
 include_directories(${LIBXAACENC_INCLUDES})
 
-libxaac_add_executable(xaacenc libxaacenc SOURCES ${XAACENC_SRCS} INCLUDES 
+libxaac_add_executable(xaacenc xaac SOURCES ${XAACENC_SRCS} INCLUDES 
                        ${LIBXAACENC_INCLUDES})
 
 if (MSVC) 
