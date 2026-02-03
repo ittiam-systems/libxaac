@@ -130,11 +130,13 @@ VOID ixheaacd_invert_matrix(WORD32 weight1, WORD32 weight2, WORD32 h_real[][2],
 
   WORD64 acc1, acc2;
 
-  len1 = ixheaacd_mps_sqrt((ONE_IN_Q15 - (weight1 << 1) + ((weight1 * weight1) >> 14)), &q_len1,
-                           common_tab_ptr->sqrt_tab);
+  len1 = ixheaacd_mps_sqrt(
+      (ONE_IN_Q15 - (weight1 << 1) + ixheaacd_mps_mult32_shr_n(weight1, weight1, 14)), &q_len1,
+      common_tab_ptr->sqrt_tab);
 
-  len2 = ixheaacd_mps_sqrt((ONE_IN_Q15 - (weight2 << 1) + ((weight2 * weight2) >> 14)), &q_len2,
-                           common_tab_ptr->sqrt_tab);
+  len2 = ixheaacd_mps_sqrt(
+      (ONE_IN_Q15 - (weight2 << 1) + ixheaacd_mps_mult32_shr_n(weight2, weight2, 14)), &q_len2,
+      common_tab_ptr->sqrt_tab);
 
   len1 = ixheaacd_mps_convert_to_qn(len1, q_len1, 15);
   len2 = ixheaacd_mps_convert_to_qn(len2, q_len2, 15);
@@ -143,7 +145,7 @@ VOID ixheaacd_invert_matrix(WORD32 weight1, WORD32 weight2, WORD32 h_real[][2],
 
   h11_f_imag = ixheaacd_mps_div32_in_q15(weight1, len1);
 
-  h22_f_imag = -(ixheaacd_mps_div32_in_q15(weight2, len2));
+  h22_f_imag = ixheaac_negate32_sat(ixheaacd_mps_div32_in_q15(weight2, len2));
 
   h12_f_real = 0;
 
