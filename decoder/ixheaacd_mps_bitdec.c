@@ -1448,8 +1448,8 @@ static VOID ixheaacd_factor_cld(WORD32 *idx, WORD32 ott_vs_tot_db, WORD32 *ott_v
   c1 = ixheaacd_mps_dec_bitdec_tables->factor_cld_tab_1[*idx + 15];
   c2 = ixheaacd_mps_dec_bitdec_tables->factor_cld_tab_1[15 - *idx];
 
-  *ott_vs_tot_db_1 = c1 + ott_vs_tot_db;
-  *ott_vs_tot_db_2 = c2 + ott_vs_tot_db;
+  *ott_vs_tot_db_1 = ixheaac_add32_sat(c1, ott_vs_tot_db);
+  *ott_vs_tot_db_2 = ixheaac_add32_sat(c2, ott_vs_tot_db);
 }
 
 static IA_ERRORCODE ixheaacd_map_index_data(
