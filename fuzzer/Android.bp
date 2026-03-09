@@ -9,6 +9,9 @@ package {
 
 cc_fuzz {
     name: "xaac_dec_fuzzer",
+    defaults: [
+        "no_bti",
+    ],
     host_supported: true,
     srcs: [
         "xaac_dec_fuzzer.cpp",
