@@ -327,8 +327,7 @@ VOID ixheaacd_scale_adjust(WORD32 *samples, UWORD32 frame_len,
   WORD32 j;
   for (i = 0; i < frame_len; i++) {
     for (j = 0; j < num_channels; j++) {
-      WORD32 gain_t = (WORD32)(1 << *(qshift_adj + j));
-      samples[i * num_channels + j] = (samples[i * num_channels + j] * gain_t);
+      samples[i * num_channels + j] = ixheaac_shl32_sat(samples[i * num_channels + j], qshift_adj[j]);
     }
   }
 }
