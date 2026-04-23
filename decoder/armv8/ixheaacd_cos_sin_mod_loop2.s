@@ -28,11 +28,11 @@
     ldp             q8, q9, [sp], #32
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 
      .global ixheaacd_cos_sin_mod_loop2
-ixheaacd_cos_sin_mod_loop2:
+ENTRY ixheaacd_cos_sin_mod_loop2
 
     // STMFD sp!, {x4-x12, x14}
     push_v_regs
@@ -210,4 +210,5 @@ LOOP1:
     // LDMFD sp!, {x4-x12, x15}
     //ldp x19, x20,[sp],#16
     pop_v_regs
+    EXIT_FUNC
     ret

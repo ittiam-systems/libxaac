@@ -23,11 +23,11 @@
 .endm
 
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 .global ixheaacd_fft32x32_ld2_armv8
 
-ixheaacd_fft32x32_ld2_armv8:
+ENTRY ixheaacd_fft32x32_ld2_armv8
 
     // STMFD sp!, {x4-x12,x14}
     push_v_regs
@@ -551,5 +551,6 @@ ixheaacd_fft32x32_ld2_armv8:
     // LDMFD sp!, {x4-x12,x15}
     ldp             x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
 

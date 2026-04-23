@@ -49,10 +49,12 @@
     MOV             \reg1, \reg2
     MOV             \reg2, x16
 .endm
+
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_pretwiddle_compute_armv8
 
-ixheaacd_pretwiddle_compute_armv8:
+ENTRY ixheaacd_pretwiddle_compute_armv8
 
     push_v_regs
 
@@ -506,6 +508,7 @@ RESIDUE_NEON:
 
 END1:
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

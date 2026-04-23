@@ -43,9 +43,10 @@
     ldp             q8, q9, [sp], #32
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_over_lap_add1_armv8
-ixheaacd_over_lap_add1_armv8:
+ENTRY ixheaacd_over_lap_add1_armv8
     push_v_regs
     LSL             X6 , X6 , #1
     LSL             X10, X5, #1
@@ -294,6 +295,7 @@ LOOP_1:
     ST1             {V9.S}[2], [X6], X9
     ST1             {V9.S}[3], [X6], X9
     pop_v_regs
+    EXIT_FUNC
     RET
 
 

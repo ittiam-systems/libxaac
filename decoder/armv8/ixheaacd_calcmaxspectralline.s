@@ -19,9 +19,10 @@
 //*/
 
 
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_calc_max_spectral_line_armv8
-ixheaacd_calc_max_spectral_line_armv8:
+ENTRY ixheaacd_calc_max_spectral_line_armv8
 
     LSR             W4, W1, #3
     LSL             W6, W4, #3
@@ -75,6 +76,7 @@ END_FUNC:
     CLZ             W0, W0
     SUB             W0, W0, #1
 
+    EXIT_FUNC
     RET
 
 

@@ -16,9 +16,10 @@
 .endm
 
 
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_inv_dit_fft_8pt_armv8
-ixheaacd_inv_dit_fft_8pt_armv8:
+ENTRY ixheaacd_inv_dit_fft_8pt_armv8
     push_v_regs
     MOV             w3, #0x5A820000
     DUP             v0.2s, w3
@@ -164,6 +165,7 @@ ixheaacd_inv_dit_fft_8pt_armv8:
     //ST2 {v12.s,v13.s}[0],[x1]
     //ST2 {v12.s,v13.s}[1],[x2]
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

@@ -43,9 +43,11 @@
     ldp             q10, q11, [sp], #32
     ldp             q8, q9, [sp], #32
 .endm
+
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_neg_shift_spec_armv8
-ixheaacd_neg_shift_spec_armv8:
+ENTRY ixheaacd_neg_shift_spec_armv8
     push_v_regs
     MOV             X5, #448
     SUB             X6, X5, #1
@@ -109,4 +111,5 @@ LOOP_1:
     ST1             {V22.S}[0], [X1], X7
     ST1             {V22.S}[1], [X1], X7
     pop_v_regs
+    EXIT_FUNC
     RET

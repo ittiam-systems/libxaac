@@ -41,11 +41,11 @@
 .endm
 
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 .global ixheaacd_post_twid_overlap_add_armv8
 
-ixheaacd_post_twid_overlap_add_armv8:
+ENTRY ixheaacd_post_twid_overlap_add_armv8
 
     // STMFD sp!, {x4-x12}
   push_v_regs
@@ -1873,6 +1873,7 @@ ARM_LOOP:
   ADD  x5, x5, x10
 
    pop_v_regs
+   EXIT_FUNC
    ret
 
 

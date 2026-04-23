@@ -14,12 +14,12 @@
     ldp             X8, X9, [sp], #16
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
         .global ixheaacd_postradixcompute4
 
 
-ixheaacd_postradixcompute4:
+ENTRY ixheaacd_postradixcompute4
 
     // STMFD sp!, {x4-x12, x14}
     push_v_regs
@@ -143,6 +143,7 @@ POSTRADIX4_START:
 
     // LDMFD sp!, {x4-x12, x15}
     pop_v_regs
+    EXIT_FUNC
     ret
 
 

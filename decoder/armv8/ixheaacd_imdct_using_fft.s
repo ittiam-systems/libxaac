@@ -49,10 +49,11 @@
     MOv             \reg1, \reg2
     MOv             \reg2, x16
 .endm
+
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 .global ixheaacd_imdct_using_fft_armv8
-ixheaacd_imdct_using_fft_armv8:
+ENTRY ixheaacd_imdct_using_fft_armv8
     push_v_regs
 
     MOV             X29, #11600
@@ -813,6 +814,7 @@ BYPASS_IF:
     BNE             OUTER_LOOP_R4
 END_LOOPS:
     pop_v_regs
+    EXIT_FUNC
     RET
 
 

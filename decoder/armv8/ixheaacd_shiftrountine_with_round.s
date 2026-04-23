@@ -21,10 +21,10 @@
     ldp             X8, X9, [sp], #16
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
     .global ixheaacd_shiftrountine_with_rnd
-ixheaacd_shiftrountine_with_rnd:
+ENTRY ixheaacd_shiftrountine_with_rnd
     push_v_regs
 
     ADD             x12, x2, x3, LSL #1
@@ -70,4 +70,5 @@ S_WITH_R_L5:
     BGE             S_WITH_R_L5
 S_WITH_R_L6:
     pop_v_regs
+    EXIT_FUNC
     ret

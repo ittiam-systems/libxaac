@@ -23,11 +23,11 @@
     ldp             d8, d9, [sp], #16
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
     .global ixheaacd_sbr_qmfanal32_winadds
 
-ixheaacd_sbr_qmfanal32_winadds:         // PROC
+ENTRY ixheaacd_sbr_qmfanal32_winadds         // PROC
 
     // STMFD sp!, {x4-x12, x14}
     push_v_regs
@@ -337,5 +337,6 @@ LOOP_1:
     // LDMFD sp!, {x4-x12, x15}
     ldp             x19, x20, [sp], #16
     pop_v_regs
+    EXIT_FUNC
     ret
     // ENDP

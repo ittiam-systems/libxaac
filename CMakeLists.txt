@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5.1)
 project(libxaac C CXX)
 enable_language(ASM)
 
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/decoder/armv8")
+
 option(BUILD64 "Build for 64 bit" OFF)
 set(XAAC_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(XAAC_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")

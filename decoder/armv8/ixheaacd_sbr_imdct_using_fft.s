@@ -49,10 +49,11 @@
     MOV             \reg1, \reg2
     MOV             \reg2, x16
 .endm
+
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 .global ixheaacd_sbr_imdct_using_fft
-ixheaacd_sbr_imdct_using_fft:
+ENTRY ixheaacd_sbr_imdct_using_fft
     push_v_regs
 
 
@@ -774,4 +775,5 @@ BYPASS_IF:
     BNE             OUTER_LOOP_R4
 END_LOOPS:
     pop_v_regs
+    EXIT_FUNC
     RET

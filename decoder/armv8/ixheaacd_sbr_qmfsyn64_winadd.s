@@ -41,10 +41,12 @@
     MOV             \reg1, \reg2
     MOV             \reg2, x16
 .endm
+
+.include "ixheaacd_neon_macros.s"
 .text
 .global ixheaacd_sbr_qmfsyn64_winadd
 
-ixheaacd_sbr_qmfsyn64_winadd:
+ENTRY ixheaacd_sbr_qmfsyn64_winadd
 
     push_v_regs
 
@@ -399,5 +401,6 @@ LOOP_1:
 
 
     pop_v_regs
+    EXIT_FUNC
     ret
 

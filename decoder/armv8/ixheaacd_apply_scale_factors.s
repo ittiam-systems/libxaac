@@ -20,11 +20,11 @@
     ldp             X8, X9, [sp], #16
 .endm
 
+.include "ixheaacd_neon_macros.s"
 .text
-.p2align 2
 .global ixheaacd_scale_factor_process_armv8
 
-ixheaacd_scale_factor_process_armv8:
+ENTRY ixheaacd_scale_factor_process_armv8
 
     push_v_regs
 
@@ -37,6 +37,7 @@ ixheaacd_scale_factor_process_armv8:
     BGT             lbl17
 
     pop_v_regs
+    EXIT_FUNC
     ret
 lbl17:
     MOV             x10, #0
@@ -163,4 +164,5 @@ OFFSET_ZERO:
     BGT             TBANDS_LOOP
 
     pop_v_regs
+    EXIT_FUNC
     ret
