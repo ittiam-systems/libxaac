@@ -235,14 +235,16 @@ IA_ERRORCODE impd_drc_td_drc_gain_calc_init(ia_drc_gain_enc_struct *pstr_drc_gai
   pstr_chan_param = &pstr_drc_compand->str_channel_param;
 
   if (pstr_chan_param->attack < 1.0 / pstr_drc_gain_enc->sample_rate) {
-    pstr_chan_param->attack = 1.0;
+    // Decreasing the upper limit of alphaAttack from 1 -> 1 - EPSILON to avoid DRC payload overflow.
+    pstr_chan_param->attack = 1.0 - FLT_EPSILON;
   } else {
     pstr_chan_param->attack =
         1.0 - exp(-1.0 / (pstr_drc_gain_enc->sample_rate * pstr_chan_param->attack));
   }
 
   if (pstr_chan_param->decay < 1.0 / pstr_drc_gain_enc->sample_rate) {
-    pstr_chan_param->decay = 1.0;
+    // Decreasing the upper limit of alphaDecay from 1 -> 1 - EPSILON to avoid DRC payload overflow.
+    pstr_chan_param->decay = 1.0 - FLT_EPSILON;
   } else {
     pstr_chan_param->decay =
         1.0 - exp(-1.0 / (pstr_drc_gain_enc->sample_rate * pstr_chan_param->decay));
