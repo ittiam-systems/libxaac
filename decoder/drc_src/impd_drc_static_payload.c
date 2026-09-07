@@ -442,6 +442,8 @@ static WORD32 impd_parametric_drc_gen_virtual_gain_sets(
     str_p_loc_drc_coefficients_uni_drc->shape_filters_present = 0;
     str_p_loc_drc_coefficients_uni_drc->gain_sequence_count = 0;
     drc_config->drc_coefficients_drc_count += 1;
+
+    if (drc_config->drc_coefficients_drc_count > DRC_COEFF_COUNT_MAX) return (UNEXPECTED_ERROR);
   }
   {
     WORD32 tmp = str_p_loc_drc_coefficients_uni_drc->gain_set_count +
