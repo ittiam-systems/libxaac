@@ -52,6 +52,9 @@
 #include "iusace_fd_qc_adjthr.h"
 #include "ixheaace_aac_constants.h"
 #include "ixheaace_sbr_def.h"
+#include "ixheaace_constants.h"
+#include "ixheaac_basic_ops32.h"
+#include "ixheaac_basic_ops16.h"
 
 FLOAT32 iusace_bits_to_pe(const FLOAT32 bits) { return (bits * 1.18f); }
 
@@ -987,11 +990,11 @@ VOID iusace_quantize_lines(const WORD32 gain, const WORD32 num_lines, FLOAT32 *p
     if (tmp < 0.0f) {
       ptr_exp_spectrum[line] = (FLOAT32)sqrt(-tmp);
       ptr_exp_spectrum[line] *= (FLOAT32)sqrt(ptr_exp_spectrum[line]);
-      ptr_quant_spectrum[line] = -(WORD16)(k + quantizer * ptr_exp_spectrum[line]);
+      ptr_quant_spectrum[line] = -ixheaac_sat16((WORD32)(k + quantizer * ptr_exp_spectrum[line]));
     } else {
       ptr_exp_spectrum[line] = (FLOAT32)sqrt(tmp);
       ptr_exp_spectrum[line] *= (FLOAT32)sqrt(ptr_exp_spectrum[line]);
-      ptr_quant_spectrum[line] = (WORD16)(k + quantizer * ptr_exp_spectrum[line]);
+      ptr_quant_spectrum[line] = ixheaac_sat16((WORD32)(k + quantizer * ptr_exp_spectrum[line]));
     }
   }
   return;
@@ -1141,7 +1144,7 @@ FLOAT32 iusace_calc_sfb_dist(const FLOAT32 *ptr_spec, const FLOAT32 *ptr_exp_spe
     FLOAT32 iq_val;
     FLOAT32 diff;
 
-    ptr_quant_spec[i] = (WORD16)(k + quantizer * ptr_exp_spec[i]);
+    ptr_quant_spec[i] = ixheaac_sat16((WORD32)(k + quantizer * ptr_exp_spec[i]));
 
     if (ptr_quant_spec[i] < 64) {
       iq_val = ixheaace_pow_4_3_table[ptr_quant_spec[i]] * inv_quantizer;
