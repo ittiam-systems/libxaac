@@ -114,12 +114,12 @@ ixheaacd_esbr_qmfsyn64_winadd:          @ PROC
     VMLAL.S32       Q13, D16, D18
     VMLAL.S32       Q14, D17, D19
 
-    VSHRN.S64       D26 , Q13, #31
+    VQSHRN.S64       D26 , Q13, #31
 
     VST1.32         D26[0], [R3], R5
     VST1.32         D26[1], [R3], R5
 
-    VSHRN.S64       D27 , Q14, #31
+    VQSHRN.S64       D27 , Q14, #31
 
     VST1.32         D27[0], [R3], R5
     VST1.32         D27[1], [R3], R5
@@ -207,12 +207,12 @@ LOOP_1:
     VMLAL.S32       Q13, D16, D18
     VMLAL.S32       Q14, D17, D19
 
-    VSHRN.S64       D26 , Q13, #31
+    VQSHRN.S64       D26 , Q13, #31
 
     VST1.32         D26[0], [R3], R5
     VST1.32         D26[1], [R3], R5
 
-    VSHRN.S64       D27 , Q14, #31
+    VQSHRN.S64       D27 , Q14, #31
 
     VST1.32         D27[0], [R3], R5
     VST1.32         D27[1], [R3], R5
@@ -299,12 +299,12 @@ LOOP_1:
     VMLAL.S32       Q13, D16, D18
     VMLAL.S32       Q14, D17, D19
 
-    VSHRN.S64       D26 , Q13, #31
+    VQSHRN.S64       D26 , Q13, #31
 
     VST1.32         D26[0], [R3], R5
     VST1.32         D26[1], [R3], R5
 
-    VSHRN.S64       D27 , Q14, #31
+    VQSHRN.S64       D27 , Q14, #31
 
     VST1.32         D27[0], [R3], R5
     VST1.32         D27[1], [R3], R5
@@ -395,12 +395,12 @@ LOOP_1:
     VMLAL.S32       Q13, D16, D18
     VMLAL.S32       Q14, D17, D19
 
-    VSHRN.S64       D26 , Q13, #31
+    VQSHRN.S64       D26 , Q13, #31
 
     VST1.32         D26[0], [R3], R5
     VST1.32         D26[1], [R3], R5
 
-    VSHRN.S64       D27, Q14, #31
+    VQSHRN.S64       D27, Q14, #31
 
     VST1.32         D27[0], [R3], R5
     VST1.32         D27[1], [R3], R5
