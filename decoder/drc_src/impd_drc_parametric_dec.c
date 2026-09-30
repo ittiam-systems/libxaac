@@ -191,8 +191,8 @@ WORD32 impd_init_parametric_drc_feed_fwd(
         (FLOAT32)exp(-1.0 * parametric_drc_frame_size /
                      (gain_smooth_release_time_slow * sampling_rate * 0.001));
     pstr_parametric_ffwd_type_drc_params->gain_smooth_hold_off_count =
-        gain_smooth_hold_off * 256 * sampling_rate /
-        (parametric_drc_frame_size * 48000);
+        gain_smooth_hold_off * 256 * (sampling_rate / 1000) /
+        (parametric_drc_frame_size * 48);
     pstr_parametric_ffwd_type_drc_params->gain_smooth_attack_threshold =
         hParametricDrcTypeFeedForwardBs->gain_smooth_attack_threshold;
     pstr_parametric_ffwd_type_drc_params->gain_smooth_rel_threshold =

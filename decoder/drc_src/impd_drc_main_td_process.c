@@ -341,7 +341,8 @@ IA_ERRORCODE impd_process_time_domain(ia_drc_api_struct *p_obj_drc) {
       p_obj_drc->str_config.num_ch_out *
       (p_obj_drc->p_state->ui_in_bytes / p_obj_drc->str_config.num_ch_in);
 
-  if (p_obj_drc->p_state->delay_in_output != 0) {
+  if (p_obj_drc->p_state->delay_in_output != 0 && p_obj_drc->p_state->delay_in_output <=
+    p_obj_drc->str_config.frame_size) {
     FLOAT32 *output_buffer = (FLOAT32 *)p_obj_drc->pp_mem[3];
     WORD16 *output_buffer16 = (WORD16 *)p_obj_drc->pp_mem[3];
     p_obj_drc->p_state->ui_out_bytes = p_obj_drc->str_config.num_ch_out *

@@ -273,7 +273,7 @@ static WORD32 ixheaacd_read_ext_element(UWORD32 usac_ext_element_default_length,
       if (pstr_usac_dec_config->usac_ext_ele_payload_present[elem_idx]) {
         WORD32 preroll_counter = pstr_usac_dec_config->preroll_counter;
         int payload_buffer_offeset = 0;
-        for (i = 0; i < preroll_counter; i++)
+        for (i = 0; i <= preroll_counter; i++)
           payload_buffer_offeset +=
               pstr_usac_dec_config->usac_ext_gain_payload_len[i] *
               sizeof(WORD8);

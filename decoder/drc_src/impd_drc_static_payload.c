@@ -425,6 +425,10 @@ static WORD32 impd_parametric_drc_gen_virtual_gain_sets(
     str_p_loc_drc_coefficients_uni_drc =
         &(drc_config->str_p_loc_drc_coefficients_uni_drc[c0]);
   } else {
+    if (drc_config->drc_coefficients_drc_count >=
+      DRC_COEFF_COUNT_MAX)
+      return (UNEXPECTED_ERROR);
+
     str_p_loc_drc_coefficients_uni_drc =
         &drc_config->str_p_loc_drc_coefficients_uni_drc
              [drc_config->drc_coefficients_drc_count];
@@ -442,8 +446,6 @@ static WORD32 impd_parametric_drc_gen_virtual_gain_sets(
     str_p_loc_drc_coefficients_uni_drc->shape_filters_present = 0;
     str_p_loc_drc_coefficients_uni_drc->gain_sequence_count = 0;
     drc_config->drc_coefficients_drc_count += 1;
-
-    if (drc_config->drc_coefficients_drc_count > DRC_COEFF_COUNT_MAX) return (UNEXPECTED_ERROR);
   }
   {
     WORD32 tmp = str_p_loc_drc_coefficients_uni_drc->gain_set_count +
@@ -1546,6 +1548,8 @@ impd_parse_gain_set_params(ia_bit_buf_struct* it_bit_buff, WORD32 version,
   if (gain_set_params->gain_coding_profile == GAIN_CODING_PROFILE_CONSTANT) {
     gain_set_params->band_count = 1;
     *gain_seq_idx = (*gain_seq_idx) + 1;
+    
+    if (*gain_seq_idx >= SEQUENCE_COUNT_MAX) return UNEXPECTED_ERROR;
   } else {
     gain_set_params->band_count = impd_read_bits_buf(it_bit_buff, 4);
     if (it_bit_buff->error) return it_bit_buff->error;
@@ -1740,6 +1744,9 @@ impd_drc_parse_coeff(
       }
       gain_sequence_count +=
           str_p_loc_drc_coefficients_uni_drc->gain_set_params[i].band_count;
+
+      if (gain_sequence_count > SEQUENCE_COUNT_MAX)
+        return UNEXPECTED_ERROR;
     }
     str_p_loc_drc_coefficients_uni_drc->gain_sequence_count =
         gain_sequence_count;

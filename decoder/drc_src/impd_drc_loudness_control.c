@@ -724,7 +724,7 @@ WORD32 impd_init_loudness_control(
 
   if (pstr_drc_sel_proc_params_struct->loudness_normalization_on == 1) {
     WORD32 n;
-    ia_loudness_info_struct* loudness_info[16];
+    ia_loudness_info_struct* loudness_info[36];
     err = impd_find_overall_loudness_info(
         pstr_drc_sel_proc_params_struct, pstr_loudness_info,
         requested_dwnmix_id, drc_set_id_requested,

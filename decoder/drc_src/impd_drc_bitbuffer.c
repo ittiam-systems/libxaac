@@ -126,6 +126,12 @@ WORD32 impd_init_drc_bitstream_dec(ia_drc_bits_dec_struct* p_drc_bs_dec_struct,
   ia_drc_params_struct->num_gain_values_max_default =
       ia_drc_params_struct->drc_frame_size /
       ia_drc_params_struct->delta_tmin_default;
+
+  if (ia_drc_params_struct->num_gain_values_max_default >
+    (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1))
+    ia_drc_params_struct->num_gain_values_max_default =
+    (N_DELTA_TIME_CODE_TABLE_ENTRIES_MAX / 2 - 1);
+
   ia_drc_params_struct->delay_mode = delay_mode;
 
   if ((frame_size < 1) || (frame_size > AUDIO_CODEC_FRAME_SIZE_MAX) ||
