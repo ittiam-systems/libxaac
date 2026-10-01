@@ -1570,7 +1570,7 @@ VOID ixheaacd_esbr_qmfsyn64_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
     syn_out =
         ixheaac_add64(syn_out, ixheaac_mult64(tmp2[1152 + k], inp1[k + 576]));
 
-    sample_buffer[ch_fac * k] = (WORD32)(syn_out >> 31);
+    sample_buffer[ch_fac * k] = ixheaac_sat64_32(syn_out >> 31);
   }
 }
 
@@ -1603,7 +1603,7 @@ VOID ixheaacd_esbr_qmfsyn32_winadd(WORD32 *tmp1, WORD32 *tmp2, WORD32 *inp1,
     syn_out =
         ixheaac_add64(syn_out, ixheaac_mult64(tmp2[576 + k], inp1[2 * (k + 288)]));
 
-    sample_buffer[ch_fac * k] = (WORD32)(syn_out >> 31);
+    sample_buffer[ch_fac * k] = ixheaac_sat64_32(syn_out >> 31);
   }
 }
 
