@@ -306,6 +306,9 @@ WORD32 impd_init_selected_drc_set(
             (FLOAT32)
                 str_parametric_drc_instructions->parametric_drc_look_ahead *
             (FLOAT32)p_parametric_drc_params->sampling_rate * 0.001f);
+        if (parametric_drc_look_ahead_samples > MAX_SIGNAL_DELAY) {
+          parametric_drc_look_ahead_samples = MAX_SIGNAL_DELAY;
+        }
       } else {
         if (str_parametric_drc_instructions->parametric_drc_type ==
             PARAM_DRC_TYPE_FF) {
@@ -352,6 +355,9 @@ WORD32 impd_init_selected_drc_set(
         drc_config->str_drc_instruction_str->str_gain_modifiers_of_ch_group;
     for (g = 0; g < drc_instructions_uni_drc->num_drc_ch_groups; g++) {
       if (gain_modifiers[g].shape_filter_flag == 1) {
+        if (drc_instructions_uni_drc->band_count_of_ch_group[g] > 1) {
+          return UNEXPECTED_ERROR;
+        }
         impd_shape_filt_block_init(
             &drc_coefficients_uni_drc->str_shape_filter_block_params
                  [gain_modifiers[g].shape_filter_idx],

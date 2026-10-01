@@ -202,6 +202,14 @@ FLAG ixheaacd_check_for_sbr_payload(ia_bit_buf_struct *it_bit_buff,
         ixheaacd_read_bidirection(it_bit_buff, -8);
       }
 
+
+      if (*mps_bytes < 0 ||
+        (count - 1) >(IA_ENHAACPLUS_DEC_MPS_PAYLOAD_SIZE - *mps_bytes)) {
+        *mps_bytes = 0;
+        longjmp(*(it_bit_buff->xaac_jmp_buf),
+          IA_XHEAAC_DEC_EXE_NONFATAL_INSUFFICIENT_INPUT_BYTES);
+      }
+
       for (i = 0; i < count - 1; i++) {
         mps_buffer[i + *mps_bytes] = ixheaacd_read_bits_buf(it_bit_buff, 8);
       }

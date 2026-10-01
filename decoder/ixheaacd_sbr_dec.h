@@ -54,7 +54,7 @@ typedef struct {
   FLOAT32 *synth_cos_tab;
   FLOAT32 *analy_cos_sin_tab;
 
-  FLOAT32 norm_qmf_in_buf[46][128];
+  FLOAT32 norm_qmf_in_buf[128][128];
   VOID (*ixheaacd_real_synth_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);
 
   VOID (*ixheaacd_cmplx_anal_fft)(FLOAT32 *inp, FLOAT32 *out, WORD32 n_points);

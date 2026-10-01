@@ -736,9 +736,9 @@ WORD32 impd_drc_set_preselection(
   FLOAT32 loudness_normalization_gain_db[16];
   FLOAT32 loudness[16];
   WORD32 peak_info_count;
-  WORD32 eq_set_id_Peak[16];
-  FLOAT32 signal_peak_level[16];
-  WORD32 explicit_peak_information_present[16] = { 0 };
+  WORD32 eq_set_id_Peak[36];
+  FLOAT32 signal_peak_level[36];
+  WORD32 explicit_peak_information_present[36] = { 0 };
 
   ia_uni_drc_coeffs_struct* str_p_loc_drc_coefficients_uni_drc = NULL;
   ia_drc_instructions_struct* str_drc_instruction_str = NULL;

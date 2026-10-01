@@ -226,6 +226,7 @@ WORD32 impd_init_all_filter_banks(
   for (g = 0; g < num_ph_align_ch_groups; g++) {
     num_filter = count[g];
     if (num_filter > 0) {
+      if (num_filter > CASCADE_ALLPASS_COUNT_MAX) return -1;
       for (i = 0; i < num_filter; i++) {
         impd_compute_filt_coeff(
             cascade_cross_idx[g][i], NULL, NULL,
