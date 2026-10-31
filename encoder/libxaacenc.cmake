@@ -136,5 +136,3 @@ set(LIBXAACENC_INCLUDES ${XAAC_ROOT}/encoder ${XAAC_ROOT}/encoder/drc_src)
 include_directories(${LIBXAACENC_INCLUDES})
 
 include("${XAAC_ROOT}/encoder/drc_src/libxaacenc_drc.cmake")
-
-add_library(libxaacenc STATIC ${LIBXAACENC_SRCS} ${LIBXAAC_COMMON_SRCS})

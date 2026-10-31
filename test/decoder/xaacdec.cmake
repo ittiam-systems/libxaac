@@ -7,7 +7,7 @@ set(LIBXAACDEC_INCLUDES ${XAAC_ROOT}/decoder ${XAAC_ROOT}/test/decoder/
 
 include_directories(${LIBXAACDEC_INCLUDES})
 
-libxaac_add_executable(xaacdec libxaacdec SOURCES ${XAACDEC_SRCS} INCLUDES
+libxaac_add_executable(xaacdec xaac SOURCES ${XAACDEC_SRCS} INCLUDES
                        ${LIBXAACDEC_INCLUDES})
 
 if(MSVC)
