@@ -738,7 +738,7 @@ WORD32 impd_drc_set_preselection(
   WORD32 peak_info_count;
   WORD32 eq_set_id_Peak[36];
   FLOAT32 signal_peak_level[36];
-  WORD32 explicit_peak_information_present[36] = { 0 };
+  WORD32 explicit_peak_information_present[36];
 
   ia_uni_drc_coeffs_struct* str_p_loc_drc_coefficients_uni_drc = NULL;
   ia_drc_instructions_struct* str_drc_instruction_str = NULL;
@@ -850,7 +850,8 @@ WORD32 impd_drc_set_preselection(
                 selection_candidate_info[k].drc_instructions_index = i;
                 selection_candidate_info[k].downmix_id_request_index = d;
                 selection_candidate_info[k].eq_set_id = eq_set_id_loudness[l];
-                if (explicit_peak_information_present[p] == 1) {
+                if ((match_found_flag == 1) &&
+                    (explicit_peak_information_present[p] == 1)) {
                   selection_candidate_info[k].selection_flags =
                       SELECTION_FLAG_EXPLICIT_PEAK_INFO_PRESENT;
                 } else {
@@ -874,7 +875,8 @@ WORD32 impd_drc_set_preselection(
                           ->loudness_normalization_on)) {
                   selection_candidate_info[k].selection_flags |=
                       SELECTION_FLAG_DRC_TARGET_LOUDNESS_MATCH;
-                  if (!explicit_peak_information_present[p]) {
+                  if (!(selection_candidate_info[k].selection_flags &
+                        SELECTION_FLAG_EXPLICIT_PEAK_INFO_PRESENT)) {
                     if (pstr_drc_sel_proc_params_struct
                             ->loudness_normalization_on) {
                       selection_candidate_info[k].output_peak_level =
